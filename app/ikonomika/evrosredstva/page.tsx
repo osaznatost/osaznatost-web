@@ -31,10 +31,10 @@ export default function Evrosredstva() {
   const periods = Object.entries(F.byPeriod).filter(([, v]) => v.contractedEur > 0);
   const FUND: Record<string, string> = { "fund:RRP": "План за възстановяване (ПВУ)", "fund:ERDF": "Европейски фонд за регионално развитие", "fund:CF": "Кохезионен фонд", "fund:EAFRD": "Земеделски фонд за селските райони", "fund:ESF": "Европейски социален фонд", "fund:EMFF": "Фонд за морско дело и рибарство", "fund:Other": "Други фондове" };
   const nodes: FlowNode[] = F.sankey.nodes.map((n) => ({ id: n.id, label: FUND[n.id] ?? n.label, kind: n.kind === "fund" ? "source" : "buyer" }));
-  const muniName = (c: string) => (c === "SOF46" ? "София (столица)" : (ELECTIONS.munis as Record<string, { name: string }>)[c]?.name ?? c);
+  const muniName = (c: string) => (c === "SOF00" ? "София (столица)" : (ELECTIONS.munis as Record<string, { name: string }>)[c]?.name ?? c);
   const mapValues: Record<string, { name: string; value: number; note: string }> = Object.fromEntries(Object.entries(F.munis).map(([c, m]) => [c, { name: muniName(c), value: Math.round(m.perCapita), note: `${mn(m.total)} по ${m.contracts} договора` }]));
   // На картата София е по райони, а евросредствата са за цялата столична община.
-  if (mapValues.SOF46) for (const c of Object.keys(ELECTIONS.munis)) if (/^S2[345]/.test(c)) mapValues[c] = { ...mapValues.SOF46, note: `${mapValues.SOF46.note} (цялата столична община)` };
+  if (mapValues.SOF00) for (const c of Object.keys(ELECTIONS.munis)) if (/^S2[345]/.test(c)) mapValues[c] = { ...mapValues.SOF00, note: `${mapValues.SOF00.note} (цялата столична община)` };
   const munisSorted = Object.entries(F.munis).map(([c, m]) => ({ c, name: muniName(c), ...m }));
   const topPc = [...munisSorted].sort((a, b) => b.perCapita - a.perCapita).slice(0, 10);
   const lowPc = [...munisSorted].filter((m) => m.pop > 0).sort((a, b) => a.perCapita - b.perCapita).slice(0, 10);
