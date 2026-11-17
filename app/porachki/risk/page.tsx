@@ -33,7 +33,7 @@ export default function Risk() {
   return (
     <Page>
       <Title back={{ href: "/porachki", label: "Поръчки" }} kicker="Червени флагове за цялата страна"
-        lead={<>Всеки договор от ЦАИС ЕОП ({R.total.toLocaleString("bg-BG")} от {R.from?.slice(0, 4)} г. насам) получава индекс на риска от 0 до 100 по червените флагове на OLAF и Европейската комисия. Тук са най-рисковите възложители, фирми и договори.</>}>
+        lead={<>Всеки договор от ЦАИС ЕОП ({R.total.toLocaleString("bg-BG")}, сключени от {R.years[0]?.key ?? R.from?.slice(0, 4)} г. насам) получава индекс на риска от 0 до 100 по червените флагове на OLAF и Европейската комисия. Тук са най-рисковите възложители, фирми и договори.</>}>
         Риск в обществените поръчки
       </Title>
       <section className="bg-surface rounded-sm p-4 mb-10 max-w-4xl text-[15px]">

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
-import { contractFlags, riskLabel, riskScore } from "@/lib/redFlags";
+import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
 
 export const metadata = { title: "Възложител" };
@@ -26,7 +26,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
   const share = top[0] && total ? top[0][1].sum / total : 0;
   const repeats = repeatedWork(contracts).slice(0, 12);
-  const risky = contracts.map((c) => { const fl = contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), c.supplier_eiks.some((e) => politicalLinks(e).length > 0)); return { c, fl, score: riskScore(fl) }; })
+  const risky = contracts.map((c) => { const fl = contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), c.supplier_eiks.some(personalLink)); return { c, fl, score: riskScore(fl) }; })
     .filter((x) => x.score >= 20).sort((a, b) => b.score - a.score || (b.c.contract_value_eur ?? 0) - (a.c.contract_value_eur ?? 0));
   const riskShare = contracts.length ? Math.round((risky.length / contracts.length) * 100) : 0;
   const splits = possibleSplits(contracts).slice(0, 10);

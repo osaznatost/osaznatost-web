@@ -6,6 +6,9 @@ const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 const HEAD = { apikey: KEY };
 const pol = JSON.parse(readFileSync("data/political-links.json", "utf8")).byEik;
+// Личен интерес: депутат с каквато и да е роля или длъжностно лице със собственост. Управителите на държавни фирми не са конфликт.
+const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
+const personal = (e) => (pol[e] ?? []).some((l) => l.kind === "mp" || (l.roles ?? []).some((r) => OWN.has(r)));
 const BGN = 1.95583, TH = { works: 270000 / BGN, other: 70000 / BGN };
 const NO_COMP = /договаряне без|пряко договаряне|без предварително обявление|без публикуване/i;
 
@@ -38,7 +41,7 @@ function flags(c) {
   if ((c.disqualified_offers_count ?? 0) > 0 && (c.offers_count ?? 0) - (c.disqualified_offers_count ?? 0) <= 1) f.push(["disq", 15]);
   const th = /строител|works/i.test(c.contract_type ?? "") ? TH.works : TH.other;
   if (v > th * 0.9 && v < th) f.push(["threshold", 10]);
-  if ((c.supplier_eiks ?? []).some((e) => pol[e]?.length)) f.push(["political", 20]);
+  if ((c.supplier_eiks ?? []).some(personal)) f.push(["political", 20]);
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push(["sub", 8]);
   return f;
 }

@@ -1,5 +1,10 @@
 import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
+import { politicalLinks } from "@/lib/procurement";
+
+const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
+/** Личен интерес на политик: депутат с каквато и да е роля или длъжностно лице със собственост (не управител на държавна фирма). */
+export const personalLink = (eik: string) => politicalLinks(eik).some((l) => l.kind === "mp" || (l.roles ?? []).some((r) => OWN.has(r)));
 
 /** Червени флагове по образеца на Европейската служба за борба с измамите (OLAF) и инструмента на ЕК за ранно предупреждение.
  *  Всеки флаг е повод за въпрос, не доказателство. Индексът е сума от теглата, най-много 100. */
@@ -20,7 +25,7 @@ export function contractFlags(c: Contract, annexes: Annex[] = [], political = fa
   const works = /строител|works/i.test(c.contract_type ?? "");
   const th = works ? THRESHOLDS.works : THRESHOLDS.other;
   if (v > th * 0.9 && v < th) f.push({ id: "threshold", label: "Точно под прага", why: "Стойността е малко под прага, над който е нужна по-строга процедура.", weight: 10 });
-  if (political) f.push({ id: "political", label: "Връзка с политик", why: "Изпълнителят е свързан с депутат или длъжностно лице по Търговския регистър.", weight: 20 });
+  if (political) f.push({ id: "political", label: "Връзка с политик", why: "Изпълнителят е свързан с депутат или е собственост на длъжностно лице (по Търговския регистър и декларациите).", weight: 20 });
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push({ id: "sub", label: "Голям дял на подизпълнители", why: `Подизпълнителите поемат ${c.subcontracting_percent}% от работата.`, weight: 8 });
   return f;
 }
