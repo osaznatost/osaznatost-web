@@ -92,6 +92,20 @@ const SERIES_COLORS: Record<string, string> = {
 };
 const PALETTE = ["#1F4D3A", "#c8102e", "#3d5a80", "#b08436", "#8a5a8c", "#2a7f7a", "#9aa39e"];
 
+/** Раздалечава надписите в края на линиите, за да не се застъпват (в стойности по оста y). */
+function spread<T extends { value: number }>(rows: T[], height: number): (T & { ly: number })[] {
+  if (rows.length < 2) return rows.map((r) => ({ ...r, ly: r.value }));
+  const vals = rows.map((r) => r.value);
+  const span = (Math.max(...vals) - Math.min(...vals)) || Math.abs(vals[0]) || 1;
+  const plotH = Math.max(120, height - 60);
+  const gap = (span / plotH) * 15 * 1.6; // около 15 px между надписите
+  const sorted = rows.map((r, i) => ({ i, v: r.value })).sort((a, b) => a.v - b.v);
+  for (let k = 1; k < sorted.length; k++) if (sorted[k].v - sorted[k - 1].v < gap) sorted[k].v = sorted[k - 1].v + gap;
+  const out = rows.map((r) => ({ ...r, ly: r.value }));
+  for (const s of sorted) out[s.i].ly = s.v;
+  return out;
+}
+
 /** Няколко линии с етикет в края. x е година (число) или месец „YYYY-MM“. */
 export function MultiLine({
   data, unit = "", yLabel, height = 320, zero = false,
@@ -109,19 +123,21 @@ export function MultiLine({
     const rows = data.map((d) => ({ ...d, x: monthly ? new Date(`${d.x}-01`) : d.x }));
     const lastOf = names.map((n) => rows.filter((d) => d.series === n).at(-1)!).filter(Boolean);
     const f = (v: number) => `${String(Math.round(v * 10) / 10).replace(".", ",")}${unit}`;
+    const longest = Math.max(...names.map((n) => n.length)) + 7;
+    const endLabels = width >= 500 && longest <= 34 && names.length <= 8;
     return Plot.plot({
       ...base,
       width,
       height,
-      marginRight: width < 500 ? 12 : 150,
+      marginRight: endLabels ? Math.min(260, longest * 7.4) : 16,
       marginLeft: Math.max(...data.map((d) => Math.abs(d.value))) >= 10000 ? 62 : 44,
       x: monthly ? { label: null, type: "utc" } : { tickFormat: "d", label: null },
       y: { grid: true, label: yLabel ?? null, labelAnchor: "top", zero, tickFormat: (v: number) => v.toLocaleString("bg-BG") },
-      color: { domain: names, range: colors, legend: width < 500 },
+      color: { domain: names, range: colors, legend: !endLabels },
       marks: [
         ...(zero ? [Plot.ruleY([0], { stroke: MUTED })] : []),
         Plot.lineY(rows, { x: "x", y: "value", stroke: "series", strokeWidth: (d: { series: string }) => (d.series === "България" ? 2.75 : 1.75) }),
-        ...(width < 500 ? [] : [Plot.text(lastOf, { x: "x", y: "value", text: (d: { series: string; value: number }) => `${d.series} ${f(d.value)}`, dx: 6, textAnchor: "start", fill: "series", fontWeight: 600 })]),
+        ...(!endLabels ? [] : [Plot.text(spread(lastOf, height), { x: "x", y: "ly", text: (d: { series: string; value: number }) => `${d.series} ${f(d.value)}`, dx: 6, textAnchor: "start", fill: "series", fontWeight: 600 })]),
         Plot.tip(rows, Plot.pointer({ x: "x", y: "value", title: (d: { series: string; x: number | Date; value: number }) => `${d.series}, ${d.x instanceof Date ? d.x.toISOString().slice(0, 7) : d.x}: ${f(d.value)}` })),
       ],
     }) as SVGSVGElement;

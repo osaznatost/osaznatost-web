@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import { buyerAnnexes, buyerContracts, buyerPlace, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
+import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
+import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
 
 export const metadata = { title: "Възложител" };
 
@@ -23,6 +24,12 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   });
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
   const share = top[0] && total ? top[0][1].sum / total : 0;
+  const repeats = repeatedWork(contracts).slice(0, 12);
+  const splits = possibleSplits(contracts).slice(0, 10);
+  const cats = byCategory(contracts);
+  const conc = hhi(contracts);
+  const top3 = top.slice(0, 3).reduce((a, [, x]) => a + x.sum, 0);
+  const d = (x: string | null) => (x ? new Date(x).toLocaleDateString("bg-BG") : "—");
 
   return (
     <>
@@ -50,6 +57,50 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         </ul>
         <p className="text-xs text-muted mt-2">● Фирмата има връзка с политик или длъжностно лице по Търговския регистър.</p>
       </section>
+      <section className="mb-10">
+        <SectionTitle>За какво отиват парите</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">По ключови думи в предмета на поръчката. Един договор може да попадне в повече от една категория.</p>
+        <ul className="space-y-2 max-w-3xl">{cats.rows.map((r) => (
+          <li key={r.id} className="text-[15px]"><div className="flex justify-between"><span>{r.label}</span><span className="num">{fmtEur(r.sum)} · {r.n} дог. · {Math.round(r.share * 100)}%</span></div>
+            <div className="h-2 rounded-full bg-surface mt-1"><div className="h-full rounded-full bg-green" style={{ width: `${Math.min(100, r.share * 100)}%` }} /></div></li>
+        ))}</ul>
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Колко е концентрирано</SectionTitle>
+        <p className="text-[15px] max-w-3xl">Трите най-големи изпълнители получават <b>{total ? Math.round((top3 / total) * 100) : 0}%</b> от парите. Индексът на концентрация е <b>{conc.toLocaleString("bg-BG")}</b> от 10 000{conc > 2500 ? ": силно концентрирано, няколко фирми вземат почти всичко" : conc > 1500 ? ": умерено концентрирано" : ": парите са разпределени между много фирми"}. Висока концентрация не е доказателство за нарушение, но е знак, че конкуренцията е слаба.</p>
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Повтарящи се поръчки</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Поръчки с много сходен предмет в рамките на две години, например ремонт на една и съща улица или площад. Понякога е нормално (етапи, годишна поддръжка), но повторен ремонт на едно място за кратко време е повод да се поиска обяснение.</p>
+        {repeats.length ? (
+          <ul className="space-y-3">{repeats.map((r) => (
+            <li key={r.key} className="ring-1 ring-rule rounded-sm p-4 bg-white">
+              <p className="font-semibold">{r.contracts.length} поръчки за {r.months} месеца · {fmtEur(r.total)}</p>
+              <p className="text-sm text-muted mb-2">Изпълнители: {r.suppliers.join(", ")}</p>
+              <ul className="text-[15px] space-y-1">{r.contracts.map((c) => (
+                <li key={c.id} className="grid sm:grid-cols-[6.5rem_1fr_auto] gap-x-3"><span className="text-sm text-muted num">{d(c.contract_date)}</span><Link href={`/porachki/dogovor/${encodeURIComponent(contractRef(c.buyer_eik, c.contract_number))}`}>{c.tender_name}</Link><span className="num">{fmtEur(c.contract_value_eur)}</span></li>
+              ))}</ul>
+            </li>
+          ))}</ul>
+        ) : <p className="text-[15px]">Не открихме поръчки с почти еднакъв предмет в рамките на две години.</p>}
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Възможно разделяне под праговете</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Няколко договора с една и съща фирма в рамките на 90 дни, всеки под прага за открита процедура ({fmtEur(THRESHOLDS.works)} за строителство, {fmtEur(THRESHOLDS.other)} за доставки и услуги), а заедно над него. Законът забранява изкуственото разделяне, за да се избегне конкуренция.</p>
+        {splits.length ? (
+          <ul className="space-y-3">{splits.map((x) => (
+            <li key={`${x.eik}-${x.kind}`} className="ring-1 ring-rule rounded-sm p-4 bg-white">
+              <p className="font-semibold"><Link href={firmUrl(x.eik)}>{x.supplier}</Link>: {x.contracts.length} договора за {x.kind}, общо {fmtEur(x.total)}</p>
+              <ul className="text-[15px] mt-1">{x.contracts.map((c) => <li key={c.id} className="grid sm:grid-cols-[6.5rem_1fr_auto] gap-x-3"><span className="text-sm text-muted num">{d(c.contract_date)}</span><Link href={`/porachki/dogovor/${encodeURIComponent(contractRef(c.buyer_eik, c.contract_number))}`}>{c.tender_name}</Link><span className="num">{fmtEur(c.contract_value_eur)}</span></li>)}</ul>
+            </li>
+          ))}</ul>
+        ) : <p className="text-[15px]">Не открихме такива групи договори.</p>}
+        <p className="text-xs text-muted mt-3">Ограничение: в регистъра на обществените поръчки (ЦАИС ЕОП) влизат само поръчките, обявени там. Малките покупки под 30 000 лв. за доставки и услуги и под 50 000 лв. за строителство се правят без обявление и не се виждат. Те личат само в отчета за разходите на общината. Ремонтите по годишни рамкови договори също не винаги се появяват като отделни поръчки.</p>
+      </section>
+
       <section className="mb-10"><SectionTitle>Анекси</SectionTitle><AnnexList items={annexes.slice(0, 20)} /></section>
       <section><SectionTitle>Договори</SectionTitle><ContractList items={contracts.slice(0, 100)} hideBuyer /></section>
     </>

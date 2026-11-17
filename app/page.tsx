@@ -28,7 +28,7 @@ export default function Home() {
   return (
     <Page>
       <section className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-deep text-white -mt-8 sm:-mt-12">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-14 pb-12 grid gap-10 lg:grid-cols-[1fr_1.15fr] items-start">
+        <div className="mx-auto max-w-[88rem] px-4 sm:px-6 pt-10 sm:pt-14 pb-12 grid gap-10 lg:grid-cols-[1fr_1.15fr] items-start">
           <div>
             <h1 className="display text-[3.6rem] sm:text-[5.2rem]">
               Какво прави държавата.<br />С числа и<br className="sm:hidden" /> източници.

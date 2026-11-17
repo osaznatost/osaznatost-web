@@ -8,13 +8,13 @@ export const num = (n: number, digits = 1) =>
 export const pct = (n: number, digits = 1) => `${num(n * 100, digits)}%`;
 
 export function Page({ children, narrow = false }: { children: React.ReactNode; narrow?: boolean }) {
-  return <div className={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${narrow ? "max-w-3xl" : "max-w-6xl"}`}>{children}</div>;
+  return <div className={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${narrow ? "max-w-3xl" : "max-w-[88rem]"}`}>{children}</div>;
 }
 
 export function Title({ kicker, children, lead, back, small = false }: { kicker?: string; children: React.ReactNode; lead?: React.ReactNode; back?: { href: string; label: string }; small?: boolean }) {
   return (
     <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-surface -mt-8 sm:-mt-12 mb-10">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
+      <div className="mx-auto max-w-[88rem] px-4 sm:px-6 py-8 sm:py-12">
         {back && <p className="text-sm mb-4"><Link href={back.href}>← {back.label}</Link></p>}
         {kicker && <p className="text-[15px] text-green font-semibold mb-2">{kicker}</p>}
         <h1 className={`${small ? "text-2xl sm:text-[2rem] leading-snug font-bold tracking-tight" : "display text-5xl sm:text-7xl"} max-w-4xl`}>{children}</h1>
