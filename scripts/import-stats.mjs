@@ -30,6 +30,15 @@ const SERIES = [
   { id: "gdp_growth", ds: "nama_10_gdp", filter: { na_item: "B1GQ", unit: "CLV_PCH_PRE", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "deficit", ds: "gov_10dd_edpt1", filter: { na_item: "B9", sector: "S13", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "debt", ds: "gov_10dd_edpt1", filter: { na_item: "GD", sector: "S13", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  // Структура на икономиката
+  { id: "gva_sectors", ds: "nama_10_a10", filter: { na_item: "B1G", unit: "CP_MEUR", geo: "BG", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K", "L", "M_N", "O-Q", "R-U"] }, by: "nace_r2" },
+  { id: "gva_sectors_eu", ds: "nama_10_a10", filter: { na_item: "B1G", unit: "CP_MEUR", geo: "EU27_2020", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K", "L", "M_N", "O-Q", "R-U"] }, by: "nace_r2" },
+  { id: "gva_sectors_real", ds: "nama_10_a10", filter: { na_item: "B1G", unit: "CLV_PCH_PRE", geo: "BG", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K", "L", "M_N", "O-Q", "R-U"] }, by: "nace_r2" },
+  { id: "emp_sectors", ds: "nama_10_a10_e", filter: { na_item: "EMP_DC", unit: "THS_PER", geo: "BG", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K", "L", "M_N", "O-Q", "R-U"] }, by: "nace_r2" },
+  { id: "comp_sectors", ds: "nama_10_a10", filter: { na_item: "D1", unit: "CP_MEUR", geo: "BG", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K", "L", "M_N", "O-Q", "R-U"] }, by: "nace_r2" },
+  { id: "gdp_expenditure", ds: "nama_10_gdp", filter: { unit: "CP_MEUR", geo: "BG", na_item: ["B1GQ", "P31_S14", "P31_S15", "P3_S13", "P51G", "P52", "P6", "P7"] }, by: "na_item" },
+  { id: "gdp_income", ds: "nama_10_gdp", filter: { unit: "CP_MEUR", geo: "BG", na_item: ["B1GQ", "D1", "B2A3G", "D2X3"] }, by: "na_item" },
+  { id: "gva_oblasts", ds: "nama_10r_3gva", filter: { unit: "MIO_EUR", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-J", "K-N", "O-U"] }, by: "geo", by2: "nace_r2", geoPrefix: "BG", geoLevel: 5 },
   // Хора
   { id: "life_expectancy", ds: "demo_mlexpec", filter: { age: "Y_LT1", unit: "YR", geo: "BG", sex: ["M", "F"] }, by: "sex" },
   { id: "life_expectancy_eu", ds: "demo_mlexpec", filter: { age: "Y_LT1", unit: "YR", sex: "T", geo: ["BG", "EU27_2020"] }, by: "geo" },
@@ -125,14 +134,15 @@ for (const s of SERIES) {
     const lines = {};
     let dup = 0;
     for (const r of records) {
-      const key = r[s.by];
-      if (s.geoPrefix && !(key.startsWith(s.geoPrefix) && key.length === s.geoLevel)) continue;
+      const key = s.by2 ? `${r[s.by]}|${r[s.by2]}` : r[s.by];
+      const g = r.geo ?? key;
+      if (s.geoPrefix && !(g.startsWith(s.geoPrefix) && g.length === s.geoLevel)) continue;
       if ((lines[key] ??= {})[r.time] !== undefined) dup++;
       lines[key][r.time] = Math.round(r.value * 100) / 100;
     }
     // Ако след филтрите остават няколко стойности за една година, серията е двусмислена: не я записваме.
     if (dup) {
-      const multi = js.id.filter((d) => d !== "geo" && d !== "time" && d !== s.by && Object.keys(js.dimension[d].category.index).length > 1);
+      const multi = js.id.filter((d) => d !== "geo" && d !== "time" && d !== s.by && d !== s.by2 && Object.keys(js.dimension[d].category.index).length > 1);
       throw new Error(`двусмислена серия (${dup} повторения), уточни измеренията: ${multi.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 6).join(",")}]`).join(" ")}`);
     }
     if (!Object.keys(lines).length) {
