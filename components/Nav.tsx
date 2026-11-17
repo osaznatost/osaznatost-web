@@ -6,7 +6,8 @@ import { Suspense } from "react";
 
 const items = [
   { href: "/kalkulatori", label: "Калкулатори" },
-  { href: "/pari/dalg", label: "Дълг" },
+  { href: "/ikonomika", label: "Икономика" },
+  { href: "/byudzhet", label: "Бюджет" },
   { href: "/parlament", label: "Парламент" },
   { href: "/obeshtaniya", label: "Обещания" },
   { href: "/porachki", label: "Поръчки" },

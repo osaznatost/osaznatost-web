@@ -27,7 +27,7 @@ export function MoneyFlow({ nodes, links }: { nodes: FlowNode[]; links: FlowLink
 
   const narrow = width < 560;
   const height = Math.max(260, nodes.length * 52);
-  const labelSpace = narrow ? 0 : 150;
+  const labelSpace = narrow ? 0 : width > 900 ? 230 : 160;
   const layout = sankey<FlowNode, FlowLink>()
     .nodeId((d) => d.id)
     .nodeAlign(sankeyJustify)
@@ -66,7 +66,7 @@ export function MoneyFlow({ nodes, links }: { nodes: FlowNode[]; links: FlowLink
             <g key={n.id}>
               <rect x={x0} y={y0} width={x1 - x0} height={Math.max(2, y1 - y0)} fill={n.kind === "unknown" ? "url(#hatch)" : COLOR[n.kind]} rx={2} />
               <text x={labelX} y={(y0 + y1) / 2 - 7} textAnchor={anchor} fontSize={12.5} fontWeight={600} fill="#16201b">
-                {n.label.length > (narrow ? 26 : 34) ? `${n.label.slice(0, narrow ? 25 : 33)}…` : n.label}
+                {n.label.length > (narrow ? 26 : 40) ? `${n.label.slice(0, narrow ? 25 : 39)}…` : n.label}
               </text>
               <text x={labelX} y={(y0 + y1) / 2 + 9} textAnchor={anchor} fontSize={12} fill="#56605b">{eur(n.value ?? 0)}</text>
             </g>

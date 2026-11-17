@@ -5,7 +5,7 @@ type Series = { dataset: string; url: string; updated?: string; labels?: Record<
 export const STATS = raw as unknown as { updated: string; source: string; series: Record<string, Series> };
 
 export const GEO: Record<string, string> = {
-  BG: "България", EU27_2020: "ЕС", RO: "Румъния", GR: "Гърция", HR: "Хърватия", DE: "Германия", PL: "Полша",
+  BG: "България", EU27_2020: "ЕС", RO: "Румъния", GR: "Гърция", HR: "Хърватия", DE: "Германия", PL: "Полша", HU: "Унгария",
   M: "Мъже", F: "Жени",
   BG31: "Северозападен", BG32: "Северен централен", BG33: "Североизточен",
   BG34: "Югоизточен", BG41: "Югозападен (София)", BG42: "Южен централен",
