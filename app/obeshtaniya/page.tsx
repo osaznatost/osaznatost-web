@@ -3,12 +3,13 @@ import raw from "@/content/promises.json";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { formatDate } from "@/lib/parliament";
 
-type Status = "kept" | "in_progress" | "at_risk" | "not_met" | "broken" | "not_assessed";
+type Status = "kept" | "in_progress" | "at_risk" | "not_met" | "broken" | "not_assessed" | "done" | "partly" | "failed";
 type Promise_ = {
   text: string; area: string; said: { who: string; when: string; url: string }; status: Status;
   evidence: string; links: { title: string; url: string }[];
 };
-const data = raw as { updated: string; parties: { party: string; name: string; role: string; programme: { title: string; url: string }[]; promises: Promise_[] }[] };
+type Gov = { party: string; name: string; term: "current" | "past"; period: string; role: string; programme: { title: string; url: string }[]; promises: Promise_[] };
+const data = raw as { updated: string; parties: Gov[] };
 
 const STATUS: Record<Status, { label: string; color: string; text: string }> = {
   kept: { label: "Спазено досега", color: "#2f9e6a", text: "#fff" },
@@ -17,8 +18,13 @@ const STATUS: Record<Status, { label: string; color: string; text: string }> = {
   not_met: { label: "Засега не е изпълнено", color: "#d2353f", text: "#fff" },
   broken: { label: "Нарушено", color: "#7a1e26", text: "#fff" },
   not_assessed: { label: "Още не е проверено", color: "#cfd8d2", text: "#16201b" },
+  done: { label: "Изпълнено", color: "#2f9e6a", text: "#fff" },
+  partly: { label: "Частично изпълнено", color: "#e2b33b", text: "#16201b" },
+  failed: { label: "Не е изпълнено", color: "#d2353f", text: "#fff" },
 };
-const ORDER: Status[] = ["kept", "in_progress", "at_risk", "not_met", "broken", "not_assessed"];
+const ORDER: Status[] = ["done", "kept", "partly", "in_progress", "at_risk", "not_met", "failed", "broken", "not_assessed"];
+const GOOD: Status[] = ["done", "kept"];
+const BAD: Status[] = ["not_met", "failed", "broken"];
 
 export const metadata = { title: "Обещано и изпълнено" };
 
@@ -29,11 +35,36 @@ export default function Obeshtaniya() {
         Обещано и изпълнено
       </Title>
 
-      {data.parties.map((p) => {
+      <section className="mb-12">
+        <SectionTitle>Правителствата едно до друго</SectionTitle>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[15px]">
+            <thead><tr className="text-left text-sm text-muted"><th className="py-2 pr-3">Правителство</th><th className="py-2 pr-3 hidden sm:table-cell">Период</th><th className="py-2 pr-3 num">Обещания</th><th className="py-2 pr-3 num">Изпълнени</th><th className="py-2 num">Не</th></tr></thead>
+            <tbody>
+              {data.parties.map((p) => (
+                <tr key={p.party} className="border-t border-rule">
+                  <td className="py-2 pr-3"><a href={`#${p.party}`}>{p.name}</a></td>
+                  <td className="py-2 pr-3 text-sm hidden sm:table-cell">{p.period}</td>
+                  <td className="py-2 pr-3 num">{p.promises.length}</td>
+                  <td className="py-2 pr-3 num">{p.promises.filter((x) => GOOD.includes(x.status)).length}</td>
+                  <td className="py-2 num">{p.promises.filter((x) => BAD.includes(x.status)).length}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-sm text-muted mt-2">Броят проследени обещания е малък и различен за всяко правителство, затова не изчисляваме процент „честност“. Добавяме обещания с всяка проверка.</p>
+      </section>
+
+      {data.parties.map((p, idx) => {
         const counts = ORDER.map((s) => ({ s, n: p.promises.filter((x) => x.status === s).length })).filter((x) => x.n);
         return (
-          <section key={p.party} className="mb-14">
+          <section key={p.party} id={p.party} className="mb-14 scroll-mt-24">
+            {(idx === 0 || data.parties[idx - 1].term !== p.term) && (
+              <p className="text-sm font-semibold text-red mb-2">{p.term === "current" ? "Сега на власт" : "Предишни правителства"}</p>
+            )}
             <SectionTitle>{p.name}</SectionTitle>
+            <p className="text-sm -mt-3 mb-2">{p.period}</p>
             <p className="text-[15px] text-muted max-w-3xl -mt-2 mb-5">{p.role}</p>
 
             <div className="bg-surface rounded-xl p-5 mb-6">
@@ -87,7 +118,8 @@ export default function Obeshtaniya() {
           <li><b>Под въпрос</b>: обещанието се спазва досега, но има официално предложение, което би го нарушило.</li>
           <li><b>Засега не е изпълнено</b>: официалните данни показват обратното на обещаното за текущия период.</li>
           <li><b>Нарушено</b>: управляващите са приели решение, което прави обещанието неизпълнимо.</li>
-          <li>Започваме с управляващата партия, защото тя има властта да изпълни обещанията си. Следват опозиционните партии: как гласуват спрямо това, което са заявили.</li>
+          <li>За приключилите мандати: <b>Изпълнено</b>, <b>Частично изпълнено</b> или <b>Не е изпълнено</b>, по резултата в края на мандата.</li>
+          <li>Сравняваме правителствата по един и същ начин: обещание с източник, резултат с официални данни. Следват правителството „Петков“ и опозиционните партии: как гласуват спрямо това, което са заявили.</li>
         </ul>
       </section>
     </Page>

@@ -158,6 +158,176 @@
           "evidence": "При проверката не открихме приета стратегия до 17.11.2026 г. Ще оценим, когато има официален документ или изтече разумен срок.",
           "links": []
         }
+      ],
+      "term": "current",
+      "period": "от 8 май 2026 г."
+    },
+    {
+      "party": "GOV-ZH",
+      "name": "Правителство „Желязков“ (ГЕРБ–СДС, БСП, ИТН)",
+      "term": "past",
+      "period": "16 януари 2025 – 11 декември 2025 г. (оставка)",
+      "role": "Коалиция на ГЕРБ–СДС, БСП–Обединена левица и ИТН, с подкрепата на „ДПС–Ново начало“. Внесеният бюджет за 2026 г. предвиждаше по-високи осигуровки и по-висок данък върху дивидентите. Беше оттеглен след масови протести, а правителството подаде оставка на 11 декември 2025 г.",
+      "programme": [
+        {
+          "title": "Програма за управление 2025–2029 г.",
+          "url": "https://www.gov.bg/files/common/upravlenska%20programa.pdf"
+        },
+        {
+          "title": "Reuters (чрез ARY): правителството подава оставка след протестите",
+          "url": "https://arynews.tv/bulgaria-faces-political-turmoil-and-resignation"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Еврото от 1 януари 2026 г.",
+          "area": "Икономика",
+          "said": {
+            "who": "Росен Желязков",
+            "when": "януари 2025",
+            "url": "https://intellinews.com/bulgaria-s-new-government-gives-up-on-january-2026-eurozone-entry-363207"
+          },
+          "status": "done",
+          "evidence": "България е в еврозоната от 1 януари 2026 г. Подготовката е започнала при предишни правителства, но решението за членство е взето по време на този мандат.",
+          "links": [
+            {
+              "title": "БТА: от 1 януари 2026 г. еврото е официалното платежно средство",
+              "url": "https://www.bta.bg/bg/news/economy/948427-sled-vavezhdane-na-evroto-ot-1-yanuari-kak-shte-se-plashtat-zadalzheniyata-za-a"
+            },
+            {
+              "title": "БТА: Европейският парламент подкрепи присъединяването",
+              "url": "https://www.bta.bg/bg/videos/29092"
+            }
+          ]
+        },
+        {
+          "text": "Бюджет 2025 с дефицит до 3% от БВП и разходи до 40% от БВП",
+          "area": "Бюджет",
+          "said": {
+            "who": "Росен Желязков",
+            "when": "4 февруари 2025",
+            "url": "https://www.bta.bg/en/news/827256-budget-draft-for-2025-sets-spending-at-40-of-gdp-deficit-below-3-says-pm-zhe"
+          },
+          "status": "failed",
+          "evidence": "По методологията на ЕС дефицитът за 2025 г. е 4,1 млрд. €, или 3,5% от БВП (предварителни данни на НСИ). Финансовият министър Теменужка Петкова твърди, че по касовата консолидирана програма дефицитът е в рамките на 3%. Правителството обаче беше обещало 3% и по двете методологии.",
+          "links": [
+            {
+              "title": "НСИ: дефицит 2025 г. по методологията на ЕС",
+              "url": "https://www.nsi.bg/file/35225/notifikacionni_tablici_za_dalga_i_deficita_na_sektor_darjavno_upravlenie.pdf"
+            },
+            {
+              "title": "БТА: Петкова за стабилните публични финанси",
+              "url": "https://www.bta.bg/bg/videos/34131"
+            },
+            {
+              "title": "Капитал: целта е 3% и по касова, и по начислена основа",
+              "url": "https://www.capital.bg/en/economy/2025/02/24/4747102_bulgarias_2025_budget_draft_eurozone_aspirations_vs/"
+            },
+            {
+              "title": "Дълг и дефицит по години",
+              "url": "/pari/dalg"
+            }
+          ]
+        },
+        {
+          "text": "Без вдигане на данъците в бюджета за 2025 г.",
+          "area": "Данъци",
+          "said": {
+            "who": "Правителството",
+            "when": "март 2025",
+            "url": "https://www.bta.bg/bg/videos/26761"
+          },
+          "status": "done",
+          "evidence": "Бюджетът за 2025 г. е приет на 21 март 2025 г. без увеличение на данъците. За 2026 г. правителството внесе бюджет с по-високи осигуровки и по-висок данък върху дивидентите, но го оттегли след протестите.",
+          "links": [
+            {
+              "title": "Reuters (чрез ARY): оттегленият бюджет за 2026 г.",
+              "url": "https://arynews.tv/bulgaria-faces-political-turmoil-and-resignation"
+            },
+            {
+              "title": "Капитал: „Оттегляме бюджета“",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/12/02/4859422_purva_reakciia_ot_pravitelstvoto_sled_protesta/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "party": "GOV-DK",
+      "name": "Правителство „Денков“ (ПП–ДБ и ГЕРБ–СДС)",
+      "term": "past",
+      "period": "6 юни 2023 – март 2024 г.",
+      "role": "Правителство с подкрепата на ПП–ДБ и ГЕРБ–СДС, с договорка за ротация на премиера след 9 месеца. Ротацията не се случи и последваха предсрочни избори.",
+      "programme": [
+        {
+          "title": "Програмата за управление, приета на 26 юли 2023 г. (intellinews)",
+          "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Еврото от 1 януари 2025 г.",
+          "area": "Икономика",
+          "said": {
+            "who": "Николай Денков",
+            "when": "юли 2023 и януари 2024",
+            "url": "https://www.bta.bg/bg/videos/19030"
+          },
+          "status": "failed",
+          "evidence": "България не влезе в еврозоната на 1 януари 2025 г., защото не изпълняваше критерия за инфлацията. Влезе година по-късно, на 1 януари 2026 г. Самият Денков казва през януари 2024 г., че датата не е „сакрална“.",
+          "links": [
+            {
+              "title": "БТА: Денков, датата не е сакрална",
+              "url": "https://bta.bg/en/news/604283-bulgaria-s-eurozone-entry-date-not-sacral-pm-denkov"
+            },
+            {
+              "title": "БТА: от 1 януари 2026 г. еврото е официалното платежно средство",
+              "url": "https://www.bta.bg/bg/news/economy/948427-sled-vavezhdane-na-evroto-ot-1-yanuari-kak-shte-se-plashtat-zadalzheniyata-za-a"
+            }
+          ]
+        },
+        {
+          "text": "Шенген до края на 2023 г.",
+          "area": "Външна политика",
+          "said": {
+            "who": "Програмата за управление",
+            "when": "26 юли 2023",
+            "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
+          },
+          "status": "partly",
+          "evidence": "Частично и със закъснение: свободно пътуване по въздух и море от 31 март 2024 г. Проверките по сухопътните граници отпаднаха от 1 януари 2025 г., вече при друго правителство.",
+          "links": [
+            {
+              "title": "Правителството: отчет след 9 месеца",
+              "url": "https://www.gov.bg/en/Press-center/News/Denkov-Gabriel-cabinet-reports-over-50-implementation-of-the-18-month-program-of-government-and-progress-in-all-sectors-in-its-first-nine-months-in-office"
+            },
+            {
+              "title": "БТА: решението за сухопътните граници",
+              "url": "https://www.bta.bg/en/news/798959-cc-db-hard-won-political-victory-for-bulgaria-"
+            }
+          ]
+        },
+        {
+          "text": "Бюджети за 2023 и 2024 г. с дефицит до 3%",
+          "area": "Бюджет",
+          "said": {
+            "who": "Програмата за управление",
+            "when": "26 юли 2023",
+            "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
+          },
+          "status": "done",
+          "evidence": "Дефицитът за 2023 г. е 2,2% от БВП по думите на финансовия министър Асен Василев. Бюджетът за 2024 г. е приет с цел 3%, но изпълнението му е при следващите правителства.",
+          "links": [
+            {
+              "title": "Правителството: дефицит 2,2% за 2023 г.",
+              "url": "https://www.gov.bg/en/Press-center/News/Prime-Minister-Acad-Nikolai-Denkov-in-Davos-Bulgaria-aims-at-accession-to-the-Eurozone-on-1-January-2025"
+            },
+            {
+              "title": "Дълг и дефицит по години",
+              "url": "/pari/dalg"
+            }
+          ]
+        }
       ]
     }
   ]
