@@ -3,6 +3,7 @@ import { KeyNumber, Page, Title, num, pct, SectionTitle } from "@/components/ui"
 import { currentSeats, MPS, NS, PARLIAMENT_SOURCE, PARTIES, TOPICS, UPDATED_AT, VOTES, formatDate, partyBreakdown, partyName, partyPosition, partyStats } from "@/lib/parliament";
 import { VoteList, type VoteRow } from "./VoteList";
 import { Hemicycle } from "@/components/Hemicycle";
+import { RecentSittings, Upcoming } from "./Recent";
 
 export const metadata = { title: "Парламент" };
 
@@ -31,6 +32,9 @@ export default function Parlament() {
         <KeyNumber label="Отхвърлени предложения" value={num(rejected, 0)} note={`${pct(rejected / VOTES.length, 0)} от всички гласувания`} />
         <KeyNumber label="Депутати в периода" value={num(MPS.length, 0)} note="включително заместили други" />
       </div>
+
+      <RecentSittings />
+      <Upcoming />
 
       <section className="mb-12">
         <SectionTitle right={<Link href="/parlament/partii">Подробно и сравнение</Link>}>Парламентарни групи</SectionTitle>
@@ -64,7 +68,7 @@ export default function Parlament() {
         <p className="text-xs text-muted mt-2">Полукръгът показва действащите депутати към последното гласуване. В таблицата броят е по последната известна група и включва заместници, затова сборът е над 240.</p>
       </section>
 
-      <section>
+      <section id="vsichki" className="scroll-mt-24">
         <SectionTitle>Всички гласувания</SectionTitle>
         <VoteList rows={rows} parties={PARTIES.map((p) => ({ id: p, name: partyName(p) }))} topics={TOPICS} />
       </section>
