@@ -1,0 +1,224 @@
+{
+ "updated": "2026-11-17",
+ "note": "Санкцията е мярка на чужда държава (замразяване на активи и забрана за влизане). Тя не е присъда от български съд. Санкционираните отричат обвиненията.",
+ "regimes": {
+  "GLOMAG": {
+   "name": "Глобален закон „Магнитски“ (САЩ, Министерство на финансите, OFAC)",
+   "effect": "Замразяване на активи в САЩ и забрана за сделки с американски лица и банки, работещи в долари."
+  },
+  "7031c": {
+   "name": "Раздел 7031(c) (САЩ, Държавен департамент)",
+   "effect": "Забрана за влизане в САЩ за лицето и семейството му заради значима корупция."
+  },
+  "UKGAC": {
+   "name": "Британски режим за санкции срещу корупция (Global Anti-Corruption)",
+   "effect": "Замразяване на активи и забрана за влизане във Великобритания."
+  }
+ },
+ "people": [
+  {
+   "name": "Делян Славчев Пеевски",
+   "role": "Лидер на „ДПС–Ново начало“, народен представител",
+   "party": "ДПС",
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2021-06-02",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy0208"
+    },
+    {
+     "regime": "7031c",
+     "date": "2021-06-02",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy0208"
+    },
+    {
+     "regime": "UKGAC",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    }
+   ],
+   "allegation": "Според Министерството на финансите на САЩ е използвал влияние и подкупи, за да контролира институции и ключови сектори, включително чрез посредника си Илко Желязков.",
+   "bg": "Пет години след санкциите българската прокуратура не е открила основания за наказателно преследване (Club Z, 2026).",
+   "bgUrl": "https://clubz.bg/177320"
+  },
+  {
+   "name": "Илко Димитров Желязков",
+   "role": "Бивш заместник-председател на Държавната агенция „Технически операции“, член на Националното бюро за контрол на СРС",
+   "party": null,
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2021-06-02",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy0208"
+    },
+    {
+     "regime": "7031c",
+     "date": "2021-06-02",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy0208"
+    },
+    {
+     "regime": "UKGAC",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    }
+   ],
+   "allegation": "Според САЩ е бил посредник на Пеевски: предлагал е подкупи на висши служители срещу информация и назначения."
+  },
+  {
+   "name": "Васил Крумов Божков",
+   "role": "Бизнесмен (хазарт), основател на партия „Българско лято“",
+   "party": "Българско лято",
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2021-06-02",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy0208"
+    },
+    {
+     "regime": "UKGAC",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    }
+   ],
+   "allegation": "Според САЩ многократно е подкупвал държавни служители, включително председателя на Държавната комисия по хазарта, за да бъдат отнети лицензите на конкурентите му."
+  },
+  {
+   "name": "Владислав Иванов Горанов",
+   "role": "Бивш министър на финансите, народен представител от ГЕРБ",
+   "party": "ГЕРБ-СДС",
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    },
+    {
+     "regime": "7031c",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://www.state.gov/reports/report-to-congress-on-anti-kleptocracy-and-human-rights-visa-restrictions-public-listing/public-listing-fiscal-year-2023"
+    }
+   ],
+   "allegation": "Според САЩ е използвал поста си, за да улесни подкупи срещу изгодно законодателство, което е лишило държавата от данъчни приходи. ГЕРБ се дистанцира официално, а Бойко Борисов заяви, че е сигурен в невинността му."
+  },
+  {
+   "name": "Румен Стоянов Овчаров",
+   "role": "Бивш министър на икономиката и енергетиката, член на Националния съвет на БСП",
+   "party": "БСП",
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    },
+    {
+     "regime": "7031c",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://www.state.gov/reports/report-to-congress-on-anti-kleptocracy-and-human-rights-visa-restrictions-public-listing/public-listing-fiscal-year-2023"
+    }
+   ],
+   "allegation": "Според САЩ заедно с Николов и Генов е отклонявал договори за услуги на АЕЦ „Козлодуй“ към свои бизнес интереси срещу комисиони."
+  },
+  {
+   "name": "Александър Христов Николов",
+   "role": "Бивш изпълнителен директор на АЕЦ „Козлодуй“",
+   "party": null,
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    },
+    {
+     "regime": "7031c",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://www.state.gov/reports/report-to-congress-on-anti-kleptocracy-and-human-rights-visa-restrictions-public-listing/public-listing-fiscal-year-2023"
+    }
+   ],
+   "allegation": "Според САЩ е участвал в схемата с договорите на АЕЦ „Козлодуй“."
+  },
+  {
+   "name": "Иван Киров Генов",
+   "role": "Бивш изпълнителен директор на АЕЦ „Козлодуй“, бивш народен представител от БСП",
+   "party": "БСП",
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://ofac.treasury.gov/recent-actions/20230210"
+    }
+   ],
+   "allegation": "Според САЩ е участвал в схемата с договорите на АЕЦ „Козлодуй“."
+  },
+  {
+   "name": "Николай Симеонов Малинов",
+   "role": "Лидер на движение „Русофили“, бивш народен представител от БСП",
+   "party": "Русофили (бивш депутат от БСП)",
+   "measures": [
+    {
+     "regime": "GLOMAG",
+     "date": "2023-02-10",
+     "status": "в сила",
+     "url": "https://home.treasury.gov/news/press-releases/jy1264"
+    }
+   ],
+   "allegation": "Според САЩ е участвал в корупционни действия в полза на руски интереси."
+  },
+  {
+   "name": "Александър Манолев",
+   "role": "Бивш заместник-министър на икономиката",
+   "party": null,
+   "measures": [
+    {
+     "regime": "7031c",
+     "date": "2021-06-02",
+     "status": "отменена (2026)",
+     "url": "https://eualive.net/u-s-lifts-sanctions-on-former-bulgarian-deputy-minister/"
+    }
+   ],
+   "allegation": "Обявен за участие в значима корупция през 2021 г. През 2026 г. Държавният департамент го изважда от списъка."
+  },
+  {
+   "name": "Петър Харалампиев",
+   "role": "Бивш държавен служител",
+   "party": null,
+   "measures": [
+    {
+     "regime": "7031c",
+     "date": "2021-06-02",
+     "status": "няма данни за отмяна",
+     "url": "https://www.neglobal.eu/washington-zeroes-in-on-corrupt-bulgarian-officials/"
+    }
+   ],
+   "allegation": "Обявен от Държавния департамент за участие в значима корупция."
+  },
+  {
+   "name": "Красимир Томов",
+   "role": "Бивш държавен служител",
+   "party": null,
+   "measures": [
+    {
+     "regime": "7031c",
+     "date": "2021-06-02",
+     "status": "няма данни за отмяна",
+     "url": "https://www.neglobal.eu/washington-zeroes-in-on-corrupt-bulgarian-officials/"
+    }
+   ],
+   "allegation": "Обявен от Държавния департамент за участие в значима корупция."
+  }
+ ]
+}

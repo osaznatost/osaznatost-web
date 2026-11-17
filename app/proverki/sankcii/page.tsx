@@ -1,0 +1,66 @@
+import Link from "next/link";
+import { Page, SectionTitle, Title } from "@/components/ui";
+import { formatDate } from "@/lib/parliament";
+import { SANCTIONS } from "@/lib/sanctions";
+
+export const metadata = { title: "Санкции за корупция" };
+
+const SHORT: Record<string, string> = { GLOMAG: "„Магнитски“ (САЩ)", "7031c": "Забрана за влизане в САЩ", UKGAC: "Санкции на Великобритания" };
+
+export default function Sankcii() {
+  const P = SANCTIONS.people;
+  const active = P.filter((p) => p.measures.some((m) => !m.status.startsWith("отмен")));
+  const byParty = new Map<string, number>();
+  for (const p of active) byParty.set(p.party ?? "Без партия (служители, бизнес)", (byParty.get(p.party ?? "Без партия (служители, бизнес)") ?? 0) + 1);
+  return (
+    <Page>
+      <Title back={{ href: "/proverki", label: "Проверки" }} kicker="Корупция: само официални източници"
+        lead="Българи, санкционирани от САЩ и Великобритания за значима корупция. Само мерки, обявени официално от Министерството на финансите и Държавния департамент на САЩ и от британското правителство.">
+        Санкции за корупция
+      </Title>
+
+      <section className="bg-surface rounded-sm p-5 mb-10 max-w-4xl text-[15px] space-y-2">
+        <p><b>Какво е и какво не е това.</b> {SANCTIONS.note}</p>
+        <p>Различаваме пет нива и не ги смесваме: <b>сигнал</b> (някой е подал жалба), <b>разследване</b> (прокуратурата проверява), <b>обвинение</b> (повдигнато официално), <b>присъда</b> (влязла в сила) и <b>санкция</b> (мярка на друга държава). Тук са само санкциите. Обвиненията и присъдите добавяме отделно, само по документи на прокуратурата и съдилищата.</p>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-3 mb-10">
+        {[
+          ["Санкционирани българи", String(P.length), `${active.length} с мерки в сила`],
+          ["„Магнитски“ (САЩ)", String(P.filter((p) => p.measures.some((m) => m.regime === "GLOMAG")).length), "замразени активи в САЩ"],
+          ["Великобритания", String(P.filter((p) => p.measures.some((m) => m.regime === "UKGAC")).length), "активи и забрана за влизане"],
+        ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
+      </section>
+
+      <section className="mb-10 max-w-3xl">
+        <SectionTitle>По партийна принадлежност</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-3">Принадлежността е към момента на санкцията или сегашната, ако е известна. Броят сам по себе си не показва коя партия е „по-корумпирана“: санкциите засягат малко хора и зависят от приоритетите на чуждите правителства.</p>
+        <ul className="text-[15px] space-y-1">{[...byParty.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="flex justify-between border-b border-rule py-1"><span>{k}</span><b className="num">{n}</b></li>)}</ul>
+      </section>
+
+      <section className="mb-12">
+        <SectionTitle>Лицата</SectionTitle>
+        <ul className="grid gap-4 lg:grid-cols-2">{P.map((p) => (
+          <li key={p.name} className="ring-1 ring-rule rounded-sm p-5 bg-white">
+            <p className="font-semibold text-lg">{p.name}</p>
+            <p className="text-sm text-muted">{p.role}</p>
+            <ul className="flex flex-wrap gap-2 my-3">{p.measures.map((m) => (
+              <li key={m.regime}><a href={m.url} target="_blank" rel="noreferrer" className={`text-xs font-semibold px-2.5 py-1 rounded-full no-underline ${m.status.startsWith("отмен") ? "bg-surface text-muted line-through" : "bg-red text-white"}`}>{SHORT[m.regime]} · {formatDate(m.date)}</a></li>
+            ))}</ul>
+            <p className="text-[15px]">{p.allegation}</p>
+            {p.bg && <p className="text-sm mt-2 bg-surface rounded-sm px-3 py-2"><b>В България:</b> {p.bg}{p.bgUrl && <> <a href={p.bgUrl} target="_blank" rel="noreferrer">Източник</a></>}</p>}
+            <p className="text-xs text-muted mt-2">Статус: {p.measures.map((m) => `${SHORT[m.regime]}: ${m.status}`).join("; ")}</p>
+          </li>
+        ))}</ul>
+      </section>
+
+      <section className="max-w-3xl text-[15px] space-y-2 mb-8">
+        <SectionTitle>Режимите</SectionTitle>
+        {Object.entries(SANCTIONS.regimes).map(([k, r]) => <p key={k}><b>{r.name}.</b> {r.effect}</p>)}
+        <p>Списъците се проверяват при всяко обновяване. Ако някой бъде изваден от списък, мярката остава тук, задраскана, с датата на отмяната.</p>
+        <p>Свързано: <Link href="/ikonomika/evrosredstva/politika">евросредства и политици</Link>, <Link href="/proverki">проверки на твърдения</Link>.</p>
+      </section>
+      <p className="text-xs text-muted">Проверено: {formatDate(SANCTIONS.updated)}.</p>
+    </Page>
+  );
+}

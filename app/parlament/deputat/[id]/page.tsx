@@ -4,6 +4,7 @@ import { VOTE_COLOR } from "@/components/parliament";
 import { ClaimCard } from "@/components/ClaimCard";
 import { PartyBadge } from "@/components/PartyBadge";
 import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui";
+import { sanctionsFor } from "@/lib/sanctions";
 import { DS_CHECK, MS_TYPE, NS_YEARS, claimsFor, dsFor, historyFor, prefsFor, profileFor } from "@/lib/mpProfile";
 import { ELECTIONS, partyByGroup } from "@/lib/partyMeta";
 import { MPS, PARLIAMENT_SOURCE, VOTES, VOTE_LABEL, type VoteCode, formatDate, getMp, mpStats, mpVote, partyName } from "@/lib/parliament";
@@ -28,6 +29,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
   const born = prof?.born ?? hist?.born ?? null;
   const ds = dsFor(mp.name, born);
   const claims = claimsFor(mp.name);
+  const sanc = sanctionsFor(mp.name);
   const current = (prof?.ms ?? []).filter((m) => String(m.to).startsWith("9999") && [3, 4, 6, 9].includes(m.t));
   const listName = (n: number) => ELECTIONS.parties.find((p) => p.num === n)?.name ?? "";
   const meta = partyByGroup(mp.party);
@@ -86,6 +88,17 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
             ))}
           </div>
           <p className="text-xs text-muted mt-2">Източник: ЦИК, преференции по секции. Кандидатът влиза с преференции, ако събере поне 7% от гласовете за листата в района.</p>
+        </section>
+      )}
+
+      {sanc && (
+        <section className="mb-12">
+          <SectionTitle>Санкции за корупция</SectionTitle>
+          <div className="ring-2 ring-red rounded-sm p-4 bg-white max-w-3xl text-[15px]">
+            <p className="font-semibold">Санкциониран за значима корупция: {sanc.measures.map((m) => ({ GLOMAG: "„Магнитски“ (САЩ)", "7031c": "забрана за влизане в САЩ", UKGAC: "Великобритания" })[m.regime] + ` (${m.date.slice(0, 4)}, ${m.status})`).join("; ")}.</p>
+            <p className="mt-1">{sanc.allegation}</p>
+            <p className="text-sm text-muted mt-2">Санкцията е мярка на чужда държава, не присъда на български съд. <Link href="/proverki/sankcii">Всички санкционирани и източниците</Link>.</p>
+          </div>
         </section>
       )}
 

@@ -14,6 +14,7 @@ const items = [
   { href: "/mesta", label: "Места" },
   { href: "/statistiki", label: "Статистики" },
   { href: "/proverki", label: "Проверки" },
+  { href: "/novini", label: "Новини" },
   { href: "/metodologiya", label: "Как работим" },
 ];
 
