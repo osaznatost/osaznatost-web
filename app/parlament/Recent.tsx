@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { OutcomeTag, TallyBar } from "@/components/parliament";
 import { SectionTitle } from "@/components/ui";
-import { PARTIES, VOTES, type Vote, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
+import { FAILED_SITTINGS, PARTIES, VOTES, type Vote, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 import { explain, lawFromTitle } from "@/lib/voteExplain";
 import { PROGRAM, PROGRAM_HISTORY, billUrl, parsePoint } from "@/lib/program";
 
@@ -18,9 +18,10 @@ export function RecentSittings({ days = 3 }: { days?: number }) {
     <section className="mb-14">
       <SectionTitle right={<a href="#vsichki">Всички гласувания</a>}>Последните заседания</SectionTitle>
       {(() => {
-        const lag = Math.round((Date.now() - Date.parse(dates[0])) / 86400000);
-        return lag > 10 ? <p className="text-sm bg-[#fbecc4] rounded-sm px-3 py-2 -mt-2 mb-4 max-w-3xl">Поименните гласувания са до {formatDate(dates[0])}. Обработените данни идват от проекта „Наясно“, който още не е добавил по-новите заседания. Програмата отгоре е актуална, защото идва директно от parliament.bg.</p> : null;
+        const lag = Math.round((Date.parse(PROGRAM.from) - Date.parse(dates[0])) / 86400000);
+        return lag > 10 ? <p className="text-sm bg-[#fbecc4] rounded-sm px-3 py-2 -mt-2 mb-4 max-w-3xl">Последните публикувани поименни гласувания са от {formatDate(dates[0])}. Обновяваме всеки ден от parliament.bg.</p> : null;
       })()}
+      {FAILED_SITTINGS.length > 0 && <p className="text-sm text-muted -mt-2 mb-4">Провалени заседания (няма кворум, не е гласувано нищо): {FAILED_SITTINGS.map(formatDate).join(", ")}</p>}
       <div className="grid gap-4 lg:grid-cols-3">
         {dates.map((d) => {
           const dayVotes = VOTES.filter((v) => v.date === d);

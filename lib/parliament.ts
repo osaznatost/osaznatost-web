@@ -8,13 +8,15 @@ export type Vote = {
   contest: number | null; v: string; pdf: string | null;
 };
 
-const data = raw as unknown as { ns: string; updatedAt: string; source: { title: string; url: string; repo: string }; mps: Mp[]; votes: Vote[] };
+const data = raw as unknown as { ns: string; updatedAt: string; source: { title: string; url: string; repo: string }; mps: Mp[]; votes: Vote[]; failedSittings?: string[] };
 
 export const NS = data.ns;
 export const UPDATED_AT = data.updatedAt;
 export const PARLIAMENT_SOURCE = data.source;
 export const MPS = data.mps;
 export const VOTES = data.votes;
+/** Заседания, провалени поради липса на кворум. */
+export const FAILED_SITTINGS = data.failedSittings ?? [];
 
 export const PARTY_NAMES: Record<string, string> = {
   "ПБ": "Прогресивна България",
