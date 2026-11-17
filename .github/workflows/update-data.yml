@@ -36,6 +36,11 @@ jobs:
         run: node scripts/import-local.mjs
       - name: Профил на местата (преброяване, карти, държавни инвестиции)
         run: node scripts/import-places.mjs
+      - name: Национална класация на риска в поръчките
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/build-risk.mjs
       - name: Запис, ако има промяна
         run: |
           git add data/

@@ -164,6 +164,10 @@ async function Content({ searchParams }: { searchParams: Promise<SP> }) {
         </section>
       )}
 
+      <Link href="/porachki/risk" className="block ring-2 ring-red rounded-sm p-4 mb-8 bg-white no-underline text-ink hover:ring-4">
+        <p className="font-semibold text-lg">Риск в поръчките за цялата страна →</p>
+        <p className="text-[15px] text-muted">Индекс от червени флагове за всеки договор: най-рисковите възложители, фирми, договори и области.</p>
+      </Link>
       {mu && !se && <p className="mb-6 -mt-6"><Link href={`/mesta/${oblastSlug(mu.code)}/${muniSlug(mu.code)}/vlast`} className="font-semibold">Кой управлява общината и има ли дялове във фирмите изпълнители →</Link></p>}
       {mu && !se && <MuniFinanceBlock code={mu.code} />}
 
