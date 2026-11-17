@@ -15,11 +15,13 @@ export type Contract = {
   subcontracting_percent: string | null; subcontracting_amount: string | null; is_eu_funded: boolean | null; eu_program: string | null;
   is_framework: boolean | null; direct_award_justification: string | null; offers_count: number | null; sme_offers_count: number | null;
   disqualified_offers_count: number | null; contract_period_days: number | null; ted_link: string | null;
+  contract_value_eur: number | null; estimated_value_eur: number | null;
 };
 export type Annex = {
   id: string; notice_id: number; published_at: string; tender_id: number; tender_name: string; buyer_eik: string; buyer_name: string;
   contract_number: string; contract_date: string | null; last_value: number | null; current_value: number | null; value_difference: number | null;
   currency: string; supplier_eiks: string[]; supplier_names: string[]; change_description: string | null;
+  last_value_eur: number | null; current_value_eur: number | null; value_difference_eur: number | null;
 };
 export type SupplierStats = { eik: string; name: string; contracts: number; total_eur: number | null; buyers: number; single_offer: number; first_date: string; last_date: string };
 
@@ -52,11 +54,11 @@ export const buyerAnnexes = (eik: string) => q<Annex>(`proc_annexes?buyer_eik=eq
 
 export const latestContracts = () => q<Contract>(`proc_contracts?order=published_at.desc&limit=30`);
 export const biggestContracts = (since: string) =>
-  q<Contract>(`proc_contracts?contract_date=gte.${since}&contract_currency=eq.EUR&order=contract_value.desc.nullslast&limit=20`);
+  q<Contract>(`proc_contracts?contract_date=gte.${since}&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20`);
 export const singleOfferBig = (since: string) =>
-  q<Contract>(`proc_contracts?contract_date=gte.${since}&offers_count=eq.1&contract_currency=eq.EUR&order=contract_value.desc.nullslast&limit=20`);
+  q<Contract>(`proc_contracts?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20`);
 export const biggestAnnexes = (since: string) =>
-  q<Annex>(`proc_annexes?published_at=gte.${since}&value_difference=gt.0&order=value_difference.desc.nullslast&limit=20`);
+  q<Annex>(`proc_annexes?published_at=gte.${since}&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20`);
 export const topSuppliers = () => q<SupplierStats>(`proc_supplier_stats?order=total_eur.desc.nullslast&limit=25`);
 export const importState = async () => (await q<{ last_day: string }>(`proc_import_state?feed=eq.eop`))[0]?.last_day;
 export const searchContracts = (term: string) => {
@@ -77,12 +79,12 @@ export function signals(c: Contract, annexes: Annex[] = []) {
   if (c.disqualified_offers_count && c.disqualified_offers_count > 0)
     out.push({ level: "mid", text: `Отстранени оферти: ${c.disqualified_offers_count} от ${c.offers_count ?? "?"}.` });
   if (c.direct_award_justification) out.push({ level: "mid", text: "Възложена без открита процедура (пряко договаряне)." });
-  const added = annexes.reduce((s, a) => s + (a.value_difference ?? 0), 0);
-  if (c.contract_value && added > 0) {
-    const r = added / c.contract_value;
+  const added = annexes.reduce((s, a) => s + (a.value_difference_eur ?? 0), 0);
+  if (c.contract_value_eur && added > 0) {
+    const r = added / c.contract_value_eur;
     out.push({ level: r > 0.25 ? "high" : "mid", text: `Анексите добавят ${Math.round(r * 100)}% към първоначалната стойност.` });
   }
-  if (c.estimated_value && c.contract_value && c.contract_value > c.estimated_value * 1.02)
+  if (c.estimated_value_eur && c.contract_value_eur && c.contract_value_eur > c.estimated_value_eur * 1.02)
     out.push({ level: "mid", text: "Договорената стойност е над прогнозната." });
   for (const e of c.supplier_eiks) if (politicalLinks(e).length) out.push({ level: "high", text: "Изпълнителят има връзка с политик или длъжностно лице по Търговския регистър." });
   return out;

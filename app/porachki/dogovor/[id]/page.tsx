@@ -29,8 +29,8 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const annexes = await contractAnnexes(c);
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
-  const value = c.contract_value ?? 0;
-  const added = annexes.reduce((s, a) => s + (a.value_difference ?? 0), 0);
+  const value = c.contract_value_eur ?? 0;
+  const added = annexes.reduce((s, a) => s + (a.value_difference_eur ?? 0), 0);
   const current = value + Math.max(0, added);
 
   // Паричният поток: източник → възложител → изпълнител → подизпълнител / непубликувано
@@ -62,8 +62,8 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[
-          ["Прогнозна стойност", fmtEur(c.estimated_value), "колкото възложителят е очаквал"],
-          ["Договорена стойност", fmtEur(c.contract_value), c.lot ? `обособена позиция ${c.lot}` : ""],
+          ["Прогнозна стойност", fmtEur(c.estimated_value_eur), "колкото възложителят е очаквал"],
+          ["Договорена стойност", fmtEur(c.contract_value_eur), c.contract_currency === "BGN" ? `договорен в лева: ${c.contract_value?.toLocaleString("bg-BG")} лв.` : c.lot ? `обособена позиция ${c.lot}` : ""],
           ["Анекси", added ? `${added > 0 ? "+" : ""}${fmtEur(added)}` : "няма", annexes.length ? `${annexes.length} анекса` : ""],
           ["Оферти", c.offers_count != null ? String(c.offers_count) : "—", c.disqualified_offers_count ? `${c.disqualified_offers_count} отстранени` : "участвали в процедурата"],
         ].map(([l, v, n]) => (

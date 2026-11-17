@@ -16,11 +16,11 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const byBuyer = new Map<string, { name: string; n: number; sum: number }>();
   for (const c of contracts) {
     const b = byBuyer.get(c.buyer_eik) ?? { name: c.buyer_name, n: 0, sum: 0 };
-    b.n++; b.sum += c.contract_currency === "EUR" ? c.contract_value ?? 0 : 0;
+    b.n++; b.sum += c.contract_value_eur ?? 0;
     byBuyer.set(c.buyer_eik, b);
   }
   const buyers = [...byBuyer.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 12);
-  const annexSum = annexes.reduce((x, a) => x + Math.max(0, a.value_difference ?? 0), 0);
+  const annexSum = annexes.reduce((x, a) => x + Math.max(0, a.value_difference_eur ?? 0), 0);
 
   return (
     <>

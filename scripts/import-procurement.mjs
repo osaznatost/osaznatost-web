@@ -31,6 +31,8 @@ const date = (v) => {
 };
 const list = (v) => (v ? String(v).split(";").map((s) => s.trim()).filter(Boolean) : []);
 const yes = (v) => (v === "Да" ? true : v === "Не" ? false : null);
+const BGN = 1.95583;
+const toEur = (v, cur) => (v == null ? null : cur === "EUR" ? v : cur === "BGN" ? Math.round((v / BGN) * 100) / 100 : null);
 const int = (v) => (v === null || v === undefined || v === "" ? null : Number.parseInt(v, 10));
 
 function contractRow(r) {
@@ -75,6 +77,8 @@ function contractRow(r) {
     disqualified_offers_count: int(r.disqualifiedOffersCount),
     contract_period_days: int(r.contractPeriod),
     ted_link: r.linkToOjEu || null,
+    contract_value_eur: toEur(num(r.contractValue), r.contractCurrency),
+    estimated_value_eur: toEur(num(r.estimatedValue), r.currency),
   };
 }
 
@@ -102,6 +106,9 @@ function annexRow(r) {
     is_eu_funded: yes(r.isEuFunded),
     eu_program: r.europeanProgram || null,
     change_description: r.changeDescription || null,
+    last_value_eur: toEur(num(r.lastContractValue), r.contractCurrency),
+    current_value_eur: toEur(num(r.currentContractValue), r.contractCurrency),
+    value_difference_eur: toEur(num(r.contractValueDifference), r.contractCurrency),
   };
 }
 

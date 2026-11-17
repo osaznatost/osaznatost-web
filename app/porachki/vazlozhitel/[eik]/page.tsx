@@ -13,12 +13,12 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const [contracts, annexes] = await Promise.all([buyerContracts(eik, 500), buyerAnnexes(eik)]);
   if (!contracts.length && !annexes.length) notFound();
   const name = contracts[0]?.buyer_name ?? annexes[0]?.buyer_name;
-  const total = contracts.reduce((s, c) => s + (c.contract_currency === "EUR" ? c.contract_value ?? 0 : 0), 0);
+  const total = contracts.reduce((s, c) => s + (c.contract_value_eur ?? 0), 0);
   const single = contracts.filter((c) => c.offers_count === 1).length;
   const bySup = new Map<string, { name: string; n: number; sum: number }>();
   for (const c of contracts) c.supplier_eiks.forEach((e, i) => {
     const x = bySup.get(e) ?? { name: c.supplier_names[i] ?? e, n: 0, sum: 0 };
-    x.n++; x.sum += c.contract_currency === "EUR" ? (c.contract_value ?? 0) / c.supplier_eiks.length : 0;
+    x.n++; x.sum += (c.contract_value_eur ?? 0) / c.supplier_eiks.length;
     bySup.set(e, x);
   });
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
