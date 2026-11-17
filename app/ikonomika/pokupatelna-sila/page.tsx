@@ -5,25 +5,31 @@ import { GEO, STATS } from "@/lib/stats";
 
 export const metadata = { title: "Покупателна способност" };
 
-const COUNTRIES = ["BG", "RO", "HR", "GR", "PL", "HU", "ES", "DE"];
+const COUNTRIES = ["BG", "RO", "HR", "EL", "PL", "HU", "ES", "DE"];
 /** Категории от сравнението на цените в ЕС (Евростат, prc_ppp_ind). */
 const CATS: { code: string; label: string; note?: string }[] = [
-  { code: "A0101", label: "Храна" },
-  { code: "A010101", label: "Хляб и зърнени храни" },
-  { code: "A010102", label: "Месо" },
-  { code: "A010104", label: "Мляко, сирене, яйца" },
-  { code: "A010106", label: "Плодове и зеленчуци" },
-  { code: "A0102", label: "Безалкохолни напитки" },
-  { code: "A02", label: "Алкохол и тютюн" },
-  { code: "A03", label: "Дрехи и обувки" },
-  { code: "A0451", label: "Електричество" },
-  { code: "A04", label: "Жилище, вода, ток, отопление", note: "включва и наемите" },
-  { code: "A0722", label: "Горива за колата" },
-  { code: "A07", label: "Транспорт" },
-  { code: "A08", label: "Телефон и интернет" },
-  { code: "A06", label: "Здраве" },
-  { code: "A11", label: "Ресторанти и хотели" },
-  { code: "A01_TO_A12", label: "Всичко, което купуват домакинствата" },
+  { code: "A010101", label: "Храна" },
+  { code: "A01010101", label: "Хляб и зърнени храни" },
+  { code: "A01010102", label: "Месо" },
+  { code: "A01010103", label: "Риба" },
+  { code: "A01010104", label: "Мляко, сирене, яйца" },
+  { code: "A01010105", label: "Олио и мазнини" },
+  { code: "A01010106", label: "Плодове, зеленчуци, картофи" },
+  { code: "A010102", label: "Безалкохолни напитки" },
+  { code: "A010201", label: "Алкохол" },
+  { code: "A010202", label: "Цигари" },
+  { code: "A010301", label: "Дрехи" },
+  { code: "A010302", label: "Обувки" },
+  { code: "A010405", label: "Ток, газ, отопление" },
+  { code: "A0104", label: "Жилище с вода и енергия", note: "включва и наемите" },
+  { code: "A010503", label: "Домакински уреди" },
+  { code: "A0106", label: "Здраве" },
+  { code: "A010701", label: "Коли" },
+  { code: "A010703", label: "Обществен транспорт" },
+  { code: "A0108", label: "Телефон и интернет" },
+  { code: "A010901", label: "Телевизори, компютри, техника" },
+  { code: "A0111", label: "Ресторанти и хотели" },
+  { code: "A01", label: "Всичко, което потребяват домакинствата" },
 ];
 
 /** Последна стойност на ред (ключ) в серия; връща [период, стойност]. */
@@ -34,21 +40,22 @@ function lastOf(id: string, key: string): [string, number] | undefined {
   return e ? [e[0], e[1]] : undefined;
 }
 const pli = (geo: string, cat: string) => lastOf("price_levels", `${geo}|${cat}`)?.[1];
-const wage = (geo: string) => lastOf("min_wage_all", geo)?.[1] ?? lastOf("min_wage", geo)?.[1];
+const wkey = (g: string) => (g === "EL" ? "GR" : g);
+const wage = (geo: string) => lastOf("min_wage_all", wkey(geo))?.[1] ?? lastOf("min_wage_all", geo)?.[1] ?? lastOf("min_wage", wkey(geo))?.[1];
 const eur = (v?: number) => (v == null ? "–" : `${Math.round(v).toLocaleString("bg-BG")} €`);
 const name = (g: string) => GEO[g] ?? g;
 
 export default function PokupatelnaSila() {
   const hasPli = !!STATS.series.price_levels;
   const wPeriod = lastOf("min_wage_all", "BG")?.[0] ?? lastOf("min_wage", "BG")?.[0];
-  const pliYear = hasPli ? lastOf("price_levels", "BG|A0101")?.[0] : undefined;
+  const pliYear = hasPli ? lastOf("price_levels", "BG|A010101")?.[0] : undefined;
   const countries = COUNTRIES.filter((g) => wage(g) != null);
 
   // Колко струва реално заплатата: заплата / (ниво на цените / 100) = колко евро по средни европейски цени.
   const real = (g: string, cat: string) => { const w = wage(g), p = pli(g, cat); return w != null && p ? w / (p / 100) : undefined; };
   const bg = wage("BG"), ro = wage("RO");
 
-  const pps = STATS.series.min_wage_pps ? countries.map((g) => ({ name: name(g), value: Math.round(lastOf("min_wage_pps", g)?.[1] ?? 0) })).filter((r) => r.value).sort((a, b) => b.value - a.value) : [];
+  const pps = STATS.series.min_wage_pps ? countries.map((g) => ({ name: name(g), value: Math.round((lastOf("min_wage_pps", wkey(g)) ?? lastOf("min_wage_pps", g))?.[1] ?? 0) })).filter((r) => r.value).sort((a, b) => b.value - a.value) : [];
   const wageHist = ["BG", "RO", "HR", "PL", "GR"].flatMap((g) => Object.entries(STATS.series.min_wage?.lines[g] ?? {}).filter(([k]) => /S1$/.test(k) && Number(k.slice(0, 4)) >= 2010).map(([k, v]) => ({ series: name(g), x: Number(k.slice(0, 4)), value: v })));
 
   return (
@@ -62,8 +69,8 @@ export default function PokupatelnaSila() {
         {[
           ["Минимална заплата в България", eur(bg), wPeriod ? `бруто, ${wPeriod.replace("-S1", ", първо полугодие").replace("-S2", ", второ полугодие")}` : ""],
           ["В Румъния", eur(ro), bg && ro ? `${Math.round(((ro - bg) / bg) * 100)}% повече в евро` : ""],
-          ["Храна в България спрямо ЕС", hasPli && pli("BG", "A0101") ? `${Math.round(pli("BG", "A0101")!)}%` : "–", "от средната европейска цена"],
-          ["Храна в Румъния спрямо ЕС", hasPli && pli("RO", "A0101") ? `${Math.round(pli("RO", "A0101")!)}%` : "–", "от средната европейска цена"],
+          ["Храна в България спрямо ЕС", hasPli && pli("BG", "A010101") ? `${Math.round(pli("BG", "A010101")!)}%` : "–", "от средната европейска цена"],
+          ["Храна в Румъния спрямо ЕС", hasPli && pli("RO", "A010101") ? `${Math.round(pli("RO", "A010101")!)}%` : "–", "от средната европейска цена"],
         ].map(([l, v, n]) => (
           <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>
         ))}
@@ -72,7 +79,7 @@ export default function PokupatelnaSila() {
       <section className="mb-14">
         <SectionTitle>Колко струва минималната заплата по средни европейски цени</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">
-          Пример: ако храната в България е на 60% от средната европейска цена, 620 € купуват толкова храна, колкото 1033 € в средна европейска страна. Колкото по-голямо е числото, толкова повече от това нещо купува заплатата.
+          Пример: ако храната в България е на 89% от средната европейска цена, 620 € купуват толкова храна, колкото около 700 € в средна европейска страна. Колкото по-голямо е числото, толкова повече от това нещо купува заплатата.
         </p>
         {!hasPli ? (
           <p className="text-[15px] bg-surface rounded-sm p-4">Сравнението на цените по категории от Евростат се зарежда със следващото обновяване на данните. Дотогава вижте <Link href="/statistiki/min_wage_pps">минималната заплата при равни цени</Link>.</p>

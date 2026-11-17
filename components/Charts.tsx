@@ -152,11 +152,11 @@ export function BarRank({ data, unit = "", highlight }: { data: { name: string; 
     return Plot.plot({
       ...base,
       width,
-      height: rows.length * 22 + 40,
-      marginLeft: 175,
+      height: rows.length * 24 + 40,
+      marginLeft: Math.min(width < 600 ? 150 : 320, Math.max(90, Math.max(...rows.map((r) => r.name.length)) * 7.2 + 14)),
       marginRight: 60,
       x: { grid: true, label: null, axis: "top" },
-      y: { label: null, domain: rows.map((r) => r.name) },
+      y: { label: null, domain: rows.map((r) => r.name), tickFormat: (t: string) => (width < 600 && t.length > 22 ? `${t.slice(0, 21)}…` : t) },
       marks: [
         Plot.barX(rows, { y: "name", x: "value", fill: (d: { name: string; value: number }) => (d.name === highlight ? "#c8102e" : d.value < 0 ? "#d2353f" : "#1F4D3A") }),
         Plot.text(rows, { y: "name", x: "value", text: (d: { value: number }) => `${String(Math.round(d.value * 10) / 10).replace(".", ",")}${unit}`, dx: 4, textAnchor: "start", fontSize: 12 }),
