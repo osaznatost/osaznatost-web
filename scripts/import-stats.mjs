@@ -21,7 +21,7 @@ const SERIES = [
   { id: "house_price_index", ds: "prc_hpi_a", filter: { purchase: "TOTAL", unit: "I15_A_AVG", geo: ["BG", "EU27_2020"] }, by: "geo" },
   // Доходи и труд
   { id: "min_wage", ds: "earn_mw_cur", filter: { currency: "EUR", geo: ["BG", "RO", "GR", "HR", "PL"] }, by: "geo" },
-  { id: "median_income", ds: "ilc_di03", filter: { age: "TOTAL", sex: "T", indic_il: "MED_E", unit: "EUR", geo: ["BG", "RO", "GR", "HR", "EU27_2020"] }, by: "geo" },
+  { id: "median_income", ds: "ilc_di03", filter: { age: "TOTAL", sex: "T", statinfo: "MED_EI", unit: "EUR", geo: ["BG", "RO", "GR", "HR", "EU27_2020"] }, by: "geo" },
   { id: "unemployment", ds: "une_rt_a", filter: { age: "Y15-74", sex: "T", unit: "PC_ACT", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "unemployment_regions", ds: "lfst_r_lfu3rt", filter: { age: "Y15-74", sex: "T", isced11: "TOTAL", unit: "PC", geo: ["BG31", "BG32", "BG33", "BG34", "BG41", "BG42"] }, by: "geo" },
   { id: "household_income_regions", ds: "nama_10r_2hhinc", filter: { direct: "BAL", na_item: "B6N", unit: "EUR_HAB", geo: ["BG31", "BG32", "BG33", "BG34", "BG41", "BG42"] }, by: "geo" },
