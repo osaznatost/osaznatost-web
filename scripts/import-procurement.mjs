@@ -10,7 +10,7 @@ const KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 
 const START = "2025-01-01";               // откъдето започва историята при първото пускане
-const MAX_DAYS = Number(process.env.MAX_DAYS ?? 250);
+const MAX_DAYS = Number(process.env.MAX_DAYS ?? 500);
 const EOP = "https://storage.eop.bg";
 
 const HEAD = { apikey: KEY, "Content-Type": "application/json" };

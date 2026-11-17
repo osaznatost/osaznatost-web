@@ -1,0 +1,181 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
+import { AnnexList, LinksBox, SignalList } from "@/components/proc";
+import { Page, SectionTitle, Title } from "@/components/ui";
+import { buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
+
+export const metadata = { title: "Договор" };
+
+const amount = (s: string | null) => {
+  const n = Number(String(s ?? "").split(";")[0].replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
+
+function Box({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="ring-1 ring-rule rounded-sm p-5 bg-white">
+      <h3 className="font-semibold mb-2">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+async function Content({ params }: { params: Promise<{ id: string }> }) {
+  const id = decodeURIComponent((await params).id);
+  const c = await getContract(id);
+  if (!c) notFound();
+  const annexes = await contractAnnexes(c);
+  const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
+  const sig = signals(c, annexes);
+  const value = c.contract_value ?? 0;
+  const added = annexes.reduce((s, a) => s + (a.value_difference ?? 0), 0);
+  const current = value + Math.max(0, added);
+
+  // Паричният поток: източник → възложител → изпълнител → подизпълнител / непубликувано
+  const src: FlowNode = c.is_eu_funded
+    ? { id: "src", label: c.eu_program ? `ЕС: ${c.eu_program}` : "Европейски средства", kind: "source" }
+    : { id: "src", label: "Бюджет на възложителя", kind: "source" };
+  const supplierLabel = c.supplier_names.join(", ") || "Изпълнител";
+  const sub = amount(c.subcontracting_amount);
+  const nodes: FlowNode[] = [src, { id: "buyer", label: c.buyer_name, kind: "buyer" }, { id: "sup", label: supplierLabel, kind: "supplier" }];
+  const links: FlowLink[] = [{ source: "src", target: "buyer", value: current }, { source: "buyer", target: "sup", value: value }];
+  if (added > 0) {
+    nodes.push({ id: "annex", label: "Добавено с анекси", kind: "annex" });
+    links[0].value = value;
+    links.push({ source: "src", target: "annex", value: added }, { source: "annex", target: "sup", value: added });
+  }
+  if (sub && sub < current) {
+    nodes.push({ id: "sub", label: c.subcontractor_names ? `Подизпълнител: ${c.subcontractor_names}` : "Подизпълнители", kind: "sub" });
+    links.push({ source: "sup", target: "sub", value: sub });
+  }
+  nodes.push({ id: "unk", label: "Материали, труд, печалба: не е публикувано", kind: "unknown" });
+  links.push({ source: "sup", target: "unk", value: current - (sub && sub < current ? sub : 0) });
+
+  return (
+    <>
+      <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`${c.contract_type} · договор от ${fmtDate(c.contract_date)}`}
+        lead={<><Link href={buyerUrl(c.buyer_eik)}>{c.buyer_name}</Link> → {c.supplier_eiks.map((e, i) => <span key={e}>{i > 0 && ", "}<Link href={firmUrl(e)}>{c.supplier_names[i] ?? e}</Link></span>)}</>}>
+        {c.tender_name}
+      </Title>
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+        {[
+          ["Прогнозна стойност", fmtEur(c.estimated_value), "колкото възложителят е очаквал"],
+          ["Договорена стойност", fmtEur(c.contract_value), c.lot ? `обособена позиция ${c.lot}` : ""],
+          ["Анекси", added ? `${added > 0 ? "+" : ""}${fmtEur(added)}` : "няма", annexes.length ? `${annexes.length} анекса` : ""],
+          ["Оферти", c.offers_count != null ? String(c.offers_count) : "—", c.disqualified_offers_count ? `${c.disqualified_offers_count} отстранени` : "участвали в процедурата"],
+        ].map(([l, v, n]) => (
+          <div key={l} className="bg-surface rounded-sm p-4">
+            <p className="text-sm text-muted">{l}</p>
+            <p className={`display num text-[2.4rem] mt-1 ${l === "Оферти" && c.offers_count === 1 ? "text-red" : ""}`}>{v}</p>
+            {n && <p className="text-sm">{n}</p>}
+          </div>
+        ))}
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Сигнали</SectionTitle>
+        <div className="max-w-3xl"><SignalList items={sig} /></div>
+        <p className="text-xs text-muted mt-2 max-w-3xl">Сигналите са автоматични и показват кога поръчката заслужава по-внимателен поглед. Те не са обвинение в нарушение.</p>
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Къде отиват парите</SectionTitle>
+        <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><MoneyFlow nodes={nodes} links={links} /></div>
+        <p className="text-sm text-muted mt-2 max-w-3xl">
+          Сивата шрафирана част е разбивката, която не е публична: колко отива за материали, труд и печалба. Тя е в количествено-стойностната сметка към офертата и в платежните документи. Можеш да я поискаш от възложителя (вижте „Поискай документите“ по-долу).
+        </p>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2 mb-10">
+        <Box title="Изпълнител и история">
+          {c.supplier_eiks.map((e, i) => {
+            const s = stats[i];
+            return (
+              <div key={e} className="mb-3">
+                <p className="font-semibold"><Link href={firmUrl(e)}>{c.supplier_names[i] ?? e}</Link> <span className="text-sm text-muted font-normal">ЕИК {e}</span></p>
+                {s && <p className="text-[15px]">В базата: <b>{s.contracts}</b> договора за <b>{fmtEur(s.total_eur)}</b> при <b>{s.buyers}</b> възложители, от тях {s.single_offer} с една оферта.</p>}
+              </div>
+            );
+          })}
+          {c.awarded_to_group && <p className="text-sm">Договорът е възложен на обединение.</p>}
+          <p className="text-sm text-muted mt-2">Имената на загубилите участници не са в отворените данни, а само в протоколите на комисията. Добавяме ги постепенно.</p>
+        </Box>
+        <Box title="Връзки с политици">
+          {c.supplier_eiks.map((e) => <LinksBox key={e} eik={e} />)}
+          <p className="text-xs text-muted mt-3">Източник: Търговски регистър и декларации, обработени от „Наясно“. Връзката показва роля във фирмата, а не нарушение.</p>
+        </Box>
+        <Box title="Процедура">
+          <dl className="text-[15px] grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+            <dt className="text-muted">Вид</dt><dd>{c.procedure_type ?? "—"}</dd>
+            <dt className="text-muted">Основание</dt><dd>{c.legal_basis ?? "—"}</dd>
+            <dt className="text-muted">Критерий</dt><dd>{c.award_method ?? "—"}</dd>
+            <dt className="text-muted">Предмет (CPV)</dt><dd>{c.cpv_desc} ({c.cpv})</dd>
+            <dt className="text-muted">Срок</dt><dd>{c.contract_period_days ? `${c.contract_period_days} дни` : "—"}</dd>
+            <dt className="text-muted">УНП</dt><dd>{c.unp}</dd>
+            <dt className="text-muted">Финансиране</dt><dd>{c.is_eu_funded ? `Европейски средства${c.eu_program ? `: ${c.eu_program}` : ""}` : "Национални средства"}</dd>
+            {c.direct_award_justification && <><dt className="text-muted">Без процедура</dt><dd>{c.direct_award_justification}</dd></>}
+          </dl>
+          {c.ted_link && <p className="text-sm mt-2"><a href={c.ted_link} target="_blank" rel="noreferrer">Обявлението в официалния вестник на ЕС (TED)</a></p>}
+        </Box>
+        <Box title="Подизпълнители">
+          {c.has_subcontractors
+            ? <p className="text-[15px]">{c.subcontractor_names ?? "Посочени, без име"}{c.subcontracting_percent && ` · ${c.subcontracting_percent}%`}{sub && ` · ${fmtEur(sub)}`}</p>
+            : <p className="text-[15px]">В договора не са посочени подизпълнители.</p>}
+        </Box>
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Анекси: какво е променено</SectionTitle>
+        <AnnexList items={annexes} />
+        {annexes.filter((a) => a.change_description).map((a) => (
+          <details key={a.id} className="mt-3 text-[15px]">
+            <summary className="cursor-pointer font-semibold">Текстът на анекса от {fmtDate(a.published_at)} („било / става“)</summary>
+            <p className="mt-2 whitespace-pre-line text-muted">{a.change_description}</p>
+          </details>
+        ))}
+      </section>
+
+      <section className="mb-10 max-w-3xl">
+        <SectionTitle>Кой подписва</SectionTitle>
+        <ol className="list-decimal pl-5 space-y-1 text-[15px]">
+          <li><b>Възлага и подписва договора:</b> <Link href={buyerUrl(c.buyer_eik)}>{c.buyer_name}</Link> (ЕИК {c.buyer_eik}), чрез ръководителя си.</li>
+          <li><b>Финансира:</b> {c.is_eu_funded ? `европейска програма${c.eu_program ? ` „${c.eu_program}“` : ""} с национално съфинансиране` : "бюджетът на възложителя"}.</li>
+          <li><b>Изпълнява:</b> {c.supplier_names.join(", ")}{c.has_subcontractors ? ", с подизпълнители" : ""}.</li>
+          <li><b>Приема работата</b> (протокол или акт за приемане): не се публикува в отворените данни.</li>
+        </ol>
+        <details className="mt-4 bg-surface rounded-sm p-4">
+          <summary className="cursor-pointer font-semibold">Поискай документите (заявление по ЗДОИ)</summary>
+          <p className="text-sm mt-2 mb-2">Копирай текста и го изпрати до {c.buyer_name}. Възложителят трябва да отговори в 14 дни.</p>
+          <pre className="whitespace-pre-wrap text-sm bg-white p-3 rounded-sm ring-1 ring-rule">{`До ${c.buyer_name}
+
+ЗАЯВЛЕНИЕ за достъп до обществена информация (чл. 24 от ЗДОИ)
+
+Моля да ми бъде предоставена следната информация за договор № ${c.contract_number} от ${c.contract_date ?? "…"} г. по поръчка с УНП ${c.unp} „${c.tender_name}“, изпълнител ${c.supplier_names.join(", ")}:
+1. Количествено-стойностната сметка (ценовото предложение) на изпълнителя.
+2. Протоколите или актовете за приемане на изпълнението и имената и длъжностите на лицата, които са ги подписали.
+3. Размерът и датите на извършените плащания по договора.
+4. Сключените анекси и мотивите за тях.
+
+Предпочитам информацията да ми бъде предоставена по електронен път на адрес: …
+
+Дата: …            Подпис: …`}</pre>
+        </details>
+      </section>
+
+      <p className="text-xs text-muted">Източник: отворени данни на ЦАИС ЕОП (Агенция по обществени поръчки), договор № {c.contract_number}, публикуван на {fmtDate(c.published_at)}.</p>
+    </>
+  );
+}
+
+export default function Dogovor({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Page>
+      <Suspense fallback={<p className="text-muted">Зареждане…</p>}>
+        <Content params={params} />
+      </Suspense>
+    </Page>
+  );
+}

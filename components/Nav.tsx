@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 
 const items = [
   { href: "/kalkulatori", label: "Калкулатори" },
   { href: "/pari/dalg", label: "Дълг" },
   { href: "/parlament", label: "Парламент" },
   { href: "/obeshtaniya", label: "Обещания" },
+  { href: "/porachki", label: "Поръчки" },
   { href: "/statistiki", label: "Статистики" },
   { href: "/proverki", label: "Проверки" },
   { href: "/metodologiya", label: "Как работим" },
 ];
 
-export function Nav() {
-  const path = usePathname();
+function NavLinks({ path }: { path: string }) {
   return (
     <nav aria-label="Основно меню" className="flex flex-wrap gap-x-5 gap-y-1 text-[15px]">
       {items.map((i) => {
@@ -34,5 +35,18 @@ export function Nav() {
         );
       })}
     </nav>
+  );
+}
+
+function ActiveNav() {
+  return <NavLinks path={usePathname()} />;
+}
+
+/** Активният раздел зависи от адреса; при страници, генерирани при заявка, той идва след първоначалния HTML. */
+export function Nav() {
+  return (
+    <Suspense fallback={<NavLinks path="" />}>
+      <ActiveNav />
+    </Suspense>
   );
 }
