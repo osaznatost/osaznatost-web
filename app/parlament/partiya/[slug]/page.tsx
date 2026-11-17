@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { VOTES as ALLV, partyBreakdown, partyPosition } from "@/lib/parliament";
+import { lawFromTitle } from "@/lib/voteExplain";
+import LAWS from "@/content/laws.json";
 import { notFound } from "next/navigation";
 import { BarRank } from "@/components/Charts";
 import { PartyBadge } from "@/components/PartyBadge";
@@ -38,6 +41,15 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
   const bottom = [...domestic].sort((a, b) => a.pct - b.pct).slice(0, 10);
   const regions = ELECTIONS.regions.map((r) => ({ name: MIR[r.code] ?? r.code, value: Math.round((((r.v as Record<string, number>)[key] ?? 0) / r.total) * 1000) / 10 })).sort((a, b) => b.value - a.value);
   const yearly = list.votes * SUBSIDY.after;
+  // Как гласува групата по законите с подробен анализ: първо гласуване и окончателно (второ) гласуване на целия закон.
+  const keyLaws = Object.entries(LAWS as Record<string, { name: string; summary: string; critics?: unknown }>).map(([lslug, law]) => {
+    const vs = ALLV.filter((v) => lawFromTitle(v.title)?.slug === lslug && !/процедура/i.test(v.title));
+    const pick = (re: RegExp) => vs.filter((v) => re.test(v.title)).at(-1);
+    const first = pick(/първо гласуване/i), final = pick(/второ гласуване|окончателно/i) ?? vs.at(-1);
+    const pos = (v?: (typeof ALLV)[number]) => (v ? partyPosition(partyBreakdown(v)[p.group] ?? { y: 0, n: 0, a: 0, x: 0 }) : undefined);
+    return { lslug, name: law.name, summary: law.summary, first: pos(first), final: final && final !== first ? pos(final) : undefined, n: vs.length };
+  }).filter((x) => x.n);
+  const POS: Record<string, [string, string]> = { y: ["За", "text-green"], n: ["Против", "text-red"], a: ["Въздържал се", "text-[#b08436]"], split: ["Разделени", "text-muted"], absent: ["Не гласува", "text-muted"] };
   const shared = p.sharedList ? PARTY_META.find((x) => x.group === p.sharedList) : undefined;
 
   return (
@@ -110,6 +122,23 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         </div>
         <p className="text-xs text-muted mt-3">Чертичката показва дела при всички гласували. Източник: <a href={EXIT.source.url} target="_blank" rel="noreferrer">{EXIT.source.title}</a>.</p>
       </section>
+
+      {keyLaws.length > 0 && (
+        <section className="mb-14">
+          <SectionTitle>Как гласува по ключовите закони</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Позицията на мнозинството в групата при първо гласуване (принципно съгласие) и при последното гласуване по закона. Сравни с това, което партията заявява за себе си: {p.about}</p>
+          <div className="overflow-x-auto"><table className="w-full text-[15px]">
+            <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Закон</th><th className="px-2">Първо гласуване</th><th className="px-2">Последно гласуване</th></tr></thead>
+            <tbody>{keyLaws.map((l) => (
+              <tr key={l.lslug} className="border-b border-rule align-top">
+                <td className="py-2 pr-3"><Link href={`/parlament/zakon/${l.lslug}`}>{l.name}</Link><span className="block text-sm text-muted">{l.summary.split(". ")[0]}.</span></td>
+                <td className={`px-2 py-2 font-semibold ${l.first ? POS[l.first][1] : ""}`}>{l.first ? POS[l.first][0] : "–"}</td>
+                <td className={`px-2 py-2 font-semibold ${l.final ? POS[l.final][1] : ""}`}>{l.final ? POS[l.final][0] : "–"}</td>
+              </tr>
+            ))}</tbody></table></div>
+          <p className="text-xs text-muted mt-2">На страницата на всеки закон: мотивите на вносителите, критиките, данните и очакваните ефекти, за да се прецени дали гласуването съответства на заявените цели.</p>
+        </section>
+      )}
 
       <section className="mb-14">
         <SectionTitle>Държавна субсидия</SectionTitle>
