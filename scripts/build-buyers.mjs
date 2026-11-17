@@ -97,15 +97,18 @@ function level(name, type) {
   return "друг публичен";
 }
 
-// Всички възложители от базата
-const buyers = [];
-for (let from = 0; ; from += 1000) {
-  const res = await fetch(`${URL_}/rest/v1/proc_buyer_stats?select=eik,name,buyer_type&order=eik`, { headers: { ...HEAD, Range: `${from}-${from + 999}` } });
+// Всички възложители от базата. Четем направо договорите на страници по id (бързо по индекса),
+// вместо агрегиращия изглед proc_buyer_stats, който при много години удря лимита за време.
+const seen = new Map();
+for (let last = ""; ;) {
+  const res = await fetch(`${URL_}/rest/v1/proc_contracts?select=id,buyer_eik,buyer_name,buyer_type&order=id&limit=1000${last ? `&id=gt.${encodeURIComponent(last)}` : ""}`, { headers: HEAD });
   if (!res.ok) throw new Error(`buyers: HTTP ${res.status} ${await res.text()}`);
   const rows = await res.json();
-  buyers.push(...rows);
+  for (const r of rows) if (r.buyer_eik && !seen.has(r.buyer_eik)) seen.set(r.buyer_eik, { eik: r.buyer_eik, name: r.buyer_name, buyer_type: r.buyer_type });
   if (rows.length < 1000) break;
+  last = rows[rows.length - 1].id;
 }
+const buyers = [...seen.values()];
 console.log(`Възложители: ${buyers.length}`);
 
 const out = [];
