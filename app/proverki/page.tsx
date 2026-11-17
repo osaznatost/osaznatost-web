@@ -42,7 +42,7 @@ export default function Proverki() {
 
       <section className="mb-12">
           <Link href="/proverki/sankcii" className="block ring-2 ring-red rounded-sm p-4 bg-white no-underline text-ink hover:ring-4">
-            <p className="font-semibold text-lg">Санкции за корупция →</p>
+            <p className="font-semibold text-lg">Корупция: санкции, обвинения, присъди →</p>
             <p className="text-[15px] text-muted">Българите в списъка „Магнитски“ и в британските санкции: кой, кога, за какво, по официалните документи. Ясно разграничение между сигнал, обвинение, присъда и санкция.</p>
           </Link>
         </section>

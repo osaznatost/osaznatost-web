@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { formatDate } from "@/lib/parliament";
 import { SANCTIONS } from "@/lib/sanctions";
+import CASES from "@/content/cases.json";
 
-export const metadata = { title: "Санкции за корупция" };
+export const metadata = { title: "Корупция: санкции, обвинения, присъди" };
 
 const SHORT: Record<string, string> = { GLOMAG: "„Магнитски“ (САЩ)", "7031c": "Забрана за влизане в САЩ", UKGAC: "Санкции на Великобритания" };
 
@@ -16,8 +17,12 @@ export default function Sankcii() {
     <Page>
       <Title back={{ href: "/proverki", label: "Проверки" }} kicker="Корупция: само официални източници"
         lead="Българи, санкционирани от САЩ и Великобритания за значима корупция. Само мерки, обявени официално от Министерството на финансите и Държавния департамент на САЩ и от британското правителство.">
-        Санкции за корупция
+        Корупция: санкции, обвинения, присъди
       </Title>
+      <nav className="flex flex-wrap gap-2 mb-8 text-[15px]">
+        <a href="#sankcii" className="px-3 py-1.5 rounded-full bg-surface no-underline text-ink">Санкции ({SANCTIONS.people.length})</a>
+        <a href="#dela" className="px-3 py-1.5 rounded-full bg-surface no-underline text-ink">Обвинения и присъди ({CASES.cases.length})</a>
+      </nav>
 
       <section className="bg-surface rounded-sm p-5 mb-10 max-w-4xl text-[15px] space-y-2">
         <p><b>Какво е и какво не е това.</b> {SANCTIONS.note}</p>
@@ -38,8 +43,8 @@ export default function Sankcii() {
         <ul className="text-[15px] space-y-1">{[...byParty.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="flex justify-between border-b border-rule py-1"><span>{k}</span><b className="num">{n}</b></li>)}</ul>
       </section>
 
-      <section className="mb-12">
-        <SectionTitle>Лицата</SectionTitle>
+      <section id="sankcii" className="mb-12 scroll-mt-24">
+        <SectionTitle>Санкционираните</SectionTitle>
         <ul className="grid gap-4 lg:grid-cols-2">{P.map((p) => (
           <li key={p.name} className="ring-1 ring-rule rounded-sm p-5 bg-white">
             <p className="font-semibold text-lg">{p.name}</p>
@@ -52,6 +57,23 @@ export default function Sankcii() {
             <p className="text-xs text-muted mt-2">Статус: {p.measures.map((m) => `${SHORT[m.regime]}: ${m.status}`).join("; ")}</p>
           </li>
         ))}</ul>
+      </section>
+
+      <section id="dela" className="mb-12 scroll-mt-24">
+        <SectionTitle>Обвинения и присъди в България</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Политици и високопоставени лица с обвинения или присъди, само по съобщения на прокуратурата и съдилищата или медии, които ги цитират. Нивото е най-важното: обвинението не е доказателство за вина.</p>
+        <ul className="flex flex-wrap gap-3 mb-5 text-sm">{Object.entries(CASES.levels).map(([k, l]) => <li key={k} className="bg-surface rounded-sm px-3 py-2 max-w-xs"><b>{l.label}</b>: {l.about}</li>)}</ul>
+        <ul className="grid gap-4 lg:grid-cols-2">{[...CASES.cases].sort((a, b) => ["conviction", "nonfinal", "trial", "charged"].indexOf(a.level) - ["conviction", "nonfinal", "trial", "charged"].indexOf(b.level)).map((c) => (
+          <li key={c.person} className="ring-1 ring-rule rounded-sm p-5 bg-white">
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${c.level === "conviction" ? "bg-red text-white" : c.level === "nonfinal" ? "bg-[#e08a2e] text-white" : "bg-surface"}`}>{CASES.levels[c.level as keyof typeof CASES.levels].label}</span>
+            <p className="font-semibold text-lg mt-2">{c.person}</p>
+            <p className="text-sm text-muted">{c.role}</p>
+            <p className="text-[15px] mt-2">{c.what}</p>
+            <p className="text-[15px] mt-1"><b>Докъде е стигнало:</b> {c.outcome}</p>
+            <p className="text-sm mt-2">Източници: {c.sources.map((s, i) => <span key={s.url}>{i > 0 && "; "}<a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></span>)}</p>
+          </li>
+        ))}</ul>
+        <p className="text-sm text-muted mt-3 max-w-3xl">Списъкът се допълва. Влизат случаи с повдигнато обвинение или присъда срещу настоящи и бивши депутати, министри, кметове и ръководители на държавни институции, с източник. Сигнали и медийни публикации без обвинение не влизат.</p>
       </section>
 
       <section className="max-w-3xl text-[15px] space-y-2 mb-8">

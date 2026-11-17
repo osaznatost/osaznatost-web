@@ -4,7 +4,7 @@ import { VOTE_COLOR } from "@/components/parliament";
 import { ClaimCard } from "@/components/ClaimCard";
 import { PartyBadge } from "@/components/PartyBadge";
 import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui";
-import { sanctionsFor } from "@/lib/sanctions";
+import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { DS_CHECK, MS_TYPE, NS_YEARS, claimsFor, dsFor, historyFor, prefsFor, profileFor } from "@/lib/mpProfile";
 import { ELECTIONS, partyByGroup } from "@/lib/partyMeta";
 import { MPS, PARLIAMENT_SOURCE, VOTES, VOTE_LABEL, type VoteCode, formatDate, getMp, mpStats, mpVote, partyName } from "@/lib/parliament";
@@ -30,6 +30,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
   const ds = dsFor(mp.name, born);
   const claims = claimsFor(mp.name);
   const sanc = sanctionsFor(mp.name);
+  const cases = casesFor(mp.name);
   const current = (prof?.ms ?? []).filter((m) => String(m.to).startsWith("9999") && [3, 4, 6, 9].includes(m.t));
   const listName = (n: number) => ELECTIONS.parties.find((p) => p.num === n)?.name ?? "";
   const meta = partyByGroup(mp.party);
@@ -88,6 +89,19 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
             ))}
           </div>
           <p className="text-xs text-muted mt-2">Източник: ЦИК, преференции по секции. Кандидатът влиза с преференции, ако събере поне 7% от гласовете за листата в района.</p>
+        </section>
+      )}
+
+      {cases.length > 0 && (
+        <section className="mb-12">
+          <SectionTitle>Обвинения и присъди</SectionTitle>
+          {cases.map((c) => (
+            <div key={c.what} className="ring-2 ring-[#e08a2e] rounded-sm p-4 bg-white max-w-3xl text-[15px] mb-3">
+              <p className="font-semibold">{c.levelLabel}: {c.what}</p>
+              <p className="mt-1">{c.outcome}</p>
+              <p className="text-sm mt-1">{c.sources.map((s, i) => <span key={s.url}>{i > 0 && "; "}<a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></span>)} · <Link href="/proverki/sankcii#dela">всички случаи</Link></p>
+            </div>
+          ))}
         </section>
       )}
 
