@@ -22,7 +22,9 @@ jobs:
       - name: Импорт на гласуванията („Наясно“)
         run: node scripts/import-parliament.mjs
       - name: Допълване от parliament.bg
-        run: node scripts/import-rollcall.mjs
+        run: |
+          npm i --no-save --no-package-lock xlsx@0.18.5
+          node scripts/import-rollcall.mjs
       - name: Запис, ако има промяна
         run: |
           git add data/

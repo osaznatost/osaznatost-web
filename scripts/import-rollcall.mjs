@@ -67,13 +67,34 @@ function parseRollcall(text) {
     .map((c) => ({ id: +c[ix.id], name: c[ix.name], party: c[ix.party], item: +c[ix.item], vote: c[ix.vote] }))
     .filter((r) => Number.isFinite(r.id) && Number.isFinite(r.item));
 }
-function parseTitles(text) {
+const TITLE_RE = /Номер\s*\(\s*(\d+)\s*\)\s+ГЛАСУВАНЕ[\s\S]*?по\s+тема\s+(.+?)$/u;
+function titlesFromCells(cells) {
   const out = {};
-  for (const l of lines(text).slice(1)) {
-    const m = /Номер\s*\(\s*(\d+)\s*\)\s+ГЛАСУВАНЕ[\s\S]*?по\s+тема\s+(.+?)$/u.exec(firstField(l));
-    if (m && !out[m[1]]) out[m[1]] = m[2].replace(/\s+/g, " ").replace(/[\s.,;:!?-]+$/u, "").trim();
+  for (const c of cells) {
+    const m = TITLE_RE.exec(String(c ?? "").replace(/\s+/g, " ").trim());
+    if (m && !out[m[1]]) out[m[1]] = m[2].replace(/[\s.,;:!?-]+$/u, "").trim();
   }
   return out;
+}
+const parseTitles = (text) => titlesFromCells(lines(text).slice(1).map(firstField));
+async function titlesFromXlsx(f) {
+  const XLSX = (await import("xlsx")).default;
+  const r = await fetch(fileUrl(f), { headers: H });
+  const wb = XLSX.read(new Uint8Array(await r.arrayBuffer()), { type: "array" });
+  const cells = wb.SheetNames.flatMap((n) => XLSX.utils.sheet_to_json(wb.Sheets[n], { header: 1 }).flat());
+  return titlesFromCells(cells);
+}
+// Заглавията: CSV на групите, а ако там няма (грешно качен файл), XLSX на групите.
+async function findTitles(files) {
+  const groups = files.filter((f) => /групи/i.test(f.Pl_StenDname));
+  for (const f of groups.filter((f) => /\.csv$/i.test(f.Pl_StenDfile))) {
+    const t = parseTitles(await getText(f.Pl_StenDfile));
+    if (Object.keys(t).length) return t;
+  }
+  for (const f of groups.filter((f) => /\.xlsx$/i.test(f.Pl_StenDfile))) {
+    try { const t = await titlesFromXlsx(f.Pl_StenDfile); if (Object.keys(t).length) return t; } catch (e) { console.log("  xlsx:", e.message); }
+  }
+  return {};
 }
 
 // 1. Обхождане на нови стенограми.
@@ -88,13 +109,12 @@ while (gap < 30 && scanned < 200) {
   const date = s.Pl_Sten_date.slice(0, 10);
   const files = s.files ?? [];
   const roll = files.find((f) => /Поименно/i.test(f.Pl_StenDname) && /\.csv$/i.test(f.Pl_StenDfile));
-  const groups = files.find((f) => /групи/i.test(f.Pl_StenDname) && /\.csv$/i.test(f.Pl_StenDfile));
   const pdf = files.find((f) => /\.pdf$/i.test(f.Pl_StenDfile));
   if (!roll) { console.log(`  ${date} (id ${id}): няма CSV с поименно гласуване`); continue; }
-  if (!groups) console.log(`  ${date}: файлове: ${files.map((f) => f.Pl_StenDname + " [" + f.Pl_StenDfile + "]").join("; ")}`);
+  const failed = files.some((f) => /provaleno/i.test(f.Pl_StenDfile));
   const rows = parseRollcall(await getText(roll.Pl_StenDfile));
-  const titles = groups ? parseTitles(await getText(groups.Pl_StenDfile)) : {};
-  writeFileSync(`${DIR}/${date}.json`, JSON.stringify({ date, stenogramId: id, pdf: pdf ? fileUrl(pdf.Pl_StenDfile) : null, titles, rows }));
+  const titles = failed ? {} : await findTitles(files);
+  writeFileSync(`${DIR}/${date}.json`, JSON.stringify({ date, stenogramId: id, failed, pdf: pdf ? fileUrl(pdf.Pl_StenDfile) : null, titles, rows }));
   console.log(`+ ${date} (id ${id}): ${rows.length} реда, ${Object.keys(titles).length} заглавия`);
 }
 writeFileSync(STATE, JSON.stringify(state));
@@ -102,15 +122,13 @@ writeFileSync(STATE, JSON.stringify(state));
 // Дни без заглавия: опит отново (групите понякога се качват по-късно или в друг формат).
 for (const f of readdirSync(DIR).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))) {
   const day = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
-  if (Object.keys(day.titles).length) continue;
+  if (Object.keys(day.titles).length || day.failed === true) continue;
   const s = await getJson(`${API}/pl-sten/${day.stenogramId}`);
   const files = s?.files ?? [];
-  const groups = files.find((x) => /групи/i.test(x.Pl_StenDname) && /\.csv$/i.test(x.Pl_StenDfile));
-  if (groups) {
-    day.titles = parseTitles(await getText(groups.Pl_StenDfile));
-    writeFileSync(`${DIR}/${f}`, JSON.stringify(day));
-  }
-  console.log(`  ${day.date} без заглавия; сега ${Object.keys(day.titles).length}; файлове: ${files.map((x) => x.Pl_StenDname + " [" + x.Pl_StenDfile.split("/").pop() + "]").join("; ")}`);
+  day.failed = files.some((x) => /provaleno/i.test(x.Pl_StenDfile));
+  if (!day.failed) day.titles = await findTitles(files);
+  writeFileSync(`${DIR}/${f}`, JSON.stringify(day));
+  console.log(`  ${day.date}: ${day.failed ? "провалено заседание (без кворум)" : Object.keys(day.titles).length + " заглавия"}`);
 }
 
 // 2. Сливане в основния файл: само дни след последния ден при „Наясно“.
@@ -134,6 +152,7 @@ let added = 0;
 for (const f of cached) {
   const day = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
   if (day.date <= lastDate) continue;
+  if (day.failed) { (main.failedSittings ??= []).push(day.date); continue; }
   for (const r of day.rows) r.id = ourId(r);
   for (const r of day.rows) {
     if (!main.mps.some((m) => m.id === r.id)) {
