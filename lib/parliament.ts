@@ -159,3 +159,11 @@ export function agreement(a: string, b: string) {
 export function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("bg-BG", { day: "numeric", month: "long", year: "numeric" });
 }
+
+/** Местата по групи към последното гласуване (само действащите депутати). */
+export function currentSeats() {
+  const latest = VOTES[0];
+  const c: Record<string, number> = {};
+  MPS.forEach((m, i) => { if (latest.v[i] !== "-") c[m.party] = (c[m.party] ?? 0) + 1; });
+  return PARTIES.filter((p) => c[p]).map((p) => ({ label: partyName(p), seats: c[p] }));
+}

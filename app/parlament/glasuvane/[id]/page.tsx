@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OutcomeTag, TallyBar, VOTE_COLOR, VoteLegend } from "@/components/parliament";
-import { Page } from "@/components/ui";
+import { Page, SectionTitle, Title } from "@/components/ui";
+import { explain } from "@/lib/voteExplain";
+import { getLaw } from "@/lib/laws";
 import { MPS, PARLIAMENT_SOURCE, PARTIES, TOPICS, VOTES, VOTE_LABEL, type VoteCode, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
 export function generateStaticParams() {
@@ -22,18 +24,84 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
   const parties = PARTIES.filter((p) => br[p]);
   const order: VoteCode[] = ["y", "n", "a", "x"];
 
+  const ex = explain(v.title, v.outcome);
+  const law = getLaw(ex.law?.slug);
+  const par = v.title.match(/параграф[ие]?\s+(\d+[а-я]?)/i)?.[1];
+  const parNote = law && par ? law.paragraphs?.[par] : undefined;
+  const passed = v.outcome !== "rejected";
+
   return (
     <Page>
-      <p className="text-sm mb-3"><Link href="/parlament">← Всички гласувания</Link></p>
-      <p className="text-sm text-muted mb-2">{formatDate(v.date)} · точка {v.item} · {TOPICS[v.topic] ?? v.topic}</p>
-      <h1 className="text-2xl sm:text-3xl font-bold leading-snug max-w-4xl">{v.title}</h1>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <OutcomeTag outcome={v.outcome} />
-        <span className="num">За <b>{v.tally.yes}</b> · Против <b>{v.tally.no}</b> · Въздържал се <b>{v.tally.abstain}</b> · Отсъстващи {v.tally.absent}</span>
-      </div>
+      <Title
+        small
+        back={{ href: "/parlament", label: "Всички гласувания" }}
+        kicker={`${formatDate(v.date)} · ${ex.kind}`}
+        lead={
+          <span className="flex flex-wrap items-center gap-3 text-ink text-base">
+            <OutcomeTag outcome={v.outcome} />
+            <span className="num">За <b>{v.tally.yes}</b> · Против <b>{v.tally.no}</b> · Въздържал се <b>{v.tally.abstain}</b> · Отсъстващи {v.tally.absent}</span>
+          </span>
+        }
+      >
+        {v.title}
+      </Title>
+
+      <section className="grid gap-5 lg:grid-cols-3 mb-12">
+        <div className="lg:col-span-3 bg-white border border-rule border-t-[3px] border-t-green rounded-sm p-5">
+          <p className="text-sm uppercase tracking-wider text-green font-semibold mb-2">За какво е това гласуване</p>
+          <p className="text-[17px]">{ex.what}</p>
+          {ex.proposer?.id && (
+            <p className="text-sm mt-2">Вносител на предложението: <Link href={`/parlament/deputat/${ex.proposer.id}`}>{ex.proposer.name}</Link>{ex.proposer.party ? `, ${ex.proposer.party}` : ""}</p>
+          )}
+        </div>
+        <div className={`border rounded-sm p-5 ${passed ? "border-green bg-green-soft" : "border-rule bg-white"}`}>
+          <p className="text-sm font-semibold mb-1">Ако се приеме {passed && <span className="text-green">· това се случи</span>}</p>
+          <p className="text-[15px]">{ex.ifYes}</p>
+        </div>
+        <div className={`border rounded-sm p-5 ${!passed ? "border-ink bg-surface" : "border-rule bg-white"}`}>
+          <p className="text-sm font-semibold mb-1">Ако се отхвърли {!passed && <span>· това се случи</span>}</p>
+          <p className="text-[15px]">{ex.ifNo}</p>
+        </div>
+        <div className="border border-rule rounded-sm p-5 bg-white">
+          <p className="text-sm font-semibold mb-1">Законът</p>
+          {ex.law ? (
+            <p className="text-[15px]"><Link href={`/parlament/zakon/${ex.law.slug}`}>{ex.law.name}</Link>: всички гласувания по него{law ? " и обяснение какво променя" : ""}.</p>
+          ) : (
+            <p className="text-[15px] text-muted">Гласуването не е по конкретен закон.</p>
+          )}
+        </div>
+      </section>
+
+      {law && (
+        <section className="mb-12 max-w-4xl">
+          <SectionTitle>Какво променя законът</SectionTitle>
+          <p className="text-[17px]">{law.summary}</p>
+          {parNote && (
+            <div className="mt-4 border-l-4 border-red pl-4">
+              <p className="text-sm font-semibold mb-1">Конкретно за § {par}</p>
+              <p className="text-[15px]">{parNote}</p>
+            </div>
+          )}
+          {law.sides && (
+            <div className="grid gap-4 sm:grid-cols-3 mt-6">
+              {law.sides.map((s) => (
+                <div key={s.who} className="bg-surface p-4 rounded-sm">
+                  <p className="text-sm font-semibold mb-1">{s.who}</p>
+                  <p className="text-[15px]">{s.argument}</p>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-xs text-muted mt-4">
+            {law.note} Проверено: {formatDate(law.reviewed)}. Източници: {law.sources.map((src, i) => (
+              <span key={src.url}>{i > 0 && ", "}<a href={src.url} target="_blank" rel="noreferrer">{src.title}</a></span>
+            ))}
+          </p>
+        </section>
+      )}
 
       <section className="mt-10 max-w-4xl">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Как гласува всяка група</h2>
+        <SectionTitle>Как гласува всяка група</SectionTitle>
         <VoteLegend />
         <div className="mt-4 space-y-4">
           {parties.map((p) => {
@@ -54,7 +122,7 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
       </section>
 
       <section className="mt-12">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Кой как гласува</h2>
+        <SectionTitle>Кой как гласува</SectionTitle>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {parties.map((p) => (
             <div key={p}>
@@ -78,7 +146,7 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
       </section>
 
       <section className="mt-12 max-w-3xl text-[15px]">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-3">Какво печели и какво губи всяка страна</h2>
+        <SectionTitle>Какво печели и какво губи всяка страна</SectionTitle>
         <p className="text-muted">
           За всеки важен закон ще добавяме мотивите на вносителите, становищата на критиците и какво казват данните, с източник за всеки аргумент.
         </p>

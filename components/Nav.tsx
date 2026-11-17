@@ -25,7 +25,7 @@ export function Nav() {
             aria-current={active ? "page" : undefined}
             className={
               "no-underline pb-1 border-b-2 " +
-              (active ? "text-ink border-red" : "text-muted border-transparent hover:text-ink")
+              (active ? "text-white border-red" : "text-white/75 border-transparent hover:text-white")
             }
           >
             {i.label}

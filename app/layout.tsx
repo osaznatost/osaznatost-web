@@ -18,16 +18,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="bg">
       <body className="min-h-screen flex flex-col">
-        <header className="border-b border-rule">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-wrap items-baseline gap-x-8 gap-y-2 py-4">
-            <Link href="/" className="no-underline text-ink hover:text-ink">
-              <span className="text-2xl font-bold tracking-tight text-green">Осъзнатост</span>
+        <header className="bg-green text-white">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-wrap items-center gap-x-10 gap-y-2 py-4">
+            <Link href="/" className="no-underline text-white hover:text-white flex items-center gap-2">
+              <span aria-hidden className="inline-block w-3 h-3 bg-red" />
+              <span className="text-[1.6rem] font-bold tracking-tight">Осъзнатост</span>
             </Link>
             <Nav />
           </div>
         </header>
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-rule mt-16">
+        <footer className="bg-surface border-t border-rule mt-20">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 text-sm text-muted grid gap-2 sm:grid-cols-2">
             <p>
               Не подкрепяме партия, кандидат или правителство. Всяко число има източник и дата.{" "}

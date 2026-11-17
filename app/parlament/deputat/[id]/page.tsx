@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { VOTE_COLOR } from "@/components/parliament";
-import { KeyNumber, Page, num, pct } from "@/components/ui";
+import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui";
 import { MPS, PARLIAMENT_SOURCE, VOTES, VOTE_LABEL, type VoteCode, formatDate, getMp, mpStats, mpVote, partyName } from "@/lib/parliament";
 
 export function generateStaticParams() {
@@ -21,11 +21,11 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
 
   return (
     <Page>
-      <p className="text-sm mb-3"><Link href="/parlament">← Парламент</Link></p>
-      <h1 className="text-3xl sm:text-4xl font-bold">{mp.name}</h1>
-      <p className="text-lg text-muted mt-1">Парламентарна група: {partyName(mp.party)}</p>
+      <Title back={{ href: "/parlament", label: "Парламент" }} kicker="Народен представител" lead={`Парламентарна група: ${partyName(mp.party)}`}>
+        {mp.name}
+      </Title>
 
-      <div className="grid gap-8 sm:grid-cols-3 my-10">
+      <div className="grid gap-5 sm:grid-cols-3 mb-12">
         <KeyNumber label="Присъствие" value={s.eligible ? pct(s.present / s.eligible, 0) : "—"} note={`гласувал в ${num(s.present, 0)} от ${num(s.eligible, 0)} гласувания`} />
         <KeyNumber label="Срещу собствената група" value={num(s.against, 0)} note={s.present ? `${pct(s.against / s.present, 1)} от гласуванията, в които е участвал` : ""} />
         <KeyNumber label="Период" value={s.eligible ? `${num(s.eligible, 0)}` : "—"} note="гласувания, докато е депутат" />
@@ -33,7 +33,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
 
       {s.dissents.length > 0 && (
         <section className="mb-12">
-          <h2 className="text-xl font-bold border-b border-ink pb-2 mb-1">Когато е гласувал различно от групата си</h2>
+          <SectionTitle>Когато е гласувал различно от групата си</SectionTitle>
           <p className="text-sm text-muted mb-3">Това не е нито добро, нито лошо само по себе си. Показва къде депутатът е имал различна позиция.</p>
           <ul>
             {s.dissents.slice(0, 50).map(({ vote, own, party }) => (
@@ -48,7 +48,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       )}
 
       <section>
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-3">Последни гласувания</h2>
+        <SectionTitle>Последни гласувания</SectionTitle>
         <ul>
           {recent.map((v) => {
             const c = mpVote(v, mp.id);

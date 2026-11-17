@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { KeyNumber, Page, num } from "@/components/ui";
+import { KeyNumber, Page, num, SectionTitle } from "@/components/ui";
+import { MPS, NS, VOTES } from "@/lib/parliament";
 import { CPI_GROUPS, CPI_MONTHLY, DEBT_GDP, DEBT_GDP_SOURCE, P } from "@/lib/params";
 
 const calcs = [
@@ -20,16 +21,30 @@ export default function Home() {
 
   return (
     <Page>
-      <section className="max-w-3xl mb-12">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
-          Какво прави държавата. С числа и източници.
-        </h1>
-        <p className="mt-4 text-lg text-muted">
-          Гласувания, бюджет, дълг и цени, проследени до първоизточника. Ние показваме данните, а изводите правите вие.
-        </p>
+      <section className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-green text-white -mt-8 sm:-mt-12 mb-0">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-10 sm:pt-16 pb-24 sm:pb-28 grid gap-8 md:grid-cols-[1.4fr_1fr] items-end">
+          <div>
+            <h1 className="text-4xl sm:text-[3.4rem] font-bold tracking-tight leading-[1.05]">
+              Какво прави държавата.<br />С числа и източници.
+            </h1>
+            <p className="mt-5 text-lg text-white/80 max-w-xl">
+              Гласувания, бюджет, дълг и цени, проследени до първоизточника. Ние показваме данните, а изводите правите вие.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="/parlament" className="no-underline bg-red hover:bg-red-dark text-white hover:text-white font-semibold px-5 py-3 rounded">Вижте гласуванията</Link>
+              <Link href="/kalkulatori" className="no-underline border border-white/40 hover:border-white text-white hover:text-white px-5 py-3 rounded">Калкулатори</Link>
+            </div>
+          </div>
+          <ul className="text-white/85 text-[15px] space-y-2 border-l border-white/25 pl-5">
+            <li><b className="text-white">{num(VOTES.length, 0)}</b> поименни гласувания в {NS}-ото Народно събрание</li>
+            <li><b className="text-white">{MPS.length}</b> депутати с присъствие и позиции</li>
+            <li><b className="text-white">5</b> калкулатора с актуалните ставки за 2026 г.</li>
+            <li>Всяко число с източник и дата</li>
+          </ul>
+        </div>
       </section>
 
-      <section className="grid gap-8 sm:grid-cols-3 mb-14">
+      <section className="grid gap-5 sm:grid-cols-3 mb-14 -mt-14 relative">
         <KeyNumber
           label="Държавен дълг, 2025"
           value={`${num(d25.value)}%`}
@@ -54,10 +69,7 @@ export default function Home() {
       </section>
 
       <section className="mb-14">
-        <div className="flex items-baseline justify-between border-b border-ink pb-2 mb-4">
-          <h2 className="text-xl font-bold">Калкулатори</h2>
-          <Link href="/kalkulatori" className="text-sm">Всички</Link>
-        </div>
+        <SectionTitle right={<Link href="/kalkulatori">Всички</Link>}>Калкулатори</SectionTitle>
         <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8">
           {calcs.map((c) => (
             <li key={c.href} className="border-b border-rule py-4">
@@ -70,7 +82,7 @@ export default function Home() {
 
       <section className="grid gap-10 md:grid-cols-2">
         <div>
-          <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Първа проверка</h2>
+          <SectionTitle>Първа проверка</SectionTitle>
           <p className="text-lg font-semibold">Дългът: два поста, противоположни изводи</p>
           <p className="text-muted mt-2">
             Два поста за един и същи бюджет с противоположни изводи. Разделихме ги на отделни твърдения и проверяваме всяко срещу данните на МФ и Евростат.
@@ -78,10 +90,10 @@ export default function Home() {
           <p className="mt-3"><Link href="/proverki/dalg-2026">Прочетете проверката →</Link></p>
         </div>
         <div>
-          <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Парламент</h2>
+          <SectionTitle>Парламент</SectionTitle>
           <p className="text-muted mb-3">Всички поименни гласувания на 52-рото Народно събрание: кой как гласува, колко присъстват групите и с кого гласуват еднакво.</p>
           <p className="mb-8"><Link href="/parlament">Вижте гласуванията →</Link></p>
-          <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Скоро</h2>
+          <SectionTitle>Скоро</SectionTitle>
           <ul className="space-y-2 text-muted">
                         <li><span className="text-ink font-semibold">Обещания</span>: обещано срещу изпълнено, по партии</li>
             <li><span className="text-ink font-semibold">Поръчки</span>: кой печели обществените пари и кой стои зад фирмата</li>

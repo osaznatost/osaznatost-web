@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { KeyNumber, Page, Title, num, pct } from "@/components/ui";
-import { MPS, NS, PARLIAMENT_SOURCE, PARTIES, TOPICS, UPDATED_AT, VOTES, formatDate, partyBreakdown, partyName, partyPosition, partyStats } from "@/lib/parliament";
+import { KeyNumber, Page, Title, num, pct, SectionTitle } from "@/components/ui";
+import { currentSeats, MPS, NS, PARLIAMENT_SOURCE, PARTIES, TOPICS, UPDATED_AT, VOTES, formatDate, partyBreakdown, partyName, partyPosition, partyStats } from "@/lib/parliament";
 import { VoteList, type VoteRow } from "./VoteList";
+import { Hemicycle } from "@/components/Hemicycle";
 
 export const metadata = { title: "Парламент" };
 
@@ -25,17 +26,16 @@ export default function Parlament() {
         Парламент
       </Title>
 
-      <div className="grid gap-8 sm:grid-cols-3 mb-12">
+      <div className="grid gap-5 sm:grid-cols-3 mb-12">
         <KeyNumber label="Гласувания" value={num(VOTES.length, 0)} note={`от ${formatDate(first)} до ${formatDate(last)}`} />
         <KeyNumber label="Отхвърлени предложения" value={num(rejected, 0)} note={`${pct(rejected / VOTES.length, 0)} от всички гласувания`} />
         <KeyNumber label="Депутати в периода" value={num(MPS.length, 0)} note="включително заместили други" />
       </div>
 
       <section className="mb-12">
-        <div className="flex items-baseline justify-between border-b border-ink pb-2 mb-4">
-          <h2 className="text-xl font-bold">Парламентарни групи</h2>
-          <Link href="/parlament/partii" className="text-sm">Подробно и сравнение</Link>
-        </div>
+        <SectionTitle right={<Link href="/parlament/partii">Подробно и сравнение</Link>}>Парламентарни групи</SectionTitle>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
+        <Hemicycle groups={currentSeats()} />
         <div className="overflow-x-auto">
           <table className="w-full text-[15px] num">
             <thead>
@@ -60,11 +60,12 @@ export default function Parlament() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-muted mt-2">Броят депутати е по последната известна група и включва заместници, затова сборът е над 240.</p>
+        </div>
+        <p className="text-xs text-muted mt-2">Полукръгът показва действащите депутати към последното гласуване. В таблицата броят е по последната известна група и включва заместници, затова сборът е над 240.</p>
       </section>
 
       <section>
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Всички гласувания</h2>
+        <SectionTitle>Всички гласувания</SectionTitle>
         <VoteList rows={rows} parties={PARTIES.map((p) => ({ id: p, name: partyName(p) }))} topics={TOPICS} />
       </section>
 

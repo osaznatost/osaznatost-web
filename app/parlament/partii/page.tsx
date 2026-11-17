@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Page, Title, pct } from "@/components/ui";
+import { Page, Title, pct, SectionTitle } from "@/components/ui";
 import { MPS, PARLIAMENT_SOURCE, PARTIES, agreement, mpStats, partyName, partyStats } from "@/lib/parliament";
 
 export const metadata = { title: "Парламентарни групи" };
@@ -10,13 +10,12 @@ export default function Partii() {
 
   return (
     <Page>
-      <p className="text-sm mb-3"><Link href="/parlament">← Парламент</Link></p>
-      <Title lead="Как гласуват групите, колко са единни и с кого гласуват еднакво. Само по поименните гласувания, без оценки.">
+      <Title back={{ href: "/parlament", label: "Парламент" }} lead="Как гласуват групите, колко са единни и с кого гласуват еднакво. Само по поименните гласувания, без оценки.">
         Парламентарни групи
       </Title>
 
       <section className="mb-12">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-1">Кой с кого гласува еднакво</h2>
+        <SectionTitle>Кой с кого гласува еднакво</SectionTitle>
         <p className="text-sm text-muted mb-4">Дял от гласуванията, в които мнозинството в двете групи е гласувало по един и същ начин.</p>
         <div className="overflow-x-auto">
           <table className="text-sm num border-collapse">
@@ -49,7 +48,7 @@ export default function Partii() {
           .sort((a, b) => a.st.present / a.st.eligible - b.st.present / b.st.eligible);
         return (
           <section key={s.p} id={s.p} className="mb-12 scroll-mt-6">
-            <h2 className="text-2xl font-bold border-b border-ink pb-2 mb-4">{partyName(s.p)}</h2>
+            <SectionTitle>{partyName(s.p)}</SectionTitle>
             <div className="grid gap-x-8 gap-y-2 sm:grid-cols-4 text-[15px] mb-4">
               <p><span className="text-muted block text-sm">Депутати</span><span className="num text-2xl font-bold">{s.seats}</span></p>
               <p><span className="text-muted block text-sm">Присъствие</span><span className="num text-2xl font-bold">{pct(s.attendance, 0)}</span></p>

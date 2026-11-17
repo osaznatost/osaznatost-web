@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Label, Page, Title } from "@/components/ui";
+import { Label, Page, Title, SectionTitle } from "@/components/ui";
 
 export const metadata = { title: "Проверка: дългът" };
 
@@ -39,7 +39,7 @@ export default function Proverka() {
       </Title>
 
       <section className="mb-10">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-3">Накратко</h2>
+        <SectionTitle>Накратко</SectionTitle>
         <ul className="list-disc pl-5 space-y-2">
           <li>И двамата цитират реални планови числа, но подбират различни години за сравнение.</li>
           <li>Това, което и двамата пропускат: дългът е <strong>23,8% от БВП през 2024 г. и 29,9% през 2025 г.</strong> (Евростат). Това е най-големият годишен ръст от 2014 г. насам.</li>
@@ -49,7 +49,7 @@ export default function Proverka() {
       </section>
 
       <section>
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-1">Твърдение по твърдение</h2>
+        <SectionTitle>Твърдение по твърдение</SectionTitle>
         <p className="text-sm text-muted mb-4">Проверката още не е завършена. Отбелязваме открито кое не сме потвърдили.</p>
         <ol className="space-y-6">
           {claims.map((c, i) => (

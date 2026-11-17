@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LineChart } from "@/components/Charts";
-import { KeyNumber, Page, Title, num } from "@/components/ui";
+import { KeyNumber, Page, Title, num, SectionTitle } from "@/components/ui";
 import { DEBT_GDP, DEBT_GDP_SOURCE } from "@/lib/params";
 
 export const metadata = { title: "Държавен дълг" };
@@ -21,14 +21,14 @@ export default function Dalg() {
         Държавен дълг
       </Title>
 
-      <div className="grid gap-8 sm:grid-cols-3 mb-12">
+      <div className="grid gap-5 sm:grid-cols-3 mb-12">
         <KeyNumber label="Дълг, 2025" value={`${num(last.value)}%`} note="от БВП, сектор „Държавно управление“" />
         <KeyNumber label="Промяна за 2025" value={`+${num(last.value - prev.value)} пр.п.`} note={`от ${num(prev.value)}% през 2024 · най-големият ръст от 2014 г.`} />
         <KeyNumber label="Праг по правилата на ЕС" value="60%" note="България остава сред страните с най-нисък дълг в ЕС" />
       </div>
 
       <section className="mb-12">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Дълг като % от БВП, 2005–2025</h2>
+        <SectionTitle>Дълг като % от БВП, 2005–2025</SectionTitle>
         <LineChart data={recent} x="year" y="value" yLabel="% от БВП" highlightFrom={2025} />
         <p className="text-xs text-muted mt-2">
           Източник: <a href={DEBT_GDP_SOURCE.url} target="_blank" rel="noreferrer">{DEBT_GDP_SOURCE.title}</a>
@@ -41,8 +41,8 @@ export default function Dalg() {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Какво е планирано</h2>
-        <div className="grid gap-8 sm:grid-cols-3">
+        <SectionTitle>Какво е планирано</SectionTitle>
+        <div className="grid gap-5 sm:grid-cols-3">
           {plan.map((p) => (
             <KeyNumber key={p.label} label={p.label} value={p.value} note={p.note} source={{ title: "Капитал", url: p.src }} />
           ))}
@@ -51,7 +51,7 @@ export default function Dalg() {
       </section>
 
       <section className="max-w-3xl">
-        <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Как да четем тези числа</h2>
+        <SectionTitle>Как да четем тези числа</SectionTitle>
         <ul className="list-disc pl-5 space-y-2">
           <li>Дълг като % от БВП показва колко голям е дългът спрямо икономиката. Ако икономиката расте по-бързо от дълга, процентът пада дори при нов дълг.</li>
           <li>Нов дълг не означава само нови разходи. Част от него рефинансира стар дълг, който падежира.</li>
