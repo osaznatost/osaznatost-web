@@ -86,3 +86,66 @@ export function GrowthChart({ series }: { series: { name: string; year: number; 
   );
   return <div ref={ref} className="w-full" />;
 }
+
+const SERIES_COLORS: Record<string, string> = {
+  "България": "#1F4D3A", "ЕС": "#9aa39e", "Румъния": "#b08436", "Гърция": "#3d5a80", "Хърватия": "#8a5a8c", "Германия": "#56605b", "Полша": "#c46a4a",
+};
+const PALETTE = ["#1F4D3A", "#c8102e", "#3d5a80", "#b08436", "#8a5a8c", "#2a7f7a", "#9aa39e"];
+
+/** Няколко линии с етикет в края. x е година (число) или месец „YYYY-MM“. */
+export function MultiLine({
+  data, unit = "", yLabel, height = 320, zero = false,
+}: {
+  data: { series: string; x: number | string; value: number }[];
+  unit?: string;
+  yLabel?: string;
+  height?: number;
+  zero?: boolean;
+}) {
+  const ref = usePlot((width) => {
+    const names = [...new Set(data.map((d) => d.series))];
+    const colors = names.map((n, i) => SERIES_COLORS[n] ?? PALETTE[i % PALETTE.length]);
+    const monthly = typeof data[0]?.x === "string";
+    const rows = data.map((d) => ({ ...d, x: monthly ? new Date(`${d.x}-01`) : d.x }));
+    const lastOf = names.map((n) => rows.filter((d) => d.series === n).at(-1)!).filter(Boolean);
+    const f = (v: number) => `${String(Math.round(v * 10) / 10).replace(".", ",")}${unit}`;
+    return Plot.plot({
+      ...base,
+      width,
+      height,
+      marginRight: width < 500 ? 12 : 150,
+      x: monthly ? { label: null, type: "utc" } : { tickFormat: "d", label: null },
+      y: { grid: true, label: yLabel ?? null, labelAnchor: "top", zero },
+      color: { domain: names, range: colors, legend: width < 500 },
+      marks: [
+        ...(zero ? [Plot.ruleY([0], { stroke: MUTED })] : []),
+        Plot.lineY(rows, { x: "x", y: "value", stroke: "series", strokeWidth: (d: { series: string }) => (d.series === "България" ? 2.75 : 1.75) }),
+        ...(width < 500 ? [] : [Plot.text(lastOf, { x: "x", y: "value", text: (d: { series: string; value: number }) => `${d.series} ${f(d.value)}`, dx: 6, textAnchor: "start", fill: "series", fontWeight: 600 })]),
+        Plot.tip(rows, Plot.pointer({ x: "x", y: "value", title: (d: { series: string; x: number | Date; value: number }) => `${d.series}, ${d.x instanceof Date ? d.x.toISOString().slice(0, 7) : d.x}: ${f(d.value)}` })),
+      ],
+    }) as SVGSVGElement;
+  });
+  return <div ref={ref} className="w-full" />;
+}
+
+/** Хоризонтални стълбове, подредени по стойност. */
+export function BarRank({ data, unit = "", highlight }: { data: { name: string; value: number }[]; unit?: string; highlight?: string }) {
+  const ref = usePlot((width) => {
+    const rows = [...data].sort((a, b) => b.value - a.value);
+    return Plot.plot({
+      ...base,
+      width,
+      height: rows.length * 22 + 40,
+      marginLeft: 175,
+      marginRight: 60,
+      x: { grid: true, label: null, axis: "top" },
+      y: { label: null, domain: rows.map((r) => r.name) },
+      marks: [
+        Plot.barX(rows, { y: "name", x: "value", fill: (d: { name: string; value: number }) => (d.name === highlight ? "#c8102e" : d.value < 0 ? "#d2353f" : "#1F4D3A") }),
+        Plot.text(rows, { y: "name", x: "value", text: (d: { value: number }) => `${String(Math.round(d.value * 10) / 10).replace(".", ",")}${unit}`, dx: 4, textAnchor: "start", fontSize: 12 }),
+        Plot.ruleX([0], { stroke: MUTED }),
+      ],
+    }) as SVGSVGElement;
+  });
+  return <div ref={ref} className="w-full" />;
+}

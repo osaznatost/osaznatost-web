@@ -15,6 +15,7 @@ const SERIES = [
   { id: "inflation_food", ds: "prc_hicp_aind", filter: { coicop: "CP01", unit: "RCH_A_AVG", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "inflation_rent", ds: "prc_hicp_aind", filter: { coicop: "CP041", unit: "RCH_A_AVG", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "inflation_energy", ds: "prc_hicp_aind", filter: { coicop: "NRG", unit: "RCH_A_AVG", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "fuel_monthly_2026", ds: "prc_hicp_minr", filter: { coicop18: "CP0722", unit: "RCH_A", geo: ["BG", "EU27_2020", "RO", "GR", "DE", "HR"], sinceTimePeriod: "2025-01" }, by: "geo" },
   { id: "fuel_monthly", ds: "prc_hicp_manr", filter: { coicop: "CP0722", geo: ["BG", "EU27_2020", "RO", "GR", "DE", "HR"], sinceTimePeriod: "2024-01" }, by: "geo" },
   { id: "house_prices", ds: "prc_hpi_a", filter: { purchase: "TOTAL", unit: "RCH_A_AVG", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "house_price_index", ds: "prc_hpi_a", filter: { purchase: "TOTAL", unit: "I15_A_AVG", geo: ["BG", "EU27_2020"] }, by: "geo" },
@@ -66,11 +67,29 @@ function flatten(js) {
 
 const result = { updated: new Date().toISOString().slice(0, 10), source: "Евростат", series: {} };
 for (const s of SERIES) {
-  const url = `${API}/${s.ds}?${query(s.filter)}`;
+  let url = `${API}/${s.ds}?${query(s.filter)}`;
   try {
-    const res = await fetch(url);
+    let res = await fetch(url);
+    let local = null;
+    if (res.status === 400) {
+      // Резервен вариант: само по държава, филтрираме локално по наличните измерения.
+      const geoOnly = { geo: s.filter.geo ?? "BG" };
+      if (s.filter.sinceTimePeriod) geoOnly.sinceTimePeriod = s.filter.sinceTimePeriod;
+      url = `${API}/${s.ds}?${query(geoOnly)}`;
+      res = await fetch(url);
+      local = s.filter;
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const { records, labels, updated } = flatten(await res.json());
+    const js = await res.json();
+    if (local) console.log(`  ${s.id}: измерения ${js.id.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 8).join(",")}]`).join(" ")}`);
+    let { records, labels, updated } = flatten(js);
+    if (local) {
+      for (const [k, v] of Object.entries(local)) {
+        if (k === "geo" || k === "sinceTimePeriod" || !js.id.includes(k)) continue;
+        const allowed = [v].flat();
+        records = records.filter((r) => allowed.includes(r[k]));
+      }
+    }
     const lines = {};
     for (const r of records) {
       const key = r[s.by];

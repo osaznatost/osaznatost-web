@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { OutcomeTag, TallyBar, VOTE_COLOR, VoteBoard, VoteLegend } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { explain } from "@/lib/voteExplain";
-import { getLaw } from "@/lib/laws";
+import { getLaw, paragraphKey, type ParagraphNote } from "@/lib/laws";
 import { LawAnalysis, OutcomeList } from "@/components/LawAnalysis";
 import { MPS, PARLIAMENT_SOURCE, PARTIES, TOPICS, VOTES, VOTE_LABEL, type VoteCode, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
@@ -27,12 +27,19 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
 
   const ex = explain(v.title, v.outcome);
   const law = getLaw(ex.law?.slug);
-  const par = v.title.match(/параграф[ие]?\s+(\d+[а-я]?)/i)?.[1];
-  const parNote = law && par ? law.paragraphs?.[par] : undefined;
+  const parKey = paragraphKey(v.title);
+  const par = parKey?.replace(/^пзр-/, "").replace(/-нов$/, "");
+  const rawNote = law && parKey ? law.paragraphs?.[parKey] : undefined;
+  const parObj: ParagraphNote | undefined = typeof rawNote === "object" ? rawNote : undefined;
+  const parNote = typeof rawNote === "string" ? rawNote : parObj?.what;
+  // Предложение на депутат по параграф: „Ако се приеме“ се отнася за предложението, затова не показваме последиците от самия текст.
+  const isAmendment = /предложение от/i.test(v.title);
   const passed = v.outcome !== "rejected";
   // Икономическите последици важат за гласуване по закона като цяло (първо четене или целия закон).
   const whole = ex.kind === "Първо четене" || ex.kind === "Закон";
-  const eff = law?.effects;
+  const matches = parObj && ((parObj.kind === "proposal") === isAmendment);
+  const eff = whole ? law?.effects : matches ? { ifPassed: parObj.ifPassed, ifRejected: parObj.ifRejected } : undefined;
+  const lawEff = law?.effects;
 
   return (
     <Page>
@@ -54,27 +61,34 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
         <div className="lg:col-span-3 bg-surface rounded-xl p-6">
           <h2 className="display text-[2rem] mb-3">За какво е това гласуване</h2>
           <p className="text-[18px] max-w-3xl">{ex.what}</p>
+          {parNote && (
+            <div className="mt-4 border-l-4 border-red pl-4 max-w-3xl">
+              <p className="text-sm font-semibold mb-1">Какво пише в § {par}</p>
+              <p className="text-[16px]">{parNote}</p>
+            </div>
+          )}
           {ex.proposer?.id && (
             <p className="text-sm mt-2">Вносител на предложението: <Link href={`/parlament/deputat/${ex.proposer.id}`}>{ex.proposer.name}</Link>{ex.proposer.party ? `, ${ex.proposer.party}` : ""}</p>
           )}
         </div>
         <div className={`rounded-xl p-5 ${passed ? "bg-[#2f9e6a] text-white" : "bg-white ring-1 ring-rule"}`}>
           <p className="font-semibold mb-1">Ако се приеме{passed && ": това се случи"}</p>
-          {whole && eff ? <p className="text-xs opacity-80">Процедурно: {ex.ifYes}</p> : <p className="text-[15px]">{ex.ifYes}</p>}
-          {whole && eff && <OutcomeList o={eff.ifPassed} onDark={passed} />}
+          {eff ? <p className="text-xs opacity-80">Процедурно: {ex.ifYes}</p> : <p className="text-[15px]">{ex.ifYes}</p>}
+          {eff && <OutcomeList o={eff.ifPassed} onDark={passed} />}
         </div>
         <div className={`rounded-xl p-5 ${!passed ? "bg-[#d2353f] text-white" : "bg-white ring-1 ring-rule"}`}>
           <p className="font-semibold mb-1">Ако се отхвърли{!passed && ": това се случи"}</p>
-          {whole && eff ? <p className="text-xs opacity-80">Процедурно: {ex.ifNo}</p> : <p className="text-[15px]">{ex.ifNo}</p>}
-          {whole && eff && <OutcomeList o={eff.ifRejected} onDark={!passed} />}
+          {eff ? <p className="text-xs opacity-80">Процедурно: {ex.ifNo}</p> : <p className="text-[15px]">{ex.ifNo}</p>}
+          {eff && <OutcomeList o={eff.ifRejected} onDark={!passed} />}
         </div>
         <div className="rounded-xl p-5 bg-white ring-1 ring-rule">
           <p className="font-semibold mb-1">Законът</p>
           {ex.law ? (
             <>
               <p className="text-[15px]"><Link href={`/parlament/zakon/${ex.law.slug}`}>{ex.law.name}</Link>: всички гласувания по него{law ? " и обяснение какво променя" : ""}.</p>
-              {!eff && <p className="text-sm text-muted mt-2">Още нямаме анализ какво ще промени този закон на практика. Добавяме ги по реда на важността им.</p>}
-              {eff && !whole && <p className="text-sm mt-2">Това гласуване е за част от закона. Какво носи законът като цяло, ако бъде приет или отхвърлен, е описано по-долу.</p>}
+              {!lawEff && <p className="text-sm text-muted mt-2">Още нямаме анализ какво ще промени този закон на практика. Добавяме ги по реда на важността им.</p>}
+              {lawEff && !whole && !eff && <p className="text-sm mt-2">За този конкретен текст още нямаме отделен разбор. Какво носи законът като цяло е описано по-долу.</p>}
+              {lawEff && !whole && eff && <p className="text-sm mt-2">Последиците в картите са за този конкретен текст. Законът като цяло е описан по-долу.</p>}
             </>
           ) : (
             <p className="text-[15px] text-muted">Гласуването не е по конкретен закон.</p>
@@ -86,12 +100,6 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
         <section className="mb-12 max-w-4xl">
           <SectionTitle>Какво променя законът</SectionTitle>
           <p className="text-[17px]">{law.summary}</p>
-          {parNote && (
-            <div className="mt-4 border-l-4 border-red pl-4">
-              <p className="text-sm font-semibold mb-1">Конкретно за § {par}</p>
-              <p className="text-[15px]">{parNote}</p>
-            </div>
-          )}
           <LawAnalysis law={law} hideEffects={whole} />
         </section>
       )}
