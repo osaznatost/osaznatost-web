@@ -104,6 +104,20 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
         </section>
       )}
 
+      {P?.transfers && P.transfers.length > 1 && (() => {
+        const T = P.transfers, last = T[T.length - 1], prev = T[T.length - 2], first = T[0];
+        const perCap = C ? last.total / C.population : null;
+        const series = [["delegated", "Делегирани дейности (училища, детски градини, социални)"], ["equalization", "Изравнителна субсидия"], ["capital", "За ремонти и строителство"], ["total", "Общо"]] as const;
+        return (
+          <section className="mb-12">
+            <SectionTitle>Пари от държавата</SectionTitle>
+            <p className="text-[15px] -mt-2 mb-4 max-w-3xl">По закона за бюджета за {last.year} г. общината получава <b>{mn(last.total)}</b>{perCap ? <> ({Math.round(perCap).toLocaleString("bg-BG")} € на жител)</> : null}, {last.total >= prev.total ? "с" : "със"} {fmt(Math.abs((last.total - prev.total) / prev.total) * 100, 1)}% {last.total >= prev.total ? "повече" : "по-малко"} от {prev.year} г. и {fmt(last.total / first.total, 1)} пъти повече от {first.year} г. Най-голямата част са <b>делегираните дейности</b>: заплати в училищата, детските градини и социалните услуги. Те се плащат по единни стандарти и общината не може да ги пренасочва.</p>
+            <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><MultiLine data={series.flatMap(([k, l]) => T.map((t) => ({ series: l, x: t.year, value: Math.round(t[k] / 1e4) / 100 })))} yLabel="млн. €" height={300} /></div>
+            <p className="text-xs text-muted mt-2">Закон за държавния бюджет, трансфери за общините (обща субсидия за делегирани дейности, изравнителна субсидия, капиталови разходи, зимно поддържане), обработени от „Наясно“.</p>
+          </section>
+        );
+      })()}
+
       {P?.ipop && P.ipop.projects.length > 0 && (
         <section className="mb-12">
           <SectionTitle>Държавни инвестиции в общината</SectionTitle>

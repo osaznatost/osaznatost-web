@@ -8,6 +8,15 @@ async function pool(items, n, fn) { let i = 0; await Promise.all(Array.from({ le
 const round = (c) => (Array.isArray(c) ? c.map(round) : Math.round(c * 1e4) / 1e4);
 
 const places = JSON.parse(readFileSync("data/places.json", "utf8"));
+// Трансфери от държавния бюджет към общините по години (Закон за държавния бюджет, чл. 50–53).
+const transfers = {};
+await pool([...new Set(places.oblasts.map((o) => o.municipalities[0].code.slice(0, 3)))], 6, async (obl) => {
+  const t = await get(`budget/municipal_transfers/oblasts/${obl}.json`);
+  for (const y of t?.years ?? []) for (const m of y.municipalities ?? []) {
+    const e = (k) => m[k]?.amountEur ?? 0;
+    (transfers[m.obshtinaCode] ??= []).push({ year: y.fiscalYear, delegated: e("delegated"), equalization: e("equalization"), capital: e("capital"), winter: e("winter"), other: e("otherTargeted"), total: e("total") });
+  }
+});
 mkdirSync("data/place", { recursive: true });
 const country = { population: 0, age: {}, gender: {}, education: {}, employed: 0, active: 0 };
 let n = 0;
@@ -20,6 +29,7 @@ await pool(places.oblasts.flatMap((o) => o.municipalities.map((m) => m.code)), 6
     census: census ? { population: census.population, age: census.age, gender: census.gender, education: census.education, employment: census.employment, ethnic: census.ethnic, religion: census.religion, motherTongue: census.motherTongue } : null,
     map: map ? { type: "FeatureCollection", features: map.features.map((f) => ({ type: "Feature", properties: { ekatte: f.properties.ekatte }, geometry: { type: f.geometry.type, coordinates: round(f.geometry.coordinates) } })) } : null,
     taxes: taxes?.ipi ?? null,
+    transfers: (transfers[code === "SOF46" ? "SOF46" : code] ?? []).sort((a, b) => a.year - b.year),
     ipop: ipop ? { year: ipop.fiscalYear, rollup: ipop.rollup, projects: ipop.projects.map((p) => ({ id: p.id, description: p.description, agreement: Math.round(p.agreementEur), paid: Math.round(p.paidEur), state: Math.round(p.mrrbPaidEur ?? 0), muni: Math.round(p.bbrPaidEur ?? 0), pct: p.paidPct, stalled: p.stalled })) } : null,
   };
   writeFileSync(`data/place/${code}.json`, JSON.stringify(out));

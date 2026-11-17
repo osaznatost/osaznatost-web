@@ -9,6 +9,7 @@ export type Census = {
 export type PlaceData = {
   code: string; census: Census | null;
   map: { type: "FeatureCollection"; features: { type: "Feature"; properties: { ekatte: string }; geometry: unknown }[] } | null;
+  transfers?: { year: number; delegated: number; equalization: number; capital: number; winter: number; other: number; total: number }[];
   taxes: Record<string, { values: Record<string, number>; latestYear: number; latestValue: number; nationalRank: number }> | null;
   ipop: null | { year: number; rollup: { projectCount: number; agreementEur: number; paidEur: number; mrrbPaidEur: number; bbrPaidEur: number; paidPct: number; stalledCount: number };
     projects: { id: string; description: string; agreement: number; paid: number; state: number; muni: number; pct: number; stalled: boolean }[] };

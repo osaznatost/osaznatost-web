@@ -4,6 +4,7 @@ import { Page, SectionTitle, Title } from "@/components/ui";
 import { REGIONAL_SECTORS, val } from "@/lib/economy";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, oblastStats } from "@/lib/regions";
 import { STATS, fmt } from "@/lib/stats";
+import { ChoroMap } from "@/components/ChoroMap";
 import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
 
 export function generateStaticParams() { return oblastList().map((o) => ({ obl: o.slug })); }
@@ -75,6 +76,10 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
             ].map(([l, v, b]) => (
               <div key={l as string} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.2rem] mt-1">{fmt(v as number, 1)}%</p><p className="text-xs text-muted">{b != null ? `страната: ${fmt(b as number, 1)}%` : ""}</p></div>
             ))}
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2 mb-6">
+            <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><p className="font-semibold mb-2">Дял на хората над 65 г.</p><ChoroMap values={Object.fromEntries(prof.map((x) => [x.m.code, { name: x.m.name, value: Math.round(x.old * 10) / 10 }]))} color="#c8102e" legend="% над 65 г." unit="%" decimals={1} /></div>
+            <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><p className="font-semibold mb-2">Държавни инвестиции на жител</p><ChoroMap values={Object.fromEntries(prof.map((x) => [x.m.code, { name: x.m.name, value: Math.round(x.ipop / x.pop) }]))} color="#1F4D3A" legend="€ на жител" unit=" €" /></div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-[15px] num">
