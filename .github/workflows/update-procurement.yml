@@ -1,0 +1,28 @@
+name: Обновяване на поръчките
+
+on:
+  schedule:
+    - cron: "23 */3 * * *"   # на всеки 3 часа; след наваксване внася само новия ден
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [scripts/import-procurement.mjs]
+
+concurrency:
+  group: procurement
+  cancel-in-progress: false
+
+jobs:
+  eop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Договори и анекси от ЦАИС ЕОП
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/import-procurement.mjs
