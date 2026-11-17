@@ -1,5 +1,5 @@
 // Проба: какви полета има в отворените данни на ЦАИС ЕОП (договори, анекси, обявления OCDS).
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 const BASE = "https://storage.eop.bg";
 const days = ["2026-11-10", "2026-11-11", "2026-11-12"];
 const kinds = {
@@ -35,4 +35,5 @@ for (const day of days) {
     } catch (e) { console.log("✗", k, day, e.message); }
   }
 }
+mkdirSync("data/_probe", { recursive: true });
 writeFileSync("data/_probe/eop.json", JSON.stringify(out, null, 1));
