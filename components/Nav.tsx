@@ -7,6 +7,7 @@ const items = [
   { href: "/kalkulatori", label: "Калкулатори" },
   { href: "/pari/dalg", label: "Дълг" },
   { href: "/parlament", label: "Парламент" },
+  { href: "/obeshtaniya", label: "Обещания" },
   { href: "/statistiki", label: "Статистики" },
   { href: "/proverki", label: "Проверки" },
   { href: "/metodologiya", label: "Как работим" },

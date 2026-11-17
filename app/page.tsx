@@ -107,8 +107,7 @@ export default function Home() {
           <p className="mb-8"><Link href="/parlament">Вижте гласуванията</Link></p>
           <SectionTitle>Скоро</SectionTitle>
           <ul className="space-y-2 text-muted">
-                        <li><span className="text-ink font-semibold">Обещания</span>: обещано срещу изпълнено, по партии</li>
-            <li><span className="text-ink font-semibold">Поръчки</span>: кой печели обществените пари и кой стои зад фирмата</li>
+                                    <li><span className="text-ink font-semibold">Поръчки</span>: кой печели обществените пари и кой стои зад фирмата</li>
             <li><span className="text-ink font-semibold">Статистики</span>: всичко за България, с история и сравнение с ЕС</li>
           </ul>
         </div>
