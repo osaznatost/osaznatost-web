@@ -84,6 +84,10 @@ export default function Ikonomika() {
       <Title lead={`Осем числа, които показват дали икономиката е здрава, с история и сравнение с ЕС. Данните идват от Евростат и се обновяват автоматично (последно на ${formatDate(STATS.updated)}).`}>
         Здравето на икономиката
       </Title>
+      <Link href="/ikonomika/struktura" className="block ring-1 ring-rule rounded-sm p-4 mb-8 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
+        <p className="font-semibold text-lg">Анатомия на икономиката →</p>
+        <p className="text-[15px] text-muted">Кои сектори създават стойност, за какво се харчи БВП, колко остава за заплати и колко за печалби, решенията през годините и разликите между областите.</p>
+      </Link>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <Gauge label={`Растеж на икономиката, ${g.x}`} value={fmt(g.value)} unit="%" eu={`${fmt(gEu.value)}%`} tone={tone.growth} why="Реален ръст на БВП. Над 2,5% означава, че догонваме ЕС." href="#rastezh" />
