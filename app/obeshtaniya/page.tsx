@@ -7,7 +7,11 @@ type Status = "kept" | "in_progress" | "at_risk" | "not_met" | "broken" | "not_a
 type Promise_ = {
   text: string; area: string; said: { who: string; when: string; url: string }; status: Status;
   evidence: string; links: { title: string; url: string }[];
+  timeline?: { date: string; what: string; url?: string }[];
+  why?: string[]; whySrc?: string[]; next?: string; note?: string;
 };
+const Ext = ({ url, children }: { url: string; children: React.ReactNode }) =>
+  url.startsWith("/") ? <Link href={url}>{children}</Link> : <a href={url} target="_blank" rel="noreferrer">{children}</a>;
 type Gov = { party: string; name: string; term: "current" | "past"; period: string; role: string; programme: { title: string; url: string }[]; promises: Promise_[] };
 const data = raw as { updated: string; parties: Gov[] };
 
@@ -93,6 +97,29 @@ export default function Obeshtaniya() {
                   <p className="display text-[1.7rem] mt-2">{x.text}</p>
                   <p className="text-sm text-muted mt-1">Обещал: <a href={x.said.url} target="_blank" rel="noreferrer">{x.said.who}, {x.said.when}</a></p>
                   <p className="text-[15px] mt-3">{x.evidence}</p>
+                  {x.note && <p className="text-[15px] mt-2 font-semibold">{x.note}</p>}
+                  {x.timeline?.length ? (
+                    <details className="mt-3 group">
+                      <summary className="cursor-pointer text-sm font-semibold text-green">Как се стигна дотук ({x.timeline.length} стъпки)</summary>
+                      <ol className="mt-3 border-l-2 border-rule pl-4 space-y-3">
+                        {x.timeline.map((t) => (
+                          <li key={t.date + t.what} className="relative text-[15px]">
+                            <span className="absolute -left-[1.4rem] top-1.5 w-2.5 h-2.5 rounded-full bg-green" />
+                            <span className="text-sm font-semibold">{t.date}</span>
+                            <p>{t.what}{t.url && <> <Ext url={t.url}>Източник</Ext></>}</p>
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
+                  ) : null}
+                  {x.why?.length ? (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-sm font-semibold text-green">{GOOD.includes(x.status) ? "Как е постигнато" : "Защо не е изпълнено или е под въпрос"}</summary>
+                      <ul className="mt-2 list-disc pl-5 space-y-1 text-[15px]">{x.why.map((w) => <li key={w}>{w}</li>)}</ul>
+                      {x.whySrc?.length ? <p className="text-xs text-muted mt-1">Източници: {x.whySrc.map((u, i) => <span key={u}>{i > 0 && ", "}<Ext url={u}>[{i + 1}]</Ext></span>)}</p> : null}
+                    </details>
+                  ) : null}
+                  {x.next && <p className="text-sm mt-3 bg-surface rounded-sm px-3 py-2"><b>Следваща проверка:</b> {x.next}</p>}
                   {x.links.length > 0 && (
                     <p className="text-sm mt-auto pt-3 flex flex-wrap gap-x-4 gap-y-1">
                       {x.links.map((l) => l.url.startsWith("/")
@@ -104,7 +131,7 @@ export default function Obeshtaniya() {
               ))}
             </ul>
             <p className="text-xs text-muted mt-4">
-              Програми: {p.programme.map((s, i) => <span key={s.url}>{i > 0 && "; "}<a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></span>)}. Проверено: {formatDate(data.updated)}.
+              Програми: {p.programme.map((s, i) => <span key={s.url}>{i > 0 && "; "}<a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></span>)}. Проверено: {formatDate(data.updated)}
             </p>
           </section>
         );
