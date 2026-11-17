@@ -329,6 +329,46 @@
           ]
         }
       ]
+    },
+    {
+      "party": "GOV-PK",
+      "name": "Правителство „Петков“ (ПП, БСП, ИТН, ДБ)",
+      "term": "past",
+      "period": "13 декември 2021 – 2 август 2022 г.",
+      "role": "Коалиция на ПП, БСП, ИТН и ДБ. ИТН напусна коалицията заради спора за ветото за Северна Македония. Правителството падна с вот на недоверие на 22 юни 2022 г. (123 на 116 гласа).",
+      "programme": [
+        {
+          "title": "Изявление на премиера Кирил Петков при предаването на властта (02.08.2022)",
+          "url": "https://www.gov.bg/en/Press-center/News/Statement-by-the-Prime-Minister-Kiril-Petkov"
+        },
+        {
+          "title": "Ал Джазира: правителството пада след вот на недоверие",
+          "url": "https://www.aljazeera.com/news/2022/6/22/bulgarias-ruling-four-party-coalition-faces-no-confidence-vote"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Еврото от 1 януари 2024 г.",
+          "area": "Икономика",
+          "said": {
+            "who": "Кирил Петков",
+            "when": "януари 2022",
+            "url": "https://www.bta.bg/en/news/12347-PM-Petkov-on-Bloomberg-Bulgaria-Fully-Committed-to-Adopt-Euro-in-January-202"
+          },
+          "status": "failed",
+          "evidence": "Правителството прие национален план за въвеждане на еврото от 1 януари 2024 г. През февруари 2023 г. следващото, служебно правителство обяви, че целта отпада заради закъснялото законодателство и високата инфлация. България влезе в еврозоната на 1 януари 2026 г.",
+          "links": [
+            {
+              "title": "intellinews: България се отказва от целта за януари 2024 г.",
+              "url": "https://intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
+            },
+            {
+              "title": "SeeNews: причините, по думите на министър Велкова",
+              "url": "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
