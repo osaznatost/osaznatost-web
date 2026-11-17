@@ -1,15 +1,15 @@
 name: История на поръчките
 
-# Внася по-старите договори и анекси назад във времето (по 120 дни на пускане), докато стигне HISTORY_FROM.
+# Внася по-старите договори и анекси назад във времето (по 400 дни на пускане), докато стигне HISTORY_FROM.
 # Когато историята е внесена, пусканията приключват за секунди.
 on:
   schedule:
-    - cron: "47 */2 * * *"
+    - cron: "47 * * * *"
   workflow_dispatch:
     inputs:
       from:
         description: "До коя дата назад (ГГГГ-ММ-ДД)"
-        default: "2023-01-01"
+        default: "2020-01-01"
 
 concurrency:
   group: procurement
@@ -29,8 +29,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           HISTORY: "1"
-          HISTORY_FROM: ${{ github.event.inputs.from || '2023-01-01' }}
-          MAX_DAYS: "120"
+          HISTORY_FROM: ${{ github.event.inputs.from || '2020-01-01' }}
+          MAX_DAYS: "400"
         run: node scripts/import-procurement.mjs
       - name: Къде се намира всеки възложител
         env:

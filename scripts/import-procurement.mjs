@@ -142,9 +142,9 @@ async function upsert(table, rows) {
 }
 
 // HISTORY=1: внася по-старите години назад във времето, по MAX_DAYS дни на пускане,
-// до HISTORY_FROM (по подразбиране 2023-01-01; ЦАИС ЕОП работи от 2020 г.). Пази отделно състояние „eop_history“.
+// до HISTORY_FROM (по подразбиране 2020-01-01, началото на ЦАИС ЕОП). Пази отделно състояние „eop_history“.
 const HISTORY = process.env.HISTORY === "1";
-const HISTORY_FROM = process.env.HISTORY_FROM ?? "2023-01-01";
+const HISTORY_FROM = process.env.HISTORY_FROM ?? "2020-01-01";
 const FEED = HISTORY ? "eop_history" : "eop";
 async function getState() {
   const res = await fetch(`${URL_}/rest/v1/proc_import_state?feed=eq.${FEED}&select=last_day`, { headers: HEAD });

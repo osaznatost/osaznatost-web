@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
 import { AnnexList, LinksBox, SignalList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
+import { contractFlags, riskLabel, riskScore } from "@/lib/redFlags";
+import { politicalLinks } from "@/lib/procurement";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
 
 export const metadata = { title: "Договор" };
@@ -34,6 +36,8 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const annexes = await contractAnnexes(c);
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
+  const flags = contractFlags(c, annexes, c.supplier_eiks.some((e) => politicalLinks(e).length > 0));
+  const risk = riskScore(flags), rl = riskLabel(risk);
   const value = c.contract_value_eur ?? 0;
   const added = annexes.reduce((s, a) => s + (a.value_difference_eur ?? 0), 0);
   const current = value + Math.max(0, added);
@@ -64,6 +68,18 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         lead={<><Link href={buyerUrl(c.buyer_eik)}>{c.buyer_name}</Link> → {c.supplier_eiks.map((e, i) => <span key={e}>{i > 0 && ", "}<Link href={firmUrl(e)}>{c.supplier_names[i] ?? e}</Link></span>)}</>}>
         {c.tender_name}
       </Title>
+
+      <section className="ring-1 ring-rule rounded-sm p-5 bg-white mb-8">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className={`text-sm font-semibold px-3 py-1 rounded-full ${rl.cls}`}>Риск: {rl.t}</span>
+          <span className="num font-semibold">{risk} / 100</span>
+          <span className="text-sm text-muted">индекс от червени флагове по образеца на OLAF и Европейската комисия</span>
+        </div>
+        {flags.length > 0 ? (
+          <ul className="mt-3 grid gap-2 md:grid-cols-2 text-[15px]">{flags.map((x) => <li key={x.id} className="border-l-4 border-red pl-3"><b>{x.label}</b> <span className="text-sm text-muted">+{x.weight}</span><br />{x.why}</li>)}</ul>
+        ) : <p className="text-[15px] mt-2">Не открихме червени флагове в данните за този договор.</p>}
+        <p className="text-xs text-muted mt-3">Флагът е повод за въпрос, не доказателство за нарушение. Някои рискове (например фирма, създадена малко преди търга, или съвпадащи адреси на участниците) още не се проверяват, защото данните не са публични в машинно четим вид.</p>
+      </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[

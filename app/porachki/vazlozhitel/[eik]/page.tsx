@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
+import { contractFlags, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
 
 export const metadata = { title: "Възложител" };
@@ -25,6 +26,9 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
   const share = top[0] && total ? top[0][1].sum / total : 0;
   const repeats = repeatedWork(contracts).slice(0, 12);
+  const risky = contracts.map((c) => { const fl = contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), c.supplier_eiks.some((e) => politicalLinks(e).length > 0)); return { c, fl, score: riskScore(fl) }; })
+    .filter((x) => x.score >= 20).sort((a, b) => b.score - a.score || (b.c.contract_value_eur ?? 0) - (a.c.contract_value_eur ?? 0));
+  const riskShare = contracts.length ? Math.round((risky.length / contracts.length) * 100) : 0;
   const splits = possibleSplits(contracts).slice(0, 10);
   const cats = byCategory(contracts);
   const conc = hhi(contracts);
@@ -57,6 +61,20 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         </ul>
         <p className="text-xs text-muted mt-2">● Фирмата има връзка с политик или длъжностно лице по Търговския регистър.</p>
       </section>
+      <section className="mb-10">
+        <SectionTitle>Най-рисковите договори</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Индекс от червени флагове (една оферта, без открит конкурс, оскъпяване с анекси, цена точно под прага, връзка с политик и др.). {risky.length} от {contracts.length} договора ({riskShare}%) имат среден или висок риск.</p>
+        {risky.length ? (
+          <ul className="divide-y divide-rule border-y border-rule text-[15px]">{risky.slice(0, 15).map(({ c, fl, score }) => (
+            <li key={c.id} className="py-2 grid sm:grid-cols-[5.5rem_1fr_auto] gap-x-3 items-start">
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full text-center ${riskLabel(score).cls}`}>{score}</span>
+              <span><Link href={`/porachki/dogovor/${encodeURIComponent(contractRef(c.buyer_eik, c.contract_number))}`}>{c.tender_name}</Link><span className="block text-sm text-muted">{c.supplier_names.join(", ")} · {fl.map((x) => x.label.toLowerCase()).join(", ")}</span></span>
+              <span className="num">{fmtEur(c.contract_value_eur)}</span>
+            </li>
+          ))}</ul>
+        ) : <p className="text-[15px]">Няма договори със среден или висок риск.</p>}
+      </section>
+
       <section className="mb-10">
         <SectionTitle>За какво отиват парите</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">По ключови думи в предмета на поръчката. Един договор може да попадне в повече от една категория.</p>
