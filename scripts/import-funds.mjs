@@ -3,8 +3,9 @@
 import { writeFileSync } from "node:fs";
 const B = "https://raw.githubusercontent.com/atanasster/electionsbg/main/data/funds";
 const get = async (p) => { const r = await fetch(`${B}/${p}`); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.json(); };
-const [index, muni, abs, sankey, pol] = await Promise.all([
+const [index, muni, abs, sankey, pol, integ, mpc, conf] = await Promise.all([
   get("index.json"), get("projects/muni-map.json"), get("derived/absorption.json"), get("derived/sankey.json"), get("derived/political_links.json"),
+  get("derived/integrity.json"), get("derived/mp_connected.json"), get("confirmed.json"),
 ]);
 const r0 = (v) => Math.round(v);
 const out = {
@@ -26,5 +27,12 @@ const out = {
     })),
   },
 };
+out.integrity = {
+  totals: integ.totals,
+  programmes: Object.fromEntries(integ.topByConcentration.map((p) => [p.programCode, { hhi: p.hhi, band: p.hhiBand, top1Share: p.top1Share, top1Name: p.top1Name, beneficiaries: p.beneficiaryCount, debarred: p.debarredFlag }])),
+  serial: integ.topSerialWinners.slice(0, 25).map((w) => ({ eik: w.eik, name: w.name, programmes: w.programmeCount, total: r0(w.totalEur), top: w.topProgrammes.map((t) => ({ code: t.programCode, name: t.programName, eur: r0(t.eur) })) })),
+};
+out.mpConnected = mpc.entries.map((e) => ({ mpId: e.mpId, mp: e.mpName, eik: e.beneficiaryEik, name: e.beneficiaryName, type: e.orgType, rel: e.relations.map((r) => ({ kind: r.kind, current: r.isCurrent })), contracts: e.contractCount, contracted: r0(e.contractedEur), paid: r0(e.paidEur) }));
+out.confirmed = { measure: conf.measure, description: conf.description, cases: conf.cases };
 writeFileSync("data/funds.json", JSON.stringify(out));
 console.log(`Евросредства: ${out.totals.contractCount} договора, ${(out.totals.contractedEur / 1e9).toFixed(1)} млрд. €, ${Object.keys(out.munis).length} общини`);

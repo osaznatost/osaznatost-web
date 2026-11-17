@@ -6,6 +6,7 @@ import funds from "@/data/funds.json";
 import { formatDate } from "@/lib/parliament";
 import { ELECTIONS } from "@/lib/partyMeta";
 import { fmt } from "@/lib/stats";
+import { mpHref } from "@/lib/funds";
 
 export const metadata = { title: "Европейски средства" };
 
@@ -75,13 +76,13 @@ export default function Evrosredstva() {
         <SectionTitle>Откъде идват и по кои програми</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Фондовете на ЕС вляво, програмите вдясно, по договорената сума. Показани са най-големите програми.</p>
         <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><MoneyFlow nodes={nodes} links={F.sankey.links} /></div>
-        <details className="mt-4">
-          <summary className="cursor-pointer font-semibold text-green">Всички програми ({F.byProgramme.length})</summary>
+        <details className="mt-4" open>
+          <summary className="cursor-pointer font-semibold text-green">Всички програми ({F.byProgramme.length}): кликни за подробности</summary>
           <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white mt-3">
             <table className="w-full text-[15px]">
               <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Програма</th><th className="p-3">Период</th><th className="p-3 num">Договорени</th><th className="p-3 num">Изплатени</th><th className="p-3 num">Усвоени</th></tr></thead>
               <tbody>{F.byProgramme.map((p) => (
-                <tr key={p.code} className="border-t border-rule"><td className="p-3">{p.name}</td><td className="p-3 text-sm">{p.period}</td><td className="p-3 num">{mn(p.contracted)}</td><td className="p-3 num">{mn(p.paid)}</td>
+                <tr key={p.code} className="border-t border-rule hover:bg-surface"><td className="p-3"><Link href={`/ikonomika/evrosredstva/programa/${encodeURIComponent(p.code)}`}>{p.name}</Link></td><td className="p-3 text-sm">{p.period}</td><td className="p-3 num">{mn(p.contracted)}</td><td className="p-3 num">{mn(p.paid)}</td>
                   <td className={`p-3 num ${p.pct < 30 ? "text-red" : ""}`}>{fmt(p.pct, 0)}%</td></tr>
               ))}</tbody>
             </table>
@@ -123,7 +124,7 @@ export default function Evrosredstva() {
       </section>
 
       <section className="mb-14">
-        <SectionTitle>Връзки с политици и длъжностни лица</SectionTitle>
+        <SectionTitle right={<Link href="/ikonomika/evrosredstva/politika">Подробно: всички депутати и разследвания →</Link>}>Връзки с политици и длъжностни лица</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">{F.political.totals.flaggedEiks} бенефициенти имат по Търговския регистър или имуществените декларации връзка с депутат или длъжностно лице: управител, представител, собственик. При държавните фирми това често е служебна роля, а не личен интерес. Връзката е повод за въпрос, не обвинение.</p>
         <div className="grid gap-3 sm:grid-cols-3 mb-4">
           <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Договорени при такива бенефициенти</p><p className="display text-[2rem]">{bn(F.political.totals.contractedEur)}</p></div>
@@ -135,7 +136,7 @@ export default function Evrosredstva() {
             <li key={x.eik} className="ring-1 ring-rule rounded-sm p-4 bg-white">
               <Link href={`/porachki/firma/${x.eik}`} className="font-semibold">{x.name}</Link>
               <p className="text-sm text-muted">{x.type} · договорени {mn(x.contracted)}, изплатени {mn(x.paid)}</p>
-              <ul className="text-[15px] mt-2 space-y-0.5">{x.mps.map((m) => <li key={m.id}><Link href={`/parlament/deputat/${m.id}`}>{m.name}</Link> <span className="text-muted">— {m.rel.map((r) => REL[r] ?? r).join(", ")}{m.current ? "" : " (в миналото)"}</span></li>)}</ul>
+              <ul className="text-[15px] mt-2 space-y-0.5">{x.mps.map((m) => <li key={m.id}><Link href={mpHref(m.id, m.name)}>{m.name}</Link> <span className="text-muted">— {m.rel.map((r) => REL[r] ?? r).join(", ")}{m.current ? "" : " (в миналото)"}</span></li>)}</ul>
             </li>
           ))}
         </ul>
