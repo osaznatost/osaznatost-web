@@ -114,8 +114,9 @@ export function MultiLine({
       width,
       height,
       marginRight: width < 500 ? 12 : 150,
+      marginLeft: Math.max(...data.map((d) => Math.abs(d.value))) >= 10000 ? 62 : 44,
       x: monthly ? { label: null, type: "utc" } : { tickFormat: "d", label: null },
-      y: { grid: true, label: yLabel ?? null, labelAnchor: "top", zero },
+      y: { grid: true, label: yLabel ?? null, labelAnchor: "top", zero, tickFormat: (v: number) => v.toLocaleString("bg-BG") },
       color: { domain: names, range: colors, legend: width < 500 },
       marks: [
         ...(zero ? [Plot.ruleY([0], { stroke: MUTED })] : []),

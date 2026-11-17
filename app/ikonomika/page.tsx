@@ -108,7 +108,7 @@ export default function Ikonomika() {
       </Block>
 
       <Block id="ceni" title="Цени" sources={["prc_hicp_aind", "prc_hicp_manr"]}
-        lead={<>Цените растат с <b>{fmt(inf.value)}%</b> годишно при {fmt(infEu.value)}% в ЕС. При по-бърз растеж на заплатите от цените покупателната способност се подобрява, но храната и наемите поскъпват над средното (вижте <Link href="/statistiki#dohodi">доходи срещу цени</Link>).</>}>
+        lead={<>Цените растат с <b>{fmt(inf.value)}%</b> годишно при {fmt(infEu.value)}% в ЕС. При по-бърз растеж на заплатите от цените покупателната способност се подобрява, но храната и наемите поскъпват над средното (вижте <Link href="/statistiki/analiz#dohodi">доходи срещу цени</Link>).</>}>
         <div className="grid gap-4 lg:grid-cols-2">
           <Chart title="Инфлация по години, %"><MultiLine data={multi("inflation", ["BG", "EU27_2020"], 2005)} unit="%" zero /></Chart>
           <Chart title="Инфлация по месеци, годишна промяна, %"><MultiLine data={monthly} unit="%" zero /></Chart>

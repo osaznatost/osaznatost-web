@@ -76,7 +76,7 @@ export default function Parlament() {
 
       <p className="text-xs text-muted mt-8">
         Източник: <a href={PARLIAMENT_SOURCE.url} target="_blank" rel="noreferrer">{PARLIAMENT_SOURCE.title}</a>. Първоизточник: стенограмите на parliament.bg (линк към всяка в страницата на гласуването).
-        Обновено: {formatDate(UPDATED_AT)}.
+        Обновено: {formatDate(UPDATED_AT)}
       </p>
     </Page>
   );

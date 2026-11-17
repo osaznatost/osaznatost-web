@@ -110,7 +110,7 @@ export function LawAnalysis({ law, hideEffects }: { law: LawContent; hideEffects
             <li key={s.url}><a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></li>
           ))}
         </ol>
-        <p className="text-xs text-muted mt-2">{law.note} Проверено: {formatDate(law.reviewed)}.</p>
+        <p className="text-xs text-muted mt-2">{law.note} Проверено: {formatDate(law.reviewed)}</p>
       </div>
     </>
   );

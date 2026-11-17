@@ -66,7 +66,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       </section>
 
       <p className="text-xs text-muted mt-10">
-        Данни: <a href={PARLIAMENT_SOURCE.url} target="_blank" rel="noreferrer">{PARLIAMENT_SOURCE.title}</a>. Групата е последната известна за депутата в периода до {formatDate(VOTES[0].date)}.
+        Данни: <a href={PARLIAMENT_SOURCE.url} target="_blank" rel="noreferrer">{PARLIAMENT_SOURCE.title}</a>. Групата е последната известна за депутата в периода до {formatDate(VOTES[0].date)}
       </p>
     </Page>
   );

@@ -19,7 +19,7 @@ export function RecentSittings({ days = 3 }: { days?: number }) {
       <SectionTitle right={<a href="#vsichki">Всички гласувания</a>}>Последните заседания</SectionTitle>
       {(() => {
         const lag = Math.round((Date.parse(PROGRAM.from) - Date.parse(dates[0])) / 86400000);
-        return lag > 10 ? <p className="text-sm bg-[#fbecc4] rounded-sm px-3 py-2 -mt-2 mb-4 max-w-3xl">Последните публикувани поименни гласувания са от {formatDate(dates[0])}. Обновяваме всеки ден от parliament.bg.</p> : null;
+        return lag > 10 ? <p className="text-sm bg-[#fbecc4] rounded-sm px-3 py-2 -mt-2 mb-4 max-w-3xl">Последните публикувани поименни гласувания са от {formatDate(dates[0])} Обновяваме всеки ден от parliament.bg.</p> : null;
       })()}
       {FAILED_SITTINGS.length > 0 && <p className="text-sm text-muted -mt-2 mb-4">Провалени заседания (няма кворум, не е гласувано нищо): {FAILED_SITTINGS.map(formatDate).join(", ")}</p>}
       <div className="grid gap-4 lg:grid-cols-3">
