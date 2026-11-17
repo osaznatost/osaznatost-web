@@ -3,6 +3,8 @@ import { KeyNumber, Page, Title, num, pct, SectionTitle } from "@/components/ui"
 import { currentSeats, MPS, NS, PARLIAMENT_SOURCE, PARTIES, TOPICS, UPDATED_AT, VOTES, formatDate, partyBreakdown, partyName, partyPosition, partyStats } from "@/lib/parliament";
 import { VoteList, type VoteRow } from "./VoteList";
 import { Hemicycle } from "@/components/Hemicycle";
+import { PartyBadge } from "@/components/PartyBadge";
+import { partyByGroup } from "@/lib/partyMeta";
 import { RecentSittings, Upcoming, WeekProgram } from "./Recent";
 
 export const metadata = { title: "Парламент" };
@@ -55,7 +57,7 @@ export default function Parlament() {
             <tbody>
               {stats.map((s) => (
                 <tr key={s.p} className="border-b border-rule">
-                  <td className="py-2"><Link href={`/parlament/partii#${encodeURIComponent(s.p)}`}>{partyName(s.p)}</Link></td>
+                  <td className="py-2"><Link href={partyByGroup(s.p) ? `/parlament/partiya/${partyByGroup(s.p)!.slug}` : `/parlament/partii#${encodeURIComponent(s.p)}`} className="inline-flex items-center gap-2"><PartyBadge p={s.p} size={22} />{partyName(s.p)}</Link></td>
                   <td>{s.seats}</td>
                   <td>{pct(s.attendance, 0)}</td>
                   <td>{pct(s.unity, 0)}</td>

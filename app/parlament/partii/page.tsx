@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Page, Title, pct, SectionTitle } from "@/components/ui";
+import { PartyBadge } from "@/components/PartyBadge";
+import { partyByGroup } from "@/lib/partyMeta";
 import { MPS, PARLIAMENT_SOURCE, PARTIES, agreement, mpStats, partyName, partyStats } from "@/lib/parliament";
 
 export const metadata = { title: "Парламентарни групи" };
@@ -48,7 +50,7 @@ export default function Partii() {
           .sort((a, b) => a.st.present / a.st.eligible - b.st.present / b.st.eligible);
         return (
           <section key={s.p} id={s.p} className="mb-12 scroll-mt-6">
-            <SectionTitle>{partyName(s.p)}</SectionTitle>
+            <SectionTitle right={partyByGroup(s.p) ? <Link href={`/parlament/partiya/${partyByGroup(s.p)!.slug}`}>Профил: избори, карта, избиратели, субсидия</Link> : undefined}><span className="inline-flex items-center gap-3"><PartyBadge p={s.p} size={36} />{partyName(s.p)}</span></SectionTitle>
             <div className="grid gap-x-8 gap-y-2 sm:grid-cols-4 text-[15px] mb-4">
               <p><span className="text-muted block text-sm">Депутати</span><span className="num text-2xl font-bold">{s.seats}</span></p>
               <p><span className="text-muted block text-sm">Присъствие</span><span className="num text-2xl font-bold">{pct(s.attendance, 0)}</span></p>
