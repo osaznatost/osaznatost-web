@@ -41,22 +41,22 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   // Паричният поток: източник → възложител → изпълнител → подизпълнител / непубликувано
   const src: FlowNode = c.is_eu_funded
     ? { id: "src", label: c.eu_program ? `ЕС: ${c.eu_program}` : "Европейски средства", kind: "source" }
-    : { id: "src", label: "Бюджет на възложителя", kind: "source" };
+    : { id: "src", label: "Бюджет на възложителя (без ЕС)", kind: "source", note: "В обявлението не е отбелязано финансиране от европейски програми. Парите са от собствения бюджет на възложителя или от държавни трансфери." };
   const supplierLabel = c.supplier_names.join(", ") || "Изпълнител";
   const sub = amount(c.subcontracting_amount);
   const nodes: FlowNode[] = [src, { id: "buyer", label: c.buyer_name, kind: "buyer" }, { id: "sup", label: supplierLabel, kind: "supplier" }];
-  const links: FlowLink[] = [{ source: "src", target: "buyer", value: current }, { source: "buyer", target: "sup", value: value }];
-  if (added > 0) {
+  const links: FlowLink[] = value <= 0 ? [] : [{ source: "src", target: "buyer", value: current }, { source: "buyer", target: "sup", value: value }];
+  if (value > 0 && added > 0) {
     nodes.push({ id: "annex", label: "Добавено с анекси", kind: "annex" });
     links[0].value = value;
     links.push({ source: "src", target: "annex", value: added }, { source: "annex", target: "sup", value: added });
   }
-  if (sub && sub < current) {
+  if (value > 0 && sub && sub < current) {
     nodes.push({ id: "sub", label: c.subcontractor_names ? `Подизпълнител: ${c.subcontractor_names}` : "Подизпълнители", kind: "sub" });
     links.push({ source: "sup", target: "sub", value: sub });
   }
   nodes.push({ id: "unk", label: "Материали, труд, печалба: не е публикувано", kind: "unknown" });
-  links.push({ source: "sup", target: "unk", value: current - (sub && sub < current ? sub : 0) });
+  if (value > 0) links.push({ source: "sup", target: "unk", value: current - (sub && sub < current ? sub : 0) });
 
   return (
     <>

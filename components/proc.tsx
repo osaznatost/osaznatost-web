@@ -18,7 +18,7 @@ export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contra
             </p>
           </div>
           <div className="sm:text-right whitespace-nowrap">
-            <p className="num font-semibold">{fmtEur(c.contract_value_eur)}{c.contract_currency === "BGN" && <span className="block text-xs text-muted font-normal">договорен в лева</span>}</p>
+            <p className="num font-semibold">{fmtEur(c.contract_value_eur)}{c.contract_value_eur != null && c.contract_value_eur < 100 && <span className="block text-xs text-muted font-normal">вероятно единична цена, не обща сума</span>}{c.contract_value_eur == null && <span className="block text-xs text-muted font-normal">договорът още не е обявен</span>}{c.contract_currency === "BGN" && <span className="block text-xs text-muted font-normal">договорен в лева</span>}</p>
             <p className="text-xs text-muted">
               {c.offers_count === 1 ? <span className="text-red font-semibold">1 оферта</span> : c.offers_count != null ? `${c.offers_count} оферти` : ""}
             </p>
