@@ -9,20 +9,20 @@ const pol = JSON.parse(readFileSync("data/political-links.json", "utf8")).byEik;
 const BGN = 1.95583, TH = { works: 270000 / BGN, other: 70000 / BGN };
 const NO_COMP = /договаряне без|пряко договаряне|без предварително обявление|без публикуване/i;
 
-async function all(table, select) {
+async function all(table, select, key = "id") {
   const out = [];
   for (let last = ""; ;) {
-    const r = await fetch(`${URL_}/rest/v1/${table}?select=${select}&order=id&limit=1000${last ? `&id=gt.${encodeURIComponent(last)}` : ""}`, { headers: HEAD });
+    const r = await fetch(`${URL_}/rest/v1/${table}?select=${select}&order=${key}&limit=1000${last ? `&${key}=gt.${encodeURIComponent(last)}` : ""}`, { headers: HEAD });
     if (!r.ok) throw new Error(`${table}: HTTP ${r.status} ${await r.text()}`);
     const rows = await r.json();
     out.push(...rows);
     if (rows.length < 1000) return out;
-    last = rows[rows.length - 1].id;
+    last = rows[rows.length - 1][key];
   }
 }
 const C = await all("proc_contracts", "id,buyer_eik,buyer_name,supplier_eiks,supplier_names,tender_name,contract_number,contract_date,contract_type,procedure_type,offers_count,disqualified_offers_count,estimated_value_eur,contract_value_eur,has_subcontractors,subcontracting_percent");
 const A = await all("proc_annexes", "id,buyer_eik,contract_number,value_difference_eur");
-const B = await all("proc_buyers", "eik,municipality,municipality_code,oblast,level");
+const B = await all("proc_buyers", "eik,municipality,municipality_code,oblast,level", "eik");
 const buyerInfo = new Map(B.map((b) => [b.eik, b]));
 const added = new Map();
 for (const a of A) { const k = `${a.buyer_eik}|${a.contract_number}`; added.set(k, (added.get(k) ?? 0) + Math.max(0, a.value_difference_eur ?? 0)); }
