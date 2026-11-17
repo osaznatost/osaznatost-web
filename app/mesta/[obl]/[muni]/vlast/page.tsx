@@ -1,0 +1,181 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { Page, SectionTitle, Title } from "@/components/ui";
+import { LOCAL_INDEX, VOTE_BG, localData, normFirm, type Official, type Resolution } from "@/lib/local";
+import { firmUrl, placeSuppliersAll } from "@/lib/procurement";
+import { findOblastBySlug, muniSlug, oblastList } from "@/lib/regions";
+
+export function generateStaticParams() {
+  return oblastList().flatMap((o) => o.municipalities.map((m) => ({ obl: o.slug, muni: muniSlug(m.code) })));
+}
+export async function generateMetadata({ params }: { params: Promise<{ obl: string; muni: string }> }) {
+  const { obl, muni } = await params;
+  const m = findOblastBySlug(obl)?.municipalities.find((x) => muniSlug(x.code) === muni);
+  return { title: m ? `Местна власт: ${m.name}` : "Местна власт" };
+}
+
+const eur = (v?: number | null) => (v == null ? "–" : `${Math.round(v).toLocaleString("bg-BG")} €`);
+const LEAD = ["mayor", "deputy_mayor", "council_chair", "chief_architect"];
+
+function DeclLine({ o }: { o: Official }) {
+  const d = o.decl;
+  if (!d) return <p className="text-sm text-muted">Няма намерена декларация.</p>;
+  return (
+    <div className="text-sm space-y-0.5">
+      <p>Доход за {d.fiscalYear} г.: <b className="num">{eur(d.income)}</b>{d.incomeSpouse ? <> · съпруг/а: <span className="num">{eur(d.incomeSpouse)}</span></> : null}</p>
+      <p className="text-muted">
+        {[d.realEstate ? `${d.realEstate} имота` : null, d.vehicles ? `${d.vehicles} МПС` : null, d.bankEur ? `в банка ${eur(d.bankEur)}` : null, d.debtEur ? `задължения ${eur(d.debtEur)}` : null, d.receivableEur ? `дадени заеми ${eur(d.receivableEur)}` : null].filter(Boolean).join(" · ") || "без декларирани имоти, сметки или задължения"}
+      </p>
+      {d.stakes.length > 0 && <p><b>Дялове във фирми:</b> {d.stakes.map((s, i) => <span key={i}>{i > 0 && "; "}{s.company}{s.holder && s.holder.toUpperCase() !== o.name.toUpperCase() ? ` (на ${s.holder})` : ""}{s.share ? `, ${s.share}${/%/.test(s.share) ? "" : " дяла"}` : ""}</span>)}</p>}
+      <p><a href={d.url} target="_blank" rel="noreferrer">Декларацията (Сметна палата, {d.year})</a></p>
+    </div>
+  );
+}
+
+async function Conflicts({ code, officials }: { code: string; officials: Official[] }) {
+  const sup = await placeSuppliersAll(code);
+  const byNorm = new Map(sup.map((s) => [normFirm(s.name), s]));
+  const hits = officials.flatMap((o) => (o.decl?.stakes ?? []).map((st) => {
+    const n = normFirm(st.company);
+    const s = byNorm.get(n) ?? sup.find((x) => { const xn = normFirm(x.name); return n.length >= 6 && (xn.startsWith(n + " ") || n.startsWith(xn + " ")); });
+    return s ? { o, st, s } : null;
+  })).filter((x): x is NonNullable<typeof x> => !!x);
+  const withStakes = officials.filter((o) => o.decl?.stakes.length);
+  return (
+    <>
+      {hits.length ? (
+        <ul className="space-y-3 mb-4">{hits.map(({ o, st, s }, i) => (
+          <li key={i} className="ring-2 ring-red rounded-sm p-4 bg-white">
+            <p className="font-semibold">{o.name} ({o.roleRaw.toLowerCase()}) има дял в „{st.company}“{st.holder && st.holder.toUpperCase() !== o.name.toUpperCase() ? ` (на ${st.holder})` : ""}</p>
+            <p className="text-[15px]">Фирма с много сходно име, <Link href={firmUrl(s.eik)}>{s.name}</Link> (ЕИК {s.eik}), има {s.contracts} договора с възложители от общината за {eur(s.total_eur)}.</p>
+            <p className="text-sm text-muted">Съвпадението е по име, защото декларациите не съдържат ЕИК. Проверете в Търговския регистър дали е същата фирма. Законът задължава длъжностното лице да декларира конфликт и да не участва в решенията за фирмата.</p>
+          </li>
+        ))}</ul>
+      ) : (
+        <p className="text-[15px] mb-3">Нито една от фирмите в декларациите не съвпада по име с изпълнител на обществена поръчка на възложител от общината ({sup.length} фирми).</p>
+      )}
+      {withStakes.length > 0 && (
+        <details className="text-[15px]"><summary className="cursor-pointer font-semibold text-green">Всички декларирани дялове ({withStakes.length} души)</summary>
+          <ul className="mt-2 space-y-1">{withStakes.map((o) => <li key={o.slug}><b>{o.name}</b> ({o.roleRaw.toLowerCase()}): {o.decl!.stakes.map((s) => s.company).join(", ")}</li>)}</ul>
+        </details>
+      )}
+    </>
+  );
+}
+
+function councilStats(res: Resolution[]) {
+  const by = new Map<string, { for: number; against: number; abstain: number; other: number; dissent: number }>();
+  for (const r of res) {
+    if (!r.votes.length || !r.tally) continue;
+    const majority = r.tally.for >= r.tally.against ? "for" : "against";
+    for (const [name, v] of r.votes) {
+      const x = by.get(name) ?? { for: 0, against: 0, abstain: 0, other: 0, dissent: 0 };
+      if (v === "for" || v === "against" || v === "abstain") x[v]++; else x.other++;
+      if ((v === "for" || v === "against") && v !== majority) x.dissent++;
+      by.set(name, x);
+    }
+  }
+  return [...by.entries()].map(([name, x]) => ({ name, ...x, total: x.for + x.against + x.abstain + x.other })).sort((a, b) => b.dissent - a.dissent || a.name.localeCompare(b.name, "bg"));
+}
+
+export default async function Vlast({ params }: { params: Promise<{ obl: string; muni: string }> }) {
+  const { obl, muni } = await params;
+  const o = findOblastBySlug(obl);
+  const m = o?.municipalities.find((x) => muniSlug(x.code) === muni);
+  if (!o || !m) notFound();
+  const L = localData(m.code);
+  const lead = (L?.officials ?? []).filter((x) => LEAD.includes(x.role));
+  const council = (L?.officials ?? []).filter((x) => x.role === "councillor" || x.role === "council_chair");
+  const res = L?.resolutions ?? null;
+  const stats = res ? councilStats(res) : [];
+  const contested = res ? res.filter((r) => r.tally && (r.tally.against > 0 || r.tally.abstain > 2)) : [];
+  const procHref = `/porachki?oblast=${encodeURIComponent(o.name)}&obshtina=${m.code}`;
+
+  return (
+    <Page>
+      <Title back={{ href: `/mesta/${o.slug}/${muni}`, label: `Община ${m.name}` }} kicker="Местна власт"
+        lead="Кой управлява общината, какво е декларирал, дали има дялове във фирми, които печелят поръчки, и как гласуват общинските съветници.">
+        {m.name}
+      </Title>
+      <nav className="flex flex-wrap gap-2 mb-10 text-[15px]">
+        {[["#rakovodstvo", "Ръководство"], ["#konflikt", "Конфликт на интереси"], ["#savetnici", "Съветници"], ["#resheniya", "Решения на съвета"], [procHref, "Поръчки на общината"]].map(([h, l]) => (
+          h.startsWith("#") ? <a key={h} href={h} className="px-3 py-1.5 rounded-full bg-surface no-underline text-ink hover:ring-1 hover:ring-green">{l}</a> : <Link key={h} href={h} className="px-3 py-1.5 rounded-full bg-surface no-underline text-ink hover:ring-1 hover:ring-green">{l} →</Link>
+        ))}
+      </nav>
+
+      {!L ? <p className="text-[15px] bg-surface rounded-sm p-4 mb-10">Още нямаме данни за ръководството на тази община.</p> : (
+        <>
+          <section id="rakovodstvo" className="mb-12 scroll-mt-24">
+            <SectionTitle>Ръководство</SectionTitle>
+            <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{lead.map((x) => (
+              <li key={x.slug} className={`ring-1 rounded-sm p-4 bg-white ${x.decl?.stakes.length ? "ring-[#e08a2e]" : "ring-rule"}`}>
+                <p className="text-sm text-muted">{x.roleRaw}</p>
+                <p className="font-semibold text-lg leading-snug mb-2">{x.name}</p>
+                <DeclLine o={x} />
+              </li>
+            ))}</ul>
+          </section>
+
+          <section id="konflikt" className="mb-12 scroll-mt-24">
+            <SectionTitle>Конфликт на интереси: дялове във фирми срещу поръчките на общината</SectionTitle>
+            <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Сравняваме фирмите, в които кметът, заместниците, главният архитект и съветниците (или съпрузите им) декларират дялове, с фирмите, спечелили поръчки от общината, училищата, болниците и общинските дружества. Не виждаме роднини извън семейството и фирми, притежавани чрез посредници.</p>
+            <Suspense fallback={<p className="text-muted">Проверка…</p>}><Conflicts code={m.code} officials={L.officials} /></Suspense>
+          </section>
+
+          <section id="savetnici" className="mb-12 scroll-mt-24">
+            <SectionTitle>Общински съветници ({council.length})</SectionTitle>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[15px]">
+                <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Име</th><th className="py-2 pr-3">Листа</th><th className="py-2 pr-3 num text-right">Преференции</th><th className="py-2 pr-3 num text-right">Доход</th><th className="py-2">Дялове във фирми</th></tr></thead>
+                <tbody>{council.map((x) => (
+                  <tr key={x.slug} className="border-b border-rule align-top">
+                    <td className="py-2 pr-3">{x.name}{x.role === "council_chair" && <span className="block text-xs text-muted">председател</span>}</td>
+                    <td className="py-2 pr-3 text-sm">{x.party ?? "–"}</td>
+                    <td className="py-2 pr-3 num text-right">{x.prefVotes ?? "–"}</td>
+                    <td className="py-2 pr-3 num text-right">{x.decl ? <a href={x.decl.url} target="_blank" rel="noreferrer">{eur(x.decl.income)}</a> : "–"}</td>
+                    <td className="py-2 text-sm">{x.decl?.stakes.map((s) => s.company).join(", ") || "–"}</td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted mt-2">Листата и преференциите са от местните избори на 29 октомври 2023 г. Доходът е облагаемият доход на лицето от годишната декларация.</p>
+          </section>
+
+          <section id="resheniya" className="mb-12 scroll-mt-24">
+            <SectionTitle>Решения на общинския съвет</SectionTitle>
+            {!res ? (
+              <p className="text-[15px] bg-surface rounded-sm p-4 max-w-3xl">За тази община още не четем протоколите на съвета. Засега ги имаме за {Object.values(LOCAL_INDEX.munis).filter((x) => x.resolutions).length} общини. Протоколите на {m.name} се публикуват на сайта на общинския съвет, обикновено като PDF.</p>
+            ) : (
+              <>
+                <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">{res.length} решения от последните заседания. Показваме първо спорните: с гласове против или много въздържали се.</p>
+                {stats.length > 0 && (
+                  <details className="mb-6" open>
+                    <summary className="cursor-pointer font-semibold text-green">Как гласува всеки съветник</summary>
+                    <div className="overflow-x-auto mt-2"><table className="w-full text-[15px] num">
+                      <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-1.5 pr-3">Съветник</th><th className="text-right px-2">За</th><th className="text-right px-2">Против</th><th className="text-right px-2">Въздържал се</th><th className="text-right px-2">Отсъства / не гласува</th><th className="text-right px-2">Срещу мнозинството</th></tr></thead>
+                      <tbody>{stats.map((s) => <tr key={s.name} className="border-b border-rule"><td className="py-1.5 pr-3">{s.name}</td><td className="text-right px-2">{s.for}</td><td className="text-right px-2">{s.against}</td><td className="text-right px-2">{s.abstain}</td><td className="text-right px-2">{s.other}</td><td className="text-right px-2 font-semibold">{s.dissent}</td></tr>)}</tbody>
+                    </table></div>
+                  </details>
+                )}
+                <ul className="space-y-2">{[...contested, ...res.filter((r) => !contested.includes(r))].slice(0, 120).map((r) => (
+                  <li key={r.id} className="ring-1 ring-rule rounded-sm p-3 bg-white">
+                    <p className="text-sm text-muted">{r.date} · заседание {r.session} · решение № {r.number}{r.tags.length ? ` · ${r.tags.map((t) => LOCAL_INDEX.tags[t]?.bg ?? t).join(", ")}` : ""}</p>
+                    <p className="text-[15px]">{r.title === "(no title parsed)" ? "Заглавието не е разчетено от протокола" : r.title}</p>
+                    {r.tally && <p className="text-sm num mt-1">За {r.tally.for} · против <span className={r.tally.against ? "text-red font-semibold" : ""}>{r.tally.against}</span> · въздържали се {r.tally.abstain}{r.tally.method === "named" ? " · поименно" : ""}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer">протокол</a></>}</p>}
+                    {r.votes.some(([, v]) => v !== "for") && (
+                      <details className="text-sm mt-1"><summary className="cursor-pointer text-green">Кой не гласува „за“</summary>
+                        <p className="mt-1">{r.votes.filter(([, v]) => v !== "for").map(([n, v]) => `${n}: ${VOTE_BG[v] ?? v}`).join("; ")}</p>
+                      </details>
+                    )}
+                  </li>
+                ))}</ul>
+              </>
+            )}
+          </section>
+          <p className="text-xs text-muted">Източници: декларации от регистъра на Сметната палата; протоколи от сайта на общинския съвет; поръчки от ЦАИС ЕОП. Обработка: „Наясно“, към {LOCAL_INDEX.updated}.</p>
+        </>
+      )}
+    </Page>
+  );
+}

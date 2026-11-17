@@ -125,3 +125,6 @@ export const fmtEur = (n: number | null | undefined) =>
   n == null ? "—" : new Intl.NumberFormat("bg-BG", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 export const fmtDate = (d: string | null | undefined) =>
   d ? new Date(d).toLocaleDateString("bg-BG", { day: "numeric", month: "long", year: "numeric" }) : "—";
+/** Всички изпълнители на възложители от общината (за проверка на конфликт на интереси). */
+export const placeSuppliersAll = (code: string) =>
+  q<{ eik: string; name: string; contracts: number; total_eur: number | null }>(`proc_place_suppliers?municipality_code=eq.${code}&order=total_eur.desc.nullslast&limit=2000`);

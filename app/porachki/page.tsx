@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { muniSlug, oblastSlug } from "@/lib/regions";
 import { Suspense } from "react";
 import { MultiLine } from "@/components/Charts";
 import { PlaceFilterBar } from "@/components/PlaceFilterBar";
@@ -163,6 +164,7 @@ async function Content({ searchParams }: { searchParams: Promise<SP> }) {
         </section>
       )}
 
+      {mu && !se && <p className="mb-6 -mt-6"><Link href={`/mesta/${oblastSlug(mu.code)}/${muniSlug(mu.code)}/vlast`} className="font-semibold">Кой управлява общината и има ли дялове във фирмите изпълнители →</Link></p>}
       {mu && !se && <MuniFinanceBlock code={mu.code} />}
 
       <section className="mb-12">

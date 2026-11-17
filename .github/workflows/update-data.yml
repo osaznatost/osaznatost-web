@@ -32,6 +32,8 @@ jobs:
           node scripts/fix-groups.mjs
       - name: Европейски средства
         run: node scripts/import-funds.mjs
+      - name: Местна власт (декларации и общински съвети)
+        run: node scripts/import-local.mjs
       - name: Запис, ако има промяна
         run: |
           git add data/
