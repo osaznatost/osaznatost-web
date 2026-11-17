@@ -35,6 +35,10 @@ export default function Parlament() {
         <KeyNumber label="Депутати в периода" value={num(MPS.length, 0)} note="включително заместили други" />
       </div>
 
+      <Link href="/parlament/signali" className="block ring-2 ring-red rounded-sm p-4 mb-10 bg-white no-underline text-ink hover:ring-4">
+        <p className="font-semibold text-lg">Сигнали: текстове, добавени на второ четене →</p>
+        <p className="text-[15px] text-muted">Нови параграфи, особено в преходните и заключителните разпоредби, където често се променят други закони в полза на тесен кръг. Кой ги подкрепя.</p>
+      </Link>
       <WeekProgram />
       <RecentSittings />
       <Upcoming />
