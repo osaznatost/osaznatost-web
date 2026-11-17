@@ -50,9 +50,9 @@ const SERIES = [
   { id: "employment_rate", ds: "lfsi_emp_a", filter: { indic_em: "EMP_LFS", age: "Y20-64", sex: "T", unit: "PC_POP", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "youth_unemployment", ds: "une_rt_a", filter: { age: "Y15-24", sex: "T", unit: "PC_ACT", geo: ["BG", "EU27_2020"] }, by: "geo" },
   // Неравенство и социални
-  { id: "gini", ds: "ilc_di12", filter: { geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
-  { id: "s80s20", ds: "ilc_di11", filter: { geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
-  { id: "overcrowding", ds: "ilc_lvho05a", filter: { age: "TOTAL", sex: "T", incgrp: "TOTAL", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "gini", ds: "ilc_di12", filter: { age: "TOTAL", geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
+  { id: "s80s20", ds: "ilc_di11", filter: { age: "TOTAL", sex: "T", geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
+  { id: "overcrowding", ds: "ilc_lvho05a", filter: { age: "TOTAL", sex: "T", rskpovth: "TOTAL", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
   // Демография
   { id: "fertility", ds: "tps00199", filter: { geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "infant_mortality", ds: "tps00027", filter: { geo: ["BG", "EU27_2020"] }, by: "geo" },
@@ -64,10 +64,10 @@ const SERIES = [
   { id: "tertiary", ds: "edat_lfse_03", filter: { sex: "T", isced11: "ED5-8", unit: "PC", age: "Y25-34", geo: ["BG", "EU27_2020"] }, by: "geo" },
   // Здраве, безопасност, общество, околна среда
   { id: "doctors", ds: "tps00044", filter: { geo: ["BG", "EU27_2020", "RO", "GR"] }, by: "geo" },
-  { id: "road_deaths", ds: "sdg_11_40", filter: { unit: "RT", geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
+  { id: "road_deaths", ds: "sdg_11_40", filter: { unit: "RT", tra_infr: "TOTAL", geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
   { id: "internet_use", ds: "isoc_ci_ifp_iu", filter: { indic_is: "I_IUSE", ind_type: "IND_TOTAL", unit: "PC_IND", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "renewables", ds: "nrg_ind_ren", filter: { nrg_bal: "REN", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
-  { id: "emissions", ds: "sdg_13_10", filter: { unit: "I90", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "emissions", ds: "sdg_13_10", filter: { unit: "I90", src_crf: "TOTXMEMO", geo: ["BG", "EU27_2020"] }, by: "geo" },
 ];
 
 function query(filter) {
@@ -134,6 +134,9 @@ for (const s of SERIES) {
     if (dup) {
       const multi = js.id.filter((d) => d !== "geo" && d !== "time" && d !== s.by && Object.keys(js.dimension[d].category.index).length > 1);
       throw new Error(`двусмислена серия (${dup} повторения), уточни измеренията: ${multi.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 6).join(",")}]`).join(" ")}`);
+    }
+    if (!Object.keys(lines).length) {
+      console.log(`  ${s.id}: празна серия; измерения ${js.id.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 10).join(",")}]`).join(" ")}`);
     }
     result.series[s.id] = { dataset: s.ds, url, updated, labels: s.geoPrefix ? labels : undefined, lines };
     console.log(`✓ ${s.id}: ${Object.keys(lines).length} линии`);
