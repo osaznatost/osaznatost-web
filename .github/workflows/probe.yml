@@ -1,13 +1,17 @@
 name: Проба
 on:
-  push:
-    branches: [main]
-    paths: [.github/workflows/probe.yml]
   workflow_dispatch:
 jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -s "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_ppp_ind?format=JSON&geo=BG&na_item=PLI_EU27_2020&time=2024" | python3 -c "import json,sys;d=json.load(sys.stdin);c=d['dimension']['ppp_cat']['category'];[print(k,c['label'][k]) for k in c['index']]"
-          curl -s "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_ppp_ind?format=JSON&geo=ES&geo=GR&na_item=PLI_EU27_2020&ppp_cat=A01&time=2024" | head -c 600
+          E=https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data
+          dims() { curl -s "$E/$1?format=JSON&geo=BG&$2" | python3 -c "import json,sys;d=json.load(sys.stdin);print('$1', d.get('error') or {k:list(v['category']['index'])[:12] for k,v in d['dimension'].items() if k not in ('time',)})"; }
+          dims hlth_silc_08 "time=2023"
+          dims nama_10_fte "time=2023"
+          dims sdg_11_50 "time=2022"
+          dims env_air_aa "time=2022" || true
+          dims crim_off_cat "time=2022"
+          dims edat_lfse_03 "time=2023"
+          dims tps00001 "time=2024"
