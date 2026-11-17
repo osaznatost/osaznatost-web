@@ -76,6 +76,8 @@ export const politicalLinks = (eik: string): Link[] => ((links as { byEik: Recor
 export function signals(c: Contract, annexes: Annex[] = []) {
   const out: { level: "high" | "mid"; text: string }[] = [];
   if (c.offers_count === 1) out.push({ level: "high", text: "Само една оферта: нямало е реална конкуренция." });
+  if (c.offers_count === 1 && c.estimated_value_eur && c.contract_value_eur && c.contract_value_eur >= c.estimated_value_eur * 0.95)
+    out.push({ level: "mid", text: `Договорената цена е ${Math.round((c.contract_value_eur / c.estimated_value_eur) * 1000) / 10}% от прогнозната: при една оферта почти няма отстъпка.` });
   if (c.disqualified_offers_count && c.disqualified_offers_count > 0)
     out.push({ level: "mid", text: `Отстранени оферти: ${c.disqualified_offers_count} от ${c.offers_count ?? "?"}.` });
   if (c.direct_award_justification) out.push({ level: "mid", text: "Възложена без открита процедура (пряко договаряне)." });
