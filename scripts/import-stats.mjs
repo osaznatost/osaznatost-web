@@ -39,6 +39,12 @@ const SERIES = [
   { id: "gdp_expenditure", ds: "nama_10_gdp", filter: { unit: "CP_MEUR", geo: "BG", na_item: ["B1GQ", "P31_S14", "P31_S15", "P3_S13", "P51G", "P52", "P6", "P7"] }, by: "na_item" },
   { id: "gdp_income", ds: "nama_10_gdp", filter: { unit: "CP_MEUR", geo: "BG", na_item: ["B1GQ", "D1", "B2A3G", "D2X3"] }, by: "na_item" },
   { id: "gva_oblasts", ds: "nama_10r_3gva", filter: { unit: "CP_MEUR", geo: ["BG311","BG312","BG313","BG314","BG315","BG321","BG322","BG323","BG324","BG325","BG331","BG332","BG333","BG334","BG341","BG342","BG343","BG344","BG411","BG412","BG413","BG414","BG415","BG421","BG422","BG423","BG424","BG425"], nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K-N", "O-U"] }, by: "geo", by2: "nace_r2", geoPrefix: "BG", geoLevel: 5 },
+  // Преки чуждестранни инвестиции в България
+  { id: "fdi_stock_partner", ds: "bop_fdi6_geo", filter: { currency: "MIO_EUR", geo: "BG", fdi_item: "DI__D__F", indic_bp: "STOCKS" }, by: "partner", keepLabels: true },
+  { id: "fdi_flow_partner", ds: "bop_fdi6_geo", filter: { currency: "MIO_EUR", geo: "BG", fdi_item: "DI__D__F", indic_bp: "FLOWS" }, by: "partner", keepLabels: true },
+  { id: "fdi_income_partner", ds: "bop_fdi6_geo", filter: { currency: "MIO_EUR", geo: "BG", fdi_item: "DI__D__F", indic_bp: "INCOME" }, by: "partner", keepLabels: true },
+  { id: "fdi_stock_ind", ds: "bop_fdi6_pos", filter: { currency: "MIO_EUR", geo: "BG", fdi_item: "DI__D__F", partner: "WRL_REST", stk_flow: "NI", entity: "TOTAL", counterp: "IMM", nace_r2: ["TOTAL","A","B","C","C10-C12","C_TXW","C16-C18","C19-C22","C_MET","C29_C30","C_OTH","D35","E","F","G","H","I","J","K","L","M","N"] }, by: "nace_r2", keepLabels: true },
+  { id: "fdi_flow_ind", ds: "bop_fdi6_flow", filter: { currency: "MIO_EUR", geo: "BG", fdi_item: "DI__D__F", partner: "WRL_REST", stk_flow: "NI", entity: "TOTAL", nace_r2: ["TOTAL","A","B","C","C10-C12","C_TXW","C16-C18","C19-C22","C_MET","C29_C30","C_OTH","D35","E","F","G","H","I","J","K","L","M","N"] }, by: "nace_r2", keepLabels: true },
   // Хора
   { id: "life_expectancy", ds: "demo_mlexpec", filter: { age: "Y_LT1", unit: "YR", geo: "BG", sex: ["M", "F"] }, by: "sex" },
   { id: "life_expectancy_eu", ds: "demo_mlexpec", filter: { age: "Y_LT1", unit: "YR", sex: "T", geo: ["BG", "EU27_2020"] }, by: "geo" },
@@ -103,7 +109,7 @@ function flatten(js) {
     }
     out.push(rec);
   }
-  return { records: out, labels: js.dimension.geo?.category?.label ?? {}, updated: js.updated };
+  return { records: out, labels: js.dimension.geo?.category?.label ?? {}, all: js.dimension, updated: js.updated };
 }
 
 const result = { updated: new Date().toISOString().slice(0, 10), source: "Евростат", series: {} };
@@ -123,7 +129,7 @@ for (const s of SERIES) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const js = await res.json();
     if (local) console.log(`  ${s.id}: измерения ${js.id.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 8).join(",")}]`).join(" ")}`);
-    let { records, labels, updated } = flatten(js);
+    let { records, labels, all, updated } = flatten(js);
     if (local) {
       for (const [k, v] of Object.entries(local)) {
         if (k === "geo" || k === "sinceTimePeriod" || !js.id.includes(k)) continue;
@@ -148,7 +154,7 @@ for (const s of SERIES) {
     if (!Object.keys(lines).length) {
       console.log(`  ${s.id}: празна серия; измерения ${js.id.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 10).join(",")}]`).join(" ")}`);
     }
-    result.series[s.id] = { dataset: s.ds, url, updated, labels: s.geoPrefix ? labels : undefined, lines };
+    result.series[s.id] = { dataset: s.ds, url, updated, labels: s.geoPrefix ? labels : s.keepLabels ? all[s.by]?.category?.label : undefined, lines };
     console.log(`✓ ${s.id}: ${Object.keys(lines).length} линии`);
   } catch (e) {
     console.error(`✗ ${s.id}: ${e.message}`);
