@@ -3,14 +3,14 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import { buyerAnnexes, buyerContracts, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
+import { buyerAnnexes, buyerContracts, buyerPlace, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
 
 export const metadata = { title: "Възложител" };
 
 async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const { eik } = await params;
   if (!/^\d{9,13}$/.test(eik)) notFound();
-  const [contracts, annexes] = await Promise.all([buyerContracts(eik, 500), buyerAnnexes(eik)]);
+  const [contracts, annexes, place] = await Promise.all([buyerContracts(eik, 500), buyerAnnexes(eik), buyerPlace(eik)]);
   if (!contracts.length && !annexes.length) notFound();
   const name = contracts[0]?.buyer_name ?? annexes[0]?.buyer_name;
   const total = contracts.reduce((s, c) => s + (c.contract_value_eur ?? 0), 0);
@@ -26,7 +26,8 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
 
   return (
     <>
-      <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`Възложител · ЕИК ${eik}`} lead={contracts[0]?.buyer_type}>{name}</Title>
+      <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`Възложител · ЕИК ${eik}`}
+        lead={<>{contracts[0]?.buyer_type}{place?.municipality_code && <> · <Link href={`/porachki?oblast=${encodeURIComponent(place.oblast ?? "")}&obshtina=${place.municipality_code}`}>{place.settlement ? `${place.settlement}, ` : ""}община {place.municipality}</Link></>}{place?.level && ` · ${place.level}`}</>}>{name}</Title>
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[
           ["Договори в базата", String(contracts.length)],

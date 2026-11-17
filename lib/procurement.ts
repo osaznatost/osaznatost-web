@@ -60,13 +60,34 @@ export const buyerContracts = (eik: string, limit = 200) =>
   q<Contract>(`proc_contracts?buyer_eik=eq.${eik}&order=contract_date.desc.nullslast&limit=${limit}`);
 export const buyerAnnexes = (eik: string) => q<Annex>(`proc_annexes?buyer_eik=eq.${eik}&order=published_at.desc&limit=100`);
 
-export const latestContracts = () => q<Contract>(`proc_contracts?order=published_at.desc&limit=30`);
-export const biggestContracts = (since: string) =>
-  q<Contract>(`proc_contracts?contract_date=gte.${since}&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20`);
-export const singleOfferBig = (since: string) =>
-  q<Contract>(`proc_contracts?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20`);
-export const biggestAnnexes = (since: string) =>
-  q<Annex>(`proc_annexes?published_at=gte.${since}&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20`);
+/** Филтър по място и ниво на властта. */
+export type PlaceFilter = { oblast?: string; obshtina?: string; mesto?: string; nivo?: string };
+const geoQ = (f: PlaceFilter) =>
+  [f.oblast && `oblast=eq.${enc(f.oblast)}`, f.obshtina && `municipality_code=eq.${f.obshtina}`, f.mesto && `ekatte=eq.${f.mesto}`, f.nivo && `level=eq.${enc(f.nivo)}`]
+    .filter(Boolean).map((x) => `&${x}`).join("");
+const hasGeo = (f: PlaceFilter) => Boolean(f.oblast || f.obshtina || f.mesto || f.nivo);
+const ct = (f: PlaceFilter) => (hasGeo(f) ? "proc_contracts_geo" : "proc_contracts");
+const at = (f: PlaceFilter) => (hasGeo(f) ? "proc_annexes_geo" : "proc_annexes");
+
+export const latestContracts = (f: PlaceFilter = {}) => q<Contract>(`${ct(f)}?order=published_at.desc&limit=30${geoQ(f)}`);
+export const biggestContracts = (since: string, f: PlaceFilter = {}) =>
+  q<Contract>(`${ct(f)}?contract_date=gte.${since}&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
+export const singleOfferBig = (since: string, f: PlaceFilter = {}) =>
+  q<Contract>(`${ct(f)}?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
+export const biggestAnnexes = (since: string, f: PlaceFilter = {}) =>
+  q<Annex>(`${at(f)}?published_at=gte.${since}&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20${geoQ(f)}`);
+
+export type PlaceStat = { oblast?: string; municipality?: string; municipality_code?: string; ekatte?: string; settlement?: string; is_village?: boolean; contracts: number; total_eur: number | null; single_offer: number; buyers?: number };
+export const placeOblasts = () => q<PlaceStat>(`proc_place_oblast?order=total_eur.desc.nullslast`);
+export const placeOblast = async (oblast: string) => (await q<PlaceStat>(`proc_place_oblast?oblast=eq.${enc(oblast)}`))[0];
+export const placeMunicipalities = (oblast: string) => q<PlaceStat>(`proc_place_municipality?oblast=eq.${enc(oblast)}&order=total_eur.desc.nullslast`);
+export const placeMunicipality = async (code: string) => (await q<PlaceStat>(`proc_place_municipality?municipality_code=eq.${code}`))[0];
+export const placeSettlements = (code: string) => q<PlaceStat>(`proc_place_settlement?municipality_code=eq.${code}&order=total_eur.desc.nullslast`);
+export const placeSettlement = async (ekatte: string) => (await q<PlaceStat>(`proc_place_settlement?ekatte=eq.${ekatte}`))[0];
+export const placeSuppliers = (code: string) =>
+  q<{ eik: string; name: string; contracts: number; total_eur: number | null }>(`proc_place_suppliers?municipality_code=eq.${code}&order=total_eur.desc.nullslast&limit=15`);
+export const buyerPlace = async (eik: string) =>
+  (await q<{ level: string; settlement: string | null; municipality: string | null; municipality_code: string | null; oblast: string | null; ekatte: string | null }>(`proc_buyers?eik=eq.${eik}&select=level,settlement,municipality,municipality_code,oblast,ekatte`))[0];
 export const topSuppliers = () => q<SupplierStats>(`proc_supplier_stats?order=total_eur.desc.nullslast&limit=25`);
 export const importState = async () => (await q<{ last_day: string }>(`proc_import_state?feed=eq.eop`))[0]?.last_day;
 export const searchContracts = (term: string) => {
