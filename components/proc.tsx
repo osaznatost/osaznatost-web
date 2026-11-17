@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { type Annex, type Contract, buyerUrl, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
+import { type Annex, type Contract, buyerUrl, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
 
 export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contract[]; hideBuyer?: boolean; hideSupplier?: boolean }) {
   if (!items.length) return <p className="text-muted text-[15px]">Няма договори.</p>;
@@ -38,7 +38,7 @@ export function AnnexList({ items }: { items: Annex[] }) {
         return (
           <li key={a.id} className="py-3">
             <div className="flex flex-wrap justify-between gap-2">
-              <p className="font-semibold line-clamp-2 min-w-0">{a.tender_name}</p>
+              <Link href={contractUrl(contractRef(a.buyer_eik, a.contract_number))} className="font-semibold line-clamp-2 min-w-0 text-ink no-underline hover:underline">{a.tender_name}</Link>
               <p className="num whitespace-nowrap">
                 {fmtEur(a.last_value_eur)} → <b>{fmtEur(a.current_value_eur)}</b>
                 {r != null && <span className={`ml-2 text-sm font-semibold ${r > 0.25 ? "text-red" : ""}`}>{r > 0 ? "+" : ""}{Math.round(r * 100)}%</span>}

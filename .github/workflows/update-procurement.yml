@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [scripts/import-procurement.mjs]
+    paths: [scripts/import-procurement.mjs, scripts/build-buyers.mjs]
 
 concurrency:
   group: procurement
@@ -26,3 +26,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: node scripts/import-procurement.mjs
+      - name: Къде се намира всеки възложител
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/build-buyers.mjs

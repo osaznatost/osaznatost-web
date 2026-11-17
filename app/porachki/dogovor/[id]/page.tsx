@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
 import { AnnexList, LinksBox, SignalList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import { buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
+import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
 
 export const metadata = { title: "Договор" };
 
@@ -25,7 +25,12 @@ function Box({ title, children }: { title: string; children: React.ReactNode }) 
 async function Content({ params }: { params: Promise<{ id: string }> }) {
   const id = decodeURIComponent((await params).id);
   const c = await getContract(id);
-  if (!c) notFound();
+  if (!c) {
+    const m = id.match(/^n~(\d+)~(.+)$/);
+    const only = m ? await annexesByRef(m[1], m[2]) : [];
+    if (!only.length) notFound();
+    return <AnnexOnly annexes={only} />;
+  }
   const annexes = await contractAnnexes(c);
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
@@ -166,6 +171,43 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
       </section>
 
       <p className="text-xs text-muted">Източник: отворени данни на ЦАИС ЕОП (Агенция по обществени поръчки), договор № {c.contract_number}, публикуван на {fmtDate(c.published_at)}.</p>
+    </>
+  );
+}
+
+/** Договорът е сключен преди началото на базата (1.01.2025): показваме каквото има в анексите. */
+function AnnexOnly({ annexes }: { annexes: Awaited<ReturnType<typeof annexesByRef>> }) {
+  const a = annexes[annexes.length - 1];
+  const first = annexes[0];
+  return (
+    <>
+      <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`Договор № ${a.contract_number}${a.contract_date ? ` от ${fmtDate(a.contract_date)}` : ""}`}
+        lead={<><Link href={buyerUrl(a.buyer_eik)}>{a.buyer_name}</Link> → {a.supplier_eiks.map((e, i) => <span key={e}>{i > 0 && ", "}<Link href={firmUrl(e)}>{a.supplier_names[i] ?? e}</Link></span>)}</>}>
+        {a.tender_name}
+      </Title>
+      <section className="grid gap-4 sm:grid-cols-3 mb-10">
+        {[
+          ["Стойност преди анексите", fmtEur(first.last_value_eur)],
+          ["Стойност сега", fmtEur(a.current_value_eur)],
+          ["Промяна", first.last_value_eur && a.current_value_eur ? `${a.current_value_eur >= first.last_value_eur ? "+" : ""}${Math.round((a.current_value_eur / first.last_value_eur - 1) * 100)}%` : "—"],
+        ].map(([l, v]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p></div>)}
+      </section>
+      <div className="bg-surface p-4 rounded-sm max-w-3xl mb-8 text-[15px]">
+        Договорът е сключен преди 1 януари 2025 г. и обявлението за него още не е в нашата база (внасяме историята постепенно). Затова тук няма брой оферти и процедура, а само анексите.
+      </div>
+      <section className="mb-10">
+        <SectionTitle>Анекси: какво е променено</SectionTitle>
+        <AnnexList items={annexes} />
+        {annexes.filter((x) => x.change_description).map((x) => (
+          <details key={x.id} className="mt-3 text-[15px]" open={annexes.length === 1}>
+            <summary className="cursor-pointer font-semibold">Текстът на анекса от {fmtDate(x.published_at)} („било / става“)</summary>
+            <p className="mt-2 whitespace-pre-line text-muted">{x.change_description}</p>
+          </details>
+        ))}
+      </section>
+      <section className="grid gap-4 lg:grid-cols-2 mb-10">
+        <div className="ring-1 ring-rule rounded-sm p-5"><h3 className="font-semibold mb-2">Връзки с политици</h3>{a.supplier_eiks.map((e) => <LinksBox key={e} eik={e} />)}</div>
+      </section>
     </>
   );
 }

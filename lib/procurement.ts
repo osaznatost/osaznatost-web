@@ -41,7 +41,15 @@ export const contractUrl = (id: string) => `/porachki/dogovor/${enc(id)}`;
 export const firmUrl = (eik: string) => `/porachki/firma/${eik}`;
 export const buyerUrl = (eik: string) => `/porachki/vazlozhitel/${eik}`;
 
-export const getContract = async (id: string) => (await q<Contract>(`proc_contracts?id=eq.${enc(id)}&limit=1`))[0];
+/** Адрес на договор по възложител и номер (анексите нямат идентификатора на обявлението за договора). */
+export const contractRef = (buyer: string, number: string) => `n~${buyer}~${number}`;
+export const getContract = async (id: string) => {
+  const m = id.match(/^n~(\d+)~(.+)$/);
+  if (m) return (await q<Contract>(`proc_contracts?buyer_eik=eq.${m[1]}&contract_number=eq.${enc(m[2])}&order=published_at.desc&limit=1`))[0];
+  return (await q<Contract>(`proc_contracts?id=eq.${enc(id)}&limit=1`))[0];
+};
+export const annexesByRef = (buyer: string, number: string) =>
+  q<Annex>(`proc_annexes?contract_number=eq.${enc(number)}&buyer_eik=eq.${buyer}&order=published_at.asc`);
 export const contractAnnexes = (c: Contract) =>
   q<Annex>(`proc_annexes?contract_number=eq.${enc(c.contract_number)}&buyer_eik=eq.${enc(c.buyer_eik)}&order=published_at.asc`);
 export const supplierContracts = (eik: string, limit = 200) =>
