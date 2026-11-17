@@ -66,8 +66,10 @@ export function MoneyFlow({ nodes, links, columns, minHeight = 300, unit = eur }
   const { g, height, color } = graph;
   const linkColor = (l: L) => (l.target.kind === "unknown" ? "#cfd8d2" : color.get(l.source.depth === 0 ? l.source.id : l.source.id) ?? "#d9e2dc");
   const active = (l: L) => !hover || (hover.kind === "link" ? l.index === hover.i : l.source.index === hover.i || l.target.index === hover.i);
-  const maxDepth = Math.max(...g.nodes.map((n) => n.depth ?? 0));
-  const colX = (d: number) => g.nodes.find((n) => n.depth === d)?.x0 ?? 0;
+  const xs = [...new Set(g.nodes.map((n) => Math.round(n.x0 ?? 0)))].sort((a, b) => a - b);
+  const maxDepth = xs.length - 1;
+  const colX = (d: number) => xs[d] ?? 0;
+  const isLast = (n: N) => Math.round(n.x0 ?? 0) === xs[maxDepth];
 
   let tip: React.ReactNode = null;
   if (hover) {
@@ -106,7 +108,7 @@ export function MoneyFlow({ nodes, links, columns, minHeight = 300, unit = eur }
           const right = x1 + 6;
           const labelX = narrow ? (x0 > width / 2 ? x0 - 6 : right) : right;
           const anchor = narrow && x0 > width / 2 ? "end" : "start";
-          const max = narrow ? 24 : (n.depth === maxDepth ? (width > 1000 ? 40 : 26) : 30);
+          const max = narrow ? 24 : (isLast(n) ? (width > 1000 ? 40 : 26) : 30);
           const dim = hover && !(hover.kind === "node" ? hover.i === i : g.links[hover.i]?.source.index === i || g.links[hover.i]?.target.index === i);
           return (
             <g key={n.id} opacity={dim ? 0.35 : 1} onMouseMove={(e) => setHover({ kind: "node", i, x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })} style={{ cursor: "pointer" }}>

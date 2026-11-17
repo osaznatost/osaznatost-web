@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChoroMap } from "@/components/ChoroMap";
 import { MultiLine } from "@/components/Charts";
+import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { EVENTS, EXPENDITURE, INCOME, MAIN_SECTORS, NUTS3_BY_PREFIX, REGIONAL_SECTORS, SECTORS, lastYear, val, years } from "@/lib/economy";
 import { ELECTIONS } from "@/lib/partyMeta";
@@ -36,6 +37,35 @@ export default function Struktura() {
   const g = (yy: number) => growth[String(yy)];
   const avg = (ys: number[]) => { const v = ys.map(g); return v.every((x) => x != null) ? v.reduce((a, b) => a + b, 0) / v.length : undefined; };
 
+  // Как тече икономиката: търсене → общо търсене → внос / БВП → доходи
+  const E = (c: string) => (val("gdp_expenditure", c, y) ?? 0) * 1e6;
+  const I = (c: string) => (val("gdp_income", c, y) ?? 0) * 1e6;
+  const demand = E("P31_S14") + E("P31_S15") + E("P3_S13") + E("P51G") + E("P52") + E("P6");
+  const flowNodes: FlowNode[] = [
+    { id: "hh", label: "Потребление на домакинствата", kind: "source", color: "#2f6f8f", note: "Храна, жилище, транспорт, услуги: всичко, което купуват хората (вкл. организациите с нестопанска цел)." },
+    { id: "gov", label: "Потребление на държавата", kind: "source", color: "#8a5a8c", note: "Заплати в държавния сектор, лекарства, образование, отбрана." },
+    { id: "inv", label: "Инвестиции", kind: "source", color: "#b08436", note: "Сгради, машини, пътища, софтуер и промяна на запасите." },
+    { id: "exp", label: "Износ", kind: "source", color: "#2f7d57", note: "Стоки и услуги, продадени в чужбина." },
+    { id: "dem", label: "Общо търсене", kind: "buyer", color: "#143426", note: "Всичко, което е купено в икономиката за годината." },
+    { id: "imp", label: "Внос: изтича навън", kind: "annex", color: "#c46a4a", note: "Частта от търсенето, задоволена с внос. Тези пари отиват при чужди производители." },
+    { id: "gdp", label: "БВП: създадено в България", kind: "buyer", color: "#1F4D3A" },
+    { id: "w", label: "Заплати и осигуровки", kind: "supplier", color: "#2f6f8f", note: "Доходът на наетите, включително осигуровките, платени от работодателя." },
+    { id: "p", label: "Печалби, самонаети, наеми", kind: "supplier", color: "#b08436", note: "Брутен опериращ излишък и смесен доход: печалби на фирмите, доходи на самонаетите и земеделците, амортизация." },
+    { id: "t", label: "Данъци върху продуктите (нето)", kind: "supplier", color: "#8a5a8c", note: "ДДС, акцизи, мита минус субсидиите." },
+  ];
+  const flowLinks: FlowLink[] = [
+    { source: "hh", target: "dem", value: E("P31_S14") + E("P31_S15") },
+    { source: "gov", target: "dem", value: E("P3_S13") },
+    { source: "inv", target: "dem", value: E("P51G") + E("P52") },
+    { source: "exp", target: "dem", value: E("P6") },
+    { source: "dem", target: "imp", value: E("P7") },
+    { source: "dem", target: "gdp", value: demand - E("P7") },
+    { source: "gdp", target: "w", value: I("D1") },
+    { source: "gdp", target: "p", value: I("B2A3G") },
+    { source: "gdp", target: "t", value: I("D2X3") },
+  ];
+  const impShare = pct(E("P7"), demand);
+
   // Области
   const ry = years("gva_oblasts", "BG411|TOTAL").at(-1)!;
   const oblasts = Object.keys(GEO).filter((k) => /^BG\d{3}$/.test(k)).map((code) => {
@@ -67,6 +97,15 @@ export default function Struktura() {
           <div key={k.l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{k.l}</p><p className="display text-[2.4rem] leading-none mt-1">{k.v}</p><p className="text-xs text-muted mt-1">{k.s}</p></div>
         ))}
       </div>
+
+      <section className="mb-14">
+        <SectionTitle>Как тече икономиката, {y}</SectionTitle>
+        <p className="text-[15px] -mt-2 mb-4 max-w-3xl">
+          Отляво: кой харчи. В средата: колко от това се произвежда тук и колко изтича към внос ({f1(impShare)}% от цялото търсене). Отдясно: при кого остава създаденото у нас. Посочи поток за подробности.
+        </p>
+        <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><MoneyFlow nodes={flowNodes} links={flowLinks} columns={["Кой харчи", "Общо търсене", "Създадено у нас", "Къде отива"]} minHeight={420} /></div>
+        <p className="text-xs text-muted mt-2">Евростат, национални сметки (nama_10_gdp). Сумите по двата края се различават с малката статистическа разлика между метода на разходите и метода на доходите.</p>
+      </section>
 
       <section className="mb-14">
         <SectionTitle>Откъде идва: сектори</SectionTitle>
@@ -130,16 +169,16 @@ export default function Struktura() {
         <p className="text-[15px] mt-3 max-w-3xl">През {y} г. заплатите са {f1(pct(val("gdp_income", "D1", y), gdp))}% от БВП, а печалбите и доходите на самонаетите {f1(pct(val("gdp_income", "B2A3G", y), gdp))}%. За сравнение, през {first} г. заплатите са {f1(pct(val("gdp_income", "D1", first), val("gdp_income", "B1GQ", first)))}%.</p>
       </section>
 
-      <section className="mb-14">
+      <section id="sabitiya" className="mb-14 scroll-mt-24">
         <SectionTitle>Решения и събития</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Средният реален растеж за трите години преди и трите години след всяко събитие. Съвпадението във времето не доказва причина: в същите години действат и много други фактори, например световната икономика.</p>
         <ol className="space-y-3">
           {EVENTS.map((e) => {
             const before = avg([e.year - 3, e.year - 2, e.year - 1]), after = avg([e.year, e.year + 1, e.year + 2]);
             return (
-              <li key={e.year} className="ring-1 ring-rule rounded-sm p-4 bg-white grid gap-3 md:grid-cols-[6rem_1fr_14rem]">
+              <li key={e.year} className="ring-1 ring-rule rounded-sm p-4 bg-white hover:ring-2 hover:ring-green grid gap-3 md:grid-cols-[6rem_1fr_14rem]">
                 <p className="display text-[2rem] leading-none">{e.year}</p>
-                <div><p className="font-semibold">{e.title}</p><p className="text-[15px]">{e.what}</p></div>
+                <div><p className="font-semibold"><Link href={`/ikonomika/sabitie/${e.slug}`}>{e.title} →</Link></p><p className="text-[15px]">{e.what}</p></div>
                 <p className="text-sm">Растеж преди: <b>{before == null ? "няма данни" : `${fmt(before, 1)}%`}</b><br />Растеж след: <b>{after == null ? "още няма данни" : `${fmt(after, 1)}%`}</b></p>
               </li>
             );
