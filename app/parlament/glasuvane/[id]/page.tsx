@@ -4,6 +4,7 @@ import { OutcomeTag, TallyBar, VOTE_COLOR, VoteBoard, VoteLegend } from "@/compo
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { explain } from "@/lib/voteExplain";
 import { getLaw } from "@/lib/laws";
+import { LawAnalysis, OutcomeList } from "@/components/LawAnalysis";
 import { MPS, PARLIAMENT_SOURCE, PARTIES, TOPICS, VOTES, VOTE_LABEL, type VoteCode, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
 export function generateStaticParams() {
@@ -29,6 +30,9 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
   const par = v.title.match(/параграф[ие]?\s+(\d+[а-я]?)/i)?.[1];
   const parNote = law && par ? law.paragraphs?.[par] : undefined;
   const passed = v.outcome !== "rejected";
+  // Икономическите последици важат за гласуване по закона като цяло (първо четене или целия закон).
+  const whole = ex.kind === "Първо четене" || ex.kind === "Закон";
+  const eff = law?.effects;
 
   return (
     <Page>
@@ -56,16 +60,22 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
         </div>
         <div className={`rounded-xl p-5 ${passed ? "bg-[#2f9e6a] text-white" : "bg-white ring-1 ring-rule"}`}>
           <p className="font-semibold mb-1">Ако се приеме{passed && ": това се случи"}</p>
-          <p className="text-[15px]">{ex.ifYes}</p>
+          {whole && eff ? <p className="text-xs opacity-80">Процедурно: {ex.ifYes}</p> : <p className="text-[15px]">{ex.ifYes}</p>}
+          {whole && eff && <OutcomeList o={eff.ifPassed} onDark={passed} />}
         </div>
         <div className={`rounded-xl p-5 ${!passed ? "bg-[#d2353f] text-white" : "bg-white ring-1 ring-rule"}`}>
           <p className="font-semibold mb-1">Ако се отхвърли{!passed && ": това се случи"}</p>
-          <p className="text-[15px]">{ex.ifNo}</p>
+          {whole && eff ? <p className="text-xs opacity-80">Процедурно: {ex.ifNo}</p> : <p className="text-[15px]">{ex.ifNo}</p>}
+          {whole && eff && <OutcomeList o={eff.ifRejected} onDark={!passed} />}
         </div>
         <div className="rounded-xl p-5 bg-white ring-1 ring-rule">
           <p className="font-semibold mb-1">Законът</p>
           {ex.law ? (
-            <p className="text-[15px]"><Link href={`/parlament/zakon/${ex.law.slug}`}>{ex.law.name}</Link>: всички гласувания по него{law ? " и обяснение какво променя" : ""}.</p>
+            <>
+              <p className="text-[15px]"><Link href={`/parlament/zakon/${ex.law.slug}`}>{ex.law.name}</Link>: всички гласувания по него{law ? " и обяснение какво променя" : ""}.</p>
+              {!eff && <p className="text-sm text-muted mt-2">Още нямаме анализ какво ще промени този закон на практика. Добавяме ги по реда на важността им.</p>}
+              {eff && !whole && <p className="text-sm mt-2">Това гласуване е за част от закона. Какво носи законът като цяло, ако бъде приет или отхвърлен, е описано по-долу.</p>}
+            </>
           ) : (
             <p className="text-[15px] text-muted">Гласуването не е по конкретен закон.</p>
           )}
@@ -82,37 +92,7 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
               <p className="text-[15px]">{parNote}</p>
             </div>
           )}
-          {law.sides && (
-            <div className="grid gap-4 sm:grid-cols-3 mt-6">
-              {law.sides.map((s) => (
-                <div key={s.who} className="bg-surface p-4 rounded-sm">
-                  <p className="text-sm font-semibold mb-1">{s.who}</p>
-                  <p className="text-[15px]">{s.argument}</p>
-                </div>
-              ))}
-            </div>
-          )}
-          {law.checks && (
-            <div className="mt-8">
-              <h3 className="display text-[1.8rem] mb-3">Проверени твърдения</h3>
-              <ul className="space-y-3">
-                {law.checks.map((c) => (
-                  <li key={c.claim} className="rounded-xl ring-1 ring-rule p-4 bg-white">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="font-semibold">{c.claim}</p>
-                      <span className={`text-sm font-semibold px-2.5 py-0.5 rounded-full ${c.verdict === "Вярно" ? "bg-[#2f9e6a] text-white" : c.verdict === "Невярно" ? "bg-[#d2353f] text-white" : "bg-[#e2b33b] text-ink"}`}>{c.verdict}</span>
-                    </div>
-                    <p className="text-[15px] text-muted mt-1">{c.why}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <p className="text-xs text-muted mt-4">
-            {law.note} Проверено: {formatDate(law.reviewed)}. Източници: {law.sources.map((src, i) => (
-              <span key={src.url}>{i > 0 && ", "}<a href={src.url} target="_blank" rel="noreferrer">{src.title}</a></span>
-            ))}
-          </p>
+          <LawAnalysis law={law} hideEffects={whole} />
         </section>
       )}
 

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { OutcomeTag } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { getLaw } from "@/lib/laws";
+import { LawAnalysis } from "@/components/LawAnalysis";
 import { PARTIES, VOTES, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 import { explain, lawFromTitle } from "@/lib/voteExplain";
 
@@ -60,35 +61,7 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
           <p className="text-[17px]">{law.summary}</p>
           {law.sponsors && <p className="mt-3 text-[15px]"><b>Вносители:</b> {law.sponsors}{law.bill && <> · <a href={law.bill.url} target="_blank" rel="noreferrer">законопроект {law.bill.sign}</a></>}</p>}
           {law.whatHappened && <p className="mt-3 text-[15px]"><b>Какво се случи:</b> {law.whatHappened}</p>}
-          {law.sides && (
-            <div className="grid gap-4 sm:grid-cols-3 mt-6">
-              {law.sides.map((s) => (
-                <div key={s.who} className="bg-surface p-4 rounded-sm">
-                  <p className="text-sm font-semibold mb-1">{s.who}</p>
-                  <p className="text-[15px]">{s.argument}</p>
-                </div>
-              ))}
-            </div>
-          )}
-          {law.checks && (
-            <div className="mt-8">
-              <h3 className="display text-[1.8rem] mb-3">Проверени твърдения</h3>
-              <ul className="space-y-3">
-                {law.checks.map((c) => (
-                  <li key={c.claim} className="rounded-xl ring-1 ring-rule p-4 bg-white">
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="font-semibold">{c.claim}</p>
-                      <span className={`text-sm font-semibold px-2.5 py-0.5 rounded-full ${c.verdict === "Вярно" ? "bg-[#2f9e6a] text-white" : c.verdict === "Невярно" ? "bg-[#d2353f] text-white" : "bg-[#e2b33b] text-ink"}`}>{c.verdict}</span>
-                    </div>
-                    <p className="text-[15px] text-muted mt-1">{c.why}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <p className="text-xs text-muted mt-4">{law.note} Източници: {law.sources.map((src, i) => (
-            <span key={src.url}>{i > 0 && ", "}<a href={src.url} target="_blank" rel="noreferrer">{src.title}</a></span>
-          ))}</p>
+          <LawAnalysis law={law} />
         </section>
       ) : (
         <section className="mb-12 max-w-4xl bg-surface p-5 rounded-sm">
