@@ -16,6 +16,13 @@ mkdirSync(DIR, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const main = JSON.parse(readFileSync(MAIN, "utf8"));
+// Повторяемо: махаме добавеното при предишно пускане.
+{
+  const keep = main.mps.map((m, i) => (m.added ? -1 : i)).filter((i) => i >= 0);
+  main.votes = main.votes.filter((v) => v.src !== "parliament.bg");
+  for (const v of main.votes) v.v = keep.map((i) => v.v[i]).join("");
+  main.mps = keep.map((i) => main.mps[i]);
+}
 const lastDate = main.votes.reduce((m, v) => (v.date > m ? v.date : m), "");
 
 // Начална точка: стенограмата на последния ден при „Наясно“.
@@ -84,6 +91,7 @@ while (gap < 30 && scanned < 200) {
   const groups = files.find((f) => /групи/i.test(f.Pl_StenDname) && /\.csv$/i.test(f.Pl_StenDfile));
   const pdf = files.find((f) => /\.pdf$/i.test(f.Pl_StenDfile));
   if (!roll) { console.log(`  ${date} (id ${id}): няма CSV с поименно гласуване`); continue; }
+  if (!groups) console.log(`  ${date}: файлове: ${files.map((f) => f.Pl_StenDname + " [" + f.Pl_StenDfile + "]").join("; ")}`);
   const rows = parseRollcall(await getText(roll.Pl_StenDfile));
   const titles = groups ? parseTitles(await getText(groups.Pl_StenDfile)) : {};
   writeFileSync(`${DIR}/${date}.json`, JSON.stringify({ date, stenogramId: id, pdf: pdf ? fileUrl(pdf.Pl_StenDfile) : null, titles, rows }));
@@ -91,14 +99,32 @@ while (gap < 30 && scanned < 200) {
 }
 writeFileSync(STATE, JSON.stringify(state));
 
+// Дни без заглавия: опит отново (групите понякога се качват по-късно или в друг формат).
+for (const f of readdirSync(DIR).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f))) {
+  const day = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
+  if (Object.keys(day.titles).length) continue;
+  const s = await getJson(`${API}/pl-sten/${day.stenogramId}`);
+  const files = s?.files ?? [];
+  const groups = files.find((x) => /групи/i.test(x.Pl_StenDname) && /\.csv$/i.test(x.Pl_StenDfile));
+  if (groups) {
+    day.titles = parseTitles(await getText(groups.Pl_StenDfile));
+    writeFileSync(`${DIR}/${f}`, JSON.stringify(day));
+  }
+  console.log(`  ${day.date} без заглавия; сега ${Object.keys(day.titles).length}; файлове: ${files.map((x) => x.Pl_StenDname + " [" + x.Pl_StenDfile.split("/").pop() + "]").join("; ")}`);
+}
+
 // 2. Сливане в основния файл: само дни след последния ден при „Наясно“.
 const VOTE = { "+": "y", "-": "n", "=": "a" };
 const norm = (p) => p.replace(/\s+/g, "").toUpperCase();
+const nameKey = (n) => n.toUpperCase().replace(/[^А-ЯЁA-Z]+/g, " ").trim();
+const byName = new Map(main.mps.map((m) => [nameKey(m.name), m.id]));
+const ourId = (r) => byName.get(nameKey(r.name)) ?? 900000 + r.id; // нов депутат: отделно пространство за номерата
 const knownParty = new Map(main.mps.map((m) => [m.id, m.party]));
 const labelMap = new Map(); // CSV етикет → нашия етикет, научен от познатите депутати
 const cached = readdirSync(DIR).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort();
 for (const f of cached) for (const r of JSON.parse(readFileSync(`${DIR}/${f}`, "utf8")).rows) {
-  if (knownParty.has(r.id) && !labelMap.has(norm(r.party))) labelMap.set(norm(r.party), knownParty.get(r.id));
+  const oid = ourId(r);
+  if (knownParty.has(oid) && !labelMap.has(norm(r.party))) labelMap.set(norm(r.party), knownParty.get(oid));
 }
 const titleCase = (s) => s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (m, p, c) => p + c.toUpperCase());
 const topicOf = (t) => /бюджет/i.test(t) ? "budget" : /ратифик/i.test(t) ? "ratification" : /данък|ДДС|акциз/i.test(t) ? "tax"
@@ -108,17 +134,19 @@ let added = 0;
 for (const f of cached) {
   const day = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
   if (day.date <= lastDate) continue;
+  for (const r of day.rows) r.id = ourId(r);
   for (const r of day.rows) {
     if (!main.mps.some((m) => m.id === r.id)) {
-      main.mps.push({ id: r.id, name: titleCase(r.name), party: labelMap.get(norm(r.party)) ?? r.party, presentPct: null });
+      main.mps.push({ id: r.id, name: titleCase(r.name), party: labelMap.get(norm(r.party)) ?? r.party, presentPct: null, added: true });
+      console.log(`  нов депутат: ${r.name} (${r.party})`);
       main.votes.forEach((v) => (v.v += "-"));
     }
   }
   const pos = new Map(main.mps.map((m, i) => [m.id, i]));
   const items = [...new Set(day.rows.map((r) => r.item))].sort((a, b) => a - b);
   for (const item of items) {
-    const title = day.titles[item];
-    if (!title) continue; // точка 1 е регистрацията, без заглавие
+    if (item === 1 && !day.titles[item]) continue; // точка 1 е регистрацията
+    const title = day.titles[item] ?? `Гласуване ${item} от ${day.date} (заглавието не е публикувано в източника)`;
     const arr = new Array(main.mps.length).fill("-");
     const tally = { yes: 0, no: 0, abstain: 0, absent: 0 };
     for (const r of day.rows.filter((x) => x.item === item)) {
