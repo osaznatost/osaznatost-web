@@ -1,7 +1,7 @@
 import raw from "@/data/parliament-ns52.json";
 
 export type VoteCode = "y" | "n" | "a" | "x" | "-";
-export type Mp = { id: number; name: string; party: string; presentPct: number | null };
+export type Mp = { id: number; name: string; party: string; presentPct: number | null; pid?: number };
 export type Vote = {
   id: string; date: string; item: number; title: string; topic: string; outcome: string;
   tally: { yes: number; no: number; abstain: number; absent: number };

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [scripts/import-rollcall.mjs, scripts/import-parliament.mjs, scripts/import-mps.mjs]
+    paths: [scripts/import-rollcall.mjs, scripts/import-parliament.mjs, scripts/import-mps.mjs, scripts/fix-groups.mjs]
 
 permissions:
   contents: write
@@ -26,7 +26,10 @@ jobs:
           npm i --no-save --no-package-lock xlsx@0.18.5
           node scripts/import-rollcall.mjs
       - name: Профили на депутатите
-        run: node scripts/import-mps.mjs
+        run: |
+          node scripts/import-mps.mjs
+          node scripts/import-mp-history.mjs
+          node scripts/fix-groups.mjs
       - name: Европейски средства
         run: node scripts/import-funds.mjs
       - name: Запис, ако има промяна
