@@ -17,7 +17,7 @@ const unesc = (s: string) => s.replace(/<!\[CDATA\[|\]\]>/g, "").replace(/&amp;/
 
 async function feed(o: (typeof OUTLETS)[number]): Promise<NewsItem[]> {
   try {
-    const r = await fetch(`https://news.google.com/rss/search?q=site:${o.domain}+when:2d&hl=bg&gl=BG&ceid=BG:bg`, { headers: { "user-agent": "Mozilla/5.0 Osaznatost" } });
+    const r = await fetch(`https://news.google.com/rss/search?q=site:${o.domain}&hl=bg&gl=BG&ceid=BG:bg`, { headers: { "user-agent": "Mozilla/5.0 Osaznatost" } });
     if (!r.ok) return [];
     const xml = await r.text();
     return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 25).map(([, it]) => {

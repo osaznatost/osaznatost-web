@@ -4,6 +4,7 @@ import { Page, SectionTitle, Title } from "@/components/ui";
 import { REGIONAL_SECTORS, val } from "@/lib/economy";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, oblastStats } from "@/lib/regions";
 import { STATS, fmt } from "@/lib/stats";
+import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
 
 export function generateStaticParams() { return oblastList().map((o) => ({ obl: o.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ obl: string }> }) {
@@ -24,6 +25,12 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
   const agg = munis.reduce((a, x) => { x.el?.lists.forEach((l) => { a[l.name] = { ...l, votes: (a[l.name]?.votes ?? 0) + l.votes }; }); return a; }, {} as Record<string, { name: string; color: string; slug: string; votes: number }>);
   const aggTot = munis.reduce((a, x) => a + (x.el?.total ?? 0), 0);
   const lists = Object.values(agg).sort((a, b) => b.votes - a.votes);
+  const OC = PLACE_OBL.oblasts[o.prefix], BG = PLACE_OBL.country;
+  const eduT = (c: { education: Record<string, number> }) => EDU.reduce((a, [k]) => a + (c.education[k] ?? 0), 0);
+  const prof = o.municipalities.map((m) => ({ m, p: placeData(m.code) })).filter((x) => x.p?.census).map(({ m, p }) => {
+    const c = p!.census!;
+    return { m, pop: c.population, old: share(c.age.age65plus, c.population), young: share(c.age.age0_14, c.population), uni: share(c.education.tertiary, eduT(c)), unemp: c.employment.unemploymentRate, ipop: p!.ipop?.rollup.agreementEur ?? 0 };
+  }).sort((a, b) => b.pop - a.pop);
 
   return (
     <Page>
@@ -52,6 +59,40 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{lists.map((l) => (
             <li key={l.name} className="ring-1 ring-rule rounded-sm p-3 bg-white flex justify-between items-center"><Link href={`/parlament/partiya/${l.slug}`} className="inline-flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ background: l.color }} />{l.name}</Link><span className="num font-semibold">{fmt((l.votes / aggTot) * 100, 1)}%</span></li>
           ))}</ul>
+        </section>
+      )}
+
+      {OC && (
+        <section className="mb-12">
+          <SectionTitle>Хората</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Преброяване 2021 г. (НСИ), спрямо страната.</p>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            {[
+              ["Деца до 14 г.", share(OC.age.age0_14, OC.population), share(BG.age.age0_14, BG.population)],
+              ["Над 65 г.", share(OC.age.age65plus, OC.population), share(BG.age.age65plus, BG.population)],
+              ["С висше образование", share(OC.education.tertiary, eduT(OC)), share(BG.education.tertiary, eduT(BG))],
+              ["Безработни (от активните)", OC.employment.unemploymentRate, null],
+            ].map(([l, v, b]) => (
+              <div key={l as string} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.2rem] mt-1">{fmt(v as number, 1)}%</p><p className="text-xs text-muted">{b != null ? `страната: ${fmt(b as number, 1)}%` : ""}</p></div>
+            ))}
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[15px] num">
+              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Община</th><th className="text-right px-2">Жители</th><th className="text-right px-2">До 14 г.</th><th className="text-right px-2">Над 65 г.</th><th className="text-right px-2">Висше</th><th className="text-right px-2">Безработни</th><th className="text-right px-2">Държавни инвестиции</th></tr></thead>
+              <tbody>{prof.map((x) => (
+                <tr key={x.m.code} className="border-b border-rule">
+                  <td className="py-1.5 pr-3"><Link href={`/mesta/${o.slug}/${muniSlug(x.m.code)}`}>{x.m.name}</Link></td>
+                  <td className="text-right px-2">{x.pop.toLocaleString("bg-BG")}</td>
+                  <td className="text-right px-2">{fmt(x.young, 1)}%</td>
+                  <td className={`text-right px-2 ${x.old > 30 ? "text-red font-semibold" : ""}`}>{fmt(x.old, 1)}%</td>
+                  <td className="text-right px-2">{fmt(x.uni, 1)}%</td>
+                  <td className={`text-right px-2 ${x.unemp > 15 ? "text-red font-semibold" : ""}`}>{fmt(x.unemp, 1)}%</td>
+                  <td className="text-right px-2">{x.ipop ? mn(x.ipop) : "–"}</td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+          <p className="text-xs text-muted mt-2">В червено: над 30% възрастни над 65 г. или над 15% безработни. Държавни инвестиции: договорени по Инвестиционната програма за общински проекти (МРРБ).</p>
         </section>
       )}
 
