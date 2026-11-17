@@ -1,0 +1,24 @@
+name: Ежедневно изграждане
+
+# Ботът обновява данните често, но сайтът се изгражда наново само веднъж на ден,
+# за да не се трупат версии в Vercel. Тази задача прави празна промяна от друго име,
+# ако от последното изграждане има нови данни.
+on:
+  schedule:
+    - cron: "41 4 * * *"   # 06:41 българско време (зимно)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if [ "$(git log -1 --format=%an)" != "osaznatost-bot" ]; then echo "Няма нови данни след последното изграждане"; exit 0; fi
+          git config user.name "osaznatost-deploy"
+          git config user.email "osaznatost-deploy@users.noreply.github.com"
+          git commit --allow-empty -m "Ежедневно изграждане с новите данни"
+          git push
