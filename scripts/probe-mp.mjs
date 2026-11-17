@@ -1,16 +1,13 @@
 import { mkdirSync, writeFileSync } from "node:fs";
-const H = { Origin: "https://www.parliament.bg", Referer: "https://www.parliament.bg/", Accept: "application/json", "X-Requested-With": "XMLHttpRequest" };
-const js = await (await fetch("https://www.parliament.bg/js/app.js?id=dd817c677b4b20596aae", { headers: H })).text();
-const gets = [...new Set([...js.matchAll(/axios\.(?:get|post)\("([^"]+)"/g)].map((m) => m[1]))];
-const ctx = [...js.matchAll(/mp-profile|MpProfile|mp_profile|mp-data/gi)].slice(0, 10).map((m) => js.slice(Math.max(0, m.index - 200), m.index + 200));
-const out = { gets, ctx, tries: {} };
-for (const u of ["mp-profile/bg/3606", "mp-data/bg/3606", "mp/bg/3606", "mp-title/bg/3606"]) {
-  for (const method of ["GET", "POST"]) {
-    try {
-      const r = await fetch(`https://www.parliament.bg/api/v1/${u}`, { method, headers: { ...H, "Content-Type": "application/json" }, body: method === "POST" ? "{}" : undefined });
-      const t = await r.text(); out.tries[`${method} ${u}`] = { s: r.status, t: t.slice(0, 1500) };
-    } catch (e) { out.tries[u] = String(e); }
-  }
+const H = { Origin: "https://www.parliament.bg", Referer: "https://www.parliament.bg/", Accept: "application/json", "X-Requested-With": "XMLHttpRequest", "Content-Type": "application/json" };
+const out = {};
+for (const [m, u, b] of [["POST", "fn-mps", "{}"], ["GET", "coll-list-mp/bg/0", null], ["GET", "coll-list/bg/1", null], ["GET", "coll-list-ns/bg", null]]) {
+  try {
+    const r = await fetch(`https://www.parliament.bg/api/v1/${u}`, { method: m, headers: H, body: b ?? undefined });
+    const t = await r.text(); out[`${m} ${u}`] = { s: r.status, n: t.length, t: t.slice(0, 2500) };
+  } catch (e) { out[u] = String(e); }
 }
+const prof = await (await fetch("https://www.parliament.bg/api/v1/mp-profile/bg/3606", { headers: H })).json();
+out.profileKeys = Object.fromEntries(Object.entries(prof).map(([k, v]) => [k, typeof v === "string" ? v.slice(0, 200) : Array.isArray(v) ? `[${v.length}] ${JSON.stringify(v[0] ?? null).slice(0, 300)}` : v]));
 mkdirSync("data/_probe", { recursive: true });
 writeFileSync("data/_probe/mp.json", JSON.stringify(out, null, 1));
