@@ -3,7 +3,7 @@ import { KeyNumber, Page, Title, num, pct, SectionTitle } from "@/components/ui"
 import { currentSeats, MPS, NS, PARLIAMENT_SOURCE, PARTIES, TOPICS, UPDATED_AT, VOTES, formatDate, partyBreakdown, partyName, partyPosition, partyStats } from "@/lib/parliament";
 import { VoteList, type VoteRow } from "./VoteList";
 import { Hemicycle } from "@/components/Hemicycle";
-import { RecentSittings, Upcoming } from "./Recent";
+import { RecentSittings, Upcoming, WeekProgram } from "./Recent";
 
 export const metadata = { title: "Парламент" };
 
@@ -33,6 +33,7 @@ export default function Parlament() {
         <KeyNumber label="Депутати в периода" value={num(MPS.length, 0)} note="включително заместили други" />
       </div>
 
+      <WeekProgram />
       <RecentSittings />
       <Upcoming />
 
