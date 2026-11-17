@@ -1,62 +1,68 @@
 {
- "scripts": [
-  "https://www.parliament.bg/assets/js/uikit.min.js",
-  "https://www.parliament.bg/assets/js/uikit-icons.min.js",
-  "https://www.parliament.bg/js/manifest.js?id=3c768977c2574a34506e",
-  "https://www.parliament.bg/js/vendor.js?id=30747c22e0c342961509",
-  "https://www.parliament.bg/js/app.js?id=dd817c677b4b20596aae"
+ "len": 564191,
+ "prog": [
+  "ародно събрание на Република България - Начало\",\"VideoLabel\":\"Видеорепортажи\",\"PlSittingsLabel\":\"Пленарни заседания\",\"PlProgramLabel\":\"Пленарно заседание\",\"SearchLabel\":\"Търсене\",\"SiteTitleLabel\":\"Народно събрание на Република България\",\"SiteTitleLabelHeader\":\"Народно събрание  н",
+  "ател на Народно събрание \",\"videoArchivePl\":\"Архив Пленарни заседания\",\"videoArchiveCm\":\"Архив заседания на комисии\",\"PlProgramLabelLong\":\"Програма за работата на Народното събрание\",\"CmSittingsLabel\":\"Заседания на комисии\",\"CmSittingsLabelTitle\":\"Заседания на комисии\",\"CmSitting",
+  "ControlLabel\":\"Парламентарен контрол\",\"IncomingLabel\":\"Предстоящи събития\",\"LatestNewsLabel\":\"Последни новини\",\"LatestPlProgramLabel\":\"Последни заседания\",\"MPs\":\"народни представители\",\"ToDate\":\"към дата\",\"ToDate2\":\"до момента\",\"MPInfo\":\"Информация\",\"PGinfo\":\"Народните представит",
+  "видео плеър\",\"TV_ExtPlayer\":\"Външен плеър\",\"TV_live\":\"на живо\",\"TV_Low\":\"ниско\",\"TV_High\":\"високо\",\"TV_Part\":\"Част\",\"TV_program_stream\":\"Излъчване в реално време\",\"TV_program\":\"Програма\",\"TV_steno\":\"Стенограми\",\"TV_archive\":\"Видео архив\",\"TV_present\":\"Аудиовизуална презентация\",\"",
+  "live\":\"на живо\",\"TV_Low\":\"ниско\",\"TV_High\":\"високо\",\"TV_Part\":\"Част\",\"TV_program_stream\":\"Излъчване в реално време\",\"TV_program\":\"Програма\",\"TV_steno\":\"Стенограми\",\"TV_archive\":\"Видео архив\",\"TV_present\":\"Аудиовизуална презентация\",\"TV_info\":\"Информация\",\"TV_plenary\":\"Пленарно за",
+  " четвъртък и петък от 9.00 до 14.00 часа. По решение на Народното събрание заседанията могат да бъдат удължавани. \",\"CM_program\":\"Заседания от комисии\",\"CM_extplayer\":\"Гледайте с външен плеър\",\"VSS_Name\":\"Име\",\"VSS_Fnumber\":\"Входящ номер\",\"VSS_FDate\":\"Дата\",\"VSS_Fimporter\":\"Вноси",
+  "tion of the acts of the European Union in the Bulgarian laws” implemented with the financial support of the Operational Program \\\\\"Good Governance\\\\\", co-financed by the European Union through the European Social Fund\",\"Address1\":\"Sofia 1169, 2 Narodno Sabranie Sq.\",\"adr_line1_0\"",
+  "_3\":\"Procurement;\",\"contacts\":\"Contacts\",\"phone-main\":\"+ 359 2 939 39\",\"esf\":\"European Social Fund\",\"opdu\":\"Operational programme Good Governance\"},\"misc\":{\"m-order\":\"Order by\",\"m-to-date\":\"To date\",\"m-to\":\"to\",\"member_mp\":\"of Parliament\",\"with\":\"with\",\"menu\":\"Menu\",\"to-mandate\":",
+  "s archive\",\"videoArchiveCm\":\"Committees sittings archive\",\"VideoLabel\":\"Videos\",\"PlSittingsLabel\":\"Plenary sittings\",\"PlProgramLabel\":\"Plenary sitting\",\"PlProgramLabelLong\":\"Plenary sitting\",\"CmSittingsLabel\":\"Committees sitting\",\"CmSittingsLabelTitle\":\"Committees sitting\",\"CmSit",
+  "tees sittings archive\",\"VideoLabel\":\"Videos\",\"PlSittingsLabel\":\"Plenary sittings\",\"PlProgramLabel\":\"Plenary sitting\",\"PlProgramLabelLong\":\"Plenary sitting\",\"CmSittingsLabel\":\"Committees sitting\",\"CmSittingsLabelTitle\":\"Committees sitting\",\"CmSittingsLabel1\":\"Sitting of \",\"CmSitti",
+  "roup\",\"ControlLabel\":\"Parliamentary control\",\"IncomingLabel\":\"Upcoming events\",\"LatestNewsLabel\":\"Latest news\",\"LatestPlProgramLabel\":\"Latest sitiings\",\"MPs\":\"Members of Parliament\",\"ToDate\":\"to date\",\"ToDate2\":\"present\",\"MPInfo\":\"Profile\",\"PGinfo\":\"The Members of the National As",
+  "\":\"Video player\",\"TV_ExtPlayer\":\"External player\",\"TV_live\":\"live\",\"TV_Low\":\"low\",\"TV_High\":\"high\",\"TV_Part\":\"Part\",\"TV_program_stream\":\"Real time streaming\",\"TV_program\":\"Program\",\"TV_steno\":\"\",\"TV_archive\":\"Video archive\",\"TV_present\":\"\",\"TV_info\":\"Information\",\"TV_plenary\":\"Pl",
+  "player\",\"TV_live\":\"live\",\"TV_Low\":\"low\",\"TV_High\":\"high\",\"TV_Part\":\"Part\",\"TV_program_stream\":\"Real time streaming\",\"TV_program\":\"Program\",\"TV_steno\":\"\",\"TV_archive\":\"Video archive\",\"TV_present\":\"\",\"TV_info\":\"Information\",\"TV_plenary\":\"Plenary sitting\",\"TV_plenary1\":\"Plenary sitt",
+  "V_live\":\"live\",\"TV_Low\":\"low\",\"TV_High\":\"high\",\"TV_Part\":\"Part\",\"TV_program_stream\":\"Real time streaming\",\"TV_program\":\"Program\",\"TV_steno\":\"\",\"TV_archive\":\"Video archive\",\"TV_present\":\"\",\"TV_info\":\"Information\",\"TV_plenary\":\"Plenary sitting\",\"TV_plenary1\":\"Plenary sittings\",\"TV_",
+  " and Fridays from 9am - 2pm. The duration of the sittings could be extended by decision of the National Assembly. \",\"CM_program\":\"Заседания от комисии\",\"CM_extplayer\":\"Гледайте с външен плеър\",\"VSS_Name\":\"Name\",\"VSS_Fnumber\":\"Filing №\",\"VSS_FDate\":\"Filing date\",\"VSS_Fimporter\":\"I",
+  "trict\";a.r(e);var s=a(\"jE9Z\"),n=a(\"XuX8\"),i=a.n(n),l=(a(\"/aIJ\"),a(\"1tPa\")),o=a(\"pkBR\"),r={components:{Spin:o.a},props:[\"progId\"],data:function(){return{loading:!0,plenaryProgram:{points:{}}}},watch:{progId:function(){this.getProgram(this.$route.params.lang,this.progId)},\"$route.p",
+  ",l=(a(\"/aIJ\"),a(\"1tPa\")),o=a(\"pkBR\"),r={components:{Spin:o.a},props:[\"progId\"],data:function(){return{loading:!0,plenaryProgram:{points:{}}}},watch:{progId:function(){this.getProgram(this.$route.params.lang,this.progId)},\"$route.params.lang\":function(){this.getProgram(this.$route",
+  "\"pkBR\"),r={components:{Spin:o.a},props:[\"progId\"],data:function(){return{loading:!0,plenaryProgram:{points:{}}}},watch:{progId:function(){this.getProgram(this.$route.params.lang,this.progId)},\"$route.params.lang\":function(){this.getProgram(this.$route.params.lang,this.progId)}},m",
+  "n:o.a},props:[\"progId\"],data:function(){return{loading:!0,plenaryProgram:{points:{}}}},watch:{progId:function(){this.getProgram(this.$route.params.lang,this.progId)},\"$route.params.lang\":function(){this.getProgram(this.$route.params.lang,this.progId)}},mounted:function(){this.get",
+  "(){return{loading:!0,plenaryProgram:{points:{}}}},watch:{progId:function(){this.getProgram(this.$route.params.lang,this.progId)},\"$route.params.lang\":function(){this.getProgram(this.$route.params.lang,this.progId)}},mounted:function(){this.getProgram(this.$route.params.lang,this.",
+  ",watch:{progId:function(){this.getProgram(this.$route.params.lang,this.progId)},\"$route.params.lang\":function(){this.getProgram(this.$route.params.lang,this.progId)}},mounted:function(){this.getProgram(this.$route.params.lang,this.progId)},methods:{getProgram:function(t,e){var a=",
+  "gram(this.$route.params.lang,this.progId)},\"$route.params.lang\":function(){this.getProgram(this.$route.params.lang,this.progId)}},mounted:function(){this.getProgram(this.$route.params.lang,this.progId)},methods:{getProgram:function(t,e){var a=this;e=e>0?e:0,axios.get(\"/plenarypro",
+  "gId)},\"$route.params.lang\":function(){this.getProgram(this.$route.params.lang,this.progId)}},mounted:function(){this.getProgram(this.$route.params.lang,this.progId)},methods:{getProgram:function(t,e){var a=this;e=e>0?e:0,axios.get(\"/plenaryprogram/\".concat(t,\"/\").concat(e)).then(",
+  "{this.getProgram(this.$route.params.lang,this.progId)}},mounted:function(){this.getProgram(this.$route.params.lang,this.progId)},methods:{getProgram:function(t,e){var a=this;e=e>0?e:0,axios.get(\"/plenaryprogram/\".concat(t,\"/\").concat(e)).then((function(t){a.plenaryProgram=t.data,",
+  ".$route.params.lang,this.progId)}},mounted:function(){this.getProgram(this.$route.params.lang,this.progId)},methods:{getProgram:function(t,e){var a=this;e=e>0?e:0,axios.get(\"/plenaryprogram/\".concat(t,\"/\").concat(e)).then((function(t){a.plenaryProgram=t.data,setTimeout((function(",
+  "Program(this.$route.params.lang,this.progId)},methods:{getProgram:function(t,e){var a=this;e=e>0?e:0,axios.get(\"/plenaryprogram/\".concat(t,\"/\").concat(e)).then((function(t){a.plenaryProgram=t.data,setTimeout((function(){a.loading=!1}),500)}))},trimTime:function(t){return t.slice(",
+  "ram:function(t,e){var a=this;e=e>0?e:0,axios.get(\"/plenaryprogram/\".concat(t,\"/\").concat(e)).then((function(t){a.plenaryProgram=t.data,setTimeout((function(){a.loading=!1}),500)}))},trimTime:function(t){return t.slice(0,-3)}}},c=a(\"KHd+\"),_=Object(c.a)(r,(function(){var t=this,e=",
+  " t=this,e=t.$createElement,a=t._self._c||e;return a(\"div\",[a(\"div\",{staticClass:\"mark\"},[t._v(\"\\n        \"+t._s(t.$t(\"PlProgramLabelLong\"))+\"\\n        \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgra",
+  "div\",{staticClass:\"mark\"},[t._v(\"\\n        \"+t._s(t.$t(\"PlProgramLabelLong\"))+\"\\n        \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"",
+  "cClass:\"mark\"},[t._v(\"\\n        \"+t._s(t.$t(\"PlProgramLabelLong\"))+\"\\n        \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(",
+  "ogramLabelLong\"))+\"\\n        \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/Y",
+  "ong\"))+\"\\n        \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/YYYY\"))+\"\\n ",
+  "._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/YYYY\"))+\"\\n        \")]):t._e(),t.",
+  "oment\")(t.plenaryProgram.Pl_Prog_date1,\"DD/MM/YYYY\"))+\"\\n        \"),t.plenaryProgram.Pl_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/YYYY\"))+\"\\n        \")]):t._e(),t._v(\" \"),a(\"",
+  "_Prog_date1!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/YYYY\"))+\"\\n        \")]):t._e(),t._v(\" \"),a(\"br\"),t._v(\" \"),1!=t.plenaryProgram.CNoTime?t._t(\"default\",[a(\"b-badge\",{attrs:{variant:",
+  "!=t.plenaryProgram.Pl_Prog_date2?a(\"span\",[t._v(\"\\n            -\\n            \"+t._s(t._f(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/YYYY\"))+\"\\n        \")]):t._e(),t._v(\" \"),a(\"br\"),t._v(\" \"),1!=t.plenaryProgram.CNoTime?t._t(\"default\",[a(\"b-badge\",{attrs:{variant:\"success\"}}",
+  "(\"moment\")(t.plenaryProgram.Pl_Prog_date2,\"DD/MM/YYYY\"))+\"\\n        \")]):t._e(),t._v(\" \"),a(\"br\"),t._v(\" \"),1!=t.plenaryProgram.CNoTime?t._t(\"default\",[a(\"b-badge\",{attrs:{variant:\"success\"}},[t._v(\"\\n                \"+t._s(t.trimTime(t.plenaryProgram.CTimeFrom))+\"\\n\\n           ",
+  "ram.CNoTime?t._t(\"default\",[a(\"b-badge\",{attrs:{variant:\"success\"}},[t._v(\"\\n                \"+t._s(t.trimTime(t.plenaryProgram.CTimeFrom))+\"\\n\\n                \"),t._v(\" \"),\"bg\"==t.$route.params.lang?t._t(\"default\",[t._v(\" ч.\")]):t._e()],2)]):t._e(),t._v(\" \"),2==t.plenaryProgram",
+  "        \"),t._v(\" \"),\"bg\"==t.$route.params.lang?t._t(\"default\",[t._v(\" ч.\")]):t._e()],2)]):t._e(),t._v(\" \"),2==t.plenaryProgram.Pl_ProgT_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"b-badge\",{attrs:{variant:\"danger\"}},[t._v(t._s(t.plenaryProgram.Pl_ProgTL_value)+\"\\n                \")])],1",
+  "t._v(\" \"),\"bg\"==t.$route.params.lang?t._t(\"default\",[t._v(\" ч.\")]):t._e()],2)]):t._e(),t._v(\" \"),2==t.plenaryProgram.Pl_ProgT_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"b-badge\",{attrs:{variant:\"danger\"}},[t._v(t._s(t.plenaryProgram.Pl_ProgTL_value)+\"\\n                \")])],1):t._e(),t.",
+  "==t.plenaryProgram.Pl_ProgT_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"b-badge\",{attrs:{variant:\"danger\"}},[t._v(t._s(t.plenaryProgram.Pl_ProgTL_value)+\"\\n                \")])],1):t._e(),t._v(\" \"),2==t.plenaryProgram.Pl_ProgS_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"span\",{staticClass:\"text-",
+  "Program.Pl_ProgT_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"b-badge\",{attrs:{variant:\"danger\"}},[t._v(t._s(t.plenaryProgram.Pl_ProgTL_value)+\"\\n                \")])],1):t._e(),t._v(\" \"),2==t.plenaryProgram.Pl_ProgS_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"span\",{staticClass:\"text-muted text-",
+  "ariant:\"danger\"}},[t._v(t._s(t.plenaryProgram.Pl_ProgTL_value)+\"\\n                \")])],1):t._e(),t._v(\" \"),2==t.plenaryProgram.Pl_ProgS_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"span\",{staticClass:\"text-muted text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_ProgSL_value)+\"\\n      ",
+  "ger\"}},[t._v(t._s(t.plenaryProgram.Pl_ProgTL_value)+\"\\n                \")])],1):t._e(),t._v(\" \"),2==t.plenaryProgram.Pl_ProgS_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"span\",{staticClass:\"text-muted text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_ProgSL_value)+\"\\n            \")])]",
+  "m.Pl_ProgS_id?a(\"div\",{staticClass:\"mt-3\"},[a(\"span\",{staticClass:\"text-muted text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_ProgSL_value)+\"\\n            \")])]):t._e(),t._v(\" \"),t.plenaryProgram.Pl_Prog_hd?a(\"div\",[a(\"span\",{staticClass:\"text-xs font-italic\"},[t._v(t._s(t.p",
+  "id?a(\"div\",{staticClass:\"mt-3\"},[a(\"span\",{staticClass:\"text-muted text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_ProgSL_value)+\"\\n            \")])]):t._e(),t._v(\" \"),t.plenaryProgram.Pl_Prog_hd?a(\"div\",[a(\"span\",{staticClass:\"text-xs font-italic\"},[t._v(t._s(t.plenaryProgr",
+  "uted text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_ProgSL_value)+\"\\n            \")])]):t._e(),t._v(\" \"),t.plenaryProgram.Pl_Prog_hd?a(\"div\",[a(\"span\",{staticClass:\"text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_Prog_hd)+\"\\n            \")])]):t._e()],2),t._v(\" \"),t.pl",
+  "s font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_ProgSL_value)+\"\\n            \")])]):t._e(),t._v(\" \"),t.plenaryProgram.Pl_Prog_hd?a(\"div\",[a(\"span\",{staticClass:\"text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_Prog_hd)+\"\\n            \")])]):t._e()],2),t._v(\" \"),t.plenaryProgra",
+  ":t._e(),t._v(\" \"),t.plenaryProgram.Pl_Prog_hd?a(\"div\",[a(\"span\",{staticClass:\"text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_Prog_hd)+\"\\n            \")])]):t._e()],2),t._v(\" \"),t.plenaryProgram.points.length?t._e():a(\"div\",{domProps:{innerHTML:t._s(t.plenaryProgram.Pl_ProgL",
+  "v(\" \"),t.plenaryProgram.Pl_Prog_hd?a(\"div\",[a(\"span\",{staticClass:\"text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_Prog_hd)+\"\\n            \")])]):t._e()],2),t._v(\" \"),t.plenaryProgram.points.length?t._e():a(\"div\",{domProps:{innerHTML:t._s(t.plenaryProgram.Pl_ProgL_value)}}),",
+  "lass:\"text-xs font-italic\"},[t._v(t._s(t.plenaryProgram.Pl_Prog_hd)+\"\\n            \")])]):t._e()],2),t._v(\" \"),t.plenaryProgram.points.length?t._e():a(\"div\",{domProps:{innerHTML:t._s(t.plenaryProgram.Pl_ProgL_value)}}),t._v(\" \"),a(\"ol\",t._l(t.plenaryProgram.points,(function(e){re",
+  "           \")])]):t._e()],2),t._v(\" \"),t.plenaryProgram.points.length?t._e():a(\"div\",{domProps:{innerHTML:t._s(t.plenaryProgram.Pl_ProgL_value)}}),t._v(\" \"),a(\"ol\",t._l(t.plenaryProgram.points,(function(e){return a(\"li\",{key:e.Pl_ProgP_id},[1==e.Pl_ProgP_active?a(\"i\",{staticClass",
+  "\")])]):t._e()],2),t._v(\" \"),t.plenaryProgram.points.length?t._e():a(\"div\",{domProps:{innerHTML:t._s(t.plenaryProgram.Pl_ProgL_value)}}),t._v(\" \"),a(\"ol\",t._l(t.plenaryProgram.points,(function(e){return a(\"li\",{key:e.Pl_ProgP_id},[1==e.Pl_ProgP_active?a(\"i\",{staticClass:\"cis-penci",
+  "ints.length?t._e():a(\"div\",{domProps:{innerHTML:t._s(t.plenaryProgram.Pl_ProgL_value)}}),t._v(\" \"),a(\"ol\",t._l(t.plenaryProgram.points,(function(e){return a(\"li\",{key:e.Pl_ProgP_id},[1==e.Pl_ProgP_active?a(\"i\",{staticClass:\"cis-pencil text-primary\"}):t._e(),t._v(\" \"),e.A_ns_C_id?",
+  "(t.plenaryProgram.Pl_ProgL_value)}}),t._v(\" \"),a(\"ol\",t._l(t.plenaryProgram.points,(function(e){return a(\"li\",{key:e.Pl_ProgP_id},[1==e.Pl_ProgP_active?a(\"i\",{staticClass:\"cis-pencil text-primary\"}):t._e(),t._v(\" \"),e.A_ns_C_id?a(\"router-link\",{attrs:{to:{path:\"/\"+t.$i18n.locale+",
+  "l_ProgL_value)}}),t._v(\" \"),a(\"ol\",t._l(t.plenaryProgram.points,(function(e){return a(\"li\",{key:e.Pl_ProgP_id},[1==e.Pl_ProgP_active?a(\"i\",{staticClass:\"cis-pencil text-primary\"}):t._e(),t._v(\" \"),e.A_ns_C_id?a(\"router-link\",{attrs:{to:{path:\"/\"+t.$i18n.locale+\"/parliamentarygrou",
+  "e]=a,t}var d=a(\"oVFp\");window.Vue=a(\"XuX8\"),Vue.use(d);var u={name:\"Index\",components:{videoPlayer:l.videoPlayer,plenaryProgram:_},data:function(){return{loading:!0,meta:\"\",playerOptions:{},imgPath:\"\",listNews:[],listLeg:[],calendar:[],listCalendar:[],liveCalendar:{plenary:[],com",
+  "turn a(\"li\",{key:e.cid},[a(\"router-link\",{attrs:{title:t.$t(\"index.plenary\"),to:{path:\"/\"+t.$route.params.lang+\"/plenaryprogram/ID/\"+e.id}}},[t._v(\"\\n                                    \"+t._s(t._f(\"moment\")(e.CDate,\"DD/MM/YYYY\"))+\"\\n                                    \"),1!=e.CN",
+  "statechanged:function(e){return t.playerStateChanged(e)},ready:t.playerReadied}})],1),t._v(\" \"),a(\"b-col\",{staticClass:\"program col-sm-12  col-12 col-lg-6 col-md-6 p-panel-pl\"},[a(\"perfect-scrollbar\",{staticClass:\"ps-program\"},[a(\"plenary-program\",{attrs:{progId:t.liveCalendar.pl",
+  "(\"b-col\",{staticClass:\"program col-sm-12  col-12 col-lg-6 col-md-6 p-panel-pl\"},[a(\"perfect-scrollbar\",{staticClass:\"ps-program\"},[a(\"plenary-program\",{attrs:{progId:t.liveCalendar.plenary[0].id}})],1)],1)],1)],1)],1):t._e(),t._v(\" \"),\"bg\"==t.$route.params.lang?a(\"b-row\",{staticC"
  ],
- "endpoints": [
-  "coll-data",
-  "coll-list-ns",
-  "coll-list-pr",
-  "coll-note",
-  "mp-absense",
-  "mp-penalty",
-  "mp-title",
-  "pl-doc-int",
-  "pl-st-int"
- ],
- "billsCount": 278,
- "billsSample": [
-  {
-   "L_Act_date": "2026-11-16 00:00:00",
-   "L_Act_sign": "52-602-01-68",
-   "L_Act_id": 167642,
-   "L_ActL_title": "Законопроект за бюджета на Държавното обществено осигуряване за 2027 г.",
-   "imp_list": [],
-   "imp_list_min": [
-    {
-     "L_Act_im_id": 673015,
-     "A_ns_C_id": 6167
-    }
-   ]
-  },
-  {
-   "L_Act_date": "2026-11-16 00:00:00",
-   "L_Act_sign": "52-602-01-69",
-   "L_Act_id": 167643,
-   "L_ActL_title": "Законопроект за изменение и допълнение на Закона за движението по пътищата",
-   "imp_list": [],
-   "imp_list_min": [
-    {
-     "L_Act_im_id": 673012,
-     "A_ns_C_id": 6167
-    }
-   ]
-  },
-  {
-   "L_Act_date": "2026-11-16 00:00:00",
-   "L_Act_sign": "52-602-01-70",
-   "L_Act_id": 167644,
-   "L_ActL_title": "Законопроект за бюджета на Националната здравноосигурителна каса за 2027 г.",
-   "imp_list": [],
-   "imp_list_min": [
-    {
-     "L_Act_im_id": 673013,
-     "A_ns_C_id": 6167
-    }
-   ]
-  }
+ "api": [
+  "ces=Aa,oa.beforeEach((function(t,e,a){var s=t.params.lang;s=\"en\"==s?\"en\":\"bg\",La.locale=s,a()})),E.a.defaults.baseURL=\"/api/v1\";new Vue({el:\"#app\",i18n:La,router:oa})},buo3:function(t,e,a){(t.exports=a(\"I1BE\")(!1)).push([t.i,\".ps-reg[data-v-bd1b6940]{height:320px}\",\"\"])},c68J:fun"
  ]
 }
