@@ -64,9 +64,9 @@ export function Taxes() {
       result={
         <div aria-live="polite">
           <p className="text-sm text-muted">От всеки 100 €, които струва трудът ви на работодателя, до вас стигат</p>
-          <p className="num text-5xl font-bold tracking-tight">{num(per100, 1)} €</p>
+          <p className="display num text-[4.2rem] mt-1">{num(per100, 1)} €</p>
 
-          <h2 className="font-bold text-lg mt-8">Заплата</h2>
+          <h2 className="display text-[1.8rem] mt-8">Заплата</h2>
           <Row label="Цена на труда за работодателя" value={eur(s.laborCost)} />
           <Row label="Осигуровки, платени от работодателя" value={eur(s.employerContrib)} />
           <Row label="Брутна заплата" value={eur(s.gross)} />
@@ -77,7 +77,7 @@ export function Taxes() {
             <p className="text-sm text-muted mt-2">Осигуровките се плащат до {eur(sp.maxInsurable, 0)} осигурителен доход. Над тази сума се плаща само данък.</p>
           )}
 
-          <h2 className="font-bold text-lg mt-8">Когато харчите</h2>
+          <h2 className="display text-[1.8rem] mt-8">Когато харчите</h2>
           <Row label="Харчите на месец" value={eur(r.spend)} />
           <Row label="ДДС в покупките" value={eur(r.vatGoods)} />
           <Row label="ДДС в горивото" value={eur(r.vatFuel)} />
@@ -88,7 +88,7 @@ export function Taxes() {
             </p>
           )}
 
-          <h2 className="font-bold text-lg mt-8">Общо към държавата на месец</h2>
+          <h2 className="display text-[1.8rem] mt-8">Общо към държавата на месец</h2>
           <Row label="Осигуровки, данък, ДДС и акциз" value={eur(r.toState)} strong />
           <Row label="Като дял от цената на труда" value={pct(r.toState / s.laborCost)} />
           <p className="text-sm text-muted mt-3">

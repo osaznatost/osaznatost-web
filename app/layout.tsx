@@ -5,6 +5,8 @@ import "@fontsource/sofia-sans-semi-condensed/cyrillic-400.css";
 import "@fontsource/sofia-sans-semi-condensed/cyrillic-600.css";
 import "@fontsource/sofia-sans-semi-condensed/latin-400.css";
 import "@fontsource/sofia-sans-semi-condensed/latin-600.css";
+import "@fontsource/sofia-sans-extra-condensed/cyrillic-800.css";
+import "@fontsource/sofia-sans-extra-condensed/latin-800.css";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
 
@@ -18,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="bg">
       <body className="min-h-screen flex flex-col">
-        <header className="bg-green text-white">
+        <header className="bg-deep text-white border-b border-white/10">
           <div className="mx-auto max-w-6xl px-4 sm:px-6 flex flex-wrap items-center gap-x-10 gap-y-2 py-4">
             <Link href="/" className="no-underline text-white hover:text-white flex items-center gap-2">
               <span aria-hidden className="inline-block w-3 h-3 bg-red" />

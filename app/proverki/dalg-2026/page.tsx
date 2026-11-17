@@ -75,7 +75,7 @@ export default function Proverka() {
           <li><a href="https://github.com/atanasster/electionsbg" target="_blank" rel="noreferrer">„Наясно“: емисии на държавни ценни книжа (по данни на БНБ и МФ)</a></li>
           <li>Постовете на Христо Гаджев и Георги Вълджев във Facebook, ноември 2026</li>
         </ul>
-        <p className="mt-4"><Link href="/pari/dalg">Всички данни за дълга →</Link></p>
+        <p className="mt-4"><Link href="/pari/dalg">Всички данни за дълга</Link></p>
       </section>
     </Page>
   );

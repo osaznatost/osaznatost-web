@@ -2,7 +2,7 @@ export function CalcLayout({ form, result }: { form: React.ReactNode; result: Re
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
       <div className="space-y-4">{form}</div>
-      <div className="lg:border-l lg:border-rule lg:pl-10">{result}</div>
+      <div className="bg-surface rounded-xl p-5 sm:p-7 self-start">{result}</div>
     </div>
   );
 }

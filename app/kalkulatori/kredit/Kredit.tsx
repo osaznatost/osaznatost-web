@@ -70,7 +70,7 @@ export function Kredit() {
       result={
         <div aria-live="polite">
           <p className="text-sm text-muted">{type === "annuity" ? "Месечна вноска" : "Първа месечна вноска"}</p>
-          <p className="num text-5xl font-bold tracking-tight">{eur(s.firstPayment)}</p>
+          <p className="display num text-[4.2rem] mt-1">{eur(s.firstPayment)}</p>
 
           <div className="mt-6">
             <Row label="Общо ще върнете" value={eur(s.totalPaid)} />
@@ -78,7 +78,7 @@ export function Kredit() {
             <Row label="Надплащане спрямо взетото" value={pct((s.totalPaid - amount) / Math.max(amount, 1))} />
           </div>
 
-          <h2 className="font-bold text-lg mt-8">Ще ви го отпуснат ли?</h2>
+          <h2 className="display text-[1.8rem] mt-8">Ще ви го отпуснат ли?</h2>
           <Verdict ok={dstiOk && ltvOk && termOk}>
             {dstiOk && ltvOk && termOk ? (
               <p>Параметрите са в рамките на изискванията на БНБ. Банката пак ще прегледа целия ви кредитен профил.</p>
@@ -97,7 +97,7 @@ export function Kredit() {
             </>
           )}
 
-          <h2 className="font-bold text-lg mt-8">Ако лихвата се вдигне</h2>
+          <h2 className="display text-[1.8rem] mt-8">Ако лихвата се вдигне</h2>
           <p className="text-sm text-muted mb-2">Повечето кредити у нас са с плаваща лихва.</p>
           {s.stress.map((x) => (
             <Row key={x.delta} label={`+${x.delta * 100} пр.п. (лихва ${pct(rate / 100 + x.delta, 2)})`} value={`${eur(x.payment)} (${x.payment >= s.firstPayment ? "+" : ""}${eur(x.payment - s.firstPayment)})`} />

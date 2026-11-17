@@ -13,11 +13,11 @@ export function Page({ children, narrow = false }: { children: React.ReactNode; 
 
 export function Title({ kicker, children, lead, back, small = false }: { kicker?: string; children: React.ReactNode; lead?: React.ReactNode; back?: { href: string; label: string }; small?: boolean }) {
   return (
-    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-surface border-b border-rule -mt-8 sm:-mt-12 mb-10">
+    <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-surface -mt-8 sm:-mt-12 mb-10">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
         {back && <p className="text-sm mb-4"><Link href={back.href}>← {back.label}</Link></p>}
-        {kicker && <p className="text-sm uppercase tracking-wider text-green font-semibold mb-2">{kicker}</p>}
-        <h1 className={`${small ? "text-2xl sm:text-3xl leading-snug" : "text-3xl sm:text-[2.6rem] leading-tight"} font-bold tracking-tight max-w-4xl`}>{children}</h1>
+        {kicker && <p className="text-[15px] text-green font-semibold mb-2">{kicker}</p>}
+        <h1 className={`${small ? "text-2xl sm:text-[2rem] leading-snug font-bold tracking-tight" : "display text-5xl sm:text-7xl"} max-w-4xl`}>{children}</h1>
         {lead && <div className="mt-3 text-lg text-muted max-w-3xl">{lead}</div>}
       </div>
     </div>
@@ -26,9 +26,9 @@ export function Title({ kicker, children, lead, back, small = false }: { kicker?
 
 export function SectionTitle({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 border-b-2 border-ink pb-2 mb-5">
-      <h2 className="text-xl font-bold flex items-center gap-2"><span aria-hidden className="inline-block w-2 h-2 bg-red" />{children}</h2>
-      {right && <div className="text-sm">{right}</div>}
+    <div className="flex items-end justify-between gap-4 mb-5">
+      <h2 className="display text-[2rem] sm:text-[2.4rem]">{children}</h2>
+      {right && <div className="text-[15px] pb-1">{right}</div>}
     </div>
   );
 }
@@ -37,16 +37,14 @@ export function KeyNumber({
   label, value, note, source, href,
 }: { label: string; value: string; note?: string; source?: { title: string; url: string }; href?: string }) {
   return (
-    <div className="bg-white border border-rule border-t-[3px] border-t-green rounded-sm p-4">
-      <p className="text-sm text-muted">{label}</p>
-      <p className="num text-4xl font-bold tracking-tight mt-1">{value}</p>
-      {note && <p className="text-sm mt-1">{note}</p>}
-      {source && (
-        <p className="text-xs text-muted mt-2">
-          Източник: <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a>
-        </p>
-      )}
-      {href && <p className="mt-2 text-sm"><Link href={href}>Виж повече →</Link></p>}
+    <div className="bg-surface rounded-lg p-5 flex flex-col">
+      <p className="text-[15px] text-muted">{label}</p>
+      <p className="display num text-[3.4rem] mt-2 text-ink">{value}</p>
+      {note && <p className="text-[15px] mt-2">{note}</p>}
+      <div className="mt-auto pt-3 flex flex-wrap justify-between gap-2 text-sm">
+        {source && <span className="text-muted">Източник: <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></span>}
+        {href && <Link href={href} className="font-semibold">Виж повече</Link>}
+      </div>
     </div>
   );
 }

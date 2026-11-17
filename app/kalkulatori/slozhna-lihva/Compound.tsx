@@ -48,7 +48,7 @@ export function Compound() {
       result={
         <div aria-live="polite">
           <p className="text-sm text-muted">Ще вложите общо</p>
-          <p className="num text-4xl font-bold tracking-tight">{eur(contributed, 0)}</p>
+          <p className="display num text-[3.4rem] mt-1">{eur(contributed, 0)}</p>
           <div className="mt-6"><GrowthChart series={series} /></div>
           <div className="overflow-x-auto mt-4">
             <table className="w-full text-[15px] num">

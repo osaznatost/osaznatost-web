@@ -45,7 +45,7 @@ export function Inflation() {
       result={
         <div aria-live="polite">
           <p className="text-sm text-muted">Вашата инфлация</p>
-          <p className="num text-5xl font-bold tracking-tight">{num(r.rate)}%</p>
+          <p className="display num text-[4.2rem] mt-1">{num(r.rate)}%</p>
           <p className="mt-2">
             Официалната (НСИ, юли 2026) е <span className="num font-semibold">{num(official)}%</span>.{" "}
             {Math.abs(r.rate - official) < 0.3
@@ -67,7 +67,7 @@ export function Inflation() {
             )}
           </div>
 
-          <h2 className="font-bold text-lg mt-8 mb-2">Какво движи вашата инфлация</h2>
+          <h2 className="display text-[1.8rem] mt-8 mb-2">Какво движи вашата инфлация</h2>
           <div className="space-y-2">
             {r.contributions.slice(0, 6).map((c) => {
               const w = Math.max(2, (Math.abs(c.contribution) / Math.max(...r.contributions.map((x) => Math.abs(x.contribution)), 0.01)) * 100);

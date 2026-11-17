@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { OutcomeTag, TallyBar, VOTE_COLOR, VoteLegend } from "@/components/parliament";
+import { OutcomeTag, TallyBar, VOTE_COLOR, VoteBoard, VoteLegend } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { explain } from "@/lib/voteExplain";
 import { getLaw } from "@/lib/laws";
@@ -47,23 +47,23 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
       </Title>
 
       <section className="grid gap-5 lg:grid-cols-3 mb-12">
-        <div className="lg:col-span-3 bg-white border border-rule border-t-[3px] border-t-green rounded-sm p-5">
-          <p className="text-sm uppercase tracking-wider text-green font-semibold mb-2">За какво е това гласуване</p>
-          <p className="text-[17px]">{ex.what}</p>
+        <div className="lg:col-span-3 bg-surface rounded-xl p-6">
+          <h2 className="display text-[2rem] mb-3">За какво е това гласуване</h2>
+          <p className="text-[18px] max-w-3xl">{ex.what}</p>
           {ex.proposer?.id && (
             <p className="text-sm mt-2">Вносител на предложението: <Link href={`/parlament/deputat/${ex.proposer.id}`}>{ex.proposer.name}</Link>{ex.proposer.party ? `, ${ex.proposer.party}` : ""}</p>
           )}
         </div>
-        <div className={`border rounded-sm p-5 ${passed ? "border-green bg-green-soft" : "border-rule bg-white"}`}>
-          <p className="text-sm font-semibold mb-1">Ако се приеме {passed && <span className="text-green">· това се случи</span>}</p>
+        <div className={`rounded-xl p-5 ${passed ? "bg-[#2f9e6a] text-white" : "bg-white ring-1 ring-rule"}`}>
+          <p className="font-semibold mb-1">Ако се приеме{passed && ": това се случи"}</p>
           <p className="text-[15px]">{ex.ifYes}</p>
         </div>
-        <div className={`border rounded-sm p-5 ${!passed ? "border-ink bg-surface" : "border-rule bg-white"}`}>
-          <p className="text-sm font-semibold mb-1">Ако се отхвърли {!passed && <span>· това се случи</span>}</p>
+        <div className={`rounded-xl p-5 ${!passed ? "bg-[#d2353f] text-white" : "bg-white ring-1 ring-rule"}`}>
+          <p className="font-semibold mb-1">Ако се отхвърли{!passed && ": това се случи"}</p>
           <p className="text-[15px]">{ex.ifNo}</p>
         </div>
-        <div className="border border-rule rounded-sm p-5 bg-white">
-          <p className="text-sm font-semibold mb-1">Законът</p>
+        <div className="rounded-xl p-5 bg-white ring-1 ring-rule">
+          <p className="font-semibold mb-1">Законът</p>
           {ex.law ? (
             <p className="text-[15px]"><Link href={`/parlament/zakon/${ex.law.slug}`}>{ex.law.name}</Link>: всички гласувания по него{law ? " и обяснение какво променя" : ""}.</p>
           ) : (
@@ -102,6 +102,7 @@ export default async function Glasuvane({ params }: { params: Promise<{ id: stri
 
       <section className="mt-10 max-w-4xl">
         <SectionTitle>Как гласува всяка група</SectionTitle>
+        <div className="bg-surface rounded-xl p-5 mb-6"><VoteBoard vote={v} size={12} /></div>
         <VoteLegend />
         <div className="mt-4 space-y-4">
           {parties.map((p) => {

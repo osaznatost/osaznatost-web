@@ -77,7 +77,7 @@ export function Income() {
       result={
         <div aria-live="polite">
           <p className="text-sm text-muted">Нужна нетна заплата{earners > 1 ? " на човек" : ""}</p>
-          <p className="num text-5xl font-bold tracking-tight">{eur(r.netEach, 0)}</p>
+          <p className="display num text-[4.2rem] mt-1">{eur(r.netEach, 0)}</p>
           <p className="mt-1">Това е бруто <span className="num font-semibold">{eur(r.grossEach, 0)}</span> по трудов договор. За работодателя струва <span className="num">{eur(r.laborCost, 0)}</span>.</p>
 
           <div className="mt-6">
@@ -87,7 +87,7 @@ export function Income() {
             <Row label="Спрямо минималната заплата (бруто)" value={`${num(r.grossEach / P.minWage.value, 1)} пъти`} />
           </div>
 
-          <h2 className="font-bold text-lg mt-8">За пенсията</h2>
+          <h2 className="display text-[1.8rem] mt-8">За пенсията</h2>
           {r.gap === 0 ? (
             <p>Очакваната държавна пенсия покрива желания доход.</p>
           ) : (
