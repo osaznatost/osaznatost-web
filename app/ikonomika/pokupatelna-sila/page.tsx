@@ -137,7 +137,7 @@ export default function PokupatelnaSila() {
         <p>Минималната заплата е брутна: преди осигуровки и данък. Чистата сума е по-малка и делът на удръжките е различен във всяка страна.</p>
         <p>Ценовите нива са средни за страната. В големите градове цените са по-високи, особено наемите.</p>
         <p>Евростат публикува сравнението на цените веднъж годишно, със закъснение от около година. Заплатите са по-нови. Затова сравнението е приблизително.</p>
-        <p>Свързано: <Link href="/statistiki/min_wage_all">минимална заплата</Link>, <Link href="/statistiki/avg_wage_pps">средна заплата при равни цени</Link>, <Link href="/statistiki/inflation_food">поскъпване на храната</Link>.</p>
+        <p>Свързано: <Link href="/statistiki/min_wage_all">минимална заплата</Link>, <Link href="/statistiki/avg_wage">средна заплата</Link>, <Link href="/statistiki/inflation_food">поскъпване на храната</Link>.</p>
       </section>
     </Page>
   );

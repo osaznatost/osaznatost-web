@@ -11,12 +11,15 @@ const API = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data
  */
 const SERIES = [
   // Покупателна способност и още показатели (добавени ноември 2026)
+  { id: "homicide", ds: "crim_off_cat", filter: { iccs: "ICCS0101", unit: "P_HTHAB", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "robbery", ds: "crim_off_cat", filter: { iccs: "ICCS0401", unit: "P_HTHAB", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "burglary", ds: "crim_off_cat", filter: { iccs: "ICCS0501", unit: "P_HTHAB", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "tertiary_young", ds: "edat_lfse_03", filter: { sex: "T", age: "Y25-34", isced11: "ED5-8", unit: "PC", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
   { id: "price_levels", ds: "prc_ppp_ind", filter: { na_item: "PLI_EU27_2020", geo: ["BG", "RO", "EL", "HR", "PL", "HU", "DE", "ES", "EU27_2020"], ppp_cat: ["GDP", "A01", "A0101", "A010101", "A01010101", "A01010102", "A01010103", "A01010104", "A01010105", "A01010106", "A010102", "A010201", "A010202", "A0103", "A010301", "A010302", "A0104", "A010405", "A0105", "A010503", "A0106", "A0107", "A010701", "A010703", "A0108", "A0109", "A010901", "A0111", "A0112", "A0502", "A050201"] }, by: "geo", by2: "ppp_cat" },
   { id: "min_wage_pps", ds: "earn_mw_cur", filter: { currency: "PPS", geo: ["BG", "RO", "EL", "HR", "PL", "HU", "DE", "ES"] }, by: "geo" },
   { id: "min_wage_all", ds: "earn_mw_cur", filter: { currency: "EUR", geo: ["BG", "RO", "EL", "HR", "PL", "HU", "DE", "ES"] }, by: "geo" },
   { id: "avg_wage", ds: "nama_10_fte", filter: { unit: "EUR", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
-  { id: "avg_wage_pps", ds: "nama_10_fte", filter: { unit: "PPS", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
-  { id: "unmet_medical", ds: "hlth_silc_08", filter: { reason: "TOOEFW", quantile: "TOTAL", sex: "T", age: "Y_GE16", unit: "PC", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "unmet_medical", ds: "hlth_silc_08", filter: { reason: "TXP_TFAR_WLIST", quant_inc: "TOTAL", sex: "T", age: "Y_GE16", unit: "PC", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
   { id: "out_of_pocket", ds: "hlth_sha11_hf", filter: { icha11_hf: "HF3", unit: "PC_CHE", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
   { id: "hospital_beds", ds: "hlth_rs_bds1", filter: { facility: "HBEDT", unit: "P_HTHAB", hlthcare: "TOTAL", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
   { id: "healthy_years", ds: "hlth_hlye", filter: { unit: "YR", hlth_hle: "HLY_Y0", sex: "T", geo: ["BG", "EU27_2020", "RO", "GR", "HR", "PL", "HU"] }, by: "geo" },
