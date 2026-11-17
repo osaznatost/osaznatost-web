@@ -70,6 +70,22 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
               ))}
             </div>
           )}
+          {law.checks && (
+            <div className="mt-8">
+              <h3 className="display text-[1.8rem] mb-3">Проверени твърдения</h3>
+              <ul className="space-y-3">
+                {law.checks.map((c) => (
+                  <li key={c.claim} className="rounded-xl ring-1 ring-rule p-4 bg-white">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <p className="font-semibold">{c.claim}</p>
+                      <span className={`text-sm font-semibold px-2.5 py-0.5 rounded-full ${c.verdict === "Вярно" ? "bg-[#2f9e6a] text-white" : c.verdict === "Невярно" ? "bg-[#d2353f] text-white" : "bg-[#e2b33b] text-ink"}`}>{c.verdict}</span>
+                    </div>
+                    <p className="text-[15px] text-muted mt-1">{c.why}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <p className="text-xs text-muted mt-4">{law.note} Източници: {law.sources.map((src, i) => (
             <span key={src.url}>{i > 0 && ", "}<a href={src.url} target="_blank" rel="noreferrer">{src.title}</a></span>
           ))}</p>
