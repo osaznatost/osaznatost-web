@@ -36,6 +36,38 @@ const SERIES = [
   { id: "population", ds: "demo_pjan", filter: { age: "TOTAL", sex: "T", unit: "NR", geo: "BG" }, by: "geo" },
   { id: "poverty_risk", ds: "ilc_peps01n", filter: { age: "TOTAL", sex: "T", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "health_spending", ds: "hlth_sha11_hf", filter: { icha11_hf: "TOT_HF", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  // Икономика: допълнително
+  { id: "gdp_pc_pps", ds: "tec00114", filter: { na_item: "VI_PPS_EU27_2020_HAB", geo: ["BG", "RO", "HR", "GR", "PL", "HU"] }, by: "geo" },
+  { id: "gov_revenue", ds: "gov_10a_main", filter: { na_item: "TR", sector: "S13", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "gov_expenditure", ds: "gov_10a_main", filter: { na_item: "TE", sector: "S13", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "gov_interest", ds: "gov_10a_main", filter: { na_item: "D41PAY", sector: "S13", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "investment", ds: "nama_10_gdp", filter: { na_item: "P51G", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "exports", ds: "nama_10_gdp", filter: { na_item: "P6", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "consumption_growth", ds: "nama_10_gdp", filter: { na_item: "P31_S14", unit: "CLV_PCH_PRE", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "inflation_monthly", ds: "prc_hicp_manr", filter: { coicop: "CP00", geo: ["BG", "EU27_2020"], sinceTimePeriod: "2022-01" }, by: "geo" },
+  { id: "inflation_monthly_2026", ds: "prc_hicp_minr", filter: { coicop18: "CP00", unit: "RCH_A", geo: ["BG", "EU27_2020"], sinceTimePeriod: "2025-01" }, by: "geo" },
+  // Труд
+  { id: "employment_rate", ds: "lfsi_emp_a", filter: { indic_em: "EMP_LFS", age: "Y20-64", sex: "T", unit: "PC_POP", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "youth_unemployment", ds: "une_rt_a", filter: { age: "Y15-24", sex: "T", unit: "PC_ACT", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  // Неравенство и социални
+  { id: "gini", ds: "ilc_di12", filter: { geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
+  { id: "s80s20", ds: "ilc_di11", filter: { geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
+  { id: "overcrowding", ds: "ilc_lvho05a", filter: { age: "TOTAL", sex: "T", incgrp: "TOTAL", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  // Демография
+  { id: "fertility", ds: "tps00199", filter: { geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "infant_mortality", ds: "tps00027", filter: { geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "birth_rate", ds: "demo_gind", filter: { indic_de: "GBIRTHRT", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "death_rate", ds: "demo_gind", filter: { indic_de: "GDEATHRT", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "net_migration", ds: "demo_gind", filter: { indic_de: "CNMIGRATRT", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  // Образование
+  { id: "early_leavers", ds: "edat_lfse_14", filter: { sex: "T", wstatus: "POP", unit: "PC", age: "Y18-24", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "tertiary", ds: "edat_lfse_03", filter: { sex: "T", isced11: "ED5-8", unit: "PC", age: "Y25-34", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  // Здраве, безопасност, общество, околна среда
+  { id: "doctors", ds: "tps00044", filter: { geo: ["BG", "EU27_2020", "RO", "GR"] }, by: "geo" },
+  { id: "road_deaths", ds: "sdg_11_40", filter: { unit: "RT", geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
+  { id: "internet_use", ds: "isoc_ci_ifp_iu", filter: { indic_is: "I_IUSE", ind_type: "IND_TOTAL", unit: "PC_IND", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "renewables", ds: "nrg_ind_ren", filter: { nrg_bal: "REN", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "emissions", ds: "sdg_13_10", filter: { unit: "I90", geo: ["BG", "EU27_2020"] }, by: "geo" },
 ];
 
 function query(filter) {
@@ -91,10 +123,17 @@ for (const s of SERIES) {
       }
     }
     const lines = {};
+    let dup = 0;
     for (const r of records) {
       const key = r[s.by];
       if (s.geoPrefix && !(key.startsWith(s.geoPrefix) && key.length === s.geoLevel)) continue;
-      (lines[key] ??= {})[r.time] = Math.round(r.value * 100) / 100;
+      if ((lines[key] ??= {})[r.time] !== undefined) dup++;
+      lines[key][r.time] = Math.round(r.value * 100) / 100;
+    }
+    // Ако след филтрите остават няколко стойности за една година, серията е двусмислена: не я записваме.
+    if (dup) {
+      const multi = js.id.filter((d) => d !== "geo" && d !== "time" && d !== s.by && Object.keys(js.dimension[d].category.index).length > 1);
+      throw new Error(`двусмислена серия (${dup} повторения), уточни измеренията: ${multi.map((d) => `${d}=[${Object.keys(js.dimension[d].category.index).slice(0, 6).join(",")}]`).join(" ")}`);
     }
     result.series[s.id] = { dataset: s.ds, url, updated, labels: s.geoPrefix ? labels : undefined, lines };
     console.log(`✓ ${s.id}: ${Object.keys(lines).length} линии`);
