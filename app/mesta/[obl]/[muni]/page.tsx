@@ -6,6 +6,9 @@ import { quarterLabel } from "@/lib/places";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList } from "@/lib/regions";
 import { FIN_SOURCE } from "@/lib/places";
 import { fmt } from "@/lib/stats";
+import { SettlementMap } from "@/components/SettlementMap";
+import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
+import { localData } from "@/lib/local";
 
 export function generateStaticParams() {
   return oblastList().flatMap((o) => o.municipalities.map((m) => ({ obl: o.slug, muni: muniSlug(m.code) })));
@@ -31,6 +34,11 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
   const procHref = `/porachki?oblast=${encodeURIComponent(o.name)}&obshtina=${m.code}`;
+  const P = placeData(m.code), C = P?.census, OC = PLACE_OBL.oblasts[m.code.slice(0, 3)], BG = PLACE_OBL.country;
+  const L = localData(m.code);
+  const mayor = L?.officials.find((x) => x.role === "mayor");
+  const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
+  const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
 
   return (
     <Page>
@@ -46,6 +54,77 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Евросредства (договорени)</p><p className="display text-[2.2rem]">{mn(f?.total)}</p><p className="text-xs text-muted">{f ? `${f.contracts} договора, изплатени ${mn(f.paid)}` : ""}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Евросредства на човек</p><p className="display text-[2.2rem]">{f ? `${Math.round(f.perCapita).toLocaleString("bg-BG")} €` : "–"}</p></div>
       </div>
+
+
+      {C && (
+        <section className="mb-12">
+          <SectionTitle>Хората</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Преброяване 2021 г. (НСИ). Сравнение с областта и страната.</p>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div>
+              <h3 className="font-semibold mb-2">Възраст</h3>
+              <table className="w-full text-[15px] num"><thead><tr className="text-sm text-muted text-left"><th></th><th className="text-right">{m.name}</th><th className="text-right">Област</th><th className="text-right">България</th></tr></thead>
+                <tbody>{AGE.map(([k, l]) => (
+                  <tr key={k} className="border-t border-rule"><td className="py-1">{l} г.</td><td className="text-right font-semibold">{pc(C.age[k], C.population)}</td><td className="text-right text-muted">{OC ? pc(OC.age[k], OC.population) : "–"}</td><td className="text-right text-muted">{pc(BG.age[k], BG.population)}</td></tr>
+                ))}</tbody></table>
+              <p className="text-sm mt-2">Над 65 години на всяко дете до 14: <b>{fmt(C.age.age65plus / C.age.age0_14, 2)}</b> (страната: {fmt(BG.age.age65plus / BG.age.age0_14, 2)}).</p>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Образование (над 7 г.)</h3>
+              {(() => { const t = EDU.reduce((a, [k]) => a + (C.education[k] ?? 0), 0), tb = EDU.reduce((a, [k]) => a + (BG.education[k] ?? 0), 0), to = OC ? EDU.reduce((a, [k]) => a + (OC.education[k] ?? 0), 0) : 0; return (
+                <table className="w-full text-[15px] num"><thead><tr className="text-sm text-muted text-left"><th></th><th className="text-right">{m.name}</th><th className="text-right">Област</th><th className="text-right">България</th></tr></thead>
+                  <tbody>{EDU.map(([k, l]) => (
+                    <tr key={k} className="border-t border-rule"><td className="py-1">{l}</td><td className="text-right font-semibold">{pc(C.education[k], t)}</td><td className="text-right text-muted">{OC ? pc(OC.education[k], to) : "–"}</td><td className="text-right text-muted">{pc(BG.education[k], tb)}</td></tr>
+                  ))}</tbody></table>); })()}
+            </div>
+            <div>
+              <h3 className="font-semibold mb-2">Работа</h3>
+              <table className="w-full text-[15px] num"><thead><tr className="text-sm text-muted text-left"><th></th><th className="text-right">{m.name}</th><th className="text-right">Област</th></tr></thead>
+                <tbody>{([["activityRate", "Икономически активни"], ["employmentRate", "Заети"], ["unemploymentRate", "Безработни (от активните)"]] as const).map(([k, l]) => (
+                  <tr key={k} className="border-t border-rule"><td className="py-1">{l}</td><td className="text-right font-semibold">{fmt(C.employment[k], 1)}%</td><td className="text-right text-muted">{OC ? `${fmt(OC.employment[k], 1)}%` : "–"}</td></tr>
+                ))}</tbody></table>
+              <p className="text-sm mt-2">Мъже {fmt(share(C.gender.male, C.population), 1)}%, жени {fmt(share(C.gender.female, C.population), 1)}%.</p>
+            </div>
+          </div>
+          {C.ethnic && (
+            <details className="mt-4 text-[15px]"><summary className="cursor-pointer font-semibold text-green">Етническа група и вероизповедание (по самоопределяне)</summary>
+              <p className="mt-2">{Object.entries({ bulgarian: "българска", turkish: "турска", roma: "ромска", other: "друга" }).map(([k, l]) => `${l}: ${pc(C.ethnic![k], C.population)}`).join(" · ")} · не са отговорили или не е известно: {pc((C.ethnic.dontWantAnswer ?? 0) + (C.ethnic.unknown ?? 0) + (C.ethnic.cantDetermine ?? 0), C.population)}</p>
+              {C.religion && <p className="mt-1">{Object.entries({ christian: "християнско", muslim: "мюсюлманско", noReligion: "без вероизповедание" }).map(([k, l]) => `${l}: ${pc(C.religion![k], C.population)}`).join(" · ")}</p>}
+              <p className="text-sm text-muted mt-1">Отговорът е доброволен. Показваме официалните данни без тълкуване.</p>
+            </details>
+          )}
+        </section>
+      )}
+
+      {P?.map && (
+        <section className="mb-12">
+          <SectionTitle>Населените места</SectionTitle>
+          <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><SettlementMap geo={P.map} names={names} /></div>
+          <p className="text-sm text-muted mt-2">Землищата на {m.settlements.length} населени места. В тъмно са градовете.</p>
+        </section>
+      )}
+
+      {P?.ipop && P.ipop.projects.length > 0 && (
+        <section className="mb-12">
+          <SectionTitle>Държавни инвестиции в общината</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Инвестиционна програма за общински проекти ({P.ipop.year}): пари от държавния бюджет през Регионалното министерство (МРРБ), с участие на общината. Договорени {mn(P.ipop.rollup.agreementEur)}, изплатени {mn(P.ipop.rollup.paidEur)} ({fmt(P.ipop.rollup.paidPct, 0)}%).</p>
+          <ul className="divide-y divide-rule border-y border-rule text-[15px]">{[...P.ipop.projects].sort((a, b) => b.agreement - a.agreement).map((p) => (
+            <li key={p.id} className="py-2 grid sm:grid-cols-[1fr_9rem_9rem] gap-x-4">
+              <span>{p.description}{p.stalled && <span className="text-xs font-semibold text-white bg-red rounded-full px-2 py-0.5 ml-2">спрян</span>}<span className="block text-xs text-muted">{p.id}{p.paid > 0 ? ` · платени от държавата ${mn(p.state)}, от общината ${mn(p.muni)}` : ""}</span></span>
+              {p.agreement > 0 ? <>
+                <span className="num text-right">{mn(p.agreement)}<span className="block text-xs text-muted">договорени</span></span>
+                <span className="num text-right">{fmt(p.pct, 0)}%<span className="block text-xs text-muted">изплатени</span></span>
+              </> : <span className="sm:col-span-2 text-right text-sm text-muted">одобрен в програмата, още без споразумение и без плащания</span>}
+            </li>
+          ))}</ul>
+          <p className="text-xs text-muted mt-2">Източник: МРРБ, Инвестиционна програма за общински проекти, обработени от „Наясно“. Изпълнителите на тези ремонти са в <Link href={procHref}>поръчките на общината</Link>.</p>
+        </section>
+      )}
+
+      <section className="mb-12">
+        <SectionTitle>Кой управлява</SectionTitle>
+        <p className="text-[15px] max-w-3xl">{mayor ? <>Кмет: <b>{mayor.name}</b>. </> : null}{L ? <>Общински съветници: {L.officials.filter((x) => x.role === "councillor" || x.role === "council_chair").length}. Декларирали дялове във фирми: {L.officials.filter((x) => x.decl?.stakes.length).length} души. </> : null}<Link href={`/mesta/${o.slug}/${muni}/vlast`}>Декларации, конфликт на интереси и гласувания в съвета →</Link></p>
+      </section>
 
       {fin && (
         <section className="mb-12">
