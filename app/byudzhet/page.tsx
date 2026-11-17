@@ -17,14 +17,29 @@ const B = raw as unknown as {
   ministries: { name: string; planned: number }[];
   execution: { throughMonth: number; revenue: { ytdEur: number; annualisedEur: number; lowEur: number; highEur: number }; expenditure: { ytdEur: number; annualisedEur: number; lowEur: number; highEur: number } };
   history: { year: number; revenue: number; expenditure: number; transfers: number | null; balance: number | null }[];
+  prev: Record<string, { revenue: Record<string, number | null>; expenditure: Record<string, number | null>; transfers: Record<string, number>; ministries: Record<string, number> }>;
 };
+const PREV_Y = String(B.year - 1);
+const PY = Object.keys(B.prev ?? {}).sort();
+/** Стойност на ред по код в предходна година (законът за бюджета). */
+const prevByCode = (y: string, kind: "revenue" | "expenditure" | "transfers", code: string) => {
+  const m = B.prev?.[y]?.[kind] ?? {};
+  const k = Object.keys(m).find((x) => x.split("|")[0] === code);
+  return k ? m[k] ?? undefined : undefined;
+};
+function Delta({ now, before, year = PREV_Y }: { now: number; before?: number | null; year?: string }) {
+  if (before == null || !before) return <span className="text-xs text-muted">няма ред за {year} г.</span>;
+  const d = Math.round(((now - before) / Math.abs(before)) * 1000) / 10 || 0;
+  const cls = Math.abs(d) < 1 ? "text-ink" : d > 0 ? "text-green" : "text-red";
+  return <span className={`text-xs ${cls}`}>{year} г.: {mn(before)} · {d > 0 ? "+" : ""}{d.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}% ({d > 0 ? "+" : "−"}{mn(Math.abs(now - before))})</span>;
+}
 
 const bn = (n: number, d = 2) => `${(n / 1e9).toLocaleString("bg-BG", { maximumFractionDigits: d, minimumFractionDigits: d })} млрд. €`;
 const mn = (n: number) => `${Math.round(n / 1e6).toLocaleString("bg-BG")} млн. €`;
 const POS: Record<string, string> = { y: "За", n: "Против", a: "Въздържал се", split: "Разделени", absent: "Отсъства" };
 const MONTHS = ["", "януари", "февруари", "март", "април", "май", "юни", "юли", "август", "септември", "октомври", "ноември", "декември"];
 
-function Bars({ items, color = "#1F4D3A" }: { items: { label: string; value: number; note?: string }[]; color?: string }) {
+function Bars({ items, color = "#1F4D3A" }: { items: { label: string; value: number; note?: string; prev?: number | null }[]; color?: string }) {
   const max = Math.max(...items.map((i) => i.value));
   return (
     <ul className="space-y-2.5">
@@ -32,6 +47,7 @@ function Bars({ items, color = "#1F4D3A" }: { items: { label: string; value: num
         <li key={i.label}>
           <div className="flex justify-between gap-3 text-[15px]"><span>{i.label}</span><b className="num whitespace-nowrap">{mn(i.value)}</b></div>
           <div className="h-2.5 bg-surface rounded-sm mt-1"><div className="h-full rounded-sm" style={{ width: `${(i.value / max) * 100}%`, background: color }} /></div>
+          {i.prev !== undefined && <p className="mt-0.5"><Delta now={i.value} before={i.prev} /></p>}
           {i.note && <p className="text-xs text-muted mt-0.5">{i.note}</p>}
         </li>
       ))}
@@ -109,9 +125,9 @@ export default function Byudzhet() {
   const cur = kids(B.expenditure.lines, "1");
   const NAMES: Record<string, string> = { "1.1": "Заплати и осигуровки на служителите", "1.2": "Субсидии за предприятия и организации", "1.3": "Лихви по дълга", "1.4": "Социални плащания към домакинствата" };
   const econ = [
-    ...cur.map((l) => ({ label: NAMES[l.code] ?? l.label, value: l.eur ?? 0 })),
-    { label: "Издръжка (стоки, услуги, ток, горива)", value: (B.expenditure.lines.find((l) => l.code === "1")?.eur ?? 0) - cur.reduce((x, l) => x + (l.eur ?? 0), 0) },
-    { label: "Капиталови разходи (строителство, ремонти, техника)", value: B.expenditure.lines.find((l) => l.code === "2")?.eur ?? 0 },
+    ...cur.map((l) => ({ label: NAMES[l.code] ?? l.label, value: l.eur ?? 0, prev: prevByCode(PREV_Y, "expenditure", l.code) ?? null })),
+    { label: "Издръжка (стоки, услуги, ток, горива)", value: (B.expenditure.lines.find((l) => l.code === "1")?.eur ?? 0) - cur.reduce((x, l) => x + (l.eur ?? 0), 0), prev: (() => { const t = prevByCode(PREV_Y, "expenditure", "1"); if (t == null) return null; return t - cur.reduce((x, l) => x + (prevByCode(PREV_Y, "expenditure", l.code) ?? 0), 0); })() },
+    { label: "Капиталови разходи (строителство, ремонти, техника)", value: B.expenditure.lines.find((l) => l.code === "2")?.eur ?? 0, prev: prevByCode(PREV_Y, "expenditure", "2") ?? null },
   ].sort((a, b) => b.value - a.value);
 
   const ex = B.execution;
@@ -155,8 +171,35 @@ export default function Byudzhet() {
         </div>
         <div>
           <SectionTitle>Кой колко получава</SectionTitle>
-          <Bars items={B.ministries.slice(0, 14).map((m) => ({ label: m.name, value: m.planned }))} color="#3d5a80" />
+          <Bars items={B.ministries.slice(0, 14).map((m) => ({ label: m.name, value: m.planned, prev: B.prev?.[PREV_Y]?.ministries[m.name] ?? null }))} color="#3d5a80" />
+          <p className="text-sm text-muted mt-3">Под всеки ред: колко е било в бюджета за {PREV_Y} г. и промяната. Зелено = повече пари, червено = по-малко, черно = почти без промяна. Сравнението е закон срещу закон, без инфлацията (около 3–4% годишно), така че ръст под инфлацията реално е намаление.</p>
         </div>
+      </section>
+
+      <section className="mb-14">
+        <SectionTitle>Ред по ред: приходите и разходите през годините</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Сумите по закона за държавния бюджет за всяка година, в евро. Последната колона е промяната спрямо миналата година. Големият скок при ДДС и осигуровките идва най-вече от по-високите заплати и цени, а не задължително от по-високи ставки.</p>
+        {(["revenue", "expenditure"] as const).map((kind) => (
+          <div key={kind} className="overflow-x-auto mb-8">
+            <h3 className="font-semibold text-lg mb-2">{kind === "revenue" ? "Приходи" : "Разходи"}</h3>
+            <table className="w-full text-[14px] num">
+              <thead><tr className="border-b border-rule text-left"><th className="py-1.5 pr-3">Ред</th>{PY.map((y) => <th key={y} className="px-2 text-right">{y}</th>)}<th className="px-2 text-right bg-surface">{B.year}</th><th className="px-2 text-right">Промяна</th></tr></thead>
+              <tbody>{B[kind].lines.filter((l) => l.code.split(".").length <= 2 && (l.eur ?? 0) > 5e7).map((l) => {
+                const p = prevByCode(PREV_Y, kind, l.code);
+                const d = p ? Math.round((((l.eur ?? 0) - p) / Math.abs(p)) * 1000) / 10 || 0 : null;
+                return (
+                  <tr key={l.code} className={`border-b border-rule ${l.code.includes(".") ? "" : "font-semibold"}`}>
+                    <td className={`py-1.5 pr-3 ${l.code.includes(".") ? "pl-4" : ""}`}>{l.label}</td>
+                    {PY.map((y) => { const v = prevByCode(y, kind, l.code); return <td key={y} className="px-2 text-right text-muted">{v != null ? mn(v) : "–"}</td>; })}
+                    <td className="px-2 text-right bg-surface">{mn(l.eur ?? 0)}</td>
+                    <td className={`px-2 text-right ${d == null ? "" : Math.abs(d) < 1 ? "" : d > 0 ? "text-green" : "text-red"}`}>{d == null ? "–" : `${d > 0 ? "+" : ""}${d.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}%`}</td>
+                  </tr>
+                );
+              })}</tbody>
+            </table>
+          </div>
+        ))}
+        <p className="text-xs text-muted">{B.source}. Редовете се сравняват по код в закона; когато класификацията се промени, старата година показва „–“.</p>
       </section>
 
       <section className="mb-14">
