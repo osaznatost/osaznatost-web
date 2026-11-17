@@ -38,7 +38,7 @@ const SERIES = [
   { id: "comp_sectors", ds: "nama_10_a10", filter: { na_item: "D1", unit: "CP_MEUR", geo: "BG", nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K", "L", "M_N", "O-Q", "R-U"] }, by: "nace_r2" },
   { id: "gdp_expenditure", ds: "nama_10_gdp", filter: { unit: "CP_MEUR", geo: "BG", na_item: ["B1GQ", "P31_S14", "P31_S15", "P3_S13", "P51G", "P52", "P6", "P7"] }, by: "na_item" },
   { id: "gdp_income", ds: "nama_10_gdp", filter: { unit: "CP_MEUR", geo: "BG", na_item: ["B1GQ", "D1", "B2A3G", "D2X3"] }, by: "na_item" },
-  { id: "gva_oblasts", ds: "nama_10r_3gva", filter: { currency: "MIO_EUR", geo: ["BG311","BG312","BG313","BG314","BG315","BG321","BG322","BG323","BG324","BG325","BG331","BG332","BG333","BG334","BG341","BG342","BG343","BG344","BG411","BG412","BG413","BG414","BG415","BG421","BG422","BG423","BG424","BG425"], nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-J", "K-N", "O-U"] }, by: "geo", by2: "nace_r2", geoPrefix: "BG", geoLevel: 5 },
+  { id: "gva_oblasts", ds: "nama_10r_3gva", filter: { unit: "CP_MEUR", geo: ["BG311","BG312","BG313","BG314","BG315","BG321","BG322","BG323","BG324","BG325","BG331","BG332","BG333","BG334","BG341","BG342","BG343","BG344","BG411","BG412","BG413","BG414","BG415","BG421","BG422","BG423","BG424","BG425"], nace_r2: ["TOTAL", "A", "B-E", "C", "F", "G-I", "J", "K-N", "O-U"] }, by: "geo", by2: "nace_r2", geoPrefix: "BG", geoLevel: 5 },
   // Хора
   { id: "life_expectancy", ds: "demo_mlexpec", filter: { age: "Y_LT1", unit: "YR", geo: "BG", sex: ["M", "F"] }, by: "sex" },
   { id: "life_expectancy_eu", ds: "demo_mlexpec", filter: { age: "Y_LT1", unit: "YR", sex: "T", geo: ["BG", "EU27_2020"] }, by: "geo" },
