@@ -1,454 +1,913 @@
 {
- "bop_fdi6_geo": {
-  "freq": [
-   [
-    "A",
-    "Annual"
+ "bop_fdi6_pos?geo=BG&currency=MIO_EUR&fdi_item=DI__D__F&partner=WRL_REST&time=2024": {
+  "dims": {
+   "freq": [
+    [
+     "A",
+     "Annual"
+    ]
+   ],
+   "counterp": [
+    [
+     "IMM",
+     "Immediate"
+    ],
+    [
+     "ULT",
+     "Ultimate"
+    ]
+   ],
+   "currency": [
+    [
+     "MIO_EUR",
+     "Million euro"
+    ]
+   ],
+   "nace_r2": [
+    [
+     "TOTAL",
+     "Total - all NACE activities"
+    ],
+    [
+     "A",
+     "Agriculture, forestry and fishing"
+    ],
+    [
+     "B",
+     "Mining and quarrying"
+    ],
+    [
+     "B06_B09",
+     "Extraction of crude petroleum and natural gas; mining support service activities"
+    ],
+    [
+     "C",
+     "Manufacturing"
+    ],
+    [
+     "C10-C12",
+     "Manufacture of food products; beverages and tobacco products"
+    ],
+    [
+     "C_TXW",
+     "Manufacture of textiles, wearing apparel, wood and paper products; printing and reproduction"
+    ],
+    [
+     "C13_C14",
+     "Manufacture of textiles and wearing apparel"
+    ],
+    [
+     "C16-C18",
+     "Manufacture of wood, paper, printing and reproduction"
+    ],
+    [
+     "C19-C22",
+     "Manufacture of petroleum, chemical, pharmaceutical, rubber and plastic products"
+    ],
+    [
+     "C19",
+     "Manufacture of coke and refined petroleum products"
+    ],
+    [
+     "C20",
+     "Manufacture of chemicals and chemical products"
+    ],
+    [
+     "C21",
+     "Manufacture of basic pharmaceutical products and pharmaceutical preparations"
+    ],
+    [
+     "C22",
+     "Manufacture of rubber and plastic products"
+    ],
+    [
+     "C_MET",
+     "Manufacture of metal and machinery products, except electrical equipment"
+    ],
+    [
+     "C24_C25",
+     "Manufacture of basic metals and fabricated metal products, except machinery and equipment"
+    ],
+    [
+     "C26",
+     "Manufacture of computer, electronic and optical products"
+    ],
+    [
+     "C28",
+     "Manufacture of machinery and equipment n.e.c."
+    ],
+    [
+     "C29_C30",
+     "Manufacture of motor vehicles, trailers, semi-trailers and of other transport equipment"
+    ],
+    [
+     "C29",
+     "Manufacture of motor vehicles, trailers and semi-trailers"
+    ],
+    [
+     "C30",
+     "Manufacture of other transport equipment"
+    ],
+    [
+     "C303",
+     "Manufacture of air and spacecraft and related machinery"
+    ],
+    [
+     "C_OTH",
+     "Other manufacturing (C15, C23, C27, C31, C32, C33)"
+    ],
+    [
+     "D35",
+     "Electricity, gas, steam and air conditioning supply"
+    ],
+    [
+     "E",
+     "Water supply; sewerage, waste management and remediation activities"
+    ],
+    [
+     "E36",
+     "Water collection, treatment and supply"
+    ],
+    [
+     "E37-E39",
+     "Sewerage, waste management, remediation activities"
+    ],
+    [
+     "F",
+     "Construction"
+    ],
+    [
+     "G-U",
+     "Services"
+    ],
+    [
+     "G",
+     "Wholesale and retail trade; repair of motor vehicles and motorcycles"
+    ],
+    [
+     "G45",
+     "Wholesale and retail trade and repair of motor vehicles and motorcycles"
+    ],
+    [
+     "G46",
+     "Wholesale trade, except of motor vehicles and motorcycles"
+    ],
+    [
+     "G47",
+     "Retail trade, except of motor vehicles and motorcycles"
+    ],
+    [
+     "H",
+     "Transportation and storage"
+    ],
+    [
+     "H_X_H53",
+     "Transportation and storage except postal and courier activities"
+    ],
+    [
+     "H49",
+     "Land transport and transport via pipelines"
+    ],
+    [
+     "H50",
+     "Water transport"
+    ],
+    [
+     "H51",
+     "Air transport"
+    ],
+    [
+     "H52",
+     "Warehousing and support activities for transportation"
+    ],
+    [
+     "H53",
+     "Postal and courier activities"
+    ],
+    [
+     "I",
+     "Accommodation and food service activities"
+    ],
+    [
+     "J",
+     "Information and communication"
+    ],
+    [
+     "J58_J62_J63",
+     "Publishing, computer programming and consultancy, information service activities"
+    ],
+    [
+     "J59_J60",
+     "Motion picture, video, television programme production; programming and broadcasting activities"
+    ],
+    [
+     "J61",
+     "Telecommunications"
+    ],
+    [
+     "K",
+     "Financial and insurance activities"
+    ],
+    [
+     "K64",
+     "Financial service activities, except insurance and pension funding"
+    ],
+    [
+     "K642",
+     "Activities of holding companies"
+    ],
+    [
+     "K65",
+     "Insurance, reinsurance and pension funding, except compulsory social security"
+    ],
+    [
+     "K66",
+     "Activities auxiliary to financial services and insurance activities"
+    ],
+    [
+     "L",
+     "Real estate activities"
+    ],
+    [
+     "M",
+     "Professional, scientific and technical activities"
+    ],
+    [
+     "M69",
+     "Legal and accounting activities"
+    ],
+    [
+     "M691",
+     "Legal activities"
+    ],
+    [
+     "M692",
+     "Accounting, bookkeeping and auditing activities; tax consultancy"
+    ],
+    [
+     "M70",
+     "Activities of head offices; management consultancy activities"
+    ],
+    [
+     "M701",
+     "Activities of head offices"
+    ],
+    [
+     "M702",
+     "Management consultancy activities"
+    ],
+    [
+     "M71",
+     "Architectural and engineering activities; technical testing and analysis"
+    ],
+    [
+     "M72",
+     "Scientific research and development"
+    ],
+    [
+     "M73",
+     "Advertising and market research"
+    ],
+    [
+     "M731",
+     "Advertising"
+    ],
+    [
+     "M732",
+     "Market research and public opinion polling"
+    ],
+    [
+     "M74_M75",
+     "Other professional, scientific and technical activities; veterinary activities"
+    ],
+    [
+     "N",
+     "Administrative and support service activities"
+    ],
+    [
+     "N77",
+     "Rental and leasing activities"
+    ],
+    [
+     "N78-N82",
+     "Employment, travel agency, security and investigation, service and landscape, office administrative and support activities"
+    ],
+    [
+     "N79",
+     "Travel agency, tour operator and other reservation service and related activities"
+    ],
+    [
+     "O_T_U",
+     "Public administration; activities of households and of extraterritorial organisations"
+    ],
+    [
+     "P85",
+     "Education"
+    ],
+    [
+     "Q",
+     "Human health and social work activities"
+    ],
+    [
+     "R",
+     "Arts, entertainment and recreation"
+    ],
+    [
+     "R90",
+     "Creative, arts and entertainment activities"
+    ],
+    [
+     "R91",
+     "Libraries, archives, museums and other cultural activities"
+    ],
+    [
+     "R92_R93",
+     "Gambling and betting activities; sporting and other recreational activities"
+    ],
+    [
+     "S",
+     "Other service activities"
+    ],
+    [
+     "S94",
+     "Activities of membership organisations"
+    ],
+    [
+     "S95_S96",
+     "Repair of computers, personal and household goods; other personal service activities"
+    ],
+    [
+     "PRV_RE",
+     "Private real estate activities"
+    ],
+    [
+     "FDI",
+     "All FDI activities"
+    ]
+   ],
+   "stk_flow": [
+    [
+     "ASS",
+     "Assets"
+    ],
+    [
+     "LIAB",
+     "Liabilities"
+    ],
+    [
+     "NI",
+     "Net FDI inward"
+    ],
+    [
+     "NO",
+     "Net FDI outward"
+    ]
+   ],
+   "entity": [
+    [
+     "TOTAL",
+     "Total"
+    ],
+    [
+     "SPE",
+     "Special purpose entities"
+    ]
+   ],
+   "fdi_item": [
+    [
+     "DI__D__F",
+     "Direct investment in the reporting economy (DIRE)"
+    ]
+   ],
+   "partner": [
+    [
+     "WRL_REST",
+     "Rest of the world"
+    ]
+   ],
+   "geo": [
+    [
+     "BG",
+     "Bulgaria"
+    ]
+   ],
+   "time": [
+    [
+     "2024",
+     "2024"
+    ]
    ]
-  ],
-  "currency": [
-   [
-    "MIO_EUR",
-    "Million euro"
-   ]
-  ],
-  "indic_bp": [
-   [
-    "STOCKS",
-    "Direct investment stocks - million ECU/EUR"
-   ],
-   [
-    "FLOWS",
-    "Direct investment flows - million ECU/EUR"
-   ],
-   [
-    "INCOME",
-    "Direct investment income - million ECU/EUR"
-   ]
-  ],
-  "fdi_item": [
-   [
-    "DO__D__F",
-    "Direct investment abroad (DIA)"
-   ],
-   [
-    "DI__D__F",
-    "Direct investment in the reporting economy (DIRE)"
-   ]
-  ],
-  "partner": [
-   [
-    "EUR",
-    "Europe"
-   ],
-   [
-    "EU27_2020",
-    "European Union - 27 countries (from 2020)"
-   ],
-   [
-    "EU28",
-    "European Union - 28 countries (2013-2020)"
-   ],
-   [
-    "EA21",
-    "Euro area – 21 countries (from 2026)"
-   ],
-   [
-    "EA20",
-    "Euro area – 20 countries (2023-2025)"
-   ],
-   [
-    "EA19",
-    "Euro area - 19 countries  (2015-2022)"
-   ],
-   [
-    "BE",
-    "Belgium"
-   ],
-   [
-    "BG",
-    "Bulgaria"
-   ],
-   [
-    "CZ",
-    "Czechia"
-   ],
-   [
-    "DK",
-    "Denmark"
-   ],
-   [
-    "DE",
-    "Germany"
-   ],
-   [
-    "EE",
-    "Estonia"
-   ],
-   [
-    "IE",
-    "Ireland"
-   ],
-   [
-    "EL",
-    "Greece"
-   ],
-   [
-    "ES",
-    "Spain"
-   ],
-   [
-    "FR",
-    "France"
-   ],
-   [
-    "HR",
-    "Croatia"
-   ],
-   [
-    "IT",
-    "Italy"
-   ],
-   [
-    "CY",
-    "Cyprus"
-   ],
-   [
-    "LV",
-    "Latvia"
-   ],
-   [
-    "LT",
-    "Lithuania"
-   ],
-   [
-    "LU",
-    "Luxembourg"
-   ],
-   [
-    "HU",
-    "Hungary"
-   ],
-   [
-    "MT",
-    "Malta"
-   ],
-   [
-    "NL",
-    "Netherlands"
-   ],
-   [
-    "AT",
-    "Austria"
-   ],
-   [
-    "PL",
-    "Poland"
-   ],
-   [
-    "PT",
-    "Portugal"
-   ],
-   [
-    "RO",
-    "Romania"
-   ],
-   [
-    "SI",
-    "Slovenia"
-   ],
-   [
-    "SK",
-    "Slovakia"
-   ],
-   [
-    "FI",
-    "Finland"
-   ],
-   [
-    "SE",
-    "Sweden"
-   ],
-   [
-    "EU27_2020_NEA21",
-    "EU27 countries (from 2020) not in EA21 (from 2026) - 6 countries"
-   ],
-   [
-    "EU27_2020_NEA20",
-    "EU27 countries (from 2020) not in EA20 (2023-2025) - 7 countries"
-   ],
-   [
-    "EU27_2020_NEA21_X_DK_SE",
-    "EU27 countries (from 2020) not in EA21 (from 2026), except Denmark and Sweden"
-   ],
-   [
-    "EU27_2020_NEA20_X_DK_SE",
-    "EU27 countries (from 2020) not in EA20 (2023-2025), except Denmark and Sweden"
-   ],
-   [
-    "INT_EU_NAL",
-    "Intra-EU, not allocated"
-   ],
-   [
-    "INT_EA_NAL",
-    "Intra-euro area, not allocated"
-   ],
-   [
-    "EFTA",
-    "European Free Trade Association"
-   ],
-   [
-    "IS",
-    "Iceland"
-   ],
-   [
-    "LI",
-    "Liechtenstein"
-   ],
-   [
-    "NO",
-    "Norway"
-   ],
-   [
-    "CH",
-    "Switzerland"
-   ],
-   [
-    "UK",
-    "United Kingdom"
-   ],
-   [
-    "CC9_23",
-    "Candidate countries from 2023 (9 countries)"
-   ],
-   [
-    "CC8_22",
-    "Candidate countries from 2022 (8 countries)"
-   ],
-   [
-    "BA",
-    "Bosnia and Herzegovina"
-   ],
-   [
-    "ME",
-    "Montenegro"
-   ],
-   [
-    "MD",
-    "Moldova"
-   ],
-   [
-    "MK",
-    "North Macedonia"
-   ],
-   [
-    "GE",
-    "Georgia"
-   ],
-   [
-    "AL",
-    "Albania"
-   ],
-   [
-    "RS",
-    "Serbia"
-   ],
-   [
-    "TR",
-    "Türkiye"
-   ],
-   [
-    "UA",
-    "Ukraine"
-   ],
-   [
-    "XK",
-    "Kosovo*"
-   ],
-   [
-    "EUR_C_E",
-    "Central and Eastern Europe"
-   ],
-   [
-    "AD",
-    "Andorra"
-   ],
-   [
-    "BY",
-    "Belarus"
-   ]
-  ],
-  "geo": [
-   [
-    "BG",
-    "Bulgaria"
-   ]
-  ],
-  "time": [
-   [
-    "2022",
-    "2022"
-   ],
-   [
-    "2023",
-    "2023"
-   ],
-   [
-    "2024",
-    "2024"
-   ],
-   [
-    "2025",
-    "2025"
-   ]
-  ]
+  },
+  "n": 104
  },
- "bop_fdi6_ind": {
-  "freq": [
-   [
-    "A",
-    "Annual"
+ "bop_fdi6_flow?geo=BG&currency=MIO_EUR&fdi_item=DI__D__F&partner=WRL_REST&time=2024": {
+  "dims": {
+   "freq": [
+    [
+     "A",
+     "Annual"
+    ]
+   ],
+   "currency": [
+    [
+     "MIO_EUR",
+     "Million euro"
+    ]
+   ],
+   "nace_r2": [
+    [
+     "TOTAL",
+     "Total - all NACE activities"
+    ],
+    [
+     "A",
+     "Agriculture, forestry and fishing"
+    ],
+    [
+     "B",
+     "Mining and quarrying"
+    ],
+    [
+     "B06_B09",
+     "Extraction of crude petroleum and natural gas; mining support service activities"
+    ],
+    [
+     "C",
+     "Manufacturing"
+    ],
+    [
+     "C10-C12",
+     "Manufacture of food products; beverages and tobacco products"
+    ],
+    [
+     "C_TXW",
+     "Manufacture of textiles, wearing apparel, wood and paper products; printing and reproduction"
+    ],
+    [
+     "C13_C14",
+     "Manufacture of textiles and wearing apparel"
+    ],
+    [
+     "C16-C18",
+     "Manufacture of wood, paper, printing and reproduction"
+    ],
+    [
+     "C19-C22",
+     "Manufacture of petroleum, chemical, pharmaceutical, rubber and plastic products"
+    ],
+    [
+     "C19",
+     "Manufacture of coke and refined petroleum products"
+    ],
+    [
+     "C20",
+     "Manufacture of chemicals and chemical products"
+    ],
+    [
+     "C21",
+     "Manufacture of basic pharmaceutical products and pharmaceutical preparations"
+    ],
+    [
+     "C22",
+     "Manufacture of rubber and plastic products"
+    ],
+    [
+     "C_MET",
+     "Manufacture of metal and machinery products, except electrical equipment"
+    ],
+    [
+     "C24_C25",
+     "Manufacture of basic metals and fabricated metal products, except machinery and equipment"
+    ],
+    [
+     "C26",
+     "Manufacture of computer, electronic and optical products"
+    ],
+    [
+     "C28",
+     "Manufacture of machinery and equipment n.e.c."
+    ],
+    [
+     "C29_C30",
+     "Manufacture of motor vehicles, trailers, semi-trailers and of other transport equipment"
+    ],
+    [
+     "C29",
+     "Manufacture of motor vehicles, trailers and semi-trailers"
+    ],
+    [
+     "C30",
+     "Manufacture of other transport equipment"
+    ],
+    [
+     "C303",
+     "Manufacture of air and spacecraft and related machinery"
+    ],
+    [
+     "C_OTH",
+     "Other manufacturing (C15, C23, C27, C31, C32, C33)"
+    ],
+    [
+     "D35",
+     "Electricity, gas, steam and air conditioning supply"
+    ],
+    [
+     "E",
+     "Water supply; sewerage, waste management and remediation activities"
+    ],
+    [
+     "E36",
+     "Water collection, treatment and supply"
+    ],
+    [
+     "E37-E39",
+     "Sewerage, waste management, remediation activities"
+    ],
+    [
+     "F",
+     "Construction"
+    ],
+    [
+     "G-U",
+     "Services"
+    ],
+    [
+     "G",
+     "Wholesale and retail trade; repair of motor vehicles and motorcycles"
+    ],
+    [
+     "G45",
+     "Wholesale and retail trade and repair of motor vehicles and motorcycles"
+    ],
+    [
+     "G46",
+     "Wholesale trade, except of motor vehicles and motorcycles"
+    ],
+    [
+     "G47",
+     "Retail trade, except of motor vehicles and motorcycles"
+    ],
+    [
+     "H",
+     "Transportation and storage"
+    ],
+    [
+     "H_X_H53",
+     "Transportation and storage except postal and courier activities"
+    ],
+    [
+     "H49",
+     "Land transport and transport via pipelines"
+    ],
+    [
+     "H50",
+     "Water transport"
+    ],
+    [
+     "H51",
+     "Air transport"
+    ],
+    [
+     "H52",
+     "Warehousing and support activities for transportation"
+    ],
+    [
+     "H53",
+     "Postal and courier activities"
+    ],
+    [
+     "I",
+     "Accommodation and food service activities"
+    ],
+    [
+     "J",
+     "Information and communication"
+    ],
+    [
+     "J58_J62_J63",
+     "Publishing, computer programming and consultancy, information service activities"
+    ],
+    [
+     "J59_J60",
+     "Motion picture, video, television programme production; programming and broadcasting activities"
+    ],
+    [
+     "J61",
+     "Telecommunications"
+    ],
+    [
+     "K",
+     "Financial and insurance activities"
+    ],
+    [
+     "K64",
+     "Financial service activities, except insurance and pension funding"
+    ],
+    [
+     "K642",
+     "Activities of holding companies"
+    ],
+    [
+     "K65",
+     "Insurance, reinsurance and pension funding, except compulsory social security"
+    ],
+    [
+     "K66",
+     "Activities auxiliary to financial services and insurance activities"
+    ],
+    [
+     "L",
+     "Real estate activities"
+    ],
+    [
+     "M",
+     "Professional, scientific and technical activities"
+    ],
+    [
+     "M69",
+     "Legal and accounting activities"
+    ],
+    [
+     "M691",
+     "Legal activities"
+    ],
+    [
+     "M692",
+     "Accounting, bookkeeping and auditing activities; tax consultancy"
+    ],
+    [
+     "M70",
+     "Activities of head offices; management consultancy activities"
+    ],
+    [
+     "M701",
+     "Activities of head offices"
+    ],
+    [
+     "M702",
+     "Management consultancy activities"
+    ],
+    [
+     "M71",
+     "Architectural and engineering activities; technical testing and analysis"
+    ],
+    [
+     "M72",
+     "Scientific research and development"
+    ],
+    [
+     "M73",
+     "Advertising and market research"
+    ],
+    [
+     "M731",
+     "Advertising"
+    ],
+    [
+     "M732",
+     "Market research and public opinion polling"
+    ],
+    [
+     "M74_M75",
+     "Other professional, scientific and technical activities; veterinary activities"
+    ],
+    [
+     "N",
+     "Administrative and support service activities"
+    ],
+    [
+     "N77",
+     "Rental and leasing activities"
+    ],
+    [
+     "N78-N82",
+     "Employment, travel agency, security and investigation, service and landscape, office administrative and support activities"
+    ],
+    [
+     "N79",
+     "Travel agency, tour operator and other reservation service and related activities"
+    ],
+    [
+     "O_T_U",
+     "Public administration; activities of households and of extraterritorial organisations"
+    ],
+    [
+     "P85",
+     "Education"
+    ],
+    [
+     "Q",
+     "Human health and social work activities"
+    ],
+    [
+     "R",
+     "Arts, entertainment and recreation"
+    ],
+    [
+     "R90",
+     "Creative, arts and entertainment activities"
+    ],
+    [
+     "R91",
+     "Libraries, archives, museums and other cultural activities"
+    ],
+    [
+     "R92_R93",
+     "Gambling and betting activities; sporting and other recreational activities"
+    ],
+    [
+     "S",
+     "Other service activities"
+    ],
+    [
+     "S94",
+     "Activities of membership organisations"
+    ],
+    [
+     "S95_S96",
+     "Repair of computers, personal and household goods; other personal service activities"
+    ],
+    [
+     "PRV_RE",
+     "Private real estate activities"
+    ],
+    [
+     "FDI",
+     "All FDI activities"
+    ]
+   ],
+   "stk_flow": [
+    [
+     "ASS",
+     "Assets"
+    ],
+    [
+     "LIAB",
+     "Liabilities"
+    ],
+    [
+     "NI",
+     "Net FDI inward"
+    ],
+    [
+     "NO",
+     "Net FDI outward"
+    ]
+   ],
+   "entity": [
+    [
+     "TOTAL",
+     "Total"
+    ],
+    [
+     "SPE",
+     "Special purpose entities"
+    ]
+   ],
+   "fdi_item": [
+    [
+     "DI__D__F",
+     "Direct investment in the reporting economy (DIRE)"
+    ]
+   ],
+   "partner": [
+    [
+     "WRL_REST",
+     "Rest of the world"
+    ]
+   ],
+   "geo": [
+    [
+     "BG",
+     "Bulgaria"
+    ]
+   ],
+   "time": [
+    [
+     "2024",
+     "2024"
+    ]
    ]
-  ],
-  "entity": [
-   [
-    "TOTAL",
-    "Total"
-   ],
-   [
-    "NSPE",
-    "Non-special purpose entities (or operating units)"
-   ]
-  ],
-  "indic_bp": [
-   [
-    "FGDP",
-    "GDP (flows in % of GDP)"
-   ],
-   [
-    "SGDP",
-    "GDP (stocks in % of GDP)"
-   ],
-   [
-    "IPOS",
-    "Rate of return on direct investment (FDI income/FDI stocks)"
-   ],
-   [
-    "PCPOS",
-    "FDI stocks (in % of extra EU FDI stocks)"
-   ],
-   [
-    "TIFDI",
-    "Market integration - foreign direct investment intensity - average value of inward and outward foreign direct investment flows divided by GDP, multiplied by 100"
-   ]
-  ],
-  "fdi_item": [
-   [
-    "DO__D__F",
-    "Direct investment abroad (DIA)"
-   ],
-   [
-    "DI__D__F",
-    "Direct investment in the reporting economy (DIRE)"
-   ],
-   [
-    "NAP",
-    "Not applicable"
-   ]
-  ],
-  "partner": [
-   [
-    "CH",
-    "Switzerland"
-   ],
-   [
-    "UK",
-    "United Kingdom"
-   ],
-   [
-    "RU",
-    "Russia"
-   ],
-   [
-    "EXT_EU27_2020",
-    "Extra-EU27 (from 2020)"
-   ],
-   [
-    "EXT_EU28",
-    "Extra-EU28 (2013-2020)"
-   ],
-   [
-    "CA",
-    "Canada"
-   ],
-   [
-    "US",
-    "United States"
-   ],
-   [
-    "BR",
-    "Brazil"
-   ],
-   [
-    "CN_X_HK",
-    "China except Hong Kong"
-   ],
-   [
-    "HK",
-    "Hong Kong"
-   ],
-   [
-    "JP",
-    "Japan"
-   ],
-   [
-    "IN",
-    "India"
-   ],
-   [
-    "WRL_REST",
-    "Rest of the world"
-   ]
-  ],
-  "geo": [
-   [
-    "BG",
-    "Bulgaria"
-   ]
-  ],
-  "time": [
-   [
-    "2022",
-    "2022"
-   ],
-   [
-    "2023",
-    "2023"
-   ],
-   [
-    "2024",
-    "2024"
-   ],
-   [
-    "2025",
-    "2025"
-   ]
-  ]
+  },
+  "n": 104
  },
- "bop_fdi6_pos": {
-  "status": 413,
-  "body": "{\"error\":[{\"status\":413,\"id\":413,\"label\":\"EXTRACTION_TOO_BIG: The requested extraction is too big, estimated 31933440 rows, max authorised is 5000000, please change your filters to reduce the extraction size\"}]}"
- },
- "bop_fdi6_flow": {
-  "status": 413,
-  "body": "{\"error\":[{\"status\":413,\"id\":413,\"label\":\"EXTRACTION_TOO_BIG: The requested extraction is too big, estimated 17392320 rows, max authorised is 5000000, please change your filters to reduce the extraction size\"}]}"
- },
- "tec00046": {
-  "status": 404,
-  "body": "{\"error\":[{\"status\":404,\"id\":100,\"label\":\"ERR_NOT_FOUND_4: TEC00046 (DATA_FLOW:ALL,1.0) is not available for dissemination.\"}]}"
- },
- "tec00047": {
-  "status": 404,
-  "body": "{\"error\":[{\"status\":404,\"id\":100,\"label\":\"ERR_NOT_FOUND_4: TEC00047 (DATA_FLOW:ALL,1.0) is not available for dissemination.\"}]}"
+ "bop_fdi6_geo?geo=BG&fdi_item=DI__D__F&indic_bp=STOCKS&partner=WRL_REST": {
+  "dims": {
+   "freq": [
+    [
+     "A",
+     "Annual"
+    ]
+   ],
+   "currency": [
+    [
+     "MIO_EUR",
+     "Million euro"
+    ]
+   ],
+   "indic_bp": [
+    [
+     "STOCKS",
+     "Direct investment stocks - million ECU/EUR"
+    ]
+   ],
+   "fdi_item": [
+    [
+     "DI__D__F",
+     "Direct investment in the reporting economy (DIRE)"
+    ]
+   ],
+   "partner": [
+    [
+     "WRL_REST",
+     "Rest of the world"
+    ]
+   ],
+   "geo": [
+    [
+     "BG",
+     "Bulgaria"
+    ]
+   ],
+   "time": [
+    [
+     "2007",
+     "2007"
+    ],
+    [
+     "2008",
+     "2008"
+    ],
+    [
+     "2009",
+     "2009"
+    ],
+    [
+     "2010",
+     "2010"
+    ],
+    [
+     "2011",
+     "2011"
+    ],
+    [
+     "2012",
+     "2012"
+    ],
+    [
+     "2013",
+     "2013"
+    ],
+    [
+     "2014",
+     "2014"
+    ],
+    [
+     "2015",
+     "2015"
+    ],
+    [
+     "2016",
+     "2016"
+    ],
+    [
+     "2017",
+     "2017"
+    ],
+    [
+     "2018",
+     "2018"
+    ],
+    [
+     "2019",
+     "2019"
+    ],
+    [
+     "2020",
+     "2020"
+    ],
+    [
+     "2021",
+     "2021"
+    ],
+    [
+     "2022",
+     "2022"
+    ],
+    [
+     "2023",
+     "2023"
+    ],
+    [
+     "2024",
+     "2024"
+    ],
+    [
+     "2025",
+     "2025"
+    ]
+   ]
+  },
+  "n": 13
  }
 }
