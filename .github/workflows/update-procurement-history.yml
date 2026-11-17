@@ -1,0 +1,39 @@
+name: История на поръчките
+
+# Внася по-старите договори и анекси назад във времето (по 120 дни на пускане), докато стигне HISTORY_FROM.
+# Когато историята е внесена, пусканията приключват за секунди.
+on:
+  schedule:
+    - cron: "47 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "До коя дата назад (ГГГГ-ММ-ДД)"
+        default: "2023-01-01"
+
+concurrency:
+  group: procurement
+  cancel-in-progress: false
+
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: По-стари договори и анекси от ЦАИС ЕОП
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          HISTORY: "1"
+          HISTORY_FROM: ${{ github.event.inputs.from || '2023-01-01' }}
+          MAX_DAYS: "120"
+        run: node scripts/import-procurement.mjs
+      - name: Къде се намира всеки възложител
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/build-buyers.mjs

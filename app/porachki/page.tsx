@@ -156,7 +156,7 @@ async function Content({ searchParams }: { searchParams: Promise<SP> }) {
       {stat && (
         <section className="mb-12">
           <Kpis items={[
-            ["Договори от 2025 г.", stat.contracts.toLocaleString("bg-BG")],
+            ["Договори в базата", stat.contracts.toLocaleString("bg-BG")],
             ["Обща стойност", fmtEur(stat.total_eur)],
             ["С една оферта", pctOf(stat.single_offer, stat.contracts), `${stat.single_offer} договора без конкуренция`],
             ["Възложители", stat.buyers != null ? String(stat.buyers) : "—", "общини, училища, болници и др."],

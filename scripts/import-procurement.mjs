@@ -141,8 +141,13 @@ async function upsert(table, rows) {
   return unique.length;
 }
 
+// HISTORY=1: внася по-старите години назад във времето, по MAX_DAYS дни на пускане,
+// до HISTORY_FROM (по подразбиране 2023-01-01; ЦАИС ЕОП работи от 2020 г.). Пази отделно състояние „eop_history“.
+const HISTORY = process.env.HISTORY === "1";
+const HISTORY_FROM = process.env.HISTORY_FROM ?? "2023-01-01";
+const FEED = HISTORY ? "eop_history" : "eop";
 async function getState() {
-  const res = await fetch(`${URL_}/rest/v1/proc_import_state?feed=eq.eop&select=last_day`, { headers: HEAD });
+  const res = await fetch(`${URL_}/rest/v1/proc_import_state?feed=eq.${FEED}&select=last_day`, { headers: HEAD });
   if (!res.ok) throw new Error(`state: HTTP ${res.status} ${await res.text()}`);
   return (await res.json())[0]?.last_day ?? null;
 }
@@ -150,7 +155,7 @@ async function setState(day) {
   const res = await fetch(`${URL_}/rest/v1/proc_import_state?on_conflict=feed`, {
     method: "POST",
     headers: { ...HEAD, Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify([{ feed: "eop", last_day: day, updated_at: new Date().toISOString() }]),
+    body: JSON.stringify([{ feed: FEED, last_day: day, updated_at: new Date().toISOString() }]),
   });
   if (!res.ok) throw new Error(`state: HTTP ${res.status} ${await res.text()}`);
 }
@@ -160,6 +165,21 @@ const yesterday = addDays(new Date().toISOString().slice(0, 10), -1);
 
 let [from, to] = process.argv.slice(2);
 const manual = Boolean(from);
+if (HISTORY && !manual) {
+  // Назад: от деня преди най-ранния внесен до HISTORY_FROM, най-много MAX_DAYS дни.
+  const earliest = (await getState()) ?? START;
+  let d = addDays(earliest, -1), n = 0, c0 = 0, a0 = 0;
+  while (d >= HISTORY_FROM && n < MAX_DAYS) {
+    const [c, a] = await Promise.all([fetchDay("договори", d), fetchDay("анекси", d)]);
+    c0 += await upsert("proc_contracts", c.map(contractRow));
+    a0 += await upsert("proc_annexes", a.map(annexRow));
+    await setState(d);
+    if (n % 20 === 0) console.log(`${d}: ${c.length} договора, ${a.length} анекса`);
+    d = addDays(d, -1); n++;
+  }
+  console.log(`История: ${n} дни, ${c0} договора, ${a0} анекса. Най-ранен ден: ${addDays(d, 1)}`);
+  process.exit(0);
+}
 if (!from) {
   const last = await getState();
   from = last ? addDays(last, 1) : START;
