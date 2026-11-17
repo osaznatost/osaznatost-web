@@ -63,9 +63,9 @@ export default function Sankcii() {
         <SectionTitle>Обвинения и присъди в България</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Политици и високопоставени лица с обвинения или присъди, само по съобщения на прокуратурата и съдилищата или медии, които ги цитират. Нивото е най-важното: обвинението не е доказателство за вина.</p>
         <ul className="flex flex-wrap gap-3 mb-5 text-sm">{Object.entries(CASES.levels).map(([k, l]) => <li key={k} className="bg-surface rounded-sm px-3 py-2 max-w-xs"><b>{l.label}</b>: {l.about}</li>)}</ul>
-        <ul className="grid gap-4 lg:grid-cols-2">{[...CASES.cases].sort((a, b) => ["conviction", "nonfinal", "trial", "charged"].indexOf(a.level) - ["conviction", "nonfinal", "trial", "charged"].indexOf(b.level)).map((c) => (
+        <ul className="grid gap-4 lg:grid-cols-2">{[...CASES.cases].sort((a, b) => ["conviction", "nonfinal", "trial", "charged", "acquitted"].indexOf(a.level) - ["conviction", "nonfinal", "trial", "charged", "acquitted"].indexOf(b.level)).map((c) => (
           <li key={c.person} className="ring-1 ring-rule rounded-sm p-5 bg-white">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${c.level === "conviction" ? "bg-red text-white" : c.level === "nonfinal" ? "bg-[#e08a2e] text-white" : "bg-surface"}`}>{CASES.levels[c.level as keyof typeof CASES.levels].label}</span>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${c.level === "conviction" ? "bg-red text-white" : c.level === "nonfinal" ? "bg-[#e08a2e] text-white" : c.level === "acquitted" ? "bg-[#2f9e6a] text-white" : "bg-surface"}`}>{CASES.levels[c.level as keyof typeof CASES.levels].label}</span>
             <p className="font-semibold text-lg mt-2">{c.person}</p>
             <p className="text-sm text-muted">{c.role}</p>
             <p className="text-[15px] mt-2">{c.what}</p>
