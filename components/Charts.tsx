@@ -131,7 +131,12 @@ export function MultiLine({
       height,
       marginRight: endLabels ? Math.min(260, longest * 7.4) : 16,
       marginLeft: Math.max(...data.map((d) => Math.abs(d.value))) >= 10000 ? 62 : 44,
-      x: monthly ? { label: null, type: "utc" } : { tickFormat: "d", label: null },
+      x: monthly ? { label: null, type: "utc" } : (() => {
+        // Само цели години: при широк екран Plot иначе слага междинни деления (2016, 2016,5 → „2016, 2017, 2017“).
+        const ys = [...new Set(rows.map((d) => d.x as number))].sort((a, b) => a - b);
+        const step = Math.max(1, Math.ceil(ys.length / Math.max(4, Math.floor(width / 70))));
+        return { tickFormat: "d", label: null, ticks: ys.filter((_, i) => i % step === 0 || i === ys.length - 1) };
+      })(),
       y: { grid: true, label: yLabel ?? null, labelAnchor: "top", zero, tickFormat: (v: number) => v.toLocaleString("bg-BG") },
       color: { domain: names, range: colors, legend: !endLabels },
       marks: [
