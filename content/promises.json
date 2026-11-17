@@ -536,6 +536,100 @@
      ]
     }
    ]
+  },
+  {
+   "party": "GOV-B3",
+   "name": "Правителство „Борисов 3“ (ГЕРБ и Обединени патриоти)",
+   "term": "past",
+   "period": "4 май 2017 – 12 май 2021",
+   "role": "Коалиция на ГЕРБ и Обединените патриоти (ВМРО, НФСБ, Атака), с подкрепата на „Воля“. Мандатът приключи с изборите на 4 април 2021 г.",
+   "programme": [
+    {
+     "title": "Програма за управление 2017–2021 (Министерски съвет)",
+     "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2017-2021-Government_Programme-GERB_Patrioti.pdf"
+    },
+    {
+     "title": "Капитал: разходните обещания на коалицията (април 2017)",
+     "url": "https://www.capital.bg/politika_i_ikonomika/mnenia/2017/04/21/2956073_razhodniiat_populizum_na_novata_koaliciia/"
+    }
+   ],
+   "promises": [
+    {
+     "text": "Влизане в „чакалнята“ на еврозоната (ERM II) и в банковия съюз",
+     "area": "Еврозона",
+     "said": {
+      "who": "Програма за управление 2017–2021",
+      "when": "2017",
+      "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2017-2021-Government_Programme-GERB_Patrioti.pdf"
+     },
+     "status": "done",
+     "evidence": "На 10 юли 2020 г. левът е включен в ERM II при курс 1,95583 лв. за евро, а ЕЦБ установява тясно сътрудничество с БНБ (влизане в банковия съюз). Самото приемане на еврото става по-късно, от 1 януари 2026 г.",
+     "links": [
+      {
+       "title": "ЕЦБ: съобщение за България, 10 юли 2020",
+       "url": "https://www.ecb.europa.eu/press/pr/date/2020/html/ecb.pr200710~4aa5e3565a.en.html"
+      },
+      {
+       "title": "ЕЦБ: тясно сътрудничество с БНБ",
+       "url": "https://www.bankingsupervision.europa.eu/press/pr/date/2020/html/ssm.pr200710~ae2abe1f23.en.html"
+      }
+     ],
+     "timeline": [
+      {
+       "date": "29 юни 2018",
+       "what": "България изпраща писмо за намерение с мерки преди ERM II (банков надзор, несъстоятелност, държавни фирми)."
+      },
+      {
+       "date": "10 юли 2020",
+       "what": "Левът влиза в ERM II, БНБ влиза в банковия съюз.",
+       "url": "https://www.ecb.europa.eu/press/pr/date/2020/html/ecb.pr200710~4aa5e3565a.en.html"
+      }
+     ]
+    },
+    {
+     "text": "Минимална работна заплата 650 лв. до края на мандата",
+     "area": "Доходи",
+     "said": {
+      "who": "Министърът на финансите Владислав Горанов",
+      "when": "август 2017",
+      "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2017/08/20/3027475_durjavata_shte_opredeli_osiguritelnite_pragove_ako/"
+     },
+     "status": "done",
+     "evidence": "Минималната заплата е 460 лв. през 2017 г. и става 650 лв. от 1 януари 2021 г. (332 € по фиксирания курс), по данните на Евростат.",
+     "links": [
+      {
+       "title": "Минималната заплата през годините",
+       "url": "/statistiki/min_wage"
+      }
+     ]
+    },
+    {
+     "text": "Средна заплата 1500 лв. в края на мандата",
+     "area": "Доходи",
+     "said": {
+      "who": "Програмата на ГЕРБ и Обединените патриоти",
+      "when": "април 2017",
+      "url": "https://www.capital.bg/politika_i_ikonomika/mnenia/2017/04/21/2956073_razhodniiat_populizum_na_novata_koaliciia/"
+     },
+     "status": "done",
+     "evidence": "По НСИ средната брутна заплата е около 1000 лв. при обещанието. За март 2021 г. е 1500 лв., а средно за първото тримесечие на 2021 г. е 1462 лв. Част от скока в края на мандата може да идва от пандемията: когато най-нископлатените губят работа, средното се вдига, без никой да получава повече.",
+     "note": "Целта е постигната на месечна база в последните седмици на мандата.",
+     "links": [
+      {
+       "title": "НСИ: заети и заплати, II тримесечие 2021 (1525 лв.)",
+       "url": "https://www.nsi.bg/file/23352/EmplsSalary2021q2_07PI42S.pdf"
+      },
+      {
+       "title": "НСИ: първо тримесечие 2021 (1462 лв. средно за страната)",
+       "url": "https://www.nsi.bg/tsb/wp-content/uploads/2021/05/SRZ-I-2021-brgs.pdf"
+      },
+      {
+       "title": "НСИ: март 2021 г. (1500 лв.)",
+       "url": "https://www.nsi.bg/tsb/wp-content/uploads/2021/05/19_Trud_I_trim_2021.pdf"
+      }
+     ]
+    }
+   ]
   }
  ]
 }
