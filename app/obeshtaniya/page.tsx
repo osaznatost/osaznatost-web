@@ -3,7 +3,7 @@ import raw from "@/content/promises.json";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { formatDate } from "@/lib/parliament";
 
-type Status = "kept" | "in_progress" | "not_met" | "broken" | "not_assessed";
+type Status = "kept" | "in_progress" | "at_risk" | "not_met" | "broken" | "not_assessed";
 type Promise_ = {
   text: string; area: string; said: { who: string; when: string; url: string }; status: Status;
   evidence: string; links: { title: string; url: string }[];
@@ -13,11 +13,12 @@ const data = raw as { updated: string; parties: { party: string; name: string; r
 const STATUS: Record<Status, { label: string; color: string; text: string }> = {
   kept: { label: "Спазено досега", color: "#2f9e6a", text: "#fff" },
   in_progress: { label: "В процес", color: "#e2b33b", text: "#16201b" },
+  at_risk: { label: "Под въпрос", color: "#e08a2e", text: "#16201b" },
   not_met: { label: "Засега не е изпълнено", color: "#d2353f", text: "#fff" },
   broken: { label: "Нарушено", color: "#7a1e26", text: "#fff" },
   not_assessed: { label: "Още не е проверено", color: "#cfd8d2", text: "#16201b" },
 };
-const ORDER: Status[] = ["kept", "in_progress", "not_met", "broken", "not_assessed"];
+const ORDER: Status[] = ["kept", "in_progress", "at_risk", "not_met", "broken", "not_assessed"];
 
 export const metadata = { title: "Обещано и изпълнено" };
 
@@ -83,6 +84,7 @@ export default function Obeshtaniya() {
         <ul className="list-disc pl-5 space-y-1">
           <li><b>Спазено досега</b>: няма действие срещу обещанието и има поне един документ, който го потвърждава.</li>
           <li><b>В процес</b>: има внесен или приет акт, но резултатът още не е постигнат.</li>
+          <li><b>Под въпрос</b>: обещанието се спазва досега, но има официално предложение, което би го нарушило.</li>
           <li><b>Засега не е изпълнено</b>: официалните данни показват обратното на обещаното за текущия период.</li>
           <li><b>Нарушено</b>: управляващите са приели решение, което прави обещанието неизпълнимо.</li>
           <li>Започваме с управляващата партия, защото тя има властта да изпълни обещанията си. Следват опозиционните партии: как гласуват спрямо това, което са заявили.</li>

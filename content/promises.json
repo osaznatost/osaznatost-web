@@ -6,84 +6,156 @@
       "name": "Прогресивна България",
       "role": "Управляваща партия с мнозинство в 52-рото Народно събрание. Правителство „Радев“ от 8 май 2026 г.",
       "programme": [
-        { "title": "Предизборна програма, представена на 18–19 март 2026 г. (обзор в Капитал)", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
-        { "title": "Програма за управление 2026–2030, приета на 12 август 2026 г.", "url": "https://www.capital.bg/en/politics_and_society/2026/08/13/4945180_bulgarian_government_unveils_ambitious_plans_through/" }
+        {
+          "title": "Предизборна програма, представена на 18–19 март 2026 г. (обзор в Капитал)",
+          "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+        },
+        {
+          "title": "Програма за управление 2026–2030, приета на 12 август 2026 г.",
+          "url": "https://www.capital.bg/en/politics_and_society/2026/08/13/4945180_bulgarian_government_unveils_ambitious_plans_through/"
+        }
       ],
       "promises": [
         {
           "text": "Смяна на Висшия съдебен съвет и избор на нов главен прокурор",
           "area": "Правосъдие",
-          "said": { "who": "Румен Радев", "when": "март 2026", "url": "https://www.bta.bg/bg/videos/35283" },
+          "said": {
+            "who": "Румен Радев",
+            "when": "март 2026",
+            "url": "https://www.bta.bg/bg/videos/35283"
+          },
           "status": "in_progress",
           "evidence": "Законът за съдебната власт е променен (ДВ бр. 60 от 1 юли 2026 г.). ВСС организира избор на членове от квотата на съдии, прокурори и следователи през октомври 2026 г. Нов главен прокурор още няма.",
           "links": [
-            { "title": "Гласуванията по Закона за съдебната власт", "url": "/parlament/zakon/sadebnata-vlast" },
-            { "title": "ВСС: правила за избор на членове (2026)", "url": "https://vss.justice.bg/root/f/upload/49/2026_Pravila_izbor_chlenove.pdf" }
+            {
+              "title": "Гласуванията по Закона за съдебната власт",
+              "url": "/parlament/zakon/sadebnata-vlast"
+            },
+            {
+              "title": "ВСС: правила за избор на членове (2026)",
+              "url": "https://vss.justice.bg/root/f/upload/49/2026_Pravila_izbor_chlenove.pdf"
+            }
           ]
         },
         {
           "text": "Публичните разходи да се върнат до 40% от БВП",
           "area": "Публични финанси",
-          "said": { "who": "Предизборна програма", "when": "март 2026", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
           "status": "not_met",
           "evidence": "Бюджетът за 2026 г. предвижда разходи около 56,8 млрд. €, приблизително 45% от БВП. Целта не е изпълнена за 2026 г. Ще проверим отново с бюджета за 2027 г.",
           "links": [
-            { "title": "Бюджет 2026: обяснение и гласувания", "url": "/parlament/zakon/darzhavniya-byudzhet-na-republika-balgariya-za-2026-g" }
+            {
+              "title": "Бюджет 2026: обяснение и гласувания",
+              "url": "/parlament/zakon/darzhavniya-byudzhet-na-republika-balgariya-za-2026-g"
+            }
           ]
         },
         {
           "text": "Ограничаване на дефицита и устойчив дълг",
           "area": "Публични финанси",
-          "said": { "who": "Предизборна програма", "when": "март 2026", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
           "status": "not_met",
           "evidence": "Бюджетът за 2026 г. е с дефицит 5,7% от БВП (касово), най-високият от 20 години, и позволява до 10,1 млрд. € нов дълг. Правителството планира спад до 3,8% през 2027 г. Дългът е 29,9% от БВП през 2025 г.",
           "links": [
-            { "title": "Държавен дълг", "url": "/pari/dalg" },
-            { "title": "Проверка: два поста за дълга", "url": "/proverki/dalg-2026" }
+            {
+              "title": "Държавен дълг",
+              "url": "/pari/dalg"
+            },
+            {
+              "title": "Проверка: два поста за дълга",
+              "url": "/proverki/dalg-2026"
+            }
           ]
         },
         {
           "text": "Данъците да останат ниски и плоски",
           "area": "Данъци",
-          "said": { "who": "Предизборна програма", "when": "март 2026", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
-          "status": "kept",
-          "evidence": "Данъкът върху доходите и корпоративният данък остават 10%. Пенсионната вноска не е вдигната. Максималният осигурителен доход е вдигнат на 2 300 € от 1 август 2026 г.",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "at_risk",
+          "evidence": "През 2026 г. данъкът върху доходите и корпоративният данък остават 10%, а пенсионната вноска не е вдигната. За 2027 г. обаче Министерството на финансите предлага нов данък върху свръхпечалбата от 33% за банки, застрахователи, търговски вериги за храни с поне 5 обекта, телекоми, обменни бюра и фирми за бързи кредити, както и поетапно удвояване на данъчните оценки на имотите до 2029 г. Това са предложения, още не са приети.",
           "links": [
-            { "title": "Калкулатор: данъци по пътя", "url": "/kalkulatori/danaci" }
+            {
+              "title": "Калкулатор: данъци по пътя",
+              "url": "/kalkulatori/danaci"
+            },
+            {
+              "title": "CMS: данъчният пакет за 2027–2029 г.",
+              "url": "https://cms.law/en/bgr/legal-updates/bulgaria-announces-major-tax-reform-package-key-measures-for-2027-2029"
+            },
+            {
+              "title": "БТА: реакциите на опозицията",
+              "url": "https://www.bta.bg/en/news/1210785-gerb-slams-planned-tax-policy-for-2027"
+            }
           ]
         },
         {
           "text": "Административна реформа и по-малка администрация",
           "area": "Държавна администрация",
-          "said": { "who": "Румен Радев", "when": "2026", "url": "https://www.bta.bg/bg/videos/41110" },
+          "said": {
+            "who": "Румен Радев",
+            "when": "2026",
+            "url": "https://www.bta.bg/bg/videos/41110"
+          },
           "status": "in_progress",
           "evidence": "Проектобюджетът за 2027 г. предвижда съкращаване на над 5 000 щатни бройки. Самият премиер казва, че „по-трудната част“ е през 2027 г.",
           "links": [
-            { "title": "Капитал: бюджет 2027 (06.11.2026)", "url": "https://www.capital.bg/en/economy/2026/11/06/4977193_bulgarias_2027_budget_slight_spending_cuts_and_new/" }
+            {
+              "title": "Капитал: бюджет 2027 (06.11.2026)",
+              "url": "https://www.capital.bg/en/economy/2026/11/06/4977193_bulgarias_2027_budget_slight_spending_cuts_and_new/"
+            }
           ]
         },
         {
           "text": "Забрана законите да се променят със задна дата",
           "area": "Бизнес среда",
-          "said": { "who": "Предизборна програма", "when": "март 2026", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
           "status": "not_assessed",
-          "evidence": "Още не сме проверили дали има внесен такъв текст.",
-          "links": []
+          "evidence": "Не открихме внесен общ текст за такава забрана. Конституционният съд отмени две разпоредби от бюджета за 2026 г. (за трудовия стаж при непълно работно време и за възнагражденията на младшите магистрати), но не заради обратно действие.",
+          "links": [
+            {
+              "title": "Капитал: КС отмени промените за почасовия труд (22.10.2026)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/danaci-osiguriavane/2026/10/22/4969795_upravliavashtite_shte_vnesat_otnovo_promenite_za/"
+            }
+          ]
         },
         {
           "text": "Единен портал за разрешителни и принцип на „мълчаливото съгласие“",
           "area": "Бизнес среда",
-          "said": { "who": "Предизборна програма", "when": "март 2026", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
           "status": "not_assessed",
-          "evidence": "Още не сме проверили.",
+          "evidence": "При проверката не открихме внесен законопроект или решение на Министерския съвет. Проверката продължава.",
           "links": []
         },
         {
           "text": "Национална енергийна стратегия до 2050 г.",
           "area": "Енергетика",
-          "said": { "who": "Предизборна програма", "when": "март 2026", "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/" },
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
           "status": "not_assessed",
-          "evidence": "Още не сме проверили.",
+          "evidence": "При проверката не открихме приета стратегия до 17.11.2026 г. Ще оценим, когато има официален документ или изтече разумен срок.",
           "links": []
         }
       ]
