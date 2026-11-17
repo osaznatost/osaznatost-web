@@ -78,10 +78,12 @@ export default function Home() {
           <p className="mt-3"><Link href="/proverki/dalg-2026">Прочетете проверката →</Link></p>
         </div>
         <div>
+          <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Парламент</h2>
+          <p className="text-muted mb-3">Всички поименни гласувания на 52-рото Народно събрание: кой как гласува, колко присъстват групите и с кого гласуват еднакво.</p>
+          <p className="mb-8"><Link href="/parlament">Вижте гласуванията →</Link></p>
           <h2 className="text-xl font-bold border-b border-ink pb-2 mb-4">Скоро</h2>
           <ul className="space-y-2 text-muted">
-            <li><span className="text-ink font-semibold">Парламент</span>: всяко гласуване и кой как е гласувал</li>
-            <li><span className="text-ink font-semibold">Обещания</span>: обещано срещу изпълнено, по партии</li>
+                        <li><span className="text-ink font-semibold">Обещания</span>: обещано срещу изпълнено, по партии</li>
             <li><span className="text-ink font-semibold">Поръчки</span>: кой печели обществените пари и кой стои зад фирмата</li>
             <li><span className="text-ink font-semibold">Статистики</span>: всичко за България, с история и сравнение с ЕС</li>
           </ul>
