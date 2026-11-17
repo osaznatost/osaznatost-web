@@ -45,7 +45,7 @@ const SERIES = [
   { id: "exports", ds: "nama_10_gdp", filter: { na_item: "P6", unit: "PC_GDP", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "consumption_growth", ds: "nama_10_gdp", filter: { na_item: "P31_S14", unit: "CLV_PCH_PRE", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "inflation_monthly", ds: "prc_hicp_manr", filter: { coicop: "CP00", geo: ["BG", "EU27_2020"], sinceTimePeriod: "2022-01" }, by: "geo" },
-  { id: "inflation_monthly_2026", ds: "prc_hicp_minr", filter: { coicop18: "CP00", unit: "RCH_A", geo: ["BG", "EU27_2020"], sinceTimePeriod: "2025-01" }, by: "geo" },
+  { id: "inflation_monthly_2026", ds: "prc_hicp_minr", filter: { coicop18: "TOTAL", unit: "RCH_A", geo: ["BG", "EU27_2020"], sinceTimePeriod: "2025-01" }, by: "geo" },
   // Труд
   { id: "employment_rate", ds: "lfsi_emp_a", filter: { indic_em: "EMP_LFS", age: "Y20-64", sex: "T", unit: "PC_POP", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "youth_unemployment", ds: "une_rt_a", filter: { age: "Y15-24", sex: "T", unit: "PC_ACT", geo: ["BG", "EU27_2020"] }, by: "geo" },
@@ -65,7 +65,7 @@ const SERIES = [
   // Здраве, безопасност, общество, околна среда
   { id: "doctors", ds: "tps00044", filter: { geo: ["BG", "EU27_2020", "RO", "GR"] }, by: "geo" },
   { id: "road_deaths", ds: "sdg_11_40", filter: { unit: "RT", tra_infr: "TOTAL", geo: ["BG", "EU27_2020", "RO"] }, by: "geo" },
-  { id: "internet_use", ds: "isoc_ci_ifp_iu", filter: { indic_is: "I_IUSE", ind_type: "IND_TOTAL", unit: "PC_IND", geo: ["BG", "EU27_2020"] }, by: "geo" },
+  { id: "internet_use", ds: "isoc_ci_ifp_iu", filter: { indic_is: "I_ILT12", ind_type: "IND_TOTAL", unit: "PC_IND", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "renewables", ds: "nrg_ind_ren", filter: { nrg_bal: "REN", unit: "PC", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "emissions", ds: "sdg_13_10", filter: { unit: "I90", src_crf: "TOTXMEMO", geo: ["BG", "EU27_2020"] }, by: "geo" },
 ];
