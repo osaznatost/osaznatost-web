@@ -1,8 +1,8 @@
 {
  "from": "2026-11-18",
  "to": "2026-11-20",
- "status": "Проект за програма на Народното събрание. Предстои да бъде гласувана.",
- "approved": false,
+ "status": "",
+ "approved": true,
  "kind": "редовно",
  "time": [
   "09:00",
@@ -184,6 +184,6 @@
    "acts": []
   }
  ],
- "fetched": "2026-11-18T00:59:53.866Z",
+ "fetched": "2026-11-18T16:17:06.611Z",
  "source": "https://www.parliament.bg/bg/plenaryprogram"
 }
