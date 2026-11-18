@@ -207,7 +207,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         <p className="text-sm text-muted mt-3">Доверие и одобрение: социологическите агенции публикуват доверие само към лидерите, не към всеки депутат. Където има данни, ще ги добавим с източник.</p>
       </section>
 
-      <div className="grid gap-5 sm:grid-cols-3 mb-12">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 mb-12 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
         <KeyNumber label="Присъствие" value={s.eligible ? pct(s.present / s.eligible, 0) : "—"} note={`гласувал в ${num(s.present, 0)} от ${num(s.eligible, 0)} гласувания`} />
         <KeyNumber label="Срещу собствената група" value={num(s.against, 0)} note={s.present ? `${pct(s.against / s.present, 1)} от гласуванията, в които е участвал` : ""} />
         <KeyNumber label="Период" value={s.eligible ? `${num(s.eligible, 0)}` : "—"} note="гласувания, докато е депутат" />

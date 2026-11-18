@@ -10,7 +10,7 @@ export type VoteRow = {
 };
 
 const POS: Record<string, string> = { y: "За", n: "Против", a: "Въздържал се", split: "Разделени", absent: "Отсъства" };
-const PAGE = 40;
+const PAGE = 20;
 
 export function VoteList({ rows, parties, topics }: { rows: VoteRow[]; parties: { id: string; name: string }[]; topics: Record<string, string> }) {
   const [q, setQ] = useState("");

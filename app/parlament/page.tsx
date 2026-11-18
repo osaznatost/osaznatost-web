@@ -6,6 +6,7 @@ import { Hemicycle } from "@/components/Hemicycle";
 import { PartyBadge } from "@/components/PartyBadge";
 import { partyByGroup } from "@/lib/partyMeta";
 import { RecentSittings, Upcoming, WeekProgram } from "./Recent";
+import { SectionNav } from "@/components/SectionNav";
 
 export const metadata = { title: "Парламент" };
 
@@ -29,7 +30,7 @@ export default function Parlament() {
         Парламент
       </Title>
 
-      <div className="grid gap-5 sm:grid-cols-3 mb-12">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 mb-12 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
         <KeyNumber label="Гласувания" value={num(VOTES.length, 0)} note={`от ${formatDate(first)} до ${formatDate(last)}`} />
         <KeyNumber label="Отхвърлени предложения" value={num(rejected, 0)} note={`${pct(rejected / VOTES.length, 0)} от всички гласувания`} />
         <KeyNumber label="Депутати в периода" value={num(MPS.length, 0)} note="включително заместили други" />
@@ -39,11 +40,12 @@ export default function Parlament() {
         <p className="font-semibold text-lg">Сигнали: текстове, добавени на второ четене →</p>
         <p className="text-[15px] text-muted">Нови параграфи, особено в преходните и заключителните разпоредби, където често се променят други закони в полза на тесен кръг. Кой ги подкрепя.</p>
       </Link>
+      <SectionNav items={[["programa", "Седмицата"], ["zasedaniya", "Заседания"], ["predstoi", "Предстои"], ["grupi", "Групи"], ["vsichki", "Всички гласувания"]]} />
       <WeekProgram />
       <RecentSittings />
       <Upcoming />
 
-      <section className="mb-12">
+      <section id="grupi" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle right={<Link href="/parlament/partii">Подробно и сравнение</Link>}>Парламентарни групи</SectionTitle>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">
         <Hemicycle groups={currentSeats()} />
@@ -75,7 +77,7 @@ export default function Parlament() {
         <p className="text-xs text-muted mt-2">Полукръгът показва действащите депутати към последното гласуване. В таблицата броят е по последната известна група и включва заместници, затова сборът е над 240.</p>
       </section>
 
-      <section id="vsichki" className="scroll-mt-24">
+      <section id="vsichki" className="scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Всички гласувания</SectionTitle>
         <VoteList rows={rows} parties={PARTIES.map((p) => ({ id: p, name: partyName(p) }))} topics={TOPICS} />
       </section>

@@ -17,11 +17,11 @@ export const pctOf = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)
 
 export function Kpis({ items }: { items: [string, string, string?][] }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {items.map(([l, v, n]) => (
         <div key={l} className="bg-surface rounded-sm p-4">
           <p className="text-sm text-muted">{l}</p>
-          <p className="display num text-[2.3rem] mt-1 leading-none">{v}</p>
+          <p className="display num text-[1.75rem] sm:text-[2.3rem] mt-1 leading-none break-words">{v}</p>
           {n && <p className="text-sm mt-1">{n}</p>}
         </div>
       ))}

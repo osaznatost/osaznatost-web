@@ -37,10 +37,10 @@ export function KeyNumber({
   label, value, note, source, href,
 }: { label: string; value: string; note?: string; source?: { title: string; url: string }; href?: string }) {
   return (
-    <div className="bg-surface rounded-lg p-5 flex flex-col">
-      <p className="text-[15px] text-muted">{label}</p>
-      <p className="display num text-[3.4rem] mt-2 text-ink">{value}</p>
-      {note && <p className="text-[15px] mt-2">{note}</p>}
+    <div className="bg-surface rounded-lg p-4 sm:p-5 flex flex-col">
+      <p className="text-sm sm:text-[15px] text-muted">{label}</p>
+      <p className="display num text-[2rem] sm:text-[3.4rem] leading-none mt-2 break-words text-ink">{value}</p>
+      {note && <p className="text-sm sm:text-[15px] mt-2">{note}</p>}
       <div className="mt-auto pt-3 flex flex-wrap justify-between gap-2 text-sm">
         {source && <span className="text-muted">Източник: <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></span>}
         {href && <Link href={href} className="font-semibold">Виж повече</Link>}

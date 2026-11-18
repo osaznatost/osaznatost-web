@@ -21,7 +21,7 @@ export default function Dalg() {
         Държавен дълг
       </Title>
 
-      <div className="grid gap-5 sm:grid-cols-3 mb-12">
+      <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 mb-12 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
         <KeyNumber label="Дълг, 2025" value={`${num(last.value)}%`} note="от БВП, сектор „Държавно управление“" />
         <KeyNumber label="Промяна за 2025" value={`+${num(last.value - prev.value)} пр.п.`} note={`от ${num(prev.value)}% през 2024 · най-големият ръст от 2014 г.`} />
         <KeyNumber label="Праг по правилата на ЕС" value="60%" note="България остава сред страните с най-нисък дълг в ЕС" />
@@ -42,7 +42,7 @@ export default function Dalg() {
 
       <section className="mb-12">
         <SectionTitle>Какво е планирано</SectionTitle>
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 sm:grid-cols-3 [&>*:first-child]:col-span-2 sm:[&>*:first-child]:col-span-1">
           {plan.map((p) => (
             <KeyNumber key={p.label} label={p.label} value={p.value} note={p.note} source={{ title: "Капитал", url: p.src }} />
           ))}

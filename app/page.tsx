@@ -73,7 +73,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`grid gap-5 sm:grid-cols-2 ${b ? "lg:grid-cols-4" : "lg:grid-cols-3"} mt-10 mb-16`}>
+      <section className={`grid grid-cols-2 gap-3 sm:gap-5 ${b ? "lg:grid-cols-4" : "lg:grid-cols-3"} mt-10 mb-16`}>
         <KeyNumber
           label="Държавен дълг, 2025"
           value={`${num(d25.value)}%`}

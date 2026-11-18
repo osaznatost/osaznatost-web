@@ -15,7 +15,7 @@ const tally = (v: Vote) => {
 export function RecentSittings({ days = 3 }: { days?: number }) {
   const dates = [...new Set(VOTES.map((v) => v.date))].sort().reverse().slice(0, days);
   return (
-    <section className="mb-14">
+    <section id="zasedaniya" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
       <SectionTitle right={<a href="#vsichki">Всички гласувания</a>}>Последните заседания</SectionTitle>
       {(() => {
         const lag = Math.round((Date.parse(PROGRAM.from) - Date.parse(dates[0])) / 86400000);
@@ -49,7 +49,7 @@ export function RecentSittings({ days = 3 }: { days?: number }) {
                       <Link href={g.slug ? `/parlament/zakon/${g.slug}` : `/parlament/glasuvane/${main.id}`} className="font-semibold text-ink no-underline hover:underline line-clamp-2">{g.name}</Link>
                       <div className="flex items-center gap-2 mt-1.5"><OutcomeTag outcome={main.outcome} /><span className="text-xs text-muted">{stage}</span></div>
                       <div className="mt-2"><TallyBar c={tally(main)} height={6} /></div>
-                      <p className="text-xs text-muted mt-1.5">{PARTIES.filter((p) => br[p] && partyPosition(br[p]) !== "absent").map((p) => `${partyName(p)}: ${POS[partyPosition(br[p])]}`).join(" · ")}</p>
+                      <p className="hidden sm:block text-xs text-muted mt-1.5">{PARTIES.filter((p) => br[p] && partyPosition(br[p]) !== "absent").map((p) => `${partyName(p)}: ${POS[partyPosition(br[p])]}`).join(" · ")}</p>
                     </li>
                   );
                 })}
@@ -74,23 +74,30 @@ export function Upcoming() {
     if (/второ гласуване/.test(v.title) && g.first && v.date >= g.first.date) g.second = true;
     byLaw.set(law.slug, g);
   }
+  const upItem = (g: { name: string; slug: string; first?: Vote }) => (
+    <li key={g.slug} className="ring-1 ring-rule rounded-sm p-3 bg-white flex justify-between gap-3">
+      <div className="min-w-0">
+        <Link href={`/parlament/zakon/${g.slug}`} className="font-semibold text-ink no-underline hover:underline line-clamp-2">{g.name}</Link>
+        <p className="text-xs text-muted mt-1">Първо четене: {formatDate(g.first!.date)} · {g.first!.tally.yes} за, {g.first!.tally.no} против</p>
+      </div>
+      <span className="text-xs font-semibold bg-[#e2b33b] text-ink rounded-full px-2.5 py-1 h-fit whitespace-nowrap">чака второ четене</span>
+    </li>
+  );
   const waiting = [...byLaw.values()].filter((g) => g.first && !g.second).sort((a, b) => (a.first!.date < b.first!.date ? 1 : -1));
   return (
-    <section className="mb-14">
+    <section id="predstoi" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
       <SectionTitle>Предстои: чакат второ четене</SectionTitle>
       <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Тези закони са приети на първо четене, но още не са гласувани окончателно. Между двете четения депутатите внасят предложения, а комисията ги обсъжда. Заседанията са от сряда до петък всяка седмица.</p>
       {waiting.length ? (
-        <ul className="grid gap-3 md:grid-cols-2">
-          {waiting.slice(0, 12).map((g) => (
-            <li key={g.slug} className="ring-1 ring-rule rounded-sm p-3 bg-white flex justify-between gap-3">
-              <div className="min-w-0">
-                <Link href={`/parlament/zakon/${g.slug}`} className="font-semibold text-ink no-underline hover:underline line-clamp-2">{g.name}</Link>
-                <p className="text-xs text-muted mt-1">Първо четене: {formatDate(g.first!.date)} · {g.first!.tally.yes} за, {g.first!.tally.no} против</p>
-              </div>
-              <span className="text-xs font-semibold bg-[#e2b33b] text-ink rounded-full px-2.5 py-1 h-fit whitespace-nowrap">чака второ четене</span>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="grid gap-3 md:grid-cols-2">{waiting.slice(0, 6).map(upItem)}</ul>
+          {waiting.length > 6 && (
+            <details className="mt-3 group">
+              <summary className="cursor-pointer font-semibold text-green list-none">Покажи още {Math.min(waiting.length, 12) - 6}</summary>
+              <ul className="grid gap-3 md:grid-cols-2 mt-3">{waiting.slice(6, 12).map(upItem)}</ul>
+            </details>
+          )}
+        </>
       ) : <p className="text-[15px]">Няма закони, които чакат второ четене.</p>}
     </section>
   );
@@ -110,17 +117,7 @@ export function WeekProgram() {
   const p = PROGRAM;
   const pts = p.points.map(parsePoint);
   const range = `${formatDate(p.from)} – ${formatDate(p.to)}`;
-  return (
-    <section className="mb-14">
-      <SectionTitle right={<a href={p.source} target="_blank" rel="noreferrer">parliament.bg</a>}>Програмата за седмицата</SectionTitle>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 -mt-3 mb-4 text-[15px]">
-        <span className="font-semibold">{range}</span>
-        {p.time.length === 2 && <span className="text-muted">заседания от {p.time[0]} до {p.time[1]} ч.</span>}
-        <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${p.approved ? "bg-[#d7ecd9] text-[#1f5c2a]" : "bg-[#fbecc4] text-ink"}`}>{p.approved ? "приета програма" : "проект, предстои гласуване"}</span>
-      </div>
-      {!p.approved && <p className="text-sm text-muted -mt-2 mb-4 max-w-3xl">В сряда сутрин депутатите гласуват програмата. Редът може да се промени и да се добавят точки.</p>}
-      <ol className="ring-1 ring-rule rounded-sm bg-white divide-y divide-rule">
-        {pts.map((x) => (
+  const point = (x: ReturnType<typeof parsePoint>) => (
           <li key={x.n} className="px-4 py-3 grid grid-cols-[2rem_1fr] gap-x-2">
             <span className="text-muted font-semibold tabular-nums">{x.n}.</span>
             <div className="min-w-0">
@@ -130,14 +127,29 @@ export function WeekProgram() {
                 {x.analysed && <span className="text-xs font-semibold text-[#1f5c2a]">има анализ</span>}
               </div>
               {x.slug ? <Link href={`/parlament/zakon/${x.slug}`} className="font-semibold text-ink">{x.title}</Link> : <p className="font-semibold">{x.title}</p>}
-              {x.sponsors && <p className="text-sm text-muted mt-0.5">Вносители: {x.sponsors}{x.firstReading ? ` · първо четене на ${x.firstReading}` : ""}</p>}
+              {x.sponsors && <p className="hidden sm:block text-sm text-muted mt-0.5">Вносители: {x.sponsors}{x.firstReading ? ` · първо четене на ${x.firstReading}` : ""}</p>}
               {x.acts.length > 0 && (
-                <p className="text-sm mt-1">{x.acts.length === 1 ? "Законопроект" : `${x.acts.length} законопроекта`}: {x.acts.map((a, i) => <span key={a.id}>{i > 0 && ", "}<a href={billUrl(a.id)} target="_blank" rel="noreferrer">{a.sign}</a></span>)}</p>
+                <p className="hidden sm:block text-sm mt-1">{x.acts.length === 1 ? "Законопроект" : `${x.acts.length} законопроекта`}: {x.acts.map((a, i) => <span key={a.id}>{i > 0 && ", "}<a href={billUrl(a.id)} target="_blank" rel="noreferrer">{a.sign}</a></span>)}</p>
               )}
             </div>
           </li>
-        ))}
-      </ol>
+  );
+  return (
+    <section id="programa" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
+      <SectionTitle right={<a href={p.source} target="_blank" rel="noreferrer">parliament.bg</a>}>Програмата за седмицата</SectionTitle>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 -mt-3 mb-4 text-[15px]">
+        <span className="font-semibold">{range}</span>
+        {p.time.length === 2 && <span className="text-muted">заседания от {p.time[0]} до {p.time[1]} ч.</span>}
+        <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${p.approved ? "bg-[#d7ecd9] text-[#1f5c2a]" : "bg-[#fbecc4] text-ink"}`}>{p.approved ? "приета програма" : "проект, предстои гласуване"}</span>
+      </div>
+      {!p.approved && <p className="text-sm text-muted -mt-2 mb-4 max-w-3xl">В сряда сутрин депутатите гласуват програмата. Редът може да се промени и да се добавят точки.</p>}
+      <ol className="ring-1 ring-rule rounded-sm bg-white divide-y divide-rule">{pts.slice(0, 5).map(point)}</ol>
+      {pts.length > 5 && (
+        <details className="mt-3">
+          <summary className="cursor-pointer font-semibold text-green">Цялата програма (още {pts.length - 5} точки)</summary>
+          <ol className="mt-3 ring-1 ring-rule rounded-sm bg-white divide-y divide-rule">{pts.slice(5).map(point)}</ol>
+        </details>
+      )}
       {PROGRAM_HISTORY.length > 1 && (
         <details className="mt-4">
           <summary className="cursor-pointer font-semibold">Предишни седмици ({PROGRAM_HISTORY.length - 1})</summary>

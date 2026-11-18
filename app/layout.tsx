@@ -20,15 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="bg">
       <body className="min-h-screen flex flex-col">
-        <header className="bg-deep text-white border-b border-white/10">
-          <div className="mx-auto max-w-[88rem] px-4 sm:px-6 flex flex-wrap items-center gap-x-10 gap-y-2 py-4">
-            <Link href="/" className="no-underline text-white hover:text-white flex items-center gap-2">
-              <span aria-hidden className="inline-block w-3 h-3 bg-red" />
-              <span className="text-[1.6rem] font-bold tracking-tight">Осъзнатост</span>
-            </Link>
-            <Nav />
-          </div>
-        </header>
+        <Nav />
         <main className="flex-1">{children}</main>
         <footer className="bg-surface border-t border-rule mt-20">
           <div className="mx-auto max-w-[88rem] px-4 sm:px-6 py-8 text-sm text-muted grid gap-2 sm:grid-cols-2">
