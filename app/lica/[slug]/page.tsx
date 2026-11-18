@@ -1,0 +1,122 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { MultiLine } from "@/components/Charts";
+import { Page, SectionTitle, Title } from "@/components/ui";
+import MPH from "@/data/mp-history.json";
+import { PEOPLE, normFirm, personBySlug, personHref, type Official } from "@/lib/local";
+import { firmUrl, fmtEur, placeSuppliersAll } from "@/lib/procurement";
+import { muniSlug, oblastSlug } from "@/lib/regions";
+import { casesFor, sanctionsFor } from "@/lib/sanctions";
+import { MPS } from "@/lib/parliament";
+
+export function generateStaticParams() {
+  return Object.keys(PEOPLE).map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const p = personBySlug((await params).slug);
+  return { title: p ? `${p.o.name}, ${p.o.roleRaw.toLowerCase()}` : "Профил" };
+}
+
+const eur = (v?: number | null) => (v == null ? "–" : `${Math.round(v).toLocaleString("bg-BG")} €`);
+const norm = (s: string) => s.toUpperCase().replace(/\s+/g, " ").trim();
+
+async function StakeCheck({ code, o }: { code: string; o: Official }) {
+  const stakes = o.decl?.stakes ?? [];
+  if (!stakes.length) return <p className="text-[15px]">В последната декларация няма дялове във фирми.</p>;
+  const sup = await placeSuppliersAll(code);
+  return (
+    <ul className="space-y-2 text-[15px]">{stakes.map((st, i) => {
+      const n = normFirm(st.company);
+      const hit = sup.find((x) => normFirm(x.name) === n || (n.length >= 6 && (normFirm(x.name).startsWith(n + " ") || n.startsWith(normFirm(x.name) + " "))));
+      return (
+        <li key={i} className={`ring-1 rounded-sm p-3 bg-white ${hit ? "ring-2 ring-red" : "ring-rule"}`}>
+          <b>{st.company}</b>{st.share ? `, ${st.share}${/%/.test(st.share) ? "" : " дяла"}` : ""}{st.holder && norm(st.holder) !== norm(o.name) ? ` (на ${st.holder})` : ""}{st.office ? <span className="text-sm text-muted"> · седалище: {st.office}</span> : null}
+          {hit ? <p className="mt-1">Фирма с почти същото име, <Link href={firmUrl(hit.eik)}>{hit.name}</Link>, има {hit.contracts} договора с възложители от общината за {fmtEur(hit.total_eur)}. Проверете в Търговския регистър дали е същата фирма.</p>
+            : <p className="text-sm text-muted mt-1">Не печели поръчки от възложители в общината (по име).</p>}
+        </li>
+      );
+    })}</ul>
+  );
+}
+
+export default async function Lice({ params }: { params: Promise<{ slug: string }> }) {
+  const p = personBySlug((await params).slug);
+  if (!p) notFound();
+  const { o, L } = p;
+  const code = L.code, obl = oblastSlug(code), muniHref = `/mesta/${obl}/${muniSlug(code)}`;
+  const H = [...(o.history ?? (o.decl ? [o.decl] : []))].sort((a, b) => a.year - b.year);
+  const mp = (MPH as { byName: Record<string, { ns: string[]; electedWith: string | null; group: string | null }> }).byName[norm(o.name)];
+  const mpNow = MPS.find((m) => norm(m.name) === norm(o.name));
+  const sanc = sanctionsFor(o.name), cases = casesFor(o.name);
+  const colleagues = L.officials.filter((x) => x.slug !== o.slug && ["mayor", "deputy_mayor", "council_chair", "chief_architect"].includes(x.role));
+  const d = o.decl;
+  return (
+    <Page>
+      <Title back={{ href: `${muniHref}/vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}
+        lead={<>{o.party ? <>Избран{o.role === "councillor" || o.role === "council_chair" ? " от листата на" : ", кандидат от"} <b>{o.party}</b>{o.prefVotes ? <> с {o.prefVotes} преференции</> : null} на местните избори през 2023 г. </> : null}Данните са от имуществените декларации в регистъра на Сметната палата и от изборите.</>}>
+        {o.name}
+      </Title>
+
+      {(sanc || cases.length > 0) && (
+        <section className="ring-2 ring-red rounded-sm p-4 bg-white mb-8 max-w-3xl text-[15px]">
+          {sanc && <p><b>Санкции за корупция:</b> {sanc.allegation} <Link href="/proverki/sankcii">Подробно</Link></p>}
+          {cases.map((c) => <p key={c.what}><b>{c.levelLabel}:</b> {c.what} {c.outcome}</p>)}
+        </section>
+      )}
+
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+        {[
+          ["Доход за " + (d?.fiscalYear ?? "–"), eur(d?.income), d?.incomeSpouse ? `съпруг/а: ${eur(d.incomeSpouse)}` : "облагаем доход по декларация"],
+          ["Имоти и МПС", d ? `${d.realEstate} · ${d.vehicles}` : "–", "брой имоти · брой превозни средства"],
+          ["Пари в банки", eur(d?.bankEur), d?.receivableEur ? `дадени заеми: ${eur(d.receivableEur)}` : ""],
+          ["Задължения", eur(d?.debtEur), "кредити и заеми"],
+        ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
+      </section>
+
+      {H.length > 1 && (
+        <section className="mb-10">
+          <SectionTitle>Доходи и имущество през годините</SectionTitle>
+          <div className="ring-1 ring-rule rounded-sm p-4 bg-white mb-4"><MultiLine data={[...H.map((h) => ({ series: "Доход", x: h.fiscalYear ?? h.year - 1, value: Math.round(h.income) })), ...H.map((h) => ({ series: "Пари в банки", x: h.fiscalYear ?? h.year - 1, value: Math.round(h.bankEur) })), ...H.map((h) => ({ series: "Задължения", x: h.fiscalYear ?? h.year - 1, value: Math.round(h.debtEur) }))]} unit=" €" height={260} /></div>
+        </section>
+      )}
+
+      <section className="mb-10">
+        <SectionTitle>Декларациите</SectionTitle>
+        <div className="overflow-x-auto"><table className="w-full text-[15px] num">
+          <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Подадена</th><th className="px-2">Длъжност</th><th className="text-right px-2">Доход</th><th className="text-right px-2">Съпруг/а</th><th className="text-right px-2">Имоти</th><th className="text-right px-2">В банки</th><th className="text-right px-2">Задължения</th><th className="px-2">Дялове</th></tr></thead>
+          <tbody>{[...H].reverse().map((h) => (
+            <tr key={h.url + h.year} className="border-b border-rule align-top">
+              <td className="py-1.5 pr-3"><a href={h.url} target="_blank" rel="noreferrer">{h.year}</a></td>
+              <td className="px-2 text-sm">{h.position}</td>
+              <td className="text-right px-2">{eur(h.income)}</td><td className="text-right px-2">{eur(h.incomeSpouse)}</td>
+              <td className="text-right px-2">{h.realEstate}</td><td className="text-right px-2">{eur(h.bankEur)}</td><td className="text-right px-2">{eur(h.debtEur)}</td>
+              <td className="px-2 text-sm">{h.stakes.map((s) => s.company).join(", ") || "–"}</td>
+            </tr>
+          ))}</tbody></table></div>
+        {d?.incomeBy && d.incomeBy.length > 0 && <p className="text-sm text-muted mt-2">Доходи по вид ({d.fiscalYear}): {d.incomeBy.map((i) => `${i.what}: ${eur(i.d)}${i.s ? ` (съпруг/а ${eur(i.s)})` : ""}`).join("; ")}.</p>}
+      </section>
+
+      <section className="mb-10">
+        <SectionTitle>Дялове във фирми и поръчките на общината</SectionTitle>
+        <Suspense fallback={<p className="text-muted">Проверка…</p>}><StakeCheck code={code} o={o} /></Suspense>
+      </section>
+
+      {(mp || mpNow) && (
+        <section className="mb-10 max-w-3xl">
+          <SectionTitle>В Народното събрание</SectionTitle>
+          <p className="text-[15px]">Човек със същото име е бил народен представител{mp ? <> в {mp.ns.join(", ")}-о Народно събрание{mp.electedWith ? `, избран от ${mp.electedWith}` : ""}</> : null}.{mpNow && <> <Link href={`/parlament/deputat/${mpNow.id}`}>Профил в сегашния парламент</Link>.</>}</p>
+          <p className="text-xs text-muted">Съвпадението е по трите имена. Възможно е да са различни хора.</p>
+        </section>
+      )}
+
+      <section className="mb-10">
+        <SectionTitle>Ръководството на общината</SectionTitle>
+        <ul className="flex flex-wrap gap-2 text-[15px]">{colleagues.map((c) => <li key={c.slug}><Link href={personHref(c.slug)} className="block px-3 py-1.5 rounded-full bg-surface no-underline text-ink hover:ring-1 hover:ring-green">{c.name} <span className="text-sm text-muted">· {c.roleRaw.toLowerCase()}</span></Link></li>)}</ul>
+        <p className="text-[15px] mt-3"><Link href={`${muniHref}/vlast`}>Всички съветници, гласувания и конфликт на интереси</Link> · <Link href={muniHref}>Профил на общината</Link></p>
+      </section>
+      <p className="text-xs text-muted">Източници: регистър на декларациите (Сметна палата), избори 2023 (ЦИК), ЦАИС ЕОП, обработени от „Наясно“. Ако нещо липсва или е грешно, данните се обновяват всеки ден.</p>
+    </Page>
+  );
+}

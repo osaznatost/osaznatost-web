@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import { LOCAL_INDEX, VOTE_BG, localData, normFirm, type Official, type Resolution } from "@/lib/local";
+import { LOCAL_INDEX, VOTE_BG, localData, normFirm, personHref, type Official, type Resolution } from "@/lib/local";
 import { firmUrl, placeSuppliersAll } from "@/lib/procurement";
 import { findOblastBySlug, muniSlug, oblastList } from "@/lib/regions";
 
@@ -111,7 +111,7 @@ export default async function Vlast({ params }: { params: Promise<{ obl: string;
             <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{lead.map((x) => (
               <li key={x.slug} className={`ring-1 rounded-sm p-4 bg-white ${x.decl?.stakes.length ? "ring-[#e08a2e]" : "ring-rule"}`}>
                 <p className="text-sm text-muted">{x.roleRaw}</p>
-                <p className="font-semibold text-lg leading-snug mb-2">{x.name}</p>
+                <p className="font-semibold text-lg leading-snug mb-2"><Link href={personHref(x.slug)}>{x.name}</Link></p>
                 <DeclLine o={x} />
               </li>
             ))}</ul>
@@ -130,7 +130,7 @@ export default async function Vlast({ params }: { params: Promise<{ obl: string;
                 <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Име</th><th className="py-2 pr-3">Листа</th><th className="py-2 pr-3 num text-right">Преференции</th><th className="py-2 pr-3 num text-right">Доход</th><th className="py-2">Дялове във фирми</th></tr></thead>
                 <tbody>{council.map((x) => (
                   <tr key={x.slug} className="border-b border-rule align-top">
-                    <td className="py-2 pr-3">{x.name}{x.role === "council_chair" && <span className="block text-xs text-muted">председател</span>}</td>
+                    <td className="py-2 pr-3"><Link href={personHref(x.slug)}>{x.name}</Link>{x.role === "council_chair" && <span className="block text-xs text-muted">председател</span>}</td>
                     <td className="py-2 pr-3 text-sm">{x.party ?? "–"}</td>
                     <td className="py-2 pr-3 num text-right">{x.prefVotes ?? "–"}</td>
                     <td className="py-2 pr-3 num text-right">{x.decl ? <a href={x.decl.url} target="_blank" rel="noreferrer">{eur(x.decl.income)}</a> : "–"}</td>

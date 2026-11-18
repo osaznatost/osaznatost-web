@@ -137,7 +137,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
 
       <section className="mb-12">
         <SectionTitle>Кой управлява</SectionTitle>
-        <p className="text-[15px] max-w-3xl">{mayor ? <>Кмет: <b>{mayor.name}</b>. </> : null}{L ? <>Общински съветници: {L.officials.filter((x) => x.role === "councillor" || x.role === "council_chair").length}. Декларирали дялове във фирми: {L.officials.filter((x) => x.decl?.stakes.length).length} души. </> : null}<Link href={`/mesta/${o.slug}/${muni}/vlast`}>Декларации, конфликт на интереси и гласувания в съвета →</Link></p>
+        <p className="text-[15px] max-w-3xl">{mayor ? <>Кмет: <b><Link href={`/lica/${mayor.slug}`}>{mayor.name}</Link></b>. </> : null}{L ? <>Общински съветници: {L.officials.filter((x) => x.role === "councillor" || x.role === "council_chair").length}. Декларирали дялове във фирми: {L.officials.filter((x) => x.decl?.stakes.length).length} души. </> : null}<Link href={`/mesta/${o.slug}/${muni}/vlast`}>Декларации, конфликт на интереси и гласувания в съвета →</Link></p>
       </section>
 
       {fin && (

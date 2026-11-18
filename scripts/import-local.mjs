@@ -12,6 +12,7 @@ const council = await get("council/index.json");
 mkdirSync("data/local", { recursive: true });
 const ROLE_ORDER = { mayor: 0, deputy_mayor: 1, council_chair: 2, chief_architect: 3, councillor: 4, other: 5 };
 const summary = {};
+const people = {};
 let nOff = 0, nDecl = 0;
 await pool(codes, 4, async (code) => {
   const o = await get(`officials/municipal/by_obshtina/${code === "SOF46" ? "SFO_CITY" : code}.json`);
@@ -20,23 +21,31 @@ await pool(codes, 4, async (code) => {
   if (!o && !res) return;
   const officials = await pool(o?.entries ?? [], 8, async (e) => {
     const d = (await get(`officials/municipal/declarations/${e.slug}.json`)) ?? [];
-    const last = [...d].sort((a, b) => (b.declarationYear ?? 0) - (a.declarationYear ?? 0))[0];
+    const sorted = [...d].sort((a, b) => (b.declarationYear ?? 0) - (a.declarationYear ?? 0));
+    const sum = (x) => {
+      const assets = x.assets ?? [];
+      return {
+        year: x.declarationYear, fiscalYear: x.fiscalYear, filedAt: x.filedAt, url: x.sourceUrl, position: x.positionTitle, institution: x.institution ?? null,
+        income: Math.round((x.income ?? []).reduce((s, i) => s + (i.amountEurDeclarant ?? 0), 0)),
+        incomeSpouse: Math.round((x.income ?? []).reduce((s, i) => s + (i.amountEurSpouse ?? 0), 0)),
+        incomeBy: (x.income ?? []).filter((i) => (i.amountEurDeclarant ?? 0) + (i.amountEurSpouse ?? 0) > 0).map((i) => ({ what: i.category ?? i.type ?? i.label ?? "", d: Math.round(i.amountEurDeclarant ?? 0), s: Math.round(i.amountEurSpouse ?? 0) })),
+        stakes: (x.ownershipStakes ?? []).map((st) => ({ company: st.companyName, share: st.shareSize, kind: st.itemType, office: st.registeredOffice, holder: st.holderName, valueEur: st.valueEur ? Math.round(st.valueEur) : null })),
+        realEstate: assets.filter((a) => /real|land|building|apartment|house|estate|имот/i.test(a.category ?? "")).length,
+        vehicles: assets.filter((a) => /vehicle|car/i.test(a.category ?? "")).length,
+        bankEur: Math.round(assets.filter((a) => a.category === "bank" || a.category === "cash").reduce((s, a) => s + (a.valueEur ?? 0), 0)),
+        debtEur: Math.round(assets.filter((a) => /debt|liabilit|loan_taken|obligation/i.test(a.category ?? "")).reduce((s, a) => s + (a.valueEur ?? 0), 0)),
+        receivableEur: Math.round(assets.filter((a) => a.category === "receivable").reduce((s, a) => s + (a.valueEur ?? 0), 0)),
+        categories: [...new Set(assets.map((a) => a.category))],
+      };
+    };
+    const last = sorted[0];
     if (last) nDecl++;
     return {
       slug: e.slug, name: e.name, role: e.role, roleRaw: e.roleRaw,
       party: e.candidateLink?.partyName ?? null, prefVotes: e.candidateLink?.prefVotes ?? null, elected: e.candidateLink?.isElected ?? null,
-      decl: last ? {
-        year: last.declarationYear, fiscalYear: last.fiscalYear, filedAt: last.filedAt, url: last.sourceUrl, position: last.positionTitle,
-        income: Math.round((last.income ?? []).reduce((s, x) => s + (x.amountEurDeclarant ?? 0), 0)),
-        incomeSpouse: Math.round((last.income ?? []).reduce((s, x) => s + (x.amountEurSpouse ?? 0), 0)),
-        stakes: (last.ownershipStakes ?? []).map((s) => ({ company: s.companyName, share: s.shareSize, kind: s.itemType, office: s.registeredOffice, holder: s.holderName, valueEur: s.valueEur ? Math.round(s.valueEur) : null })),
-        realEstate: (last.assets ?? []).filter((a) => /real|land|building|apartment|house|estate|имот/i.test(a.category ?? "")).length,
-        vehicles: (last.assets ?? []).filter((a) => /vehicle|car/i.test(a.category ?? "")).length,
-        bankEur: Math.round((last.assets ?? []).filter((a) => a.category === "bank" || a.category === "cash").reduce((s, a) => s + (a.valueEur ?? 0), 0)),
-        debtEur: Math.round((last.assets ?? []).filter((a) => /debt|liabilit|loan_taken|obligation/i.test(a.category ?? "")).reduce((s, a) => s + (a.valueEur ?? 0), 0)),
-        receivableEur: Math.round((last.assets ?? []).filter((a) => a.category === "receivable").reduce((s, a) => s + (a.valueEur ?? 0), 0)),
-        categories: [...new Set((last.assets ?? []).map((a) => a.category))],
-      } : null,
+      listPos: e.candidateLink?.listPos ?? null, cycle: e.candidateLink?.cycle ?? null,
+      decl: last ? sum(last) : null,
+      history: sorted.map(sum),
     };
   });
   officials.sort((a, b) => (ROLE_ORDER[a.role] ?? 9) - (ROLE_ORDER[b.role] ?? 9) || a.name.localeCompare(b.name, "bg"));
@@ -52,7 +61,9 @@ await pool(codes, 4, async (code) => {
   }
   const name = o?.registryName ?? null;
   writeFileSync(`data/local/${code}.json`, JSON.stringify({ code, name, generatedAt: o?.generatedAt ?? null, officials, resolutions }));
+  for (const x of officials) people[x.slug] = [code, x.name, x.roleRaw];
   summary[code] = { name, officials: officials.length, stakes: officials.filter((x) => x.decl?.stakes?.length).length, resolutions: resolutions?.length ?? 0 };
 });
+writeFileSync("data/local/people.json", JSON.stringify(people));
 writeFileSync("data/local/index.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), source: "„Наясно“ (github.com/atanasster/electionsbg): декларации от регистъра на Сметната палата, протоколи на общинските съвети", tags: council?.tags ?? {}, munis: summary }));
 console.log(`Местна власт: ${Object.keys(summary).length} общини, ${nOff} длъжностни лица, ${nDecl} с декларация`);
