@@ -6,8 +6,6 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 const UA = { "User-Agent": "Mozilla/5.0 (osaznatost.bg; отворени данни)" };
 const SITES = {
-  // Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
-  SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
   // Общински съвет Русе (WordPress): всяко решение е отделна публикация „РЕШЕНИЕ № N Прието с Протокол № P/ДД.ММ.ГГГГг.“.
   RSE27: { name: "Русе", wpList: (p) => `https://obs.ruse-bg.eu/category/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f/${p > 1 ? `page/${p}/` : ""}`, wpPost: /href="(https:\/\/obs\.ruse-bg\.eu\/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%e2%84%96-\d+[^"]*)"/gi, from: "2023-11-01", council: "Общински съвет – Русе" },
   // Общински съвет Варна: един PDF „РЕШЕНИЯ № <заседание> от <дата>“ на заседание; решенията са „<номер>-<точка>.“.
@@ -15,6 +13,8 @@ const SITES = {
   // Общински съвет Стара Загора: страница на протокол със списък „Решение № N от ДД.ММ.ГГГГг. относно: …“ и PDF на всяко решение.
   SZR31: { name: "Стара Загора", listPages: (p) => `https://www.starazagora.bg/bg/resheniya-i-protokoli${p > 0 ? `/page/${p * 20}` : ""}`, protoLink: /href="(bg\/resheniya-i-protokoli\/resheniya-ot-protokol-[^"#]+)"/g, base: "https://www.starazagora.bg/", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
+  // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
+  SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
 };
 // Сайтът на общината не подава пълната верига от сертификати и fetch() в Node отказва; curl се справя.
 // Щадящо: пауза между заявките; ако сайтът покаже проверка срещу ботове, спираме и пазим прочетеното.
