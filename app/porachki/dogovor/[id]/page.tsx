@@ -5,6 +5,7 @@ import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow"
 import { AnnexList, LinksBox, SignalList } from "@/components/proc";
 import { ProjectPath } from "@/components/ProjectPath";
 import { Page, SectionTitle, Title } from "@/components/ui";
+import { tenderSignal } from "@/lib/tenderSignals.mjs";
 import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { politicalLinks } from "@/lib/procurement";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
@@ -37,6 +38,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const annexes = await contractAnnexes(c);
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
+  const ts = tenderSignal(c.tender_id) as [number | null, string[], number, string | null] | null;
   const flags = contractFlags(c, annexes, strongestLink(c.supplier_eiks));
   const risk = riskScore(flags), rl = riskLabel(risk);
   const value = c.contract_value_eur ?? 0;
@@ -137,6 +139,8 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
             <dt className="text-muted">Предмет (CPV)</dt><dd>{c.cpv_desc} ({c.cpv})</dd>
             <dt className="text-muted">Срок</dt><dd>{c.contract_period_days ? `${c.contract_period_days} дни` : "—"}</dd>
             <dt className="text-muted">УНП</dt><dd>{c.unp}</dd>
+            {ts?.[0] != null && <><dt className="text-muted">Срок за оферти</dt><dd>{ts[0]} дни от обявяването{ts[2] ? " (по европейските правила)" : ""}</dd></>}
+            {ts && ts[1].length > 0 && <><dt className="text-muted">Промени в условията</dt><dd>{ts[1].length} ({[...ts[1]].sort().map((d) => d.split("-").reverse().join(".")).join(", ")})</dd></>}
             <dt className="text-muted">Финансиране</dt><dd>{c.is_eu_funded ? `Европейски средства${c.eu_program ? `: ${c.eu_program}` : ""}` : "Национални средства"}</dd>
             {c.direct_award_justification && <><dt className="text-muted">Без процедура</dt><dd>{c.direct_award_justification}</dd></>}
           </dl>
