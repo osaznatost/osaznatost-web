@@ -7,20 +7,19 @@ jobs:
     steps:
       - run: |
           A="Mozilla/5.0 (osaznatost.bg)"
-          for b in https://obs.ruse-bg.eu https://varnacouncil.bg; do
-            echo "##### $b"
-            curl -sSL -m 40 -A "$A" "$b/wp-json/wp/v2/categories?per_page=100" | python3 -c 'import sys,json
-          try:
-            for c in json.load(sys.stdin): print(c["id"],c["count"],c["slug"][:60],c["name"])
-          except Exception as e: print("ERR",e)'
-            sleep 2
-          done
-          echo "##### ruse posts in решения"
-          RC=$(curl -sSL -m 40 -A "$A" "https://obs.ruse-bg.eu/wp-json/wp/v2/categories?search=%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F" | python3 -c 'import sys,json;print(json.load(sys.stdin)[0]["id"])')
-          curl -sSL -m 60 -A "$A" -D h.txt "https://obs.ruse-bg.eu/wp-json/wp/v2/posts?categories=$RC&per_page=3" -o p.json; grep -i "x-wp-total" h.txt
-          python3 -c 'import json;d=json.load(open("p.json"))
-          for p in d: print(p["date"],p["link"]); print(p["title"]["rendered"][:200]); print(p["content"]["rendered"][:2500]); print("----")'
+          echo "##### ruse category"
+          curl -sSL -m 40 -A "$A" "https://obs.ruse-bg.eu/category/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f/" -o r.html -w "%{http_code} %{size_download}\n"
+          grep -oE 'href="https://obs.ruse-bg.eu/[^"]*"' r.html | sort -u | grep -v -E "wp-|category|feed|tag/" | head -25
+          P=$(grep -oE 'href="https://obs.ruse-bg.eu/[^"]*"' r.html | grep -iE "%d1%80%d0%b5%d1%88|resh" | grep -v category | head -1 | cut -d'"' -f2)
+          echo "POST $P"; curl -sSL -m 40 -A "$A" "$P" -o rp.html; python3 - <<'P'
+          import re,html
+          s=open("rp.html",encoding="utf-8",errors="replace").read()
+          print(re.findall(r'href="([^"]+\.(?:pdf|docx?))"',s)[:15])
+          t=re.sub(r"<script.*?</script>|<style.*?</style>","",s,flags=re.S); t=html.unescape(re.sub(r"<[^>]+>","\n",t)); t=re.sub(r"\n\s*\n+","\n",t)
+          i=t.find("РЕШЕНИЕ"); print(t[max(0,i-500):i+2500] if i>=0 else t[:2500])
+          P
           echo "##### stara zagora"
-          curl -sSL -m 40 -A "$A" "https://www.starazagora.bg/bg/arhiv-resheniya" -o sz.html; grep -oE 'href="[^"]*"' sz.html | grep -iE "resh|pdf|doc|protok" | sort -u | head -30
+          curl -sSL -m 40 -A "$A" "https://www.starazagora.bg/bg/arhiv-resheniya" -o sz.html -w "%{http_code} %{size_download}\n"; grep -oE 'href="[^"]*"' sz.html | grep -iE "resh|pdf|doc|protok|uploads" | sort -u | head -30
           echo "##### varna arhiv"
-          curl -sSL -m 40 -A "$A" "https://varnacouncil.bg/arhiv/" -o va.html; grep -oE 'href="[^"]*"' va.html | grep -iE "resh|pdf|doc|protok|reshen" | sort -u | head -30
+          curl -sSL -m 40 -A "$A" "https://varnacouncil.bg/arhiv/" -o va.html -w "%{http_code} %{size_download}\n"; grep -oE 'href="[^"]*"' va.html | grep -iE "resh|pdf|doc|protok|uploads|sesi" | sort -u | head -30
+          curl -sSL -m 40 -A "$A" "https://varnacouncil.bg/" -o v0.html; grep -oE 'href="https://varnacouncil.bg/[^"]*"' v0.html | sort -u | head -60
