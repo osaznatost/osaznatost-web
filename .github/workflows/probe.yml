@@ -5,17 +5,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          D=$(date -u -d "1 day ago" +%F)
-          curl -sSL -m 120 -A "Mozilla/5.0 (osaznatost.bg)" -o p.zip -w "%{http_code} %{size_download}\n" "https://kolkostruva.bg/opendata_files/$D.zip"
-          file p.zip; mkdir z && cd z && unzip -q ../p.zip && ls -la | head -40
-          F=$(ls | head -1); echo "== $F"; head -5 "$F"; wc -l * | tail -3
-          python3 - <<'P'
-          import csv,glob,collections
-          fs=glob.glob('*')
-          f=fs[0]
-          raw=open(f,'rb').read(3000)
-          for enc in ('utf-8-sig','cp1251'):
-            try: print(enc, raw.decode(enc)[:1500]); break
-            except Exception as e: print('bad',enc)
-          P
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/probe/ocds.mjs
