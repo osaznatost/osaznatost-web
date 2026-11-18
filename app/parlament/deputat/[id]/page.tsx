@@ -10,6 +10,8 @@ import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { FUNDS } from "@/lib/funds";
 import { firmsOfMp, localPage } from "@/lib/people";
+import { PersonFirms } from "@/components/TrBox";
+import { firmsOfPerson } from "@/lib/tr";
 import { firmUrl, fmtEur, supplierStats } from "@/lib/procurement";
 import { DS_CHECK, MS_TYPE, NS_YEARS, claimsFor, dsFor, historyFor, prefsFor, profileFor } from "@/lib/mpProfile";
 import { ELECTIONS, partyByGroup } from "@/lib/partyMeta";
@@ -164,6 +166,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
 
       <Anchor id="pari" title="Фирми, поръчки и евросредства" lead="Фирмите, в които е съдружник, собственик, управител или представител (по Търговския регистър, обработен от „Наясно“), и колко пари са получили от обществени поръчки и европейски програми.">
         <Suspense fallback={<p className="text-muted">Проверка на фирмите…</p>}><MpMoney id={mp.id} name={mp.name} /></Suspense>
+        {firmsOfPerson(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
       </Anchor>
 
       <section id="ds" className="mb-12 scroll-mt-20">

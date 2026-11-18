@@ -43,6 +43,8 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: node scripts/import-ocds-people.mjs || echo "ЦАИС ЕОП не отговаря, продължаваме"
+      - name: Търговски регистър (от прочетеното)
+        run: node scripts/build-tr.mjs
       - name: Местна власт (декларации и общински съвети)
         run: node scripts/import-local.mjs
       - name: Профил на местата (преброяване, карти, държавни инвестиции)

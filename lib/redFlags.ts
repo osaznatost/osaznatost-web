@@ -1,6 +1,7 @@
 import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
 import { politicalLinks } from "@/lib/procurement";
+import { foundedDate, trFor } from "@/lib/tr";
 
 const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
 /** Личен интерес на политик: депутат с каквато и да е роля или длъжностно лице със собственост (не управител на държавна фирма). */
@@ -27,6 +28,8 @@ export function contractFlags(c: Contract, annexes: Annex[] = [], political = fa
   if (v > th * 0.9 && v < th) f.push({ id: "threshold", label: "Точно под прага", why: "Стойността е малко под прага, над който е нужна по-строга процедура.", weight: 10 });
   if (political) f.push({ id: "political", label: "Връзка с политик", why: "Изпълнителят е свързан с депутат или е собственост на длъжностно лице (по Търговския регистър и декларациите).", weight: 20 });
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push({ id: "sub", label: "Голям дял на подизпълнители", why: `Подизпълнителите поемат ${c.subcontracting_percent}% от работата.`, weight: 8 });
+  const young = c.contract_date ? c.supplier_eiks.map((e) => ({ e, d: foundedDate(trFor(e)) })).find(({ d }) => d && Date.parse(c.contract_date!) >= Date.parse(d) && Date.parse(c.contract_date!) - Date.parse(d) < 365 * 864e5) : undefined;
+  if (young) f.push({ id: "new", label: "Нова фирма", why: `Изпълнителят е създаден по-малко от година преди договора (${young.d!.endsWith("-01-01") ? `${young.d!.slice(0, 4)} г.` : young.d!.split("-").reverse().join(".")}, по Търговския регистър).`, weight: 15 });
   return f;
 }
 export const riskScore = (flags: Flag[]) => Math.min(100, flags.reduce((s, x) => s + x.weight, 0));

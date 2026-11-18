@@ -11,6 +11,8 @@ import { muniSlug, oblastSlug } from "@/lib/regions";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { MPS } from "@/lib/parliament";
 import { tendersByContact } from "@/lib/projects";
+import { PersonFirms } from "@/components/TrBox";
+import { firmsOfPerson } from "@/lib/tr";
 
 // Предварително само кметовете; останалите ~6000 профила се правят при първо отваряне и се кешират.
 export function generateStaticParams() {
@@ -129,6 +131,13 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
           <SectionTitle>Води обществени поръчки ({runs.length})</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Поръчки, в които е посочен(а) като лице за контакт на възложителя в обявленията в ЦАИС ЕОП. <Link href={`${muniHref}#proekti`}>Всички проекти на общината</Link>.</p>
           <ul className="space-y-1.5 text-[15px]">{runs.slice(0, 30).map((t) => <li key={t.id}>{t.title.replace(/^[„"]|[“"]$/g, "")}{t.suppliers.length ? <span className="text-sm text-muted"> → {t.suppliers.join(", ")}</span> : null}</li>)}</ul>
+        </section>
+      )}
+
+      {firmsOfPerson(o.name).length > 0 && (
+        <section className="mb-10">
+          <SectionTitle>Фирми по Търговския регистър</SectionTitle>
+          <PersonFirms name={o.name} />
         </section>
       )}
 

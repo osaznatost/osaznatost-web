@@ -1,7 +1,7 @@
 // Национална класация на риска в обществените поръчки: червени флагове за всеки договор
 // (същите правила като lib/redFlags.ts), обобщени по възложител, изпълнител, година и област.
 // Пуска се от GitHub Actions. Нужни тайни: SUPABASE_URL, SUPABASE_SECRET_KEY. Записва data/risk.json.
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 const HEAD = { apikey: KEY };
@@ -9,6 +9,11 @@ const pol = JSON.parse(readFileSync("data/political-links.json", "utf8")).byEik;
 // Личен интерес: депутат с каквато и да е роля или длъжностно лице със собственост. Управителите на държавни фирми не са конфликт.
 const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
 const personal = (e) => (pol[e] ?? []).some((l) => l.kind === "mp" || (l.roles ?? []).some((r) => OWN.has(r)));
+// Дата на създаване на фирмата от Търговския регистър (data/tr): за флага „нова фирма“.
+const TR = {};
+if (existsSync("data/tr")) for (const f of readdirSync("data/tr").filter((x) => /^\d\d\.json$/.test(x))) Object.assign(TR, JSON.parse(readFileSync(`data/tr/${f}`, "utf8")));
+const founded = (e) => { const t = TR[(e ?? "").slice(0, 9)]; if (!t) return null; if (t.founded) return `${t.founded}-01-01`; return t.firstEntry && t.firstEntry > "2008-12-31" ? t.firstEntry : null; };
+const young = (c) => c.contract_date && (c.supplier_eiks ?? []).some((e) => { const d = founded(e); return d && Date.parse(c.contract_date) - Date.parse(d) < 365 * 864e5 && Date.parse(c.contract_date) >= Date.parse(d); });
 const BGN = 1.95583, TH = { works: 270000 / BGN, other: 70000 / BGN };
 const NO_COMP = /договаряне без|пряко договаряне|без предварително обявление|без публикуване/i;
 
@@ -43,6 +48,7 @@ function flags(c) {
   if (v > th * 0.9 && v < th) f.push(["threshold", 10]);
   if ((c.supplier_eiks ?? []).some(personal)) f.push(["political", 20]);
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push(["sub", 8]);
+  if (young(c)) f.push(["new", 15]);
   return f;
 }
 const scored = C.map((c) => { const f = flags(c); return { c, f: f.map((x) => x[0]), s: Math.min(100, f.reduce((a, x) => a + x[1], 0)) }; });

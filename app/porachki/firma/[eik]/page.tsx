@@ -11,6 +11,7 @@ import { sanctionsFor } from "@/lib/sanctions";
 import { FUNDS, mpHref } from "@/lib/funds";
 import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
 import { Anchor, SectionNav } from "@/components/SectionNav";
+import { TrBox } from "@/components/TrBox";
 import { contractUrl } from "@/lib/procurement";
 
 export const metadata = { title: "Фирма" };
@@ -61,7 +62,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           <b>{[pl.length > 0 && `Свързана с ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
         </a>
       )}
-      <SectionNav items={[["obobshtenie", "Обобщение"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
+      <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
       <div id="obobshtenie" className="scroll-mt-20" />
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[
@@ -73,6 +74,8 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p></div>
         ))}
       </section>
+      <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
+
       {net.length > 1 && (
         <section className="mb-10">
           <SectionTitle>Мрежа от връзки</SectionTitle><span id="vrazki" className="block -mt-24 pt-24" />
