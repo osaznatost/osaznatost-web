@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-18",
+  "updated": "2026-11-19",
   "parties": [
     {
       "party": "ПБ",
@@ -341,6 +341,99 @@
             }
           ],
           "note": "Обещанието за 2025 г. е изпълнено. Опитът за по-високи данъци през 2026 г. е оттеглен след протестите."
+        },
+        {
+          "text": "Без увеличаване на данъчната и осигурителната тежест",
+          "area": "Данъци",
+          "said": {
+            "who": "Росен Желязков",
+            "when": "февруари 2025 (управленската програма)",
+            "url": "https://www.bta.bg/bg/videos/25710"
+          },
+          "status": "partly",
+          "evidence": "През мандата не е вдигнат данък или осигуровка. Но първият проект на Бюджет 2026 (ноември 2025) предвиждаше пенсионната вноска да се вдигне с 2 пункта и данъкът върху дивидента от 5 на 10%. След масовите протести правителството оттегли проекта на 2 декември 2025 г. В новия проект вдигането на осигуровките е отложено с година, а максималният осигурителен доход е вдигнат с 9% до 2300 €. На 11 декември 2025 г. правителството подаде оставка, преди бюджетът да бъде приет.",
+          "links": [
+            {
+              "title": "БНТ: проектобюджетът вдига данъка върху дивидента от 5 на 10%",
+              "url": "https://bntnews.bg/news/budget-2026-parameters-draw-sharp-criticism-from-opposition-unions-and-employers-1363586news.html"
+            },
+            {
+              "title": "БТА: Асен Василев за +2% осигуровки и по-висок дивидентен данък",
+              "url": "https://www.bta.bg/bg/videos/32042"
+            },
+            {
+              "title": "БТА: проектите са оттеглени с Решение № 839 от 2 декември 2025 г.",
+              "url": "https://www.bta.bg/bg/videos/32871"
+            },
+            {
+              "title": "Капитал: вдигането на осигуровките се отлага с година",
+              "url": "https://www.capital.bg/biznes-zakuska/2025/12/08/4861504__biznes_zakuska_vdiganeto_na_osigurovkite_se_otlaga_s/"
+            },
+            {
+              "title": "Капитал: правителството падна",
+              "url": "https://www.capital.bg/biznes-zakuska/2025/12/12/4863718__biznes_zakuska_pravitelstvoto_padna_kakvo_sledva/"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "февруари 2025",
+              "what": "Програмата обещава доходи, „съобразени с политиката по неувеличаване на данъчната и осигурителната тежест“.",
+              "url": "https://www.bta.bg/bg/videos/25710"
+            },
+            {
+              "date": "ноември 2025",
+              "what": "Проектът на Бюджет 2026: +2 пункта пенсионна вноска, дивидентен данък 10%.",
+              "url": "https://bntnews.bg/news/budget-2026-parameters-draw-sharp-criticism-from-opposition-unions-and-employers-1363586news.html"
+            },
+            {
+              "date": "2 декември 2025",
+              "what": "След протестите проектът е оттеглен.",
+              "url": "https://www.bta.bg/bg/videos/32871"
+            },
+            {
+              "date": "11 декември 2025",
+              "what": "Правителството подава оставка.",
+              "url": "https://www.capital.bg/biznes-zakuska/2025/12/12/4863718__biznes_zakuska_pravitelstvoto_padna_kakvo_sledva/"
+            }
+          ]
+        },
+        {
+          "text": "Разходи за отбрана до 2,5% от БВП",
+          "area": "Отбрана",
+          "said": {
+            "who": "Управленската програма на коалицията",
+            "when": "февруари 2025",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/02/20/4745767_upravlenskata_programa_na_koaliciiata_poznati/"
+          },
+          "status": "partly",
+          "evidence": "По доклада на генералния секретар на НАТО през 2025 г. България е отделила 2,14% от БВП за отбрана (ръст с 13,78% за година), над минимума от 2%, но под целта от 2,5%. Програмата беше за пълен мандат, а правителството управлява около 11 месеца.",
+          "links": [
+            {
+              "title": "БНТ: доклад на НАТО — 2,14% от БВП през 2025 г.",
+              "url": "https://bntnews.bg/news/bulgaria-has-doubled-defence-spending-over-past-decade-nato-report-shows-1385500news.html"
+            },
+            {
+              "title": "БТА: Желязков потвърждава целта от 5% до 2035 г.",
+              "url": "https://www.bta.bg/en/news/918175-after-nato-summit-pm-zhelyazkov-reaffirms-bulgaria-s-commitment-to-increasing-d"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "февруари 2025",
+              "what": "Програмата си поставя цел 2,5% от БВП за отбрана.",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/02/20/4745767_upravlenskata_programa_na_koaliciiata_poznati/"
+            },
+            {
+              "date": "25 юни 2025",
+              "what": "На срещата на НАТО в Хага България подкрепя 5% до 2035 г. (3,5% пряко за отбрана).",
+              "url": "https://bnrnews.bg/en/post/136025/bulgaria-supports-nato-s-new-goal-of-5-of-gdp-for-defence-by-2035"
+            },
+            {
+              "date": "26 март 2026",
+              "what": "НАТО: 2,14% от БВП за 2025 г.",
+              "url": "https://bntnews.bg/news/bulgaria-has-doubled-defence-spending-over-past-decade-nato-report-shows-1385500news.html"
+            }
+          ]
         }
       ]
     },
@@ -487,6 +580,48 @@
             {
               "title": "Капитал: Започна обратното броене за (не)коалицията (07.03.2024)",
               "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2024/03/07/4597496_zapochna_obratnoto_broene_za_nekoaliciiata/"
+            }
+          ]
+        },
+        {
+          "text": "Конституционна реформа на съдебната власт: нов Висш съдебен съвет и по-малко власт за главния прокурор",
+          "area": "Правосъдие",
+          "said": {
+            "who": "Управленската програма на правителството",
+            "when": "юли 2023",
+            "url": "https://www.gov.bg/files/common/2023-07-26_Programa_za_upravlenie-odobrena-ot-SR-i-prieta-ot-MS-final_2.pdf"
+          },
+          "status": "partly",
+          "evidence": "Парламентът прие промените в Конституцията на 20 декември 2023 г. (ДВ, бр. 106 от 22.12.2023 г.). С Решение № 13 от 26 юли 2024 г. Конституционният съд обяви значителна част от тях за противоконституционни, сред тях и промените в главата за съдебната власт. Други промени, като ограничения кръг за избор на служебен премиер, останаха в сила.",
+          "links": [
+            {
+              "title": "Конституционният съд: Решение № 13 от 26 юли 2024 г.",
+              "url": "https://constcourt.bg/bg/dl-0d87a0ba80bb4252750db2ae869ae9e7c0d612a5"
+            },
+            {
+              "title": "Verfassungsblog: значителна част от промените е обявена за противоконституционна",
+              "url": "https://verfassungsblog.de/bulgarias-constitutional-drama-and-the-eu-commissions-rose-colored-glasses/"
+            },
+            {
+              "title": "CEEOL: „Отмяна на шестата конституционна реформа на съдебната власт“",
+              "url": "https://www.ceeol.com/search/chapter-detail?id=1379870"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "юли 2023",
+              "what": "Програмата на правителството включва конституционна реформа на съдебната власт.",
+              "url": "https://www.gov.bg/files/common/2023-07-26_Programa_za_upravlenie-odobrena-ot-SR-i-prieta-ot-MS-final_2.pdf"
+            },
+            {
+              "date": "20 декември 2023",
+              "what": "Народното събрание приема промените в Конституцията.",
+              "url": "https://constcourt.bg/bg/dl-38431a4093fc8ac9a037829f5e8335fb866343e0"
+            },
+            {
+              "date": "26 юли 2024",
+              "what": "Конституционният съд отменя голяма част от промените, вкл. за съдебната власт.",
+              "url": "https://constcourt.bg/bg/dl-0d87a0ba80bb4252750db2ae869ae9e7c0d612a5"
             }
           ]
         }
