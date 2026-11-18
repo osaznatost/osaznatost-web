@@ -6,6 +6,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for u in https://botevgrad.bg/obsavet/ https://botevgrad.bg/obsavet https://botevgrad.bg/ ; do
-            echo "=== $u"; curl -sSL -A "Mozilla/5.0" -m 30 "$u" -o p.html -w "%{http_code} %{url_effective}\n"; grep -oE 'href="[^"]*"' p.html | sort -u | grep -iE 'obsav|savet|resh|protok|zased' | head -60
-          done
+          for u in https://botevgrad.bg/obs/reshenia https://botevgrad.bg/obs/obsavet ; do
+            echo "=== $u"; curl -sSL -A "Mozilla/5.0" -m 30 "$u" -o p.html -w "%{http_code}\n"
+            python3 - <<'PY'
+          import re,html
+          s=open('p.html',encoding='utf-8',errors='ignore').read()
+          i=s.find('<main'); i= i if i>0 else s.find('content')
+          t=re.sub(r'<script.*?</script>|<style.*?</style>','',s[i:],flags=re.S)
+          for m in re.finditer(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>',t,re.S):
+              txt=re.sub(r'<[^>]+>|\s+',' ',m.group(2)).strip()
+              if txt or 'files' in m.group(1): print(m.group(1),'|',html.unescape(txt)[:90])
+          PY
+          done 2>&1 | head -150
