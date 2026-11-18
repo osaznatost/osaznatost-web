@@ -9,6 +9,7 @@ import { tenderSignal } from "@/lib/tenderSignals.mjs";
 import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { politicalLinks } from "@/lib/procurement";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
+import { Term } from "@/components/Term";
 
 export const metadata = { title: "Договор" };
 
@@ -154,7 +155,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
       </section>
 
       <section className="mb-10">
-        <SectionTitle>Анекси: какво е променено</SectionTitle>
+        <SectionTitle><Term k="aneks">Анекси</Term>: какво е променено</SectionTitle>
         <AnnexList items={annexes} />
         {annexes.filter((a) => a.change_description).map((a) => (
           <details key={a.id} className="mt-3 text-[15px]">
@@ -192,7 +193,7 @@ function AnnexOnly({ annexes }: { annexes: Awaited<ReturnType<typeof annexesByRe
         Договорът е сключен преди 1 януари 2025 г. и обявлението за него още не е в нашата база (внасяме историята постепенно). Затова тук няма брой оферти и процедура, а само анексите.
       </div>
       <section className="mb-10">
-        <SectionTitle>Анекси: какво е променено</SectionTitle>
+        <SectionTitle><Term k="aneks">Анекси</Term>: какво е променено</SectionTitle>
         <AnnexList items={annexes} />
         {annexes.filter((x) => x.change_description).map((x) => (
           <details key={x.id} className="mt-3 text-[15px]" open={annexes.length === 1}>

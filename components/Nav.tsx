@@ -33,11 +33,12 @@ const groups: { title: string; items: { href: string; label: string; about: stri
       { href: "/statistiki", label: "Статистики", about: "Графики с източник за всичко" },
       { href: "/kalkulatori", label: "Калкулатори", about: "Заплата, кредит, лична инфлация" },
       { href: "/novini", label: "Новини", about: "Какво е ново в данните" },
+      { href: "/rechnik", label: "Речник", about: "Какво значат термините" },
       { href: "/metodologiya", label: "Как работим", about: "Източници и правила" },
     ],
   },
 ];
-const DESKTOP = groups.flatMap((g) => g.items.filter((i) => i.href !== "/metodologiya").map((i) => ({ ...i, group: g.title })));
+const DESKTOP = groups.flatMap((g) => g.items.filter((i) => i.href !== "/metodologiya" && i.href !== "/rechnik").map((i) => ({ ...i, group: g.title })));
 const isActive = (path: string, href: string) => path === href || path.startsWith(href + "/");
 
 function SearchIcon() {

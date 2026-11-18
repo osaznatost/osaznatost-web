@@ -5,6 +5,7 @@ import { buyerContracts, buyerPlace, firmUrl, fmtDate, fmtEur, type Annex, type 
 import { paidFromTo } from "@/lib/payments";
 import { councilFor, deadlineOf, officialByName, peopleFor, supervisionFor } from "@/lib/projects";
 import { muniSlug, oblastSlug } from "@/lib/regions";
+import { Term } from "@/components/Term";
 
 const MANDATE = "2023-11-06";
 
@@ -39,7 +40,7 @@ export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[
   return (
     <section className="mb-10 max-w-4xl">
       <h2 className="display text-[2rem] mb-1">Пътят на проекта: кой решава, кой подписва, кой приема</h2>
-      <p className="text-[15px] text-muted mb-5">Сиво кръгче = стъпка, за която документите не се публикуват в отворените данни. За нея по-долу има готово заявление по ЗДОИ.</p>
+      <p className="text-[15px] text-muted mb-5">Сиво кръгче = стъпка, за която документите не се публикуват в отворените данни. За нея по-долу има готово заявление по <Term k="zdoi">ЗДОИ</Term>.</p>
       <ol>
         <Step n={1} title="Решение и пари" missing={!council.length}>
           {council.length ? council.map(({ r }) => (

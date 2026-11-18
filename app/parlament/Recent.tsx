@@ -4,6 +4,7 @@ import { SectionTitle } from "@/components/ui";
 import { FAILED_SITTINGS, PARTIES, VOTES, type Vote, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 import { explain, lawFromTitle } from "@/lib/voteExplain";
 import { PROGRAM, PROGRAM_HISTORY, billUrl, parsePoint } from "@/lib/program";
+import { Term } from "@/components/Term";
 
 const POS: Record<string, string> = { y: "за", n: "против", a: "въздържал се", split: "разделени", absent: "отсъства" };
 const tally = (v: Vote) => {
@@ -87,7 +88,7 @@ export function Upcoming() {
   return (
     <section id="predstoi" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
       <SectionTitle>Предстои: чакат второ четене</SectionTitle>
-      <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Тези закони са приети на първо четене, но още не са гласувани окончателно. Между двете четения депутатите внасят предложения, а комисията ги обсъжда. Заседанията са от сряда до петък всяка седмица.</p>
+      <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Тези закони са приети на <Term k="parvo-chetene">първо четене</Term>, но още не са гласувани окончателно на <Term k="vtoro-chetene">второ четене</Term>. Между двете четения депутатите внасят предложения, а комисията ги обсъжда. Заседанията са от сряда до петък всяка седмица.</p>
       {waiting.length ? (
         <>
           <ul className="grid gap-3 md:grid-cols-2">{waiting.slice(0, 6).map(upItem)}</ul>
@@ -122,7 +123,7 @@ export function WeekProgram() {
             <span className="text-muted font-semibold tabular-nums">{x.n}.</span>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className={`text-xs font-semibold rounded-full px-2.5 py-0.5 ${STAGE_STYLE[x.stage]}`}>{x.stage}</span>
+                <span className={`text-xs font-semibold rounded-full px-2.5 py-0.5 ${STAGE_STYLE[x.stage]}`}>{x.stage === "първо четене" ? <Term k="parvo-chetene">{x.stage}</Term> : x.stage === "второ четене" ? <Term k="vtoro-chetene">{x.stage}</Term> : x.stage}</span>
                 {x.day && <span className="text-xs text-muted">{x.day}</span>}
                 {x.analysed && <span className="text-xs font-semibold text-[#1f5c2a]">има анализ</span>}
               </div>
