@@ -36,3 +36,31 @@ export function foundedDate(f: TrFirm | null) {
   if (f.founded) return `${f.founded}-01-01`;
   return f.firstEntry && f.firstEntry > "2008-12-31" ? f.firstEntry : null;
 }
+
+const PEOPLE_KEYS: (keyof TrFirm)[] = ["managers", "board", "partners", "owner", "ubo", "procurator"];
+const norm = (s: string) => s.toUpperCase().replace(/[„“"']/g, "").replace(/\s+/g, " ").trim();
+/** Хората (три имена) и фирмите собственици на една фирма. */
+export function peopleOf(f: TrFirm | null) {
+  if (!f) return [];
+  return PEOPLE_KEYS.flatMap((k) => ((f[k] as TrPerson[]) ?? []).map((p) => ({ key: p.eik ? `EIK:${p.eik.slice(0, 9)}` : norm(p.name), name: p.name, role: k })))
+    .filter((p) => p.key.startsWith("EIK:") || p.key.split(" ").length >= 3);
+}
+/** Двойки фирми с общ човек (управител, съдружник, собственик) или обща фирма собственик. */
+export function sharedPeople(eiks: string[]) {
+  const by = new Map<string, { name: string; firms: Set<string> }>();
+  for (const e of new Set(eiks.map((x) => x.slice(0, 9)))) for (const p of peopleOf(trFor(e))) {
+    const x = by.get(p.key) ?? { name: p.name, firms: new Set<string>() };
+    x.firms.add(e); by.set(p.key, x);
+  }
+  return [...by.values()].filter((x) => x.firms.size > 1).map((x) => ({ name: x.name, firms: [...x.firms] }));
+}
+/** Други фирми с изпълнители (от тези с поръчки), които имат общ човек с тази. */
+export function relatedFirms(eik: string) {
+  const me = trFor(eik);
+  const out = new Map<string, string[]>();
+  for (const p of peopleOf(me)) {
+    if (p.key.startsWith("EIK:")) continue;
+    for (const { eik: e } of firmsOfPerson(p.name)) if (e !== eik.slice(0, 9)) out.set(e, [...new Set([...(out.get(e) ?? []), p.name])]);
+  }
+  return [...out.entries()].map(([e, via]) => ({ eik: e, firm: trFor(e), via }));
+}

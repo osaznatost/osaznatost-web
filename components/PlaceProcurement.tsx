@@ -71,7 +71,7 @@ export async function PlaceProcurement({ f, showBreakdown = true }: { f: PlaceFi
   ]);
   return (
     <>
-      <p className="text-sm text-muted mb-4">Договорите на възложители със седалище тук (общината, училищата, болниците, дружествата и др.). Данните са до {fmtDate(last)}, обновяват се на всеки 3 часа.</p>
+      <p className="text-sm text-muted mb-4">{mu && !se ? <><a href={`/rss/obshtina/${mu.code}`} className="font-semibold">Абонирайте се за новите поръчки (RSS)</a> · </> : null}Договорите на възложители със седалище тук (общината, училищата, болниците, дружествата и др.). Данните са до {fmtDate(last)}, обновяват се на всеки 3 часа.</p>
       {stat && (
         <div className="mb-8">
           <Kpis items={[

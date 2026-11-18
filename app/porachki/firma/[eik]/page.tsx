@@ -118,7 +118,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         <AnnexList items={annexes.slice(0, 20)} />
       </section>
       <section id="dogovori" className="scroll-mt-20">
-        <SectionTitle>Договори</SectionTitle>
+        <SectionTitle right={<a href={`/rss/firma/${eik}`}>Абонамент (RSS)</a>}>Договори</SectionTitle>
         <ContractList items={contracts} hideSupplier />
       </section>
     </>

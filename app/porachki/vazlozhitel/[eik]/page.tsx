@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { placeHref } from "@/lib/regions";
+import { sharedPeople } from "@/lib/tr";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
 import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
@@ -121,6 +122,19 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         <p className="text-xs text-muted mt-3">Ограничение: в регистъра на обществените поръчки (ЦАИС ЕОП) влизат само поръчките, обявени там. Малките покупки под 30 000 лв. за доставки и услуги и под 50 000 лв. за строителство се правят без обявление и не се виждат. Те личат само в отчета за разходите на общината. Ремонтите по годишни рамкови договори също не винаги се появяват като отделни поръчки.</p>
       </section>
 
+      {(() => {
+        const sh = sharedPeople(contracts.flatMap((c) => c.supplier_eiks));
+        const names = new Map(contracts.flatMap((c) => c.supplier_eiks.map((e, i) => [e.slice(0, 9), c.supplier_names[i] ?? e] as [string, string])));
+        return sh.length > 0 && (
+          <section className="mb-10">
+            <SectionTitle>Изпълнители с общи собственици или управители</SectionTitle>
+            <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Различни фирми, които печелят поръчки от този възложител, но имат общ управител, съдружник или собственик (по Търговския регистър, по три имена). Така може да се създава видимост на конкуренция там, където няма. Проверете дали са се явявали една срещу друга.</p>
+            <ul className="space-y-2 text-[15px]">{sh.slice(0, 30).map((x) => (
+              <li key={x.name} className="ring-1 ring-[#e08a2e] rounded-sm p-3 bg-white"><b>{x.name}</b>: {x.firms.map((e, i) => <span key={e}>{i ? ", " : ""}<Link href={firmUrl(e)}>{names.get(e) ?? e}</Link></span>)}</li>
+            ))}</ul>
+          </section>
+        );
+      })()}
       <section className="mb-10"><SectionTitle>Анекси</SectionTitle><AnnexList items={annexes.slice(0, 20)} /></section>
       <section><SectionTitle>Договори</SectionTitle><ContractList items={contracts.slice(0, 100)} hideBuyer /></section>
     </>

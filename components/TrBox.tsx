@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { personPage } from "@/lib/people";
 import { firmUrl } from "@/lib/procurement";
-import { foundedYear, firmsOfPerson, type TrPerson, trFor } from "@/lib/tr";
+import { foundedYear, firmsOfPerson, relatedFirms, type TrPerson, trFor } from "@/lib/tr";
 
 function Who({ p }: { p: TrPerson }) {
   if (p.eik) return <Link href={firmUrl(p.eik)}>{p.name}</Link>;
@@ -30,6 +30,12 @@ export function TrBox({ eik }: { eik: string }) {
           <div key={l} className="contents"><dt className="text-muted">{l}</dt><dd><ul className="space-y-0.5">{ps.map((p, i) => <li key={i}><Who p={p} /></li>)}</ul></dd></div>
         ))}
       </dl>
+      {(() => { const rel = relatedFirms(eik); return rel.length > 0 && (
+        <div className="lg:col-span-2 ring-1 ring-[#e08a2e] rounded-sm p-4 bg-white">
+          <p className="font-semibold mb-1">Свързани фирми, които също печелят поръчки ({rel.length})</p>
+          <ul className="space-y-0.5">{rel.slice(0, 20).map((r) => <li key={r.eik}><Link href={firmUrl(r.eik)}>{r.firm?.name ?? r.eik}</Link> <span className="text-sm text-muted">· общ човек: {r.via.join(", ")}</span></li>)}</ul>
+        </div>
+      ); })()}
       <p className="text-xs text-muted lg:col-span-2">Източник: Търговски регистър, Агенция по вписванията, прочетено на {t.fetched.split("-").reverse().join(".")}. Връзките между хора са по три имена, не по ЕГН: възможни са съвпадения на имена.</p>
     </div>
   );
