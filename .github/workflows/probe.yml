@@ -6,11 +6,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          mkdir out; cd out
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/reshenie/resheniya-na-obs-ot-2026g-3311 -o r2026.html
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/obsavet -o zased.html
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/view/savetnitsi-4 -o savet.html
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/view/dneven-red-arhiv-20 -o dnevred.html
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/data/obsavet/files/1781877401.pdf -o sample.pdf
-      - uses: actions/upload-artifact@v4
-        with: { name: probe, path: out }
+          for u in https://botevgrad.bg/obs/reshenie/resheniya-na-obs-ot-2026g-3311 https://botevgrad.bg/obs/obsavet https://botevgrad.bg/obs/view/dneven-red-arhiv-20; do
+          echo "######## $u"
+          curl -sSL -A "Mozilla/5.0" -m 30 "$u" -o p.html
+          python3 - <<'PY'
+          import re,html
+          s=open('p.html',encoding='utf-8',errors='ignore').read()
+          i=s.rfind('class="current"'); s=s[i:]
+          j=s.find('footer'); s=s[:j] if j>0 else s
+          s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
+          s=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',s)
+          s=re.sub(r'<br\s*/?>|</(p|div|li|tr|h\d)>','\n',s)
+          s=html.unescape(re.sub(r'<[^>]+>','',s))
+          s=re.sub(r'[ \t]+',' ',s); s=re.sub(r'\n\s*\n+','\n',s)
+          print(s[:5000])
+          PY
+          done
