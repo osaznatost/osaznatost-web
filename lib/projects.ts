@@ -9,9 +9,17 @@ type TenderPeople = {
   title: string | null; buyer: string; contacts: string[]; method: string | null; bids: number | null;
   suppliers: Record<string, { name: string; rep: string | null; town: string | null }>; amend: { date: string | null; text: string }[];
 };
-const F = path.join(process.cwd(), "data", "projects", "people.json");
-const P = existsSync(F) ? (JSON.parse(readFileSync(F, "utf8")) as { first: string | null; last: string | null; tenders: Record<string, TenderPeople> }) : { first: null, last: null, tenders: {} };
-export const peopleFor = (tenderId: number | string) => P.tenders[String(tenderId)] ?? null;
+const DIR = path.join(process.cwd(), "data", "projects", "people");
+const cache = new Map<string, Record<string, TenderPeople>>();
+function load(code: string | null | undefined) {
+  if (!code) return {};
+  if (!cache.has(code)) { const f = path.join(DIR, `${code}.json`); cache.set(code, existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as { tenders: Record<string, TenderPeople> }).tenders : {}); }
+  return cache.get(code)!;
+}
+const SF = path.join(process.cwd(), "data", "projects", "state.json");
+const P = existsSync(SF) ? (JSON.parse(readFileSync(SF, "utf8")) as { first: string | null; last: string | null }) : { first: null, last: null };
+/** Хората по поръчка (по кода на общината на възложителя). */
+export const peopleFor = (code: string | null | undefined, tenderId: number | string) => load(code)[String(tenderId)] ?? null;
 export const PEOPLE_RANGE = { first: P.first, last: P.last };
 
 const STOP = new Set(("община общината ботевград ботевград“ ремонт ремонтни реконструкция рехабилитация изпълнение изпълнението обект обекта проект проекта строително строителни строителство монтажни работи работа " +
@@ -78,8 +86,8 @@ export function officialByName<T extends { name: string; slug: string; roleRaw: 
 }
 
 /** Поръчките, в които лицето е посочено като лице за контакт на възложителя. */
-export function tendersByContact(name: string) {
+export function tendersByContact(code: string, name: string) {
   const p = name.toUpperCase().split(/\s+/);
-  return Object.entries(P.tenders).filter(([, t]) => t.contacts.some((c) => { const q = c.toUpperCase().split(/\s+/).filter(Boolean); return q[0] === p[0] && q.at(-1) === p.at(-1); }))
+  return Object.entries(load(code)).filter(([, t]) => t.contacts.some((c) => { const q = c.toUpperCase().split(/\s+/).filter(Boolean); return q[0] === p[0] && q.at(-1) === p.at(-1); }))
     .map(([id, t]) => ({ id, title: t.title ?? "", suppliers: Object.values(t.suppliers).map((s) => s.name) }));
 }

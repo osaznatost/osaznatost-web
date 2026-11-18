@@ -54,7 +54,7 @@ export default async function Lice({ params }: { params: Promise<{ slug: string 
   const colleagues = L.officials.filter((x) => x.slug !== o.slug && ["mayor", "deputy_mayor", "council_chair", "chief_architect"].includes(x.role));
   const d = o.decl;
   const proposed = (L.resolutions ?? []).filter((r) => r.rapporteur?.slug === o.slug);
-  const runs = tendersByContact(o.name);
+  const runs = tendersByContact(L.code, o.name);
   return (
     <Page>
       <Title back={{ href: `${muniHref}/vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}

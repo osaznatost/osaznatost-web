@@ -6,10 +6,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или ключ");
-const TRACK = (process.env.TRACK ?? "SFO07").split(",");     // кодове на общини
+const TRACK = process.env.TRACK ? process.env.TRACK.split(",") : null; // кодове на общини; без него — всички общини
 const FROM = process.env.FROM ?? "2023-11-01";                 // началото на мандата
 const MAX_BACK = Number(process.env.MAX_BACK ?? 150);           // дни история на едно пускане
-const F = "data/projects/people.json";
+const DIR = "data/projects/people", STATE = "data/projects/state.json";
 
 const day = (d) => d.toISOString().slice(0, 10);
 const addDays = (s, n) => day(new Date(Date.parse(s) + n * 864e5));
@@ -25,12 +25,21 @@ async function releases(d) {
   }
 }
 
-const res = await fetch(`${URL_}/rest/v1/proc_buyers?municipality_code=in.(${TRACK.join(",")})&select=eik,name,municipality_code`, { headers: { apikey: KEY } });
-const buyers = new Map((await res.json()).map((b) => [b.eik, b]));
-console.log(`Възложители в ${TRACK.join(", ")}: ${buyers.size}`);
+// Общинските възложители (общината, училищата, градините, дружествата) с кода на общината им.
+const buyers = new Map();
+for (let off = 0; ; off += 1000) {
+  const q = TRACK ? `municipality_code=in.(${TRACK.join(",")})` : "level=eq.общински&municipality_code=not.is.null";
+  const r = await fetch(`${URL_}/rest/v1/proc_buyers?${q}&select=eik,municipality_code&order=eik&limit=1000&offset=${off}`, { headers: { apikey: KEY } });
+  const rows = await r.json();
+  for (const b of rows) buyers.set(b.eik, b.municipality_code);
+  if (rows.length < 1000) break;
+}
+console.log(`Общински възложители: ${buyers.size}`);
 
-mkdirSync("data/projects", { recursive: true });
-const S = existsSync(F) ? JSON.parse(readFileSync(F, "utf8")) : { first: null, last: null, tenders: {} };
+mkdirSync(DIR, { recursive: true });
+const S = existsSync(STATE) ? JSON.parse(readFileSync(STATE, "utf8")) : { first: null, last: null };
+const files = new Map(); // код → { tenders }
+const load = (code) => { if (!files.has(code)) { const f = `${DIR}/${code}.json`; files.set(code, existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { tenders: {} }); } return files.get(code); };
 const yesterday = addDays(day(new Date()), -1);
 const days = [];
 if (!S.last) { S.last = yesterday; S.first = addDays(yesterday, 1); }
@@ -50,7 +59,8 @@ for (let i = 0; i < days.length; i += 6) {
       if (!buyer) continue;
       const tid = r.tender?.id;
       if (!tid) continue;
-      const t = (S.tenders[tid] ??= { title: r.tender.title?.slice(0, 300) ?? null, buyer: buyer.identifier.id, contacts: [], suppliers: {}, method: null, bids: null, amend: [] });
+      const T = load(buyers.get(buyer.identifier.id)).tenders;
+      const t = (T[tid] ??= { title: r.tender.title?.slice(0, 300) ?? null, buyer: buyer.identifier.id, contacts: [], suppliers: {}, method: null, bids: null, amend: [] });
       const cp = buyer.contactPoint?.name;
       if (cp && !t.contacts.includes(cp)) t.contacts.push(cp);
       t.method = r.tender.procurementMethod ?? t.method;
@@ -75,5 +85,6 @@ if (ok.length) {
   const lastFailBwd = failed.filter((d) => d < S.first).sort().at(-1);
   if (bwd.length) S.first = lastFailBwd ? addDays(lastFailBwd, 1) : bwd[0];
 }
-writeFileSync(F, JSON.stringify(S));
-console.log(`Дни: ${days.length} (неуспешни ${failed.length}); обявления: ${seen}; за следените възложители: ${hits}; поръчки общо: ${Object.keys(S.tenders).length}; покрити: ${S.first} – ${S.last}`);
+for (const [code, x] of files) writeFileSync(`${DIR}/${code}.json`, JSON.stringify(x));
+writeFileSync(STATE, JSON.stringify({ ...S, updated: new Date().toISOString().slice(0, 10) }));
+console.log(`Дни: ${days.length} (неуспешни ${failed.length}); обявления: ${seen}; за следените възложители: ${hits}; общини с данни: ${files.size}; покрити: ${S.first} – ${S.last}`);

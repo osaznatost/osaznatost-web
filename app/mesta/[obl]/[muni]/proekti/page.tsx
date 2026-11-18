@@ -40,7 +40,7 @@ async function List({ code }: { code: string }) {
           <ul className="space-y-1">
             {mayor && <li><b>Възлага и подписва:</b> кметът <Link href={personHref(mayor.slug)}>{mayor.name}</Link> или заместник с негова заповед: {L!.officials.filter((o) => o.role === "deputy_mayor").map((d, i) => <span key={d.slug}>{i ? ", " : ""}<Link href={personHref(d.slug)}>{d.name}</Link></span>)}.</li>}
             <li><b>Одобрява парите:</b> общинският съвет с бюджета и капиталовата програма. <Link href={`/mesta/${code.slice(0, 3).toLowerCase()}/${code.toLowerCase()}/vlast#resheniya`}>Решенията и гласуванията</Link>.</li>
-            <li><b>Водят процедурите:</b> {(() => { const cnt = new Map<string, number>(); for (const c of cs) for (const n of peopleFor(c.tender_id)?.contacts ?? []) { const o = officialByName(n, L?.officials); const k = o?.name ?? n.replace(/\s+/g, " "); cnt.set(k, (cnt.get(k) ?? 0) + 1); } const top3 = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4); return top3.length ? top3.map(([n, k], i) => { const o = officialByName(n, L?.officials); return <span key={n}>{i ? ", " : ""}{o ? <Link href={personHref(o.slug)}>{n}</Link> : n} ({k})</span>; }) : "лицата за контакт във всяка поръчка (по-долу)"; })()}.</li>
+            <li><b>Водят процедурите:</b> {(() => { const cnt = new Map<string, number>(); for (const c of cs) for (const n of peopleFor(code, c.tender_id)?.contacts ?? []) { const o = officialByName(n, L?.officials); const k = o?.name ?? n.replace(/\s+/g, " "); cnt.set(k, (cnt.get(k) ?? 0) + 1); } const top3 = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4); return top3.length ? top3.map(([n, k], i) => { const o = officialByName(n, L?.officials); return <span key={n}>{i ? ", " : ""}{o ? <Link href={personHref(o.slug)}>{n}</Link> : n} ({k})</span>; }) : "лицата за контакт във всяка поръчка (по-долу)"; })()}.</li>
             <li><b>Изпълнява:</b> фирмата и нейният представител. <b>Приема:</b> комисия на възложителя и строителният надзор.</li>
           </ul>
         </div>
@@ -56,7 +56,7 @@ async function List({ code }: { code: string }) {
         <section key={g} id={encodeURIComponent(g)} className="mb-12 scroll-mt-24">
           <SectionTitle>{g}</SectionTitle>
           <ul className="space-y-3">{groups.get(g)!.slice(0, 150).map((c) => {
-            const p = peopleFor(c.tender_id), ax = annexBy.get(`${c.buyer_eik}|${c.contract_number}`), dl = deadlineOf(c), cm = councilFor(c, L?.resolutions ?? null)[0];
+            const p = peopleFor(code, c.tender_id), ax = annexBy.get(`${c.buyer_eik}|${c.contract_number}`), dl = deadlineOf(c), cm = councilFor(c, L?.resolutions ?? null)[0];
             return (
               <li key={c.id} className="ring-1 ring-rule rounded-sm p-4 bg-white">
                 <p className="text-sm text-muted">{fmtDate(c.contract_date)} · {c.buyer_name}{c.offers_count === 1 ? <span className="text-red"> · една оферта</span> : c.offers_count ? ` · ${c.offers_count} оферти` : ""}{ax ? <span className={ax.plus > 0 ? "text-red" : ""}> · {ax.n} анекс{ax.n > 1 ? "а" : ""}{ax.plus > 0 ? ` (+${fmtEur(ax.plus)})` : ""}</span> : ""}</p>

@@ -28,7 +28,7 @@ export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[
   const mayor = L?.officials.find((o) => o.role === "mayor");
   const deputies = L?.officials.filter((o) => o.role === "deputy_mayor") ?? [];
   const council = councilFor(c, L?.resolutions ?? null);
-  const people = peopleFor(c.tender_id);
+  const people = peopleFor(code, c.tender_id);
   const sup = supervisionFor(c, siblings);
   const deadline = deadlineOf(c);
   const extended = annexes.filter((a) => /срок|удълж/i.test(a.change_description ?? ""));
