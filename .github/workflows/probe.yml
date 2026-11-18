@@ -6,20 +6,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for D in 2026-11-12 2026-11-10; do DD=$(date -d $D +%d.%m.%Y)
-          curl -sS -m 120 -o o$D.json "https://storage.eop.bg/open-data-$D/$(python3 -c "import urllib.parse;print(urllib.parse.quote('Автоматично генерирани данни за обявления, публикувани в ЦАИС ЕОП на $DD г., съгласно стандарт OCDS.json'))")"; done
+          sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obshtina/poruchki -o l.html
           python3 - <<'PY'
-          import json,glob
-          rel=[r for f in glob.glob('o*.json') for r in json.load(open(f))['releases']]
-          m=[r for r in rel if 'contract' in r['tag'] and any('ОБЩИНА' in (p.get('name') or '').upper() for p in r['parties'])]
-          print(len(m))
-          r=m[0]
-          print('PARTIES', json.dumps(r['parties'],ensure_ascii=False)[:3000])
-          print('BIDS', json.dumps(r.get('bids'),ensure_ascii=False)[:1500])
-          print('AWARDS', json.dumps(r.get('awards'),ensure_ascii=False)[:1500])
-          print('CONTRACTS', json.dumps(r.get('contracts'),ensure_ascii=False)[:2500])
-          print('TENDER keys', list(r['tender'].keys()))
-          print('TENDER extra', json.dumps({k:v for k,v in r['tender'].items() if k not in ('description','lots','items','title')},ensure_ascii=False)[:2500])
-          a=[r for r in rel if 'contractAmendment' in r['tag']][0]
-          print('AMEND', json.dumps(a.get('contracts'),ensure_ascii=False)[:2000])
+          import re,html
+          s=open('l.html',encoding='utf-8',errors='ignore').read()
+          links=[]
+          for m in re.finditer(r'<a [^>]*href="(https://botevgrad.bg/obshtina/poruchka/[^"]+)"[^>]*>(.*?)</a>',s,re.S):
+              t=html.unescape(re.sub(r'<[^>]+>|\s+',' ',m.group(2))).strip()
+              if t: links.append((m.group(1),t))
+          print(len(links))
+          for u,t in links[:40]: print(t[:150],'|',u[-60:])
+          pag=set(re.findall(r'href="(https://botevgrad.bg/obshtina/poruchki[^"]*)"',s)); print(sorted(pag)[:15])
+          road=[u for u,t in links if re.search(r'улиц|асфалт|пътн|ремонт',t,re.I)]
+          open('road.txt','w').write(road[0] if road else links[0][0])
+          PY
+          U=$(cat road.txt); echo "##### $U"
+          curl -sSL -A "Mozilla/5.0" -m 30 "$U" -o p.html
+          python3 - <<'PY'
+          import re,html
+          s=open('p.html',encoding='utf-8',errors='ignore').read()
+          i=s.find('<h1'); s=s[i:]; s=s[:s.find('footer')]
+          s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
+          s=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',s)
+          s=re.sub(r'<br\s*/?>|</(p|div|li|tr|h\d)>','\n',s)
+          s=html.unescape(re.sub(r'<[^>]+>','',s)); s=re.sub(r'[ \t]+',' ',s); s=re.sub(r'\n\s*\n+','\n',s)
+          print(s[:6000])
           PY
