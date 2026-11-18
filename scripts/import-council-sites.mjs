@@ -31,15 +31,29 @@ function parse(text, url) {
     const date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
     const [head, rest = ""] = chunk.split(/Р\s*Е\s*Ш\s*И\s*:/);
     const h = flat(head.slice(head.indexOf(dm[0]) + dm[0].length));
-    const rep = h.match(/ПО ДОКЛАДВАНЕ НА\s+(.+?)\s+[–—-]\s+([A-ZА-Я0-9 .,„“"'()\-–—/]+?)\s+на\s+(.+)/);
-    let title = rep ? rep[3] : h;
-    title = title.split(/\s*\/\s*вх|\s+и становищ|,\s*Общински съвет|\s+Общински съвет\s*[–-]/)[0].replace(/\s*\/$/, "").trim();
+    // „ПО ДОКЛАДВАНЕ НА <ИМЕ> – <ДЛЪЖНОСТ> на <документ> /вх.№…/ и становища…“
+    let rapporteur = null, title = h.replace(/^[.\s]+/, "");
+    const pm = title.match(/ПО ДОКЛАДВАНЕ НА\s+(.+)/);
+    if (pm) {
+      const r = pm[1];
+      const cut = r.search(/\s+на\s+(?=(?:[Дд]окладн|[Ии]нформаци|[Оо]тчет|[Пп]редложени|[Зз]аповед|[Гг]одишн|[Пп]рограм|[Сс]тановищ|[Пп]исмо|[Пп]ротест|[Пп]роект|[Аа]нализ|[Пп]лан|[Сс]тратеги|[Мм]отив|[Ии]скане|[Жж]алб|[Сс]игнал|[А-Я][а-я]))/);
+      const who = cut > 0 ? r.slice(0, cut) : r;
+      title = cut > 0 ? r.slice(cut).replace(/^\s+на\s+/, "") : title;
+      const [nm, ...rl] = who.split(/\s+[–—-]\s+/);
+      const role = rl.join(" – ").toLowerCase().replace(/\s*\/.*$/, "").replace(/\s+/g, " ").trim();
+      rapporteur = {
+        name: nm.replace(/^(д-р|инж\.?|арх\.?|ИНЖ\.?|Д-Р)\s*/i, "").trim(),
+        role: /председател/.test(role) ? "председател на общинския съвет" : /^(за\s+)?кмет на общ/.test(role) ? (role.startsWith("за ") ? "за кмет на общината" : "кмет на общината") : /зам/.test(role) ? "заместник-кмет" : /общински съветник/.test(role) ? "общински съветник" : role,
+      };
+    }
+    title = title.split(/\s*\/\s*вх|\s+и становищ|,\s*Общински съвет|\s+Общински съвет\s*[–-]/)[0].replace(/\s*\/$/, "").trim()
+      .replace(/^[Дд]окладна записка\s+(относно|за)\s+/, "").replace(/^./, (c) => c.toUpperCase());
     const t = h.match(/(\d+)\s*глас\S*\s*„?\s*за\s*“?,?\s*(\d+)\s*глас\S*\s*„?\s*против\s*“?,?\s*(\d+)\s*глас\S*\s*„?\s*въздърж/);
     let body = rest.split(/\n[^\n]{0,60}:\s*\n\s*(?:ЗА\s+)?ПРЕДСЕДАТЕЛ|\n\s*(?:ЗА\s+)?ПРЕДСЕДАТЕЛ НА ОБЩИНСКИ|\nИзготвил|\nПриложение\s*(?:№\s*)?\d/)[0];
     body = ws(body);
     out.push({
       number, date, url, title: title.slice(0, 400),
-      rapporteur: rep ? { name: rep[1].trim(), role: rep[2].trim().toLowerCase() } : null,
+      rapporteur,
       tally: t ? { for: +t[1], against: +t[2], abstain: +t[3], method: /поименно/.test(h) ? "named" : "open" } : null,
       result: /^\s*(1\.\s*)?не\s+(приема|одобрява|дава)/i.test(body) ? "rejected" : "adopted",
       tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
@@ -49,10 +63,12 @@ function parse(text, url) {
   return out;
 }
 
+const VERSION = 2; // смяна на разчитането → всички файлове се четат наново
 mkdirSync("data/council", { recursive: true });
 for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
-  const prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { files: {}, decisions: [] };
+  let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
+  if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
   const idx = await get(S.index);
   if (!idx) { console.log(`${S.name}: сайтът не отговаря, пазим старите данни`); continue; }
   const years = [...idx.matchAll(S.yearLink)].map((m) => ({ url: m[1], year: +m[2] })).filter((y) => y.year >= +S.from.slice(0, 4));
@@ -81,6 +97,6 @@ for (const [code, S] of Object.entries(SITES)) {
   const seen = new Map();
   for (const d of prev.decisions) seen.set(`${d.date.slice(0, 4)}-${d.number}`, d);
   const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-  writeFileSync(f, JSON.stringify({ code, name: S.name, source: S.index, updated: new Date().toISOString().slice(0, 10), files: prev.files, decisions }));
+  writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.index, updated: new Date().toISOString().slice(0, 10), files: prev.files, decisions }));
   console.log(`${S.name}: ${files.length} файла, ${added} нови решения, общо ${decisions.length}; с гласуване ${decisions.filter((d) => d.tally).length}`);
 }

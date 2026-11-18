@@ -1,7 +1,7 @@
 // Местна власт: кмет, заместници, съветници и главен архитект, имуществените им декларации
 // и гласуванията в общинския съвет (където са налични). Източник: „Наясно“ (MIT), който събира
 // декларациите от регистъра на Сметната палата и протоколите от сайтовете на общинските съвети.
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 const B = "https://raw.githubusercontent.com/atanasster/electionsbg/main/data";
 const get = async (p) => { for (let i = 0; i < 3; i++) { try { const r = await fetch(`${B}/${p}`); if (r.status === 404) return null; if (r.ok) return await r.json(); } catch {} await new Promise((s) => setTimeout(s, 800)); } return null; };
 async function pool(items, n, fn) { const out = []; let i = 0; await Promise.all(Array.from({ length: n }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } })); return out; }
@@ -11,6 +11,26 @@ const codes = [...new Set(places.oblasts.flatMap((o) => o.municipalities.map((m)
 const council = await get("council/index.json");
 mkdirSync("data/local", { recursive: true });
 const ROLE_ORDER = { mayor: 0, deputy_mayor: 1, council_chair: 2, chief_architect: 3, councillor: 4, other: 5 };
+
+// Решения, които четем сами от сайта на общинския съвет (scripts/import-council-sites.mjs).
+const lev = (a, b) => { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; };
+function ownResolutions(code, officials) {
+  const f = `data/council/${code}.json`;
+  if (!existsSync(f)) return null;
+  const C = JSON.parse(readFileSync(f, "utf8"));
+  const who = (name) => {
+    const [first, ...rest] = name.toUpperCase().split(/\s+/); const last = rest.at(-1) ?? "";
+    const o = officials.find((x) => { const p = x.name.toUpperCase().split(/\s+/); return p[0] === first && lev(p.at(-1), last) <= 2; });
+    return o ? { slug: o.slug, name: o.name } : null;
+  };
+  return C.decisions.map((d) => {
+    const w = d.rapporteur ? who(d.rapporteur.name) : null;
+    return {
+      id: `${code}-${d.date}-${d.number}`, date: d.date, session: "", number: d.number, title: d.title, tags: d.tags, url: d.url, result: d.result, tally: d.tally, votes: [],
+      text: d.text, rapporteur: d.rapporteur ? { name: w?.name ?? d.rapporteur.name.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()), role: d.rapporteur.role, slug: w?.slug ?? null } : null,
+    };
+  });
+}
 const summary = {};
 const people = {};
 let nOff = 0, nDecl = 0;
@@ -59,6 +79,7 @@ await pool(codes, 4, async (code) => {
       votes: (votes[r.id] ?? []).map((v) => [v.name, v.vote]),
     }));
   }
+  if (!resolutions) resolutions = ownResolutions(code, officials);
   const name = o?.registryName ?? null;
   writeFileSync(`data/local/${code}.json`, JSON.stringify({ code, name, generatedAt: o?.generatedAt ?? null, officials, resolutions }));
   for (const x of officials) people[x.slug] = [code, x.name, x.roleRaw];

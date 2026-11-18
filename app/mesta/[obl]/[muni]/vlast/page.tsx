@@ -64,6 +64,40 @@ async function Conflicts({ code, officials }: { code: string; officials: Officia
   );
 }
 
+function CouncilSummary({ res }: { res: Resolution[] }) {
+  const by = new Map<string, { name: string; slug: string | null; role: string; n: number; contested: number }>();
+  for (const r of res) {
+    if (!r.rapporteur) continue;
+    const k = r.rapporteur.slug ?? r.rapporteur.name;
+    const x = by.get(k) ?? { name: r.rapporteur.name, slug: r.rapporteur.slug, role: r.rapporteur.role, n: 0, contested: 0 };
+    x.n++; if (r.tally && r.tally.against > 0) x.contested++;
+    by.set(k, x);
+  }
+  const voted = res.filter((r) => r.tally);
+  const unanimous = voted.filter((r) => r.tally!.against === 0 && r.tally!.abstain === 0).length;
+  const withAgainst = voted.filter((r) => r.tally!.against > 0).length;
+  const named = voted.filter((r) => r.tally!.method === "named").length;
+  const rejected = res.filter((r) => r.result === "rejected").length;
+  const tags = new Map<string, number>();
+  for (const r of res) for (const t of r.tags) tags.set(t, (tags.get(t) ?? 0) + 1);
+  return (
+    <div className="grid gap-4 lg:grid-cols-2 mb-6">
+      <div className="bg-surface rounded-sm p-4 text-[15px]">
+        <p className="font-semibold mb-2">Как гласува съветът</p>
+        <p>Единодушно („за“ без против и въздържали се): <b className="num">{voted.length ? Math.round((100 * unanimous) / voted.length) : 0}%</b> от {voted.length} решения с отчетено гласуване.</p>
+        <p>С поне един глас „против“: <b className="num">{withAgainst}</b>. Поименно гласувани: <b className="num">{named}</b>. Отхвърлени: <b className="num">{rejected}</b>.</p>
+        <p className="mt-2 text-sm text-muted">По теми: {[...tags.entries()].sort((a, b) => b[1] - a[1]).map(([t, n]) => `${LOCAL_INDEX.tags[t]?.bg ?? t} ${n}`).join(" · ")}</p>
+      </div>
+      <div className="bg-surface rounded-sm p-4 text-[15px]">
+        <p className="font-semibold mb-2">Кой внася предложенията</p>
+        <ul className="space-y-1">{[...by.values()].sort((a, b) => b.n - a.n).slice(0, 8).map((x) => (
+          <li key={x.slug ?? x.name} className="flex justify-between gap-3"><span>{x.slug ? <Link href={personHref(x.slug)}>{x.name}</Link> : x.name} <span className="text-sm text-muted">· {x.role}</span></span><span className="num">{x.n}{x.contested ? <span className="text-sm text-muted"> ({x.contested} с „против“)</span> : null}</span></li>
+        ))}</ul>
+      </div>
+    </div>
+  );
+}
+
 function councilStats(res: Resolution[]) {
   const by = new Map<string, { for: number; against: number; abstain: number; other: number; dissent: number }>();
   for (const r of res) {
@@ -148,7 +182,8 @@ export default async function Vlast({ params }: { params: Promise<{ obl: string;
               <p className="text-[15px] bg-surface rounded-sm p-4 max-w-3xl">За тази община още не четем протоколите на съвета. Засега ги имаме за {Object.values(LOCAL_INDEX.munis).filter((x) => x.resolutions).length} общини. Протоколите на {m.name} се публикуват на сайта на общинския съвет, обикновено като PDF.</p>
             ) : (
               <>
-                <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">{res.length} решения от последните заседания. Показваме първо спорните: с гласове против или много въздържали се.</p>
+                <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">{res.length} решения{res.some((r) => r.text) ? ` от ${res.at(-1)?.date.slice(0, 4)} г. насам, прочетени директно от сайта на общинския съвет` : " от последните заседания"}. Показваме първо спорните: с гласове против или много въздържали се.</p>
+                {res.some((r) => r.rapporteur) && <CouncilSummary res={res} />}
                 {stats.length > 0 && (
                   <details className="mb-6" open>
                     <summary className="cursor-pointer font-semibold text-green">Как гласува всеки съветник</summary>
@@ -160,9 +195,12 @@ export default async function Vlast({ params }: { params: Promise<{ obl: string;
                 )}
                 <ul className="space-y-2">{[...contested, ...res.filter((r) => !contested.includes(r))].slice(0, 120).map((r) => (
                   <li key={r.id} className="ring-1 ring-rule rounded-sm p-3 bg-white">
-                    <p className="text-sm text-muted">{r.date} · заседание {r.session} · решение № {r.number}{r.tags.length ? ` · ${r.tags.map((t) => LOCAL_INDEX.tags[t]?.bg ?? t).join(", ")}` : ""}</p>
+                    <p className="text-sm text-muted">{r.date.split("-").reverse().join(".")}{r.session ? ` · заседание ${r.session}` : ""} · решение № {r.number}{r.tags.length ? ` · ${r.tags.map((t) => LOCAL_INDEX.tags[t]?.bg ?? t).join(", ")}` : ""}{r.result === "rejected" ? " · отхвърлено" : ""}</p>
                     <p className="text-[15px]">{r.title === "(no title parsed)" ? "Заглавието не е разчетено от протокола" : r.title}</p>
-                    {r.tally && <p className="text-sm num mt-1">За {r.tally.for} · против <span className={r.tally.against ? "text-red font-semibold" : ""}>{r.tally.against}</span> · въздържали се {r.tally.abstain}{r.tally.method === "named" ? " · поименно" : ""}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer">протокол</a></>}</p>}
+                    {r.rapporteur && <p className="text-sm text-muted">Внася: {r.rapporteur.slug ? <Link href={personHref(r.rapporteur.slug)}>{r.rapporteur.name}</Link> : r.rapporteur.name}, {r.rapporteur.role}</p>}
+                    {r.tally ? <p className="text-sm num mt-1">За {r.tally.for} · против <span className={r.tally.against ? "text-red font-semibold" : ""}>{r.tally.against}</span> · въздържали се {r.tally.abstain}{r.tally.method === "named" ? " · поименно" : ""}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer">{r.session ? "протокол" : "решението (PDF)"}</a></>}</p>
+                      : r.url && <p className="text-sm mt-1"><a href={r.url} target="_blank" rel="noreferrer">решението (PDF)</a></p>}
+                    {r.text && <details className="text-sm mt-1"><summary className="cursor-pointer text-green">Какво решиха</summary><p className="mt-1 whitespace-pre-line">{r.text}</p></details>}
                     {r.votes.some(([, v]) => v !== "for") && (
                       <details className="text-sm mt-1"><summary className="cursor-pointer text-green">Кой не гласува „за“</summary>
                         <p className="mt-1">{r.votes.filter(([, v]) => v !== "for").map(([n, v]) => `${n}: ${VOTE_BG[v] ?? v}`).join("; ")}</p>
@@ -173,7 +211,7 @@ export default async function Vlast({ params }: { params: Promise<{ obl: string;
               </>
             )}
           </section>
-          <p className="text-xs text-muted">Източници: декларации от регистъра на Сметната палата; протоколи от сайта на общинския съвет; поръчки от ЦАИС ЕОП. Обработка: „Наясно“, към {LOCAL_INDEX.updated}.</p>
+          <p className="text-xs text-muted">Източници: декларации от регистъра на Сметната палата; протоколи и решения от сайта на общинския съвет; поръчки от ЦАИС ЕОП. Обработка: „Наясно“ и „Осъзнатост“, към {LOCAL_INDEX.updated}.</p>
         </>
       )}
     </Page>

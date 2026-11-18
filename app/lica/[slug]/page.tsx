@@ -52,6 +52,7 @@ export default async function Lice({ params }: { params: Promise<{ slug: string 
   const sanc = sanctionsFor(o.name), cases = casesFor(o.name);
   const colleagues = L.officials.filter((x) => x.slug !== o.slug && ["mayor", "deputy_mayor", "council_chair", "chief_architect"].includes(x.role));
   const d = o.decl;
+  const proposed = (L.resolutions ?? []).filter((r) => r.rapporteur?.slug === o.slug);
   return (
     <Page>
       <Title back={{ href: `${muniHref}/vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}
@@ -102,6 +103,17 @@ export default async function Lice({ params }: { params: Promise<{ slug: string 
         <SectionTitle>Дялове във фирми и поръчките на общината</SectionTitle>
         <Suspense fallback={<p className="text-muted">Проверка…</p>}><StakeCheck code={code} o={o} /></Suspense>
       </section>
+
+      {proposed.length > 0 && (
+        <section className="mb-10">
+          <SectionTitle>Внесени предложения в общинския съвет ({proposed.length})</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Решения, приети по доклад на {o.name.split(" ")[0]}{proposed.some((r) => r.tally && r.tally.against > 0) ? `; ${proposed.filter((r) => r.tally && r.tally.against > 0).length} от тях са минали с гласове „против“` : ""}.</p>
+          <ul className="space-y-1.5 text-[15px]">{[...proposed.filter((r) => r.tally && r.tally.against > 0), ...proposed.filter((r) => !(r.tally && r.tally.against > 0))].slice(0, 25).map((r) => (
+            <li key={r.id}><span className="text-sm text-muted num">{r.date.split("-").reverse().join(".")} · № {r.number}</span> {r.title}{r.tally && <span className="text-sm num text-muted"> ({r.tally.for} за, <span className={r.tally.against ? "text-red" : ""}>{r.tally.against} против</span>, {r.tally.abstain} въздържали се)</span>}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer" className="text-sm">PDF</a></>}</li>
+          ))}</ul>
+          {proposed.length > 25 && <p className="text-sm mt-2"><Link href={`${muniHref}/vlast#resheniya`}>Всички решения на съвета</Link></p>}
+        </section>
+      )}
 
       {(mp || mpNow) && (
         <section className="mb-10 max-w-3xl">

@@ -5,17 +5,4 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: |
-          sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
-          node scripts/import-council-sites.mjs
-          node -e '
-          const d=require("./data/council/SFO07.json").decisions;
-          const by={};for(const x of d){by[x.date]=(by[x.date]||0)+1}; console.log(JSON.stringify(by));
-          console.log("без гласуване:", d.filter(x=>!x.tally).slice(0,6).map(x=>x.number+" "+x.date+" "+x.title.slice(0,80)).join("\n"));
-          console.log("без докладчик:", d.filter(x=>!x.rapporteur).length, "отхвърлени:", d.filter(x=>x.result=="rejected").length, "поименни:", d.filter(x=>x.tally&&x.tally.method=="named").length);
-          for (const x of [d[0], d[5], d[40], d.find(x=>x.tally&&x.tally.against>3)]) console.log(JSON.stringify(x,null,1).slice(0,1400));
-          const r={};for(const x of d)if(x.rapporteur){r[x.rapporteur.name+" | "+x.rapporteur.role]=(r[x.rapporteur.name+" | "+x.rapporteur.role]||0)+1}; console.log(Object.entries(r).sort((a,b)=>b[1]-a[1]).slice(0,25));
-          '
+      - run: echo "Временна проба; съдържанието се сменя при нужда"

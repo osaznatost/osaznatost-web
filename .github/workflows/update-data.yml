@@ -32,6 +32,10 @@ jobs:
           node scripts/fix-groups.mjs
       - name: Европейски средства
         run: node scripts/import-funds.mjs
+      - name: Решения на общински съвети от сайтовете им (Ботевград)
+        run: |
+          sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
+          node scripts/import-council-sites.mjs || echo "Сайтовете на съветите не отговарят, продължаваме"
       - name: Местна власт (декларации и общински съвети)
         run: node scripts/import-local.mjs
       - name: Профил на местата (преброяване, карти, държавни инвестиции)
