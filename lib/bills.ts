@@ -11,6 +11,7 @@ export type Bill = {
   reports: { date: string; committee: string; stage: string }[];
   hall: { date: string; stage: string; url: string }[];
   proposals: number;
+  notes?: { conflict: string[]; against: string[]; votes: { stage: string; committee: string; yes: number; no: number; abst: number }[] };
 };
 let cache: Bill[] | null = null;
 export function allBills(): Bill[] {

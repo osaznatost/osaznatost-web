@@ -85,7 +85,7 @@ for (let id = index.last + 1; miss < 250 && Date.now() < deadline; id++) {
 }
 
 // 2) Подробности и текстове за още необработените (и за обновяване на тези с ново движение).
-const VERSION = 2;
+const VERSION = 3;
 const todo = Object.entries(index.bills).filter(([, x]) => !x.done || (x.v ?? 1) < VERSION || (process.env.REFRESH && !x.final));
 for (const [id] of todo) {
   if (Date.now() > deadline) break;
@@ -103,7 +103,10 @@ for (const [id] of todo) {
     motives: "", reports: [], opinions: [], hall: [], proposals: (b.proposal_12_list ?? []).map((p) => ({ doc: p.RN_DOC, date: p.DAT_DOC, by: names(p.imp_list) })),
   };
   const f = b.file_list?.[0]?.FILENAME;
-  if (f) out.motives = await pdf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000, "tail", 7);
+  // мотивите не се менят: ако вече са разпознати, не ги разпознаваме пак
+  const prev = existsSync(`${DIR}/${id}.json`) ? JSON.parse(readFileSync(`${DIR}/${id}.json`, "utf8")) : null;
+  if (prev?.motives?.length > 500) out.motives = prev.motives;
+  else if (f) out.motives = await pdf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000, "tail", 7);
   // Доклади на комисиите (първо и второ четене, вето) и становища на външни организации. Текстът е в A_Cm_Stan_text
   // или в приложен файл (PDF/DOC), който сваляме.
   const docText = async (j, max) => {

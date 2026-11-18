@@ -171,6 +171,9 @@ function BillCard({ b }: { b: Bill }) {
         <dt className="text-muted">Внесен</dt><dd>{formatDate(b.date)} от {b.byGov ? "Министерския съвет" : who(b)}{b.withdrawn && <b className="text-red"> · оттеглен</b>}</dd>
         {b.committees.length > 0 && <><dt className="text-muted">Комисии</dt><dd>{b.committees.join("; ")}</dd></>}
         {b.opinions.length > 0 && <><dt className="text-muted">Становища</dt><dd>{b.opinions.map((o) => o.title).join("; ")}</dd></>}
+        {(b.notes?.votes.length ?? 0) > 0 && <><dt className="text-muted">В комисията</dt><dd>{b.notes!.votes.map((v, i) => <span key={i}>{i > 0 && "; "}{v.committee.replace(/^Комисия (по|за) /, "")}, {v.stage}: {v.yes} за, {v.no} против{v.abst ? `, ${v.abst} въздържал се` : ""}</span>)}</dd></>}
+        {(b.notes?.conflict.length ?? 0) > 0 && <><dt className="text-red font-semibold">Конфликт на интереси</dt><dd>{b.notes!.conflict[0]}</dd></>}
+        {(b.notes?.against.length ?? 0) > 0 && <><dt className="text-muted">Несъгласие</dt><dd>{b.notes!.against[0]}</dd></>}
         {b.proposals > 0 && <><dt className="text-muted">Предложения</dt><dd>{b.proposals} писмени предложения на депутати между <Term k="parvo-chetene">първо</Term> и <Term k="vtoro-chetene">второ четене</Term></dd></>}
         {b.hall.length > 0 && <><dt className="text-muted">В залата</dt><dd>{b.hall.map((h, i) => <span key={i}>{i > 0 && ", "}<a href={h.url} target="_blank" rel="noreferrer">{formatDate(h.date)}</a> ({h.stage})</span>)}</dd></>}
         {b.dv && <><dt className="text-muted">Обнародван</dt><dd>{b.dv}{b.adopted && `, приет на ${formatDate(b.adopted)}`}</dd></>}

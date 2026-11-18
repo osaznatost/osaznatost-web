@@ -4,6 +4,21 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 const DIR = "data/bills-src";
 if (!existsSync(DIR)) process.exit(0);
 const out = [];
+// Изречения от докладите на комисиите, които си струва да се видят: обявен конфликт на интереси, несъгласие на министерство, гласуване в комисията.
+const sentences = (t) => t.replace(/\s+/g, " ").split(/(?<=[.!?])\s+(?=[А-ЯA-Z„])/);
+function notes(reports) {
+  const conflict = new Set(), against = new Set(), votes = [];
+  for (const r of reports) {
+    for (const x of sentences(r.text ?? "")) {
+      if (/конфликт на интереси/i.test(x) && /(няма да участва|не участва|отвод|декларира|заяви|обяви)/i.test(x) && x.length < 400) conflict.add(x.trim());
+      if (/(министерств|агенци|комисия за|сметната палата|омбудсман)[^.]{0,120}не подкрепя/i.test(x) && x.length < 400) against.add(x.trim());
+      const m = x.match(/„за“\s*[–-]?\s*(\d+)[^.]{0,30}„против“\s*[–-]?\s*(\d+)(?:[^.]{0,30}„въздържал(?:и)? се“\s*[–-]?\s*(\d+))?/)
+        ?? x.match(/(\d+)\s+гласа?\s+„за“[^.]{0,40}?(\d+)\s+(?:гласа?\s+)?„против“(?:[^.]{0,40}?(\d+)\s+(?:гласа?\s+)?„въздържал)?/);
+      if (m && /комисия|гласува|резултат/i.test(x)) votes.push({ stage: r.stage, committee: r.committee, yes: +m[1], no: +m[2], abst: m[3] ? +m[3] : 0 });
+    }
+  }
+  return { conflict: [...conflict].slice(0, 3), against: [...against].slice(0, 3), votes: votes.slice(0, 4) };
+}
 for (const f of readdirSync(DIR).filter((x) => /^\d+\.json$/.test(x))) {
   const b = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
   out.push({
@@ -15,6 +30,7 @@ for (const f of readdirSync(DIR).filter((x) => /^\d+\.json$/.test(x))) {
     reports: b.reports.map((r) => ({ date: r.date, committee: r.committee, stage: r.stage })),
     hall: b.hall.map((h) => ({ date: h.date, stage: h.stage, url: h.url })),
     proposals: b.proposals.length,
+    notes: notes(b.reports),
   });
 }
 out.sort((a, b) => (a.date < b.date ? 1 : -1));

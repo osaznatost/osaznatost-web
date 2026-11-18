@@ -38,6 +38,10 @@ export function lawSignals(votes: Vote[], bills: Bill[]): LawSignal[] {
   for (const b of bills.filter((x) => !x.withdrawn)) {
     if (b.veto) out.push({ level: "high", title: "Наложено вето от президента", text: `Президентът върна закона за ново обсъждане (${b.veto}).` });
   }
+  const conflict = [...new Set(bills.flatMap((b) => b.notes?.conflict ?? []))];
+  if (conflict.length) out.push({ level: "high", title: "Депутати обявиха конфликт на интереси", text: `От доклада на комисията: „${conflict[0].slice(0, 300)}“` });
+  const against = [...new Set(bills.flatMap((b) => b.notes?.against ?? []))];
+  if (against.length) out.push({ level: "mid", title: "Институция не подкрепя поне един от законопроектите", text: `От доклада на комисията: „${against[0].slice(0, 300)}“` });
   const mp = bills.filter((b) => !b.withdrawn && !b.byGov);
   if (bills.length && mp.length === bills.filter((b) => !b.withdrawn).length && mp.length) out.push({ level: "info", title: "Внесен от депутати", text: "Законопроектите на депутати не минават през задължителното 30-дневно обществено обсъждане на strategy.bg, както тези на Министерския съвет, и често нямат подробна оценка на въздействието." });
   if (bills.length && !bills.some((b) => b.opinions.length)) out.push({ level: "info", title: "Няма публикувани становища", text: "На сайта на парламента няма становища на външни организации (браншове, синдикати, институции) по този законопроект." });
