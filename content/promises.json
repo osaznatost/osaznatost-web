@@ -753,6 +753,44 @@
               "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2016/12/09/2879142_obeshtaniiata_na_petur_moskov/"
             }
           ]
+        },
+        {
+          "text": "Без поскъпване на винетката през този мандат",
+          "area": "Инфраструктура",
+          "said": {
+            "who": "Лиляна Павлова, министър на регионалното развитие",
+            "when": "април 2015",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/11/11/2647123_vinetkite_poskupvat_sredno_s_30-50_obnovena/"
+          },
+          "status": "failed",
+          "evidence": "На 11 ноември 2015 г. правителството вдигна годишната винетка за лек автомобил от 67 на 97 лв. от 10 декември 2015 г., месечната и седмичната също поскъпнаха.",
+          "links": [
+            {
+              "title": "Капитал: Годишната винетка става 97 лева (11.11.2015)",
+              "url": "https://www.capital.bg/kakvo_stava/2015/11/11/2647047_godishnata_vinetka_stava_97_leva/"
+            }
+          ]
+        },
+        {
+          "text": "Тол система за камионите (таксуване по изминат път) от 2017 г.",
+          "area": "Инфраструктура",
+          "said": {
+            "who": "Министерство на регионалното развитие и благоустройството",
+            "when": "ноември 2015",
+            "url": "https://www.capital.bg/kakvo_stava/2015/11/11/2647047_godishnata_vinetka_stava_97_leva/"
+          },
+          "status": "failed",
+          "evidence": "Поръчката е обявена през април 2016 г. и многократно спирана. Тол системата заработва чак на 1 март 2020 г., при следващото правителство на Борисов, след две отлагания.",
+          "links": [
+            {
+              "title": "Капитал: Ден за 200 млн. лв. (26.05.2017, хронология на поръчката)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2017/05/26/2977861_den_za_200_mln_lv/"
+            },
+            {
+              "title": "БНТ: среща с превозвачите преди старта на тол системата (февруари 2020)",
+              "url": "https://bntnews.bg/news/pm-borissov-ministers-met-carriers-over-demands-for-the-toll-system-1310746news.html"
+            }
+          ]
         }
       ]
     },
