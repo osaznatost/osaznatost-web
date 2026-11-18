@@ -44,10 +44,16 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     <Page>
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
-      <Link href={`/mesta/${o.slug}/${muni}/vlast`} className="block ring-1 ring-rule rounded-sm p-4 mb-8 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-        <p className="font-semibold text-lg">Местна власт →</p>
-        <p className="text-[15px] text-muted">Кмет, заместници, съветници: декларации, дялове във фирми срещу поръчките на общината, как гласуват в общинския съвет.</p>
-      </Link>
+      <div className="grid gap-4 md:grid-cols-2 mb-8">
+        <Link href={`/mesta/${o.slug}/${muni}/vlast`} className="block ring-1 ring-rule rounded-sm p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
+          <p className="font-semibold text-lg">Местна власт →</p>
+          <p className="text-[15px] text-muted">Кмет, заместници, съветници: декларации, дялове във фирми срещу поръчките на общината, как гласуват в общинския съвет.</p>
+        </Link>
+        <Link href={`/mesta/${o.slug}/${muni}/proekti`} className="block ring-1 ring-rule rounded-sm p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
+          <p className="font-semibold text-lg">Проекти →</p>
+          <p className="text-[15px] text-muted">Всеки ремонт и строеж: кой е решил, кой е възложил, кой го взима, за колко и до кога, анексите и кой приема работата.</p>
+        </Link>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Дълг на общината</p><p className="display text-[2.2rem]">{mn(fin?.debt)}</p><p className="text-xs text-muted">{fin?.arrears ? `просрочени задължения: ${mn(fin.arrears)}` : "без просрочени задължения"}</p></div>

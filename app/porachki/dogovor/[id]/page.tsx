@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
 import { AnnexList, LinksBox, SignalList } from "@/components/proc";
+import { ProjectPath } from "@/components/ProjectPath";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { politicalLinks } from "@/lib/procurement";
@@ -159,32 +160,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         ))}
       </section>
 
-      <section className="mb-10 max-w-3xl">
-        <SectionTitle>Кой подписва</SectionTitle>
-        <ol className="list-decimal pl-5 space-y-1 text-[15px]">
-          <li><b>Възлага и подписва договора:</b> <Link href={buyerUrl(c.buyer_eik)}>{c.buyer_name}</Link> (ЕИК {c.buyer_eik}), чрез ръководителя си.</li>
-          <li><b>Финансира:</b> {c.is_eu_funded ? `европейска програма${c.eu_program ? ` „${c.eu_program}“` : ""} с национално съфинансиране` : "бюджетът на възложителя"}.</li>
-          <li><b>Изпълнява:</b> {c.supplier_names.join(", ")}{c.has_subcontractors ? ", с подизпълнители" : ""}.</li>
-          <li><b>Приема работата</b> (протокол или акт за приемане): не се публикува в отворените данни.</li>
-        </ol>
-        <details className="mt-4 bg-surface rounded-sm p-4">
-          <summary className="cursor-pointer font-semibold">Поискай документите (заявление по ЗДОИ)</summary>
-          <p className="text-sm mt-2 mb-2">Копирай текста и го изпрати до {c.buyer_name}. Възложителят трябва да отговори в 14 дни.</p>
-          <pre className="whitespace-pre-wrap text-sm bg-white p-3 rounded-sm ring-1 ring-rule">{`До ${c.buyer_name}
-
-ЗАЯВЛЕНИЕ за достъп до обществена информация (чл. 24 от ЗДОИ)
-
-Моля да ми бъде предоставена следната информация за договор № ${c.contract_number} от ${c.contract_date ?? "…"} г. по поръчка с УНП ${c.unp} „${c.tender_name}“, изпълнител ${c.supplier_names.join(", ")}:
-1. Количествено-стойностната сметка (ценовото предложение) на изпълнителя.
-2. Протоколите или актовете за приемане на изпълнението и имената и длъжностите на лицата, които са ги подписали.
-3. Размерът и датите на извършените плащания по договора.
-4. Сключените анекси и мотивите за тях.
-
-Предпочитам информацията да ми бъде предоставена по електронен път на адрес: …
-
-Дата: …            Подпис: …`}</pre>
-        </details>
-      </section>
+      <Suspense fallback={<p className="text-muted mb-10">Проследяване на проекта…</p>}><ProjectPath c={c} annexes={annexes} /></Suspense>
 
       <p className="text-xs text-muted">Източник: отворени данни на ЦАИС ЕОП (Агенция по обществени поръчки), договор № {c.contract_number}, публикуван на {fmtDate(c.published_at)}.</p>
     </>

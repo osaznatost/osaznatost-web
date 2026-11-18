@@ -5,20 +5,4 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          curl -sS -m 30 https://app.eop.bg/today/598364 -o i.html
-          R=$(grep -oE 'runtime\.[a-f0-9]+\.js' i.html | head -1); curl -sS https://app.eop.bg/$R -o rt.js
-          M=$(grep -oE 'main\.[a-f0-9]+\.js' i.html | head -1); curl -sS https://app.eop.bg/$M -o main.js
-          python3 - <<'PY'
-          import re
-          s=open('rt.js').read()
-          # webpack chunk map: {123:"abc123..."}
-          pairs=re.findall(r'(\d+):"([a-f0-9]{16})"',s)
-          print(len(pairs)); open('chunks.txt','w').write('\n'.join(f'{a}.{b}.js' for a,b in pairs))
-          PY
-          mkdir c; for f in $(cat chunks.txt); do curl -sS -m 30 --retry 3 "https://app.eop.bg/$f" -o "c/$f" || true; sleep 0.3; done
-          cat main.js c/*.js > all.js; ls c | wc -l
-          grep -oE '"[^"]{0,30}(api/|/api)[^"]{0,90}"' all.js | sort -u | head -60
-          grep -oE '`[^`]{0,40}(api|Api)[^`]{0,100}`' all.js | sort -u | head -60
-          grep -oE '(apiUrl|baseUrl|apiBase|API_URL|serverUrl)[^,;]{0,120}' all.js | sort -u | head -30
-          grep -oE '"[a-zA-Z/{}-]*(document|Document)[a-zA-Z/{}-]*"' all.js | sort -u | head -50
+      - run: echo "Временна проба; съдържанието се сменя при нужда"

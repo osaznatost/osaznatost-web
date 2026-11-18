@@ -133,7 +133,7 @@ export default async function Vlast({ params }: { params: Promise<{ obl: string;
         {m.name}
       </Title>
       <nav className="flex flex-wrap gap-2 mb-10 text-[15px]">
-        {[["#rakovodstvo", "Ръководство"], ["#konflikt", "Конфликт на интереси"], ["#savetnici", "Съветници"], ["#resheniya", "Решения на съвета"], [procHref, "Поръчки на общината"]].map(([h, l]) => (
+        {[["#rakovodstvo", "Ръководство"], ["#konflikt", "Конфликт на интереси"], ["#savetnici", "Съветници"], ["#resheniya", "Решения на съвета"], [`/mesta/${o.slug}/${muni}/proekti`, "Проекти: кой решава, кой взима, кой приема"], [procHref, "Поръчки на общината"]].map(([h, l]) => (
           h.startsWith("#") ? <a key={h} href={h} className="px-3 py-1.5 rounded-full bg-surface no-underline text-ink hover:ring-1 hover:ring-green">{l}</a> : <Link key={h} href={h} className="px-3 py-1.5 rounded-full bg-surface no-underline text-ink hover:ring-1 hover:ring-green">{l} →</Link>
         ))}
       </nav>
