@@ -1,0 +1,33 @@
+name: Сигнали от обявленията (срокове и промени)
+on:
+  schedule:
+    - cron: "37 1 * * *"
+  workflow_dispatch:
+    inputs:
+      back:
+        default: "400"
+permissions:
+  contents: write
+concurrency:
+  group: tender-signals
+  cancel-in-progress: false
+jobs:
+  signals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/import-ocds-signals.mjs
+        env:
+          MAX_BACK: ${{ inputs.back || '60' }}
+      - name: Запис
+        run: |
+          git add data/tender-signals
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Сигнали от обявленията: обновяване"
+          git pull --rebase -X theirs
+          git push
