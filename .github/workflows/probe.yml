@@ -6,19 +6,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for u in https://botevgrad.bg/obs/reshenie/resheniya-na-obs-ot-2026g-3311 https://botevgrad.bg/obs/obsavet https://botevgrad.bg/obs/view/dneven-red-arhiv-20; do
-          echo "######## $u"
-          curl -sSL -A "Mozilla/5.0" -m 30 "$u" -o p.html
+          sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1 || true
+          echo "######## SESSION"
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/obsview/id/42 -o p.html
           python3 - <<'PY'
           import re,html
           s=open('p.html',encoding='utf-8',errors='ignore').read()
-          i=s.rfind('class="current"'); s=s[i:]
+          i=s.find('Заседание общински съвет Ботевград - 29'); s=s[max(0,i-200):]
           j=s.find('footer'); s=s[:j] if j>0 else s
           s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
           s=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',s)
           s=re.sub(r'<br\s*/?>|</(p|div|li|tr|h\d)>','\n',s)
-          s=html.unescape(re.sub(r'<[^>]+>','',s))
-          s=re.sub(r'[ \t]+',' ',s); s=re.sub(r'\n\s*\n+','\n',s)
-          print(s[:5000])
+          s=html.unescape(re.sub(r'<[^>]+>','',s)); s=re.sub(r'[ \t]+',' ',s); s=re.sub(r'\n\s*\n+','\n',s)
+          print(s[:4000])
           PY
-          done
+          echo "######## PDF"
+          curl -sSL -A "Mozilla/5.0" -m 60 "https://botevgrad.bg/data/news/files/1793959559.pdf" -o d.pdf; pdfinfo d.pdf | grep -E "Pages|Producer"
+          pdftotext -layout d.pdf - | sed 's/  */ /g' | grep -v '^\s*$' | head -170
