@@ -6,19 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for U in https://botevgrad.bg/obshtina/poruchka/registar-na-plashtaniya-kam-kontragenti-3 https://botevgrad.bg/obshtina/poruchka/registar-na-osvobodeni-garantsii-po-obshtestveni-porachki-2; do
-          echo "##### $U"; curl -sSL -A "Mozilla/5.0" -m 30 "$U" -o p.html
-          python3 - <<'PY'
-          import re,html
-          s=open('p.html',encoding='utf-8',errors='ignore').read()
-          i=s.rfind('class="current"'); s=s[i:] if i>0 else s
-          j=s.find('footer'); s=s[:j] if j>0 else s
-          s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
-          s=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',s)
-          s=re.sub(r'<br\s*/?>|</(p|div|li|tr|h\d)>','\n',s)
-          s=html.unescape(re.sub(r'<[^>]+>','',s)); s=re.sub(r'[ \t]+',' ',s); s=re.sub(r'\n\s*\n+','\n',s)
-          print(s[:3000])
-          PY
-          done
-          echo "##### EOP API"
-          for u in "https://app.eop.bg/api/public/tenders/598364" "https://app.eop.bg/today/598364" "https://app.eop.bg/api/tender/598364"; do curl -sS -m 30 -o t.out -w "$u %{http_code} %{content_type}\n" "$u"; head -c 300 t.out; echo; done
+          curl -sS -m 30 https://app.eop.bg/today/598364 -o i.html
+          for js in $(grep -oE 'src="[^"]+\.js"' i.html | sed 's/src="//;s/"//'); do curl -sS -m 60 "https://app.eop.bg/$js" -o "b_$(basename $js)"; done
+          ls -la b_*
+          cat b_*.js | grep -oE '"[^"]{0,40}(api|Api|API)[^"]{0,80}"' | sort -u | head -80
+          cat b_*.js | grep -oE '(https?:)?//[a-z0-9.-]+eop\.bg[^"'"'"' ]{0,60}' | sort -u | head -30
+          cat b_*.js | grep -oE '"/?(tenders?|public|documents?|procedures?)/[^"]{0,80}"' | sort -u | head -60
