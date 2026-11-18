@@ -4,8 +4,14 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const H = { Origin: "https://www.parliament.bg", Referer: "https://www.parliament.bg/bg/plenaryprogram", Accept: "application/json" };
 const strip = (s) => (s ?? "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
 
-const r = await fetch("https://www.parliament.bg/api/v1/plenaryprogram/bg/0", { headers: H });
-if (!r.ok) throw new Error("HTTP " + r.status);
+// parliament.bg понякога не отговаря: 3 опита, после изход без грешка (старите данни остават)
+let r = null;
+for (let i = 0; i < 3 && !r?.ok; i++) {
+  try { r = await fetch("https://www.parliament.bg/api/v1/plenaryprogram/bg/0", { headers: H, signal: AbortSignal.timeout(30000) }); }
+  catch (e) { console.warn("Опит", i + 1, e.cause?.code ?? e.message); }
+  if (!r?.ok) await new Promise((ok) => setTimeout(ok, 20000));
+}
+if (!r?.ok) { console.warn("parliament.bg не отговаря — пропускам този път"); process.exit(0); }
 const p = await r.json();
 const points = Object.values(p.points ?? {}).map((x, i) => ({
   n: i + 1,
