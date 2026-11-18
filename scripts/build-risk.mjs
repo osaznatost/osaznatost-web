@@ -2,6 +2,7 @@
 // (същите правила като lib/redFlags.ts), обобщени по възложител, изпълнител, година и област.
 // Пуска се от GitHub Actions. Нужни тайни: SUPABASE_URL, SUPABASE_SECRET_KEY. Записва data/risk.json.
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { legalException } from "../lib/legalException.mjs";
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 const HEAD = { apikey: KEY };
@@ -37,8 +38,10 @@ for (const a of A) { const k = `${a.buyer_eik}|${a.contract_number}`; added.set(
 
 function flags(c) {
   const f = [], v = c.contract_value_eur ?? 0, est = c.estimated_value_eur ?? 0;
-  if (c.offers_count === 1) f.push(["single", 25]);
-  if (c.procedure_type && NO_COMP.test(c.procedure_type)) f.push(["direct", 20]);
+  const ex = legalException(c.tender_name);
+  if (c.offers_count === 1) f.push(["single", ex ? 5 : 25]);
+  if (c.procedure_type && NO_COMP.test(c.procedure_type)) f.push(["direct", ex ? 5 : 20]);
+  if (ex && f.length) f.push(["legal", 0]);
   if (est > 0 && v > est * 1.05) f.push(["over", 10]);
   if (est > 0 && c.offers_count === 1 && v >= est * 0.97 && v <= est * 1.0001) f.push(["exact", 10]);
   const ad = added.get(`${c.buyer_eik}|${c.contract_number}`) ?? 0;
@@ -68,8 +71,8 @@ const agg = (keyFn, nameFn) => {
   return [...m.values()].map((e) => ({ ...e, value: Math.round(e.value), riskyValue: Math.round(e.riskyValue), avg: Math.round(e.scoreSum / e.n), scoreSum: undefined }));
 };
 const buyers = agg((c) => c.buyer_eik, (c) => c.buyer_name).filter((b) => b.n >= 20).map((b) => ({ ...b, ...(buyerInfo.get(b.key) ? { muni: buyerInfo.get(b.key).municipality, muniCode: buyerInfo.get(b.key).municipality_code, oblast: buyerInfo.get(b.key).oblast, level: buyerInfo.get(b.key).level } : {}) }));
-const suppliers = agg((c) => c.supplier_eiks ?? [], (c, k) => c.supplier_names?.[(c.supplier_eiks ?? []).indexOf(k)] ?? k).filter((s) => s.n >= 5);
-const years = agg((c) => (c.contract_date ?? "").slice(0, 4), (c, k) => k).filter((y) => y.key >= "2020").sort((a, b) => (a.key < b.key ? -1 : 1));
+const suppliers = agg((c) => (c.supplier_eiks ?? []).filter((e) => /^\d{9,13}$/.test(e)), (c, k) => c.supplier_names?.[(c.supplier_eiks ?? []).indexOf(k)] ?? k).filter((s) => s.n >= 5);
+const years = agg((c) => (c.contract_date ?? "").slice(0, 4), (c, k) => k).filter((y) => y.key >= "2020" && y.key <= new Date().toISOString().slice(0, 4)).sort((a, b) => (a.key < b.key ? -1 : 1));
 const oblasts = agg((c) => buyerInfo.get(c.buyer_eik)?.oblast, (c, k) => k);
 const flagCount = {};
 for (const x of scored) for (const f of x.f) flagCount[f] = (flagCount[f] ?? 0) + 1;

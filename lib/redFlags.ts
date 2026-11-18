@@ -2,6 +2,7 @@ import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
 import { politicalLinks } from "@/lib/procurement";
 import { foundedDate, trFor } from "@/lib/tr";
+import { legalException } from "@/lib/legalException.mjs";
 
 const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
 /** Личен интерес на политик: депутат с каквато и да е роля или длъжностно лице със собственост (не управител на държавна фирма). */
@@ -16,8 +17,10 @@ const NO_COMPETITION = /договаряне без|пряко договаря�
 export function contractFlags(c: Contract, annexes: Annex[] = [], political = false): Flag[] {
   const f: Flag[] = [];
   const v = c.contract_value_eur ?? 0, est = c.estimated_value_eur ?? 0;
-  if (c.offers_count === 1) f.push({ id: "single", label: "Само една оферта", why: "Няма с кого да се сравни цената.", weight: 25 });
-  if (c.procedure_type && NO_COMPETITION.test(c.procedure_type)) f.push({ id: "direct", label: "Без открит конкурс", why: `Процедура: ${c.procedure_type.toLowerCase()}.`, weight: 20 });
+  const ex = legalException(c.tender_name);
+  if (c.offers_count === 1) f.push({ id: "single", label: "Само една оферта", why: "Няма с кого да се сравни цената.", weight: ex ? 5 : 25 });
+  if (c.procedure_type && NO_COMPETITION.test(c.procedure_type)) f.push({ id: "direct", label: "Без открит конкурс", why: `Процедура: ${c.procedure_type.toLowerCase()}.`, weight: ex ? 5 : 20 });
+  if (ex && f.length) f.push({ id: "legal", label: "Законово обяснение", why: `${ex.why} Затова горните флагове тежат по-малко.`, weight: 0 });
   if (est > 0 && v > est * 1.05) f.push({ id: "over", label: "Над прогнозната стойност", why: `Договорът е с ${Math.round((v / est - 1) * 100)}% над очакваното от възложителя.`, weight: 10 });
   if (est > 0 && c.offers_count === 1 && v >= est * 0.97 && v <= est * 1.0001) f.push({ id: "exact", label: "Цена почти равна на прогнозата", why: "Единственият участник предлага почти точно колкото възложителят е очаквал.", weight: 10 });
   const added = annexes.reduce((s, a) => s + Math.max(0, a.value_difference_eur ?? 0), 0);

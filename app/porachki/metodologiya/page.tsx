@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import RISK from "@/data/risk.json";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
+import { EXCEPTIONS } from "@/lib/legalException.mjs";
 
 export const metadata = { title: "Как оценяваме риска в поръчките" };
 
@@ -38,6 +39,10 @@ export default function Metodologiya() {
           <tr key={f.id} className="border-b border-rule align-top"><td className="py-2 pr-3 font-semibold">{f.label}</td><td className="px-2 num">{f.w}</td><td className="px-2">{f.rule}</td><td className="px-2">{f.why}</td><td className="px-2 text-muted">{f.limits}</td><td className="px-2 text-right num">{(R.flagCount[f.id] ?? 0).toLocaleString("bg-BG")}</td></tr>
         ))}</tbody>
       </table></div>
+      <SectionTitle>Законови обяснения</SectionTitle>
+      <p className="max-w-3xl text-[15px] mb-3">Понякога една оферта или договаряне без конкурс идват от закона или от монопол, а не от избор на възложителя. Тогава „Само една оферта“ и „Без открит конкурс“ остават видими, но носят по 5 точки вместо 25 и 20. Другите сигнали (политик, анекси, нова фирма и т.н.) се смятат както винаги. Разпознаваме случаите по предмета на договора:</p>
+      <ul className="list-disc pl-5 max-w-3xl text-[15px] space-y-1 mb-3">{EXCEPTIONS.map((x) => <li key={x.id}>{x.why}</li>)}</ul>
+      <p className="max-w-3xl text-[15px] text-muted mb-10">Вътрешните възлагания (in-house) не са в списъка: те са законни, но често спорни, затова се оценяват като всички останали. Засегнати договори: {(R.flagCount.legal ?? 0).toLocaleString("bg-BG")}.</p>
       <SectionTitle>Какво не виждаме</SectionTitle>
       <ul className="list-disc pl-5 max-w-3xl text-[15px] space-y-1 mb-10">
         <li>Договорите от 2020–2021 г. почти липсват в отворените данни на ЦАИС ЕОП. По-старите добавяме от европейската база TED, само над европейските прагове.</li>
