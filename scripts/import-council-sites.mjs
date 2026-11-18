@@ -127,8 +127,9 @@ function parseWpPost(html, url, S) {
   const main = after.slice(Math.max(0, after.search(/На основание|Общински съвет/))).split(/\n\s*ПРЕДСЕДАТЕЛ|This website uses cookies|\nСподели/)[0];
   const op = (main.split(/\sреши\s*:/i)[1] ?? main).trim();
   const body = ws(op);
-  const first = flat(body).split(/(?<=[.;])\s/)[0];
-  const title = first.replace(/^\d+\.\s*/, "").slice(0, 300);
+  // Решенията в Русе нямат отделно заглавие: взимаме първата точка от решението (без да режем на „гр.“, „м.“ и т.н.).
+  const first = flat(body.split(/\n(?=\d+\.\s)/)[0]).replace(/^\d+\.\s*/, "");
+  const title = first.length > 240 ? first.slice(0, 240).replace(/\s+\S*$/, "") + " …" : first;
   const pdf = html.match(/href="([^"]+\.pdf)"/)?.[1] ?? null;
   return [{
     number: h[1], date, url: pdf ?? url, page: url, title, session: h[2], rapporteur: null, tally: null,
