@@ -5,7 +5,7 @@ import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow"
 import { AnnexList, LinksBox, SignalList } from "@/components/proc";
 import { ProjectPath } from "@/components/ProjectPath";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
+import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { politicalLinks } from "@/lib/procurement";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
 
@@ -37,7 +37,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const annexes = await contractAnnexes(c);
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
-  const flags = contractFlags(c, annexes, c.supplier_eiks.some(personalLink));
+  const flags = contractFlags(c, annexes, strongestLink(c.supplier_eiks));
   const risk = riskScore(flags), rl = riskLabel(risk);
   const value = c.contract_value_eur ?? 0;
   const added = annexes.reduce((s, a) => s + (a.value_difference_eur ?? 0), 0);

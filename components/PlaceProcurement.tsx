@@ -2,12 +2,13 @@ import { connection } from "next/server";
 // Обществените поръчки на едно място (страна, област, община, град или село). Ползва се от страницата на мястото
 // и от „Поръчки“, за да е една и съща информация навсякъде.
 import Link from "next/link";
+import { PolDot } from "@/components/proc";
 import { AnnexList, ContractList, NOT_READY } from "@/components/proc";
 import { SectionTitle } from "@/components/ui";
 import { findMunicipality, findOblast, findSettlement } from "@/lib/places";
 import {
   PROC_READY, type PlaceFilter, type PlaceStat, biggestAnnexes, biggestContracts, firmUrl, fmtDate, fmtEur, importState, latestContracts,
-  placeMunicipalities, placeMunicipality, placeOblast, placeOblasts, placeSettlement, placeSettlements, placeSuppliers, politicalLinks, singleOfferBig,
+  placeMunicipalities, placeMunicipality, placeOblast, placeOblasts, placeSettlement, placeSettlements, placeSuppliers, singleOfferBig,
 } from "@/lib/procurement";
 import { placeHref } from "@/lib/regions";
 
@@ -96,7 +97,7 @@ export async function PlaceProcurement({ f, showBreakdown = true }: { f: PlaceFi
           <ul className="divide-y divide-rule border-y border-rule text-[15px]">
             {suppliers.map((s) => (
               <li key={s.eik} className="py-2 grid grid-cols-[1fr_auto] gap-3">
-                <span className="truncate"><Link href={firmUrl(s.eik)}>{s.name}</Link>{politicalLinks(s.eik).length > 0 && <span className="text-red font-bold" title="Връзка с политик по Търговския регистър"> ●</span>}</span>
+                <span className="truncate"><Link href={firmUrl(s.eik)}>{s.name}</Link><PolDot eik={s.eik} /></span>
                 <span className="num whitespace-nowrap">{s.contracts} дог. · {fmtEur(s.total_eur)}</span>
               </li>
             ))}

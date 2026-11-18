@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import links from "@/data/political-links.json";
+import { politicalStrength } from "@/lib/politicalFlag.mjs";
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -117,7 +118,11 @@ export function signals(c: Contract, annexes: Annex[] = []) {
   }
   if (c.estimated_value_eur && c.contract_value_eur && c.contract_value_eur > c.estimated_value_eur * 1.02)
     out.push({ level: "mid", text: "Договорената стойност е над прогнозната." });
-  for (const e of c.supplier_eiks) if (politicalLinks(e).length) out.push({ level: "high", text: "Изпълнителят има връзка с политик или длъжностно лице по Търговския регистър." });
+  for (const e of c.supplier_eiks) {
+    const st = politicalStrength(politicalLinks(e));
+    if (st === 2) out.push({ level: "high", text: "Изпълнителят е свързан с депутат или е посочен в декларация на длъжностно лице." });
+    else if (st === 1) out.push({ level: "mid", text: "Собственик на изпълнителя има същите три имена като длъжностно лице. Може да е съименник." });
+  }
   return out;
 }
 

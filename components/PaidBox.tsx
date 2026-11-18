@@ -14,7 +14,8 @@ export function PaidToFirm({ name }: { name: string }) {
   if (!r) return <><p className="text-[15px]">Няма плащания към фирма с това име в СЕБРА (или са под {eur(paymentsIndex().minEur)} общо).</p><Note /></>;
   return (
     <>
-      <p className="text-[15px] mb-3">Държавни институции са ѝ платили <b>{eur(r.total)}</b> с {r.n.toLocaleString("bg-BG")} плащания.</p>
+      <p className="text-[15px] mb-3">Държавни институции са платили <b>{eur(r.total)}</b> с {r.n.toLocaleString("bg-BG")} плащания на получател с това име. <span className="text-muted">Съвпадение по име, не по ЕИК.</span></p>
+      {r.amb && <p className="text-[15px] mb-3 border-l-4 border-[#e08a2e] pl-3">Внимание: в СЕБРА името се среща в няколко варианта, възможно е да са различни фирми или една фирма, сменила правната си форма: {r.amb.map(([n, v]) => `${n} (${eur(v)})`).join("; ")}.</p>}
       <div className="overflow-x-auto"><table className="w-full text-[15px]">
         <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-1.5 pr-3">Кой плаща</th><th className="px-2 text-right">Сума</th><th className="px-2 text-right">Плащания</th><th className="px-2">Период</th></tr></thead>
         <tbody>{r.payers.map((p) => <tr key={p[0]} className="border-b border-rule"><td className="py-1.5 pr-3">{p[0]}</td><td className="px-2 text-right num">{eur(p[1])}</td><td className="px-2 text-right num">{p[2]}</td><td className="px-2 text-sm text-muted">{d(p[3])} – {d(p[4])}</td></tr>)}</tbody>

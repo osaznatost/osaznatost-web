@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
+import { PolDot } from "@/components/proc";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { placeHref } from "@/lib/regions";
 import { sharedPeople } from "@/lib/tr";
 import { PaidByBuyer } from "@/components/PaidBox";
-import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
-import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
+import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur } from "@/lib/procurement";
+import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
 
 export const metadata = { title: "Възложител" };
@@ -29,7 +30,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
   const share = top[0] && total ? top[0][1].sum / total : 0;
   const repeats = repeatedWork(contracts).slice(0, 12);
-  const risky = contracts.map((c) => { const fl = contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), c.supplier_eiks.some(personalLink)); return { c, fl, score: riskScore(fl) }; })
+  const risky = contracts.map((c) => { const fl = contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), strongestLink(c.supplier_eiks)); return { c, fl, score: riskScore(fl) }; })
     .filter((x) => x.score >= 20).sort((a, b) => b.score - a.score || (b.c.contract_value_eur ?? 0) - (a.c.contract_value_eur ?? 0));
   const riskShare = contracts.length ? Math.round((risky.length / contracts.length) * 100) : 0;
   const splits = possibleSplits(contracts).slice(0, 10);
@@ -58,7 +59,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         <ul className="divide-y divide-rule border-y border-rule text-[15px]">
           {top.map(([e, x]) => (
             <li key={e} className="py-2 flex justify-between gap-3">
-              <span className="truncate"><Link href={firmUrl(e)}>{x.name}</Link>{politicalLinks(e).length > 0 && <span className="text-red font-bold" title="Връзка с политик по Търговския регистър"> ●</span>}</span>
+              <span className="truncate"><Link href={firmUrl(e)}>{x.name}</Link><PolDot eik={e} /></span>
               <span className="num whitespace-nowrap">{x.n} · {fmtEur(x.sum)}</span>
             </li>
           ))}

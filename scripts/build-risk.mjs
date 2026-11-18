@@ -3,13 +3,13 @@
 // Пуска се от GitHub Actions. Нужни тайни: SUPABASE_URL, SUPABASE_SECRET_KEY. Записва data/risk.json.
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { legalException } from "../lib/legalException.mjs";
+import { politicalStrength } from "../lib/politicalFlag.mjs";
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 const HEAD = { apikey: KEY };
 const pol = JSON.parse(readFileSync("data/political-links.json", "utf8")).byEik;
-// Личен интерес: депутат с каквато и да е роля или длъжностно лице със собственост. Управителите на държавни фирми не са конфликт.
-const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
-const personal = (e) => (pol[e] ?? []).some((l) => l.kind === "mp" || (l.roles ?? []).some((r) => OWN.has(r)));
+// Личен интерес на политик: виж lib/politicalFlag.mjs (силна, възможна по имена, няма при държавни и общински дружества).
+const personal = (e) => politicalStrength(pol[e] ?? []);
 // Дата на създаване на фирмата от Търговския регистър (data/tr): за флага „нова фирма“.
 const TR = {};
 if (existsSync("data/tr")) for (const f of readdirSync("data/tr").filter((x) => /^\d\d\.json$/.test(x))) Object.assign(TR, JSON.parse(readFileSync(`data/tr/${f}`, "utf8")));
@@ -49,7 +49,9 @@ function flags(c) {
   if ((c.disqualified_offers_count ?? 0) > 0 && (c.offers_count ?? 0) - (c.disqualified_offers_count ?? 0) <= 1) f.push(["disq", 15]);
   const th = /строител|works/i.test(c.contract_type ?? "") ? TH.works : TH.other;
   if (v > th * 0.9 && v < th) f.push(["threshold", 10]);
-  if ((c.supplier_eiks ?? []).some(personal)) f.push(["political", 20]);
+  const ps = Math.max(0, ...(c.supplier_eiks ?? []).map(personal));
+  if (ps === 2) f.push(["political", 20]);
+  if (ps === 1) f.push(["political_name", 8]);
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push(["sub", 8]);
   if (young(c)) f.push(["new", 15]);
   return f;

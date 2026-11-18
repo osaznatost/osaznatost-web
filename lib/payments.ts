@@ -1,4 +1,4 @@
-// Плащания от СЕБРА: колко реално е платила държавата на дадена фирма (2024 г. насам, над 5000 лв.).
+// Плащания от СЕБРА: колко реално е платила държавата на дадена фирма (от юли 2022 г., над 5000 лв.).
 // Получателите са само с име, затова свързването с фирмите е по нормализирано име, не по ЕИК.
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -11,7 +11,7 @@ export function normName(name: string) {
   s = s.replace(/(^|[^0-9A-ZА-Я])(ЕООД|ООД|ЕАД|АД|ЕТ|ДЗЗД|КД|КДА|СД|ЕАДСИЦ|АДСИЦ|ЛТД|LTD|GMBH|SRL|SPA|SA)(?=[^0-9A-ZА-Я]|$)/g, " ");
   return s.replace(FORMS, " ").replace(/[^0-9A-ZА-Я]+/g, " ").replace(/\s+/g, " ").trim();
 }
-export type Receiver = { name: string; total: number; n: number; payers: [string, number, number, string | null, string | null][]; top: [number, string | null, string, string][] };
+export type Receiver = { name: string; total: number; n: number; payers: [string, number, number, string | null, string | null][]; top: [number, string | null, string, string][]; amb?: [string, number][] };
 const shards = new Map<string, Record<string, Receiver>>();
 export function paidTo(name: string): Receiver | null {
   const k = normName(name);

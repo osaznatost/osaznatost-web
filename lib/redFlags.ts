@@ -4,9 +4,10 @@ import { politicalLinks } from "@/lib/procurement";
 import { foundedDate, trFor } from "@/lib/tr";
 import { legalException } from "@/lib/legalException.mjs";
 
-const OWN = new Set(["съдружник", "едноличен собственик", "дял в капитала", "действителен собственик", "посочено в декларация"]);
-/** Личен интерес на политик: депутат с каквато и да е роля или длъжностно лице със собственост (не управител на държавна фирма). */
-export const personalLink = (eik: string) => politicalLinks(eik).some((l) => l.kind === "mp" || (l.roles ?? []).some((r) => OWN.has(r)));
+import { politicalStrength } from "@/lib/politicalFlag.mjs";
+/** Сила на личния интерес на политик във фирмата: 2 силна, 1 възможна (само по имена), 0 няма (вкл. държавни и общински дружества). */
+export const personalLink = (eik: string): number => politicalStrength(politicalLinks(eik));
+export const strongestLink = (eiks: string[]) => Math.max(0, ...eiks.map(personalLink));
 
 /** Червени флагове по образеца на Европейската служба за борба с измамите (OLAF) и инструмента на ЕК за ранно предупреждение.
  *  Всеки флаг е повод за въпрос, не доказателство. Индексът е сума от теглата, най-много 100. */
@@ -14,7 +15,7 @@ export type Flag = { id: string; label: string; why: string; weight: number };
 
 const NO_COMPETITION = /договаряне без|пряко договаряне|без предварително обявление|без публикуване/i;
 
-export function contractFlags(c: Contract, annexes: Annex[] = [], political = false): Flag[] {
+export function contractFlags(c: Contract, annexes: Annex[] = [], political: number | boolean = 0): Flag[] {
   const f: Flag[] = [];
   const v = c.contract_value_eur ?? 0, est = c.estimated_value_eur ?? 0;
   const ex = legalException(c.tender_name);
@@ -29,7 +30,9 @@ export function contractFlags(c: Contract, annexes: Annex[] = [], political = fa
   const works = /строител|works/i.test(c.contract_type ?? "");
   const th = works ? THRESHOLDS.works : THRESHOLDS.other;
   if (v > th * 0.9 && v < th) f.push({ id: "threshold", label: "Точно под прага", why: "Стойността е малко под прага, над който е нужна по-строга процедура.", weight: 10 });
-  if (political) f.push({ id: "political", label: "Връзка с политик", why: "Изпълнителят е свързан с депутат или е собственост на длъжностно лице (по Търговския регистър и декларациите).", weight: 20 });
+  const pol = political === true ? 2 : Number(political) || 0;
+  if (pol === 2) f.push({ id: "political", label: "Връзка с политик", why: "Изпълнителят е свързан с депутат или фирмата е посочена в декларацията на длъжностно лице.", weight: 20 });
+  if (pol === 1) f.push({ id: "political_name", label: "Възможна връзка с длъжностно лице", why: "В Търговския регистър собственик на фирмата е човек със същите три имена като длъжностно лице. Може да е съименник: проверете.", weight: 8 });
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push({ id: "sub", label: "Голям дял на подизпълнители", why: `Подизпълнителите поемат ${c.subcontracting_percent}% от работата.`, weight: 8 });
   const young = c.contract_date ? c.supplier_eiks.map((e) => ({ e, d: foundedDate(trFor(e)) })).find(({ d }) => d && Date.parse(c.contract_date!) >= Date.parse(d) && Date.parse(c.contract_date!) - Date.parse(d) < 365 * 864e5) : undefined;
   if (young) f.push({ id: "new", label: "Нова фирма", why: `Изпълнителят е създаден по-малко от година преди договора (${young.d!.endsWith("-01-01") ? `${young.d!.slice(0, 4)} г.` : young.d!.split("-").reverse().join(".")}, по Търговския регистър).`, weight: 15 });

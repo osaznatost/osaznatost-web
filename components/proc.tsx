@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { localPage } from "@/lib/people";
 import { type Annex, type Contract, buyerUrl, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
+import { isPublicFirm, politicalStrength } from "@/lib/politicalFlag.mjs";
+
+/** Точка до името на фирмата: червена при силна връзка с политик, оранжева при възможна (по имена). */
+export function PolDot({ eik }: { eik: string }) {
+  const s = politicalStrength(politicalLinks(eik));
+  if (s === 2) return <span title="Връзка с политик (депутат или декларирана)" className="text-red font-bold"> ●</span>;
+  if (s === 1) return <span title="Възможна връзка с длъжностно лице, само по имена" className="text-[#e08a2e] font-bold"> ●</span>;
+  return null;
+}
 
 export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contract[]; hideBuyer?: boolean; hideSupplier?: boolean }) {
   if (!items.length) return <p className="text-muted text-[15px]">Няма договори.</p>;
@@ -13,7 +22,7 @@ export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contra
             <p className="text-sm text-muted mt-0.5">
               {!hideBuyer && <><Link href={buyerUrl(c.buyer_eik)} className="text-muted">{c.buyer_name}</Link> · </>}
               {!hideSupplier && c.supplier_eiks.map((e, i) => (
-                <span key={e}>{i > 0 && ", "}<Link href={firmUrl(e)}>{c.supplier_names[i] ?? e}</Link>{politicalLinks(e).length > 0 && <span title="Връзка с политик по Търговския регистър" className="text-red font-bold"> ●</span>}</span>
+                <span key={e}>{i > 0 && ", "}<Link href={firmUrl(e)}>{c.supplier_names[i] ?? e}</Link><PolDot eik={e} /></span>
               ))}
               {!hideSupplier && " · "}{fmtDate(c.contract_date)}
             </p>
@@ -58,15 +67,19 @@ export function AnnexList({ items }: { items: Annex[] }) {
 export function LinksBox({ eik }: { eik: string }) {
   const l = politicalLinks(eik);
   if (!l.length) return <p className="text-[15px]">По Търговския регистър и декларациите не открихме връзка на фирмата с депутат или длъжностно лице. Това не изключва връзки чрез роднини или посредници.</p>;
+  const pub = isPublicFirm(l), st = politicalStrength(l);
   return (
+    <>
+    <p className="text-[15px] mb-3">{pub ? "Държавно или общинско дружество: управителите и „действителният собственик“ по закон са назначени лица, затова не броим това за личен интерес. Списъкът показва кой е бил в ръководството." : st === 1 ? "Съвпадение само по три имена (без ЕГН): възможно е да е съименник. Проверете в Търговския регистър." : "По Търговския регистър и декларациите (обработени от „Наясно“). Съвпадението е по три имена."}</p>
     <ul className="space-y-2">
       {l.map((x) => (
-        <li key={x.who + x.roles.join()} className="border-l-4 border-red pl-3">
+        <li key={x.who + x.roles.join()} className={`border-l-4 pl-3 ${pub ? "border-rule" : "border-red"}`}>
           <p className="font-semibold">{x.mpId ? <Link href={`/parlament/deputat/${x.mpId}`}>{x.who}</Link> : localPage(x.who) ? <Link href={localPage(x.who)!}>{x.who}</Link> : x.who}</p>
           <p className="text-sm">{x.kind === "mp" ? `народен представител${x.party ? ` (${x.party})` : ""}` : x.position}: {x.roles.join(", ")}</p>
         </li>
       ))}
     </ul>
+    </>
   );
 }
 

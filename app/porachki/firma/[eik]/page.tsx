@@ -58,9 +58,9 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         lead={s ? `Печелила е ${s.contracts} договора от ${fmtDate(s.first_date)} до ${fmtDate(s.last_date)}.` : undefined}>
         {name}
       </Title>
-      {(pl.length > 0 || high.length > 0) && (
-        <a href={pl.length ? "#vrazki" : "#risk"} className="block ring-2 ring-red rounded-sm p-4 mb-6 bg-white no-underline text-ink max-w-4xl">
-          <b>{[pl.length > 0 && `Свързана с ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
+      {((pl.length > 0 && political > 0) || high.length > 0) && (
+        <a href={pl.length && political ? "#vrazki" : "#risk"} className="block ring-2 ring-red rounded-sm p-4 mb-6 bg-white no-underline text-ink max-w-4xl">
+          <b>{[pl.length > 0 && political > 0 && `${political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
         </a>
       )}
       <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ["plateno", "Платено"], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
