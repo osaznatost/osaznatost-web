@@ -5,15 +5,17 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - run: |
-          for id in 42 37; do
-          echo "######## $id"
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/obsview/id/$id -o p.html
-          python3 - <<'PY'
-          import re,html
-          s=open('p.html',encoding='utf-8',errors='ignore').read()
-          for m in re.finditer(r'<a [^>]*href="([^"]*(?:data/|youtube|youtu)[^"]*)"[^>]*>(.*?)</a>',s,re.S):
-              print(m.group(1),'|',html.unescape(re.sub(r'<[^>]+>|\s+',' ',m.group(2))).strip()[:120])
-          i=s.find('Дневен ред'); print(html.unescape(re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',s[i:i+3000])))[:1500])
-          PY
-          done
+          sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
+          node scripts/import-council-sites.mjs
+          node -e '
+          const d=require("./data/council/SFO07.json").decisions;
+          const by={};for(const x of d){by[x.date]=(by[x.date]||0)+1}; console.log(JSON.stringify(by));
+          console.log("без гласуване:", d.filter(x=>!x.tally).slice(0,6).map(x=>x.number+" "+x.date+" "+x.title.slice(0,80)).join("\n"));
+          console.log("без докладчик:", d.filter(x=>!x.rapporteur).length, "отхвърлени:", d.filter(x=>x.result=="rejected").length, "поименни:", d.filter(x=>x.tally&&x.tally.method=="named").length);
+          for (const x of [d[0], d[5], d[40], d.find(x=>x.tally&&x.tally.against>3)]) console.log(JSON.stringify(x,null,1).slice(0,1400));
+          const r={};for(const x of d)if(x.rapporteur){r[x.rapporteur.name+" | "+x.rapporteur.role]=(r[x.rapporteur.name+" | "+x.rapporteur.role]||0)+1}; console.log(Object.entries(r).sort((a,b)=>b[1]-a[1]).slice(0,25));
+          '
