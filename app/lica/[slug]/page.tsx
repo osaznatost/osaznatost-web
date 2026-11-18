@@ -12,7 +12,7 @@ import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { MPS } from "@/lib/parliament";
 import { tendersByContact } from "@/lib/projects";
 import { PersonFirms } from "@/components/TrBox";
-import { firmsOfPerson } from "@/lib/tr";
+import { firmsOfPerson, peopleOf, trFor } from "@/lib/tr";
 
 // Предварително само кметовете; останалите ~6000 профила се правят при първо отваряне и се кешират.
 export function generateStaticParams() {
@@ -39,7 +39,11 @@ async function StakeCheck({ code, o }: { code: string; o: Official }) {
       return (
         <li key={i} className={`ring-1 rounded-sm p-3 bg-white ${hit ? "ring-2 ring-red" : "ring-rule"}`}>
           <b>{st.company}</b>{st.share ? `, ${st.share}${/%/.test(st.share) ? "" : " дяла"}` : ""}{st.holder && norm(st.holder) !== norm(o.name) ? ` (на ${st.holder})` : ""}{st.office ? <span className="text-sm text-muted"> · седалище: {st.office}</span> : null}
-          {hit ? <p className="mt-1">Фирма с почти същото име, <Link href={firmUrl(hit.eik)}>{hit.name}</Link>, има {hit.contracts} договора с възложители от общината за {fmtEur(hit.total_eur)}. Проверете в Търговския регистър дали е същата фирма.</p>
+          {hit ? (() => {
+            const tr = trFor(hit.eik), names = peopleOf(tr).map((p) => norm(p.name));
+            const confirmed = names.includes(norm(o.name)) || (st.holder ? names.includes(norm(st.holder)) : false);
+            return <p className="mt-1">{tr ? (confirmed ? "Потвърдено по Търговския регистър: " : "Фирма с почти същото име (в Търговския регистър деклараторът не фигурира в нея, възможно е да е друга фирма): ") : "Фирма с почти същото име: "}<Link href={firmUrl(hit.eik)}>{hit.name}</Link> има {hit.contracts} договора с възложители от общината за {fmtEur(hit.total_eur)}.{tr ? "" : " Проверете в Търговския регистър дали е същата фирма."}</p>;
+          })()
             : <p className="text-sm text-muted mt-1">Не печели поръчки от възложители в общината (по име).</p>}
         </li>
       );
