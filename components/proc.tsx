@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { localPage } from "@/lib/people";
 import { type Annex, type Contract, buyerUrl, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
 
 export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contract[]; hideBuyer?: boolean; hideSupplier?: boolean }) {
@@ -61,7 +62,7 @@ export function LinksBox({ eik }: { eik: string }) {
     <ul className="space-y-2">
       {l.map((x) => (
         <li key={x.who + x.roles.join()} className="border-l-4 border-red pl-3">
-          <p className="font-semibold">{x.mpId ? <Link href={`/parlament/deputat/${x.mpId}`}>{x.who}</Link> : x.who}</p>
+          <p className="font-semibold">{x.mpId ? <Link href={`/parlament/deputat/${x.mpId}`}>{x.who}</Link> : localPage(x.who) ? <Link href={localPage(x.who)!}>{x.who}</Link> : x.who}</p>
           <p className="text-sm">{x.kind === "mp" ? `народен представител${x.party ? ` (${x.party})` : ""}` : x.position}: {x.roles.join(", ")}</p>
         </li>
       ))}

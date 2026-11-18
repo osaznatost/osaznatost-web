@@ -44,3 +44,10 @@ export function oblastStats(prefix: string, munis: Municipality[]) {
 }
 
 export { muniFinance };
+
+/** Единната страница на място (община, град/село, област), по желание направо на дадена секция. */
+export const placeHref = {
+  oblast: (name: string, section?: string) => { const o = oblastList().find((x) => x.name === name); return o ? `/mesta/${o.slug}${section ? `#${section}` : ""}` : "/mesta"; },
+  muni: (code: string, section?: string) => `/mesta/${oblastSlug(code)}/${muniSlug(code)}${section ? `#${section}` : ""}`,
+  settlement: (muniCode: string, ekatte: string, section?: string) => `/mesta/${oblastSlug(muniCode)}/${muniSlug(muniCode)}/${ekatte}${section ? `#${section}` : ""}`,
+};

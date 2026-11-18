@@ -11,6 +11,7 @@ import { LOCAL_INDEX, localData } from "@/lib/local";
 import { VOTES, formatDate } from "@/lib/parliament";
 import { contractRef, firmUrl, fmtEur } from "@/lib/procurement";
 import { oblastSlug, muniSlug } from "@/lib/regions";
+import { personPage } from "@/lib/people";
 import { BAD, STATUS, data as PROMISES, govSlug } from "@/lib/promises";
 
 const FLAG: Record<string, string> = {
@@ -64,7 +65,7 @@ export function HomeFeed() {
             <p className="font-semibold mb-3">Проверки и дела</p>
             <ul className="space-y-3 text-[15px]">
               {dossiers.map((d) => <li key={d.slug}><span className="text-sm text-muted">{dmy(d.date)} · проверка</span><Link href={`/proverki/${d.slug}`} className="block leading-snug">{d.title}</Link></li>)}
-              {recentCases.map((c) => <li key={c.person + c.date}><span className="text-sm text-muted">{c.date.split("-").reverse().join(".")} · {cases.levels[c.level]?.label.toLowerCase()}</span><Link href="/proverki/sankcii#dela" className="block leading-snug">{c.person}: {c.what}</Link></li>)}
+              {recentCases.map((c) => <li key={c.person + c.date}><span className="text-sm text-muted">{c.date.split("-").reverse().join(".")} · {cases.levels[c.level]?.label.toLowerCase()}</span><Link href={personPage(c.person) ?? "/proverki/sankcii#dela"} className="block leading-snug">{c.person}: {c.what}</Link></li>)}
             </ul>
             <p className="text-sm mt-3"><Link href="/proverki">Всички проверки</Link> · <Link href="/novini">Новини</Link></p>
           </div>
@@ -74,7 +75,7 @@ export function HomeFeed() {
               <li><Link href="/porachki/risk">{R.total.toLocaleString("bg-BG")} обществени поръчки</Link> с оценка на риска, обновени на {dmy(R.updated)}.</li>
               {B.execution.throughMonth && <li><Link href="/byudzhet">Бюджет {B.year}</Link>: изпълнението до {MONTHS[B.execution.throughMonth]}{B.execution.revenue ? <>; приходите вървят към {bn(B.execution.revenue.annualisedEur)} за годината</> : null}.</li>}
               <li><Link href="/mesta">{nPeople.toLocaleString("bg-BG")} кметове, заместници и съветници</Link> с профил и имуществени декларации по години.</li>
-              {botRes.length > 0 && <li><Link href={`/mesta/${oblastSlug("SFO07")}/${muniSlug("SFO07")}/vlast#resheniya`}>Общински съвет Ботевград</Link>: {botRes.length} решения от 2023 г. насам, последно заседание {dmy(botRes[0].date)}.</li>}
+              {botRes.length > 0 && <li><Link href={`/mesta/${oblastSlug("SFO07")}/${muniSlug("SFO07")}#vlast`}>Общински съвет Ботевград</Link>: {botRes.length} решения от 2023 г. насам, последно заседание {dmy(botRes[0].date)}.</li>}
             </ul>
           </div>
         </div>

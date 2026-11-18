@@ -32,7 +32,7 @@ export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[
   const sup = supervisionFor(c, siblings);
   const deadline = deadlineOf(c);
   const extended = annexes.filter((a) => /срок|удълж/i.test(a.change_description ?? ""));
-  const vlast = code ? `/mesta/${oblastSlug(code)}/${muniSlug(code)}/vlast` : null;
+  const vlast = code ? `/mesta/${oblastSlug(code)}/${muniSlug(code)}#vlast` : null;
   const P = (o: { slug: string; name: string }) => <Link href={personHref(o.slug)}>{o.name}</Link>;
 
   return (

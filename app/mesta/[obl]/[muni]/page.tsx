@@ -3,12 +3,17 @@ import { notFound } from "next/navigation";
 import { MultiLine } from "@/components/Charts";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { quarterLabel } from "@/lib/places";
-import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList } from "@/lib/regions";
+import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, placeHref } from "@/lib/regions";
 import { FIN_SOURCE } from "@/lib/places";
 import { fmt } from "@/lib/stats";
 import { SettlementMap } from "@/components/SettlementMap";
 import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
 import { localData } from "@/lib/local";
+import { Suspense } from "react";
+import { Anchor, SectionNav } from "@/components/SectionNav";
+import { MuniPower } from "@/components/MuniPower";
+import { MuniProjects } from "@/components/MuniProjects";
+import { PlaceProcurement } from "@/components/PlaceProcurement";
 
 export function generateStaticParams() {
   return oblastList().flatMap((o) => o.municipalities.map((m) => ({ obl: o.slug, muni: muniSlug(m.code) })));
@@ -33,10 +38,8 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.expenditure != null).map((h) => ({ series: "Разходи", x: h.year, value: Math.round(h.expenditure! / 1e5) / 10 })),
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
-  const procHref = `/porachki?oblast=${encodeURIComponent(o.name)}&obshtina=${m.code}`;
   const P = placeData(m.code), C = P?.census, OC = PLACE_OBL.oblasts[m.code.slice(0, 3)], BG = PLACE_OBL.country;
   const L = localData(m.code);
-  const mayor = L?.officials.find((x) => x.role === "mayor");
   const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
   const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
 
@@ -44,16 +47,8 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     <Page>
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
-      <div className="grid gap-4 md:grid-cols-2 mb-8">
-        <Link href={`/mesta/${o.slug}/${muni}/vlast`} className="block ring-1 ring-rule rounded-sm p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-          <p className="font-semibold text-lg">Местна власт →</p>
-          <p className="text-[15px] text-muted">Кмет, заместници, съветници: декларации, дялове във фирми срещу поръчките на общината, как гласуват в общинския съвет.</p>
-        </Link>
-        <Link href={`/mesta/${o.slug}/${muni}/proekti`} className="block ring-1 ring-rule rounded-sm p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-          <p className="font-semibold text-lg">Проекти →</p>
-          <p className="text-[15px] text-muted">Всеки ремонт и строеж: кой е решил, кой е възложил, кой го взима, за колко и до кога, анексите и кой приема работата.</p>
-        </Link>
-      </div>
+      <SectionNav items={[["pari", "Пари"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ["porachki", "Поръчки"], ["izbori", "Избори"]]} />
+      <div id="pari" className="scroll-mt-20" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Дълг на общината</p><p className="display text-[2.2rem]">{mn(fin?.debt)}</p><p className="text-xs text-muted">{fin?.arrears ? `просрочени задължения: ${mn(fin.arrears)}` : "без просрочени задължения"}</p></div>
@@ -63,7 +58,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
 
 
       {C && (
-        <section className="mb-12">
+        <section id="hora" className="mb-12 scroll-mt-20">
           <SectionTitle>Хората</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Преброяване 2021 г. (НСИ). Сравнение с областта и страната.</p>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -103,10 +98,11 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       )}
 
       {P?.map && (
-        <section className="mb-12">
+        <section id="naseleni" className="mb-12 scroll-mt-20">
           <SectionTitle>Населените места</SectionTitle>
           <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><SettlementMap geo={P.map} names={names} /></div>
           <p className="text-sm text-muted mt-2">Землищата на {m.settlements.length} населени места. В тъмно са градовете.</p>
+          <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[15px] mt-3">{[...m.settlements].sort((a, b) => a[2] - b[2] || a[1].localeCompare(b[1], "bg")).map(([ek, n, v]) => <li key={ek}><Link href={placeHref.settlement(m.code, ek)}>{v ? "с." : "гр."} {n}</Link></li>)}</ul>
         </section>
       )}
 
@@ -137,14 +133,17 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
               </> : <span className="sm:col-span-2 text-right text-sm text-muted">одобрен в програмата, още без споразумение и без плащания</span>}
             </li>
           ))}</ul>
-          <p className="text-xs text-muted mt-2">Източник: МРРБ, Инвестиционна програма за общински проекти, обработени от „Наясно“. Изпълнителите на тези ремонти са в <Link href={procHref}>поръчките на общината</Link>.</p>
+          <p className="text-xs text-muted mt-2">Източник: МРРБ, Инвестиционна програма за общински проекти, обработени от „Наясно“. Изпълнителите на тези ремонти са в <a href="#porachki">поръчките на общината</a>.</p>
         </section>
       )}
 
-      <section className="mb-12">
-        <SectionTitle>Кой управлява</SectionTitle>
-        <p className="text-[15px] max-w-3xl">{mayor ? <>Кмет: <b><Link href={`/lica/${mayor.slug}`}>{mayor.name}</Link></b>. </> : null}{L ? <>Общински съветници: {L.officials.filter((x) => x.role === "councillor" || x.role === "council_chair").length}. Декларирали дялове във фирми: {L.officials.filter((x) => x.decl?.stakes.length).length} души. </> : null}<Link href={`/mesta/${o.slug}/${muni}/vlast`}>Декларации, конфликт на интереси и гласувания в съвета →</Link></p>
-      </section>
+      <Anchor id="vlast" title="Местна власт" lead="Кой управлява общината, какво е декларирал, дали има дялове във фирми, които печелят поръчки, и как гласува общинският съвет.">
+        <MuniPower code={m.code} />
+      </Anchor>
+
+      <Anchor id="proekti" title="Проекти" lead="Всеки ремонт, строеж, доставка и услуга от началото на мандата: кой е решил, кой е възложил, кой изпълнява, за колко и до кога, анексите и кой приема работата.">
+        <Suspense fallback={<p className="text-muted">Зареждане на проектите…</p>}><MuniProjects code={m.code} /></Suspense>
+      </Anchor>
 
       {fin && (
         <section className="mb-12">
@@ -160,7 +159,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       )}
 
       {el && (
-        <section className="mb-12">
+        <section id="izbori" className="mb-12 scroll-mt-20">
           <SectionTitle>Как гласува на 19 април 2026 г.</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4">Избирателна активност: {el.turnout ? `${fmt(el.turnout, 1)}%` : "–"} ({el.voted.toLocaleString("bg-BG")} от {el.reg.toLocaleString("bg-BG")}).</p>
           <ul className="space-y-2 max-w-3xl">{el.lists.map((l) => (
@@ -171,10 +170,9 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
         </section>
       )}
 
-      <section className="mb-12">
-        <SectionTitle>Обществени поръчки</SectionTitle>
-        <p className="text-[15px]">Всички договори на възложители в общината, най-големите изпълнители, анексите и сигналите: <Link href={procHref}>поръчките в {m.name}</Link>.</p>
-      </section>
+      <Anchor id="porachki" title="Обществени поръчки">
+        <Suspense fallback={<p className="text-muted">Зареждане на поръчките…</p>}><PlaceProcurement f={{ oblast: o.name, obshtina: m.code }} /></Suspense>
+      </Anchor>
     </Page>
   );
 }

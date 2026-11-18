@@ -62,7 +62,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
   const runs = tendersByContact(L.code, o.name);
   return (
     <Page>
-      <Title back={{ href: `${muniHref}/vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}
+      <Title back={{ href: `${muniHref}#vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}
         lead={<>{o.party ? <>Избран{o.role === "councillor" || o.role === "council_chair" ? " от листата на" : ", кандидат от"} <b>{o.party}</b>{o.prefVotes ? <> с {o.prefVotes} преференции</> : null} на местните избори през 2023 г. </> : null}Данните са от имуществените декларации в регистъра на Сметната палата и от изборите.</>}>
         {o.name}
       </Title>
@@ -118,14 +118,14 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
           <ul className="space-y-1.5 text-[15px]">{[...proposed.filter((r) => r.tally && r.tally.against > 0), ...proposed.filter((r) => !(r.tally && r.tally.against > 0))].slice(0, 25).map((r) => (
             <li key={r.id}><span className="text-sm text-muted num">{r.date.split("-").reverse().join(".")} · № {r.number}</span> {r.title}{r.tally && <span className="text-sm num text-muted"> ({r.tally.for} за, <span className={r.tally.against ? "text-red" : ""}>{r.tally.against} против</span>, {r.tally.abstain} въздържали се)</span>}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer" className="text-sm">PDF</a></>}</li>
           ))}</ul>
-          {proposed.length > 25 && <p className="text-sm mt-2"><Link href={`${muniHref}/vlast#resheniya`}>Всички решения на съвета</Link></p>}
+          {proposed.length > 25 && <p className="text-sm mt-2"><Link href={`${muniHref}#resheniya`}>Всички решения на съвета</Link></p>}
         </section>
       )}
 
       {runs.length > 0 && (
         <section className="mb-10">
           <SectionTitle>Води обществени поръчки ({runs.length})</SectionTitle>
-          <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Поръчки, в които е посочен(а) като лице за контакт на възложителя в обявленията в ЦАИС ЕОП. <Link href={`${muniHref}/proekti`}>Всички проекти на общината</Link>.</p>
+          <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Поръчки, в които е посочен(а) като лице за контакт на възложителя в обявленията в ЦАИС ЕОП. <Link href={`${muniHref}#proekti`}>Всички проекти на общината</Link>.</p>
           <ul className="space-y-1.5 text-[15px]">{runs.slice(0, 30).map((t) => <li key={t.id}>{t.title.replace(/^[„"]|[“"]$/g, "")}{t.suppliers.length ? <span className="text-sm text-muted"> → {t.suppliers.join(", ")}</span> : null}</li>)}</ul>
         </section>
       )}
@@ -141,7 +141,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
       <section className="mb-10">
         <SectionTitle>Ръководството на общината</SectionTitle>
         <ul className="flex flex-wrap gap-2 text-[15px]">{colleagues.map((c) => <li key={c.slug}><Link href={personHref(c.slug)} className="block px-3 py-1.5 rounded-full bg-surface no-underline text-ink hover:ring-1 hover:ring-green">{c.name} <span className="text-sm text-muted">· {c.roleRaw.toLowerCase()}</span></Link></li>)}</ul>
-        <p className="text-[15px] mt-3"><Link href={`${muniHref}/vlast`}>Всички съветници, гласувания и конфликт на интереси</Link> · <Link href={muniHref}>Профил на общината</Link></p>
+        <p className="text-[15px] mt-3"><Link href={`${muniHref}#vlast`}>Всички съветници, гласувания и конфликт на интереси</Link> · <Link href={muniHref}>Профил на общината</Link></p>
       </section>
       <p className="text-xs text-muted">Източници: регистър на декларациите (Сметна палата), избори 2023 (ЦИК), ЦАИС ЕОП, обработени от „Наясно“. Ако нещо липсва или е грешно, данните се обновяват всеки ден.</p>
     </Page>

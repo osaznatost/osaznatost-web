@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Page, SectionTitle, Title } from "@/components/ui";
+import { Suspense } from "react";
+import { Anchor, SectionNav } from "@/components/SectionNav";
+import { PlaceProcurement } from "@/components/PlaceProcurement";
 import { REGIONAL_SECTORS, val } from "@/lib/economy";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, oblastStats } from "@/lib/regions";
 import { STATS, fmt } from "@/lib/stats";
@@ -36,6 +39,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
   return (
     <Page>
       <Title back={{ href: "/mesta", label: "Всички области" }} kicker="Област" lead={`${o.municipalities.length} общини, ${s.pop ? s.pop.toLocaleString("bg-BG") : "–"} жители.`}>{o.name}</Title>
+      <SectionNav items={[["obshtini", "Общините"], ["hora", "Хората"], ["ikonomika", "Икономика"], ["izbori", "Избори"], ["porachki", "Поръчки"]]} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">БВП на човек{ s.gdpPc ? `, ${s.gdpPc.year}` : ""}</p><p className="display text-[2.2rem]">{s.gdpPc ? `${Math.round(s.gdpPc.value).toLocaleString("bg-BG")} €` : "–"}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Добавена стойност{gy ? `, ${gy}` : ""}</p><p className="display text-[2.2rem]">{tot ? `${fmt(tot / 1000, 1)} млрд. €` : "–"}</p></div>
@@ -44,7 +48,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
       </div>
 
       {secs.length > 0 && (
-        <section className="mb-12">
+        <section id="ikonomika" className="mb-12 scroll-mt-20">
           <SectionTitle>С какво се изкарва прехраната</SectionTitle>
           <ul className="space-y-2 max-w-3xl">{secs.map((x) => (
             <li key={x.code} className="text-[15px]"><div className="flex justify-between"><span>{x.name}</span><span className="num">{fmt(x.share, 1)}%</span></div>
@@ -55,7 +59,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
       )}
 
       {lists.length > 0 && (
-        <section className="mb-12">
+        <section id="izbori" className="mb-12 scroll-mt-20">
           <SectionTitle>Как гласува на 19 април 2026 г.</SectionTitle>
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{lists.map((l) => (
             <li key={l.name} className="ring-1 ring-rule rounded-sm p-3 bg-white flex justify-between items-center"><Link href={`/parlament/partiya/${l.slug}`} className="inline-flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ background: l.color }} />{l.name}</Link><span className="num font-semibold">{fmt((l.votes / aggTot) * 100, 1)}%</span></li>
@@ -64,7 +68,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
       )}
 
       {OC && (
-        <section className="mb-12">
+        <section id="hora" className="mb-12 scroll-mt-20">
           <SectionTitle>Хората</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Преброяване 2021 г. (НСИ), спрямо страната.</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
@@ -101,7 +105,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
         </section>
       )}
 
-      <section className="mb-12">
+      <section id="obshtini" className="mb-12 scroll-mt-20">
         <SectionTitle>Общините</SectionTitle>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">
@@ -120,6 +124,9 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
         </div>
         <p className="text-xs text-muted mt-2">* Местни данъци, такси и други собствени приходи за последния отчетен период на МФ ({munis.find((x) => x.fin)?.fin?.period ?? "–"}), не за цяла година.</p>
       </section>
+      <Anchor id="porachki" title="Обществени поръчки">
+        <Suspense fallback={<p className="text-muted">Зареждане на поръчките…</p>}><PlaceProcurement f={{ oblast: o.name }} /></Suspense>
+      </Anchor>
     </Page>
   );
 }

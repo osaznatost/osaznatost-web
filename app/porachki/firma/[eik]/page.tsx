@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { localPage } from "@/lib/people";
 import { Suspense } from "react";
 import { AnnexList, ContractList, LinksBox } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
@@ -31,7 +32,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const net: NetNode[] = [
     ...buyers.slice(0, 10).map(([e, b]) => ({ id: `b${e}`, label: b.name, sub: `${b.n} дог. · ${fmtEur(b.sum)}`, href: buyerUrl(e), group: "buyer" as const, weight: b.sum })),
     ...[...partners.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 6).map(([e, p]) => ({ id: `p${e}`, label: p.name, sub: `заедно в ${p.n} дог.`, href: firmUrl(e), group: "partner" as const, weight: p.sum })),
-    ...pl.map((l, i) => ({ id: `l${i}`, label: l.who, sub: [l.kind === "mp" ? `депутат${l.party ? `, ${l.party}` : ""}` : l.position, l.roles.join(", ")].filter(Boolean).join(" · "), href: l.kind === "mp" && l.mpId ? mpHref(l.mpId, l.who) : undefined, group: (sanctionsFor(l.who) ? "sanction" : "politician") as NetNode["group"] })),
+    ...pl.map((l, i) => ({ id: `l${i}`, label: l.who, sub: [l.kind === "mp" ? `депутат${l.party ? `, ${l.party}` : ""}` : l.position, l.roles.join(", ")].filter(Boolean).join(" · "), href: l.kind === "mp" && l.mpId ? mpHref(l.mpId, l.who) : localPage(l.who) ?? undefined, group: (sanctionsFor(l.who) ? "sanction" : "politician") as NetNode["group"] })),
   ];
   const annexSum = annexes.reduce((x, a) => x + Math.max(0, a.value_difference_eur ?? 0), 0);
 

@@ -5,6 +5,11 @@ import { ClaimCard } from "@/components/ClaimCard";
 import { PartyBadge } from "@/components/PartyBadge";
 import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
+import { Suspense } from "react";
+import { Anchor, SectionNav } from "@/components/SectionNav";
+import { FUNDS } from "@/lib/funds";
+import { firmsOfMp, localPage } from "@/lib/people";
+import { firmUrl, fmtEur, supplierStats } from "@/lib/procurement";
 import { DS_CHECK, MS_TYPE, NS_YEARS, claimsFor, dsFor, historyFor, prefsFor, profileFor } from "@/lib/mpProfile";
 import { ELECTIONS, partyByGroup } from "@/lib/partyMeta";
 import { MPS, PARLIAMENT_SOURCE, VOTES, VOTE_LABEL, type VoteCode, formatDate, getMp, mpStats, mpVote, partyName } from "@/lib/parliament";
@@ -16,6 +21,38 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const m = getMp(Number((await params).id));
   return { title: m ? m.name : "Депутат" };
+}
+
+
+const REL_BG: Record<string, string> = { director: "управител", representative: "представител", owner: "собственик", partner: "съдружник", board: "член на съвет", sole_owner: "едноличен собственик", stake: "дял", manager: "управител", actual_owner: "действителен собственик" };
+async function MpMoney({ id, name }: { id: number; name: string }) {
+  const firms = firmsOfMp(id);
+  const eu = FUNDS.mpConnected.filter((x) => x.mpId === id);
+  const eiks = [...new Set([...firms.map((f) => f.eik), ...eu.map((x) => x.eik)])];
+  const stats = await Promise.all(eiks.map((e) => supplierStats(e)));
+  const local = localPage(name);
+  if (!eiks.length) return <p className="text-[15px]">Не открихме фирми, свързани с него в Търговския регистър.{local ? <> Има и <Link href={local}>профил в местната власт</Link>.</> : null}</p>;
+  const totalProc = stats.reduce((a, s) => a + (s?.total_eur ?? 0), 0), totalEu = eu.reduce((a, x) => a + x.contracted, 0);
+  return (
+    <>
+      <p className="text-[15px] mb-4"><b>{eiks.length}</b> фирми и организации. Обществени поръчки: <b>{fmtEur(totalProc)}</b>. Европейски средства (договорени): <b>{fmtEur(totalEu)}</b>.{local ? <> Има и <Link href={local}>профил в местната власт</Link>.</> : null}</p>
+      <div className="overflow-x-auto"><table className="w-full text-[15px]">
+        <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Фирма</th><th className="px-2">Връзка</th><th className="px-2 text-right">Поръчки</th><th className="px-2 text-right">Евросредства</th></tr></thead>
+        <tbody>{eiks.map((e, i) => {
+          const f = firms.find((x) => x.eik === e), u = eu.find((x) => x.eik === e), st = stats[i];
+          return (
+            <tr key={e} className="border-b border-rule align-top">
+              <td className="py-1.5 pr-3"><Link href={firmUrl(e)}>{st?.name ?? u?.name ?? `ЕИК ${e}`}</Link>{u?.type ? <span className="block text-xs text-muted">{u.type}</span> : null}</td>
+              <td className="px-2 text-sm">{f?.roles.join(", ") || u?.rel.map((r) => `${REL_BG[r.kind] ?? r.kind}${r.current ? "" : " (в миналото)"}`).join(", ") || "–"}</td>
+              <td className="px-2 text-right num">{st ? `${fmtEur(st.total_eur)} · ${st.contracts}` : "–"}</td>
+              <td className="px-2 text-right num">{u ? fmtEur(u.contracted) : "–"}</td>
+            </tr>
+          );
+        })}</tbody>
+      </table></div>
+      <p className="text-xs text-muted mt-2">Връзката не означава нарушение. Държавни и общински дружества, в които е бил в управлението по служба, също се показват.</p>
+    </>
+  );
 }
 
 export default async function Deputat({ params }: { params: Promise<{ id: string }> }) {
@@ -41,8 +78,14 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       <Title back={{ href: "/parlament", label: "Парламент" }} kicker="Народен представител" lead={<>Парламентарна група: {meta ? <Link href={`/parlament/partiya/${meta.slug}`}>{partyName(mp.party)}</Link> : partyName(mp.party)}{mp.pid ? <> · <a href={`https://www.parliament.bg/bg/MP/${mp.pid}`} target="_blank" rel="noreferrer">официален профил и снимка</a></> : null}</>}>
         <span className="inline-flex items-center gap-4"><PartyBadge p={mp.party} size={56} />{mp.name}</span>
       </Title>
+      {(sanc || cases.length > 0) && (
+        <a href="#korupciya" className={`block rounded-sm p-4 mb-6 bg-white no-underline text-ink max-w-4xl ${sanc || cases.some((c) => !["dropped", "acquitted"].includes(c.level)) ? "ring-2 ring-red" : "ring-1 ring-rule"}`}>
+          <b>{[sanc && "Санкциониран за корупция", ...[...new Set(cases.map((c) => c.levelLabel))].map((l) => `${l} (${cases.filter((c) => c.levelLabel === l).length})`)].filter(Boolean).join(" · ")}.</b> Подробно по-долу, с източниците.
+        </a>
+      )}
+      <SectionNav items={[["bio", "Биография"], ...((sanc || cases.length) ? [["korupciya", "Разследвания и съд"] as [string, string]] : []), ["pari", "Фирми и пари"], ["glasuvaniya", "Гласувания"], ["ds", "Държавна сигурност"], ["proverki", "Проверени твърдения"]]} />
 
-      <div className="grid gap-6 lg:grid-cols-2 mb-12">
+      <div id="bio" className="grid gap-6 lg:grid-cols-2 mb-12 scroll-mt-20">
         <section className="ring-1 ring-rule rounded-sm p-5 bg-white">
           <h2 className="font-semibold text-lg mb-3">Биография</h2>
           <dl className="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-1.5 text-[15px]">
@@ -92,11 +135,12 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         </section>
       )}
 
+      <div id="korupciya" className="scroll-mt-20" />
       {cases.length > 0 && (
         <section className="mb-12">
-          <SectionTitle>Обвинения и присъди</SectionTitle>
+          <SectionTitle>Разследвания, обвинения и присъди</SectionTitle>
           {cases.map((c) => (
-            <div key={c.what} className="ring-2 ring-[#e08a2e] rounded-sm p-4 bg-white max-w-3xl text-[15px] mb-3">
+            <div key={c.what} className={`rounded-sm p-4 bg-white max-w-3xl text-[15px] mb-3 ${["dropped", "acquitted"].includes(c.level) ? "ring-1 ring-rule" : "ring-2 ring-[#e08a2e]"}`}>
               <p className="font-semibold">{c.levelLabel}: {c.what}</p>
               <p className="mt-1">{c.outcome}</p>
               <p className="text-sm mt-1">{c.sources.map((s, i) => <span key={s.url}>{i > 0 && "; "}<a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></span>)} · <Link href="/proverki/sankcii#dela">всички случаи</Link></p>
@@ -116,7 +160,11 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         </section>
       )}
 
-      <section className="mb-12">
+      <Anchor id="pari" title="Фирми, поръчки и евросредства" lead="Фирмите, в които е съдружник, собственик, управител или представител (по Търговския регистър, обработен от „Наясно“), и колко пари са получили от обществени поръчки и европейски програми.">
+        <Suspense fallback={<p className="text-muted">Проверка на фирмите…</p>}><MpMoney id={mp.id} name={mp.name} /></Suspense>
+      </Anchor>
+
+      <section id="ds" className="mb-12 scroll-mt-20">
         <SectionTitle>Държавна сигурност</SectionTitle>
         {ds.status === "declared" ? (
           <div className="ring-2 ring-[#e2b33b] rounded-sm p-4 bg-[#fffaf0] max-w-3xl">
@@ -148,7 +196,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       )}
 
       <section className="mb-12">
-        <SectionTitle>Проверени твърдения</SectionTitle>
+        <SectionTitle>Проверени твърдения</SectionTitle><span id="proverki" />
         {claims.length ? <div className="grid gap-3">{claims.map((c) => <ClaimCard key={c.id} c={c} />)}</div>
           : <p className="text-[15px] max-w-3xl">Още нямаме проверени твърдения на този депутат. Проверяваме конкретни публични твърдения с числа, по равно за всички (<Link href="/proverki">как работим</Link>). Рейтинг на истинност показваме само когато проверките са достатъчно, за да не подвеждат.</p>}
         <p className="text-sm text-muted mt-3">Доверие и одобрение: социологическите агенции публикуват доверие само към лидерите, не към всеки депутат. Където има данни, ще ги добавим с източник.</p>
@@ -177,7 +225,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       )}
 
       <section>
-        <SectionTitle>Последни гласувания</SectionTitle>
+        <SectionTitle>Последни гласувания</SectionTitle><span id="glasuvaniya" className="block -mt-24 pt-24" />
         <ul>
           {recent.map((v) => {
             const c = mpVote(v, mp.id);
