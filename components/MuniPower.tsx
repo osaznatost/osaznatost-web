@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SectionTitle } from "@/components/ui";
@@ -23,6 +24,7 @@ function DeclLine({ o }: { o: Official }) {
 }
 
 async function Conflicts({ code, officials }: { code: string; officials: Official[] }) {
+  await connection();
   const sup = await placeSuppliersAll(code);
   const byNorm = new Map(sup.map((s) => [normFirm(s.name), s]));
   const hits = officials.flatMap((o) => (o.decl?.stakes ?? []).map((st) => {

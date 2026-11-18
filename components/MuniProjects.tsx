@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import { localData, personHref } from "@/lib/local";
 import { firmUrl, fmtDate, fmtEur, muniAnnexes, muniContracts, type Contract } from "@/lib/procurement";
@@ -18,6 +19,7 @@ function ProjectCard({ c, code, L, annexBy }: { c: Contract; code: string; L: Re
           }
 
 export async function MuniProjects({ code }: { code: string }) {
+  await connection(); // при отваряне, не при сглобяване: иначе сборката тегли хиляди заявки към базата
   const [cs, an] = await Promise.all([muniContracts(code, SINCE), muniAnnexes(code, SINCE)]);
   if (!cs.length) return <p className="text-[15px] bg-surface rounded-sm p-4">Няма договори в базата за тази община от началото на мандата.</p>;
   const L = localData(code);

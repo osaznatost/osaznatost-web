@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { VOTE_COLOR } from "@/components/parliament";
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 const REL_BG: Record<string, string> = { director: "управител", representative: "представител", owner: "собственик", partner: "съдружник", board: "член на съвет", sole_owner: "едноличен собственик", stake: "дял", manager: "управител", actual_owner: "действителен собственик" };
 async function MpMoney({ id, name }: { id: number; name: string }) {
+  await connection(); // при отваряне, не при сглобяване: иначе сборката тегли хиляди заявки към базата
   const firms = firmsOfMp(id);
   const eu = FUNDS.mpConnected.filter((x) => x.mpId === id);
   const eiks = [...new Set([...firms.map((f) => f.eik), ...eu.map((x) => x.eik)])];

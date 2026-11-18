@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -23,6 +24,7 @@ const low = (x: string) => x.toLowerCase();
 const mentions = (text: string, name: string) => new RegExp(`(^|[^а-я])(с\\.|гр\\.|село|град)?\\s*${low(name)}([^а-я]|$)`).test(low(text));
 
 async function Projects({ code, name }: { code: string; name: string }) {
+  await connection(); // при отваряне, не при сглобяване: иначе сборката тегли хиляди заявки към базата
   const cs = (await muniContracts(code, "2020-01-01")).filter((c) => mentions(c.tender_name, name));
   if (!cs.length) return <p className="text-[15px]">Няма договори на общината, в чийто предмет се споменава {name}.</p>;
   const total = cs.reduce((a, c) => a + (c.contract_value_eur ?? 0), 0);

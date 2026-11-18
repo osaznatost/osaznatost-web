@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 // Обществените поръчки на едно място (страна, област, община, град или село). Ползва се от страницата на мястото
 // и от „Поръчки“, за да е една и съща информация навсякъде.
 import Link from "next/link";
@@ -57,6 +58,7 @@ function More({ title, children, open }: { title: string; children: React.ReactN
 }
 
 export async function PlaceProcurement({ f, showBreakdown = true }: { f: PlaceFilter; showBreakdown?: boolean }) {
+  await connection(); // при отваряне, не при сглобяване: иначе сборката тегли хиляди заявки към базата
   const ob = findOblast(f.oblast), mu = findMunicipality(f.obshtina), se = findSettlement(f.mesto);
   const last = await importState();
   if (!PROC_READY || !last) return NOT_READY;

@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -25,6 +26,7 @@ const eur = (v?: number | null) => (v == null ? "–" : `${Math.round(v).toLocal
 const norm = (s: string) => s.toUpperCase().replace(/\s+/g, " ").trim();
 
 async function StakeCheck({ code, o }: { code: string; o: Official }) {
+  await connection();
   const stakes = o.decl?.stakes ?? [];
   if (!stakes.length) return <p className="text-[15px]">В последната декларация няма дялове във фирми.</p>;
   const sup = await placeSuppliersAll(code);
