@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
 jobs:
   parliament:
     runs-on: ubuntu-latest
@@ -63,5 +67,5 @@ jobs:
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"
           git commit -m "Данни: дневно обновяване"
-          git pull --rebase
+          git pull --rebase -X theirs   # при сблъсък печелят току-що изчислените данни
           git push
