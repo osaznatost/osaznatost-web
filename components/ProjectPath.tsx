@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { localData, personHref } from "@/lib/local";
 import { buyerContracts, buyerPlace, firmUrl, fmtDate, fmtEur, type Annex, type Contract } from "@/lib/procurement";
+import { paidFromTo } from "@/lib/payments";
 import { councilFor, deadlineOf, officialByName, peopleFor, supervisionFor } from "@/lib/projects";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 
@@ -85,7 +86,18 @@ export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[
           )) : <p className="text-muted">Не открихме отделен договор за строителен надзор по този обект при същия възложител. За по-малки ремонти надзор не е задължителен; тогава приема комисия на възложителя.</p>}
         </Step>
 
-        <Step n={6} title="Приемане: кой подписва, че работата е готова и е изпълнена правилно" missing>
+        {(() => {
+          const pays = c.supplier_names.map((n) => paidFromTo(c.buyer_name, n)).filter((x) => x && x.sum > 0);
+          const sum = pays.reduce((a, x) => a + (x?.sum ?? 0), 0);
+          return (
+            <Step n={6} title="Плащания: колко е преведено на изпълнителя" missing={!pays.length}>
+              {pays.length ? <p>По СЕБРА {c.buyer_name} е превел(а) на {c.supplier_names.join(", ")} общо <b>{fmtEur(sum)}</b>{pays[0]?.first ? ` (${fmtDate(pays[0].first)} – ${fmtDate(pays[0].last)})` : ""}. Това са всички плащания между двамата от 2024 г. насам, не само по този договор.</p>
+                : <p className="text-muted">Няма плащания по СЕБРА между възложителя и изпълнителя от 2024 г. насам. Общините и техните училища и дружества обикновено плащат извън СЕБРА; тогава плащанията се искат по ЗДОИ.</p>}
+            </Step>
+          );
+        })()}
+
+        <Step n={7} title="Приемане: кой подписва, че работата е готова и е изпълнена правилно" missing>
           <p>Актовете за приемане (за строителство: акт обр. 19 за изпълнените количества и протокол обр. 15 при завършване; за услуги и доставки: приемо-предавателен протокол), имената на подписалите ги и плащанията не се публикуват в отворените данни.</p>
           <p>Обикновено подписват: за възложителя — назначена от {isMuni ? "кмета" : "ръководителя"} комисия или служител (често от отдела по строителство или инвестиции); за изпълнителя — неговият представител; при строеж — и строителният надзор.</p>
           {vlast && <p><Link href={vlast}>Кой управлява общината и как гласува съветът</Link></p>}

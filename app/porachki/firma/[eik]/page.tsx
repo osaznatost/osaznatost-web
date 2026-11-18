@@ -12,6 +12,7 @@ import { FUNDS, mpHref } from "@/lib/funds";
 import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { TrBox } from "@/components/TrBox";
+import { PaidToFirm } from "@/components/PaidBox";
 import { contractUrl } from "@/lib/procurement";
 
 export const metadata = { title: "Фирма" };
@@ -62,7 +63,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           <b>{[pl.length > 0 && `Свързана с ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
         </a>
       )}
-      <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
+      <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ["plateno", "Платено"], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
       <div id="obobshtenie" className="scroll-mt-20" />
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[
@@ -103,6 +104,10 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           ))}</ul>
         ) : <p className="text-[15px]">Няма договори с висок риск.</p>}
         {years.size > 1 && <p className="text-sm text-muted mt-3">По години: {[...years.entries()].sort().map(([y, v]) => `${y}: ${fmtEur(v)}`).join(" · ")}.</p>}
+      </Anchor>
+
+      <Anchor id="plateno" title="Колко е платено реално" lead="Договорите казват колко е обещано. Тук е колко държавните институции са превели на фирмата.">
+        <PaidToFirm name={name} />
       </Anchor>
 
       {(eu.length > 0 || serial) && (

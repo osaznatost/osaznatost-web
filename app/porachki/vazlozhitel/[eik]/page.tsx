@@ -5,6 +5,7 @@ import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { placeHref } from "@/lib/regions";
 import { sharedPeople } from "@/lib/tr";
+import { PaidByBuyer } from "@/components/PaidBox";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
 import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
@@ -135,6 +136,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           </section>
         );
       })()}
+      <PaidByBuyer name={name} />
       <section className="mb-10"><SectionTitle>Анекси</SectionTitle><AnnexList items={annexes.slice(0, 20)} /></section>
       <section><SectionTitle>Договори</SectionTitle><ContractList items={contracts.slice(0, 100)} hideBuyer /></section>
     </>
