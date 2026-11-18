@@ -6,24 +6,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          D=2026-11-12; DD=12.11.2026
-          curl -sS -m 120 -o o.json "https://storage.eop.bg/open-data-$D/$(python3 -c "import urllib.parse;print(urllib.parse.quote('Автоматично генерирани данни за обявления, публикувани в ЦАИС ЕОП на $DD г., съгласно стандарт OCDS.json'))")"
-          curl -sS -m 120 -o p.json "https://storage.eop.bg/open-data-$D/$(python3 -c "import urllib.parse;print(urllib.parse.quote('Автоматично генерирани данни за поръчки, публикувани в ЦАИС ЕОП на $DD.json'))")"
-          ls -la o.json p.json
+          for D in 2026-11-12 2026-11-10; do DD=$(date -d $D +%d.%m.%Y)
+          curl -sS -m 120 -o o$D.json "https://storage.eop.bg/open-data-$D/$(python3 -c "import urllib.parse;print(urllib.parse.quote('Автоматично генерирани данни за обявления, публикувани в ЦАИС ЕОП на $DD г., съгласно стандарт OCDS.json'))")"; done
           python3 - <<'PY'
-          import json,collections
-          o=json.load(open('o.json'))
-          print(type(o), list(o.keys())[:10] if isinstance(o,dict) else len(o))
-          rel=o.get('releases') if isinstance(o,dict) else o
-          print('releases',len(rel))
-          tags=collections.Counter(t for r in rel for t in r.get('tag',[])); print(tags)
-          keys=collections.Counter(k for r in rel for k in r.keys()); print(keys)
-          # show one with implementation / contracts
-          def show(r,n=3500): print(json.dumps(r,ensure_ascii=False)[:n]); print('-----')
-          shown=set()
-          for r in rel:
-            for t in r.get('tag',[]):
-              if t not in shown: shown.add(t); print('TAG',t); show(r,2500)
-          p=json.load(open('p.json')); pr=p if isinstance(p,list) else p.get('data',p)
-          print('PORACHKI', type(p), len(pr)); print(json.dumps(pr[0] if isinstance(pr,list) else pr,ensure_ascii=False)[:2500])
+          import json,glob
+          rel=[r for f in glob.glob('o*.json') for r in json.load(open(f))['releases']]
+          m=[r for r in rel if 'contract' in r['tag'] and any('ОБЩИНА' in (p.get('name') or '').upper() for p in r['parties'])]
+          print(len(m))
+          r=m[0]
+          print('PARTIES', json.dumps(r['parties'],ensure_ascii=False)[:3000])
+          print('BIDS', json.dumps(r.get('bids'),ensure_ascii=False)[:1500])
+          print('AWARDS', json.dumps(r.get('awards'),ensure_ascii=False)[:1500])
+          print('CONTRACTS', json.dumps(r.get('contracts'),ensure_ascii=False)[:2500])
+          print('TENDER keys', list(r['tender'].keys()))
+          print('TENDER extra', json.dumps({k:v for k,v in r['tender'].items() if k not in ('description','lots','items','title')},ensure_ascii=False)[:2500])
+          a=[r for r in rel if 'contractAmendment' in r['tag']][0]
+          print('AMEND', json.dumps(a.get('contracts'),ensure_ascii=False)[:2000])
           PY
