@@ -1,19 +1,23 @@
 // Решения на общински съвети, четени директно от сайтовете им (за общини, които „Наясно“ не покрива).
-// Засега: Ботевград. Всяко решение: номер, дата, кой докладва, по какъв въпрос, гласуване (за/против/въздържал се,
+// Засега: Ботевград (годишни PDF-и с всички решения) и Столична община (по един PDF на решение, номериран). Всяко решение: номер, дата, кой докладва, по какъв въпрос, гласуване (за/против/въздържал се,
 // дали е поименно) и текстът на решението. Нужен е pdftotext (poppler-utils).
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
 const UA = { "User-Agent": "Mozilla/5.0 (osaznatost.bg; отворени данни)" };
 const SITES = {
+  // Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
+  SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
 };
 // Сайтът на общината не подава пълната верига от сертификати и fetch() в Node отказва; curl се справя.
 // Щадящо: пауза между заявките; ако сайтът покаже проверка срещу ботове, спираме и пазим прочетеното.
 let blocked = false;
-const get = async (u, bin = false) => {
+const T0 = Date.now(), BUDGET = Number(process.env.MINUTES ?? 20) * 60e3; // времеви лимит за едно пускане
+const timeUp = () => Date.now() - T0 > BUDGET;
+const get = async (u, bin = false, tries = 3) => {
   if (blocked) return null;
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < tries; i++) {
     await new Promise((s) => setTimeout(s, 2500));
     try {
       const b = execFileSync("curl", ["-sSLf", "-m", "90", "-A", UA["User-Agent"], u], { maxBuffer: 1 << 28 });
@@ -76,12 +80,73 @@ function parse(text, url) {
   return out;
 }
 
+// Столична община: един PDF = едно решение.
+function parseSofia(text, url) {
+  const t = text.replace(/\f/g, "\n");
+  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№\s*((?:\d\s*){1,4})/);
+  const dm = t.match(/от\s+(\d{1,2})\.(\d{1,2})\.(\d{4})\s*годин/);
+  if (!nm || !dm) return [];
+  const number = nm[1].replace(/\s/g, ""), date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  const afterDate = t.slice(t.indexOf(dm[0]) + dm[0].length);
+  const title = flat(afterDate.split(/\n\s*(?:На основание|Мотиви|С Т О Л И Ч Н И Я Т|СТОЛИЧНИЯТ ОБЩИНСКИ)/)[0]).replace(/^За\s+/, "").replace(/^./, (c) => c.toUpperCase());
+  const rest = afterDate.split(/Р\s*Е\s*Ш\s*И\s*:/)[1] ?? "";
+  const body = ws(rest.split(/\n\s*(?:Настоящото решение е прието|Решението е прието|ПРЕДСЕДАТЕЛ НА СТОЛИЧНИЯ|Приложени[ея]:?\s*\n)/)[0]);
+  const pm = t.match(/Протокол\s*№\s*(\d+)[^\n]{0,40}?(?:т\.|точка)\s*(\d+)/);
+  const doc = t.match(/(СО[АС]\d{2}-[А-Я]{2,3}\d{2,3}-\d+(?:[-/]\d+)?)/);
+  // Номерът на докладната показва кой е внесъл въпроса: СОА — кметът и администрацията, СОС — общински съветници.
+  const by = doc ? (doc[1].startsWith("СОА") ? "кмет и администрация" : "общински съветници") : null;
+  return [{
+    number, date, url, title: title.slice(0, 400), session: pm ? pm[1] : "",
+    rapporteur: null, proposedBy: by, doc: doc ? doc[1] : null,
+    tally: null,
+    result: "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body,
+  }];
+}
+const pdfText = (buf) => { writeFileSync("/tmp/c.pdf", buf); try { return execFileSync("pdftotext", ["-layout", "/tmp/c.pdf", "-"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
+
+// Номерирани решения: обхождаме номерата по години; спираме след 40 поредни липсващи над най-големия известен.
+async function numbered(code, S, prev) {
+  let added = 0;
+  const thisYear = new Date().getFullYear();
+  for (let y = +S.from.slice(0, 4); y <= thisYear; y++) {
+    const have = Object.entries(prev.files).filter(([u]) => u.endsWith(`-${y}`));
+    const max = Math.max(0, ...have.filter(([, v]) => v > 0).map(([u]) => +u.match(/r-(\d+)-\d{4}$/)[1]));
+    if (y < thisYear && prev.done?.[y]) continue;
+    let miss = 0;
+    for (let n = 1; miss < 40; n++) {
+      if (timeUp() || blocked) return added;
+      const u = S.numbered(n, y);
+      if (u in prev.files && (prev.files[u] > 0 || y < thisYear || n < max)) { miss = prev.files[u] > 0 ? 0 : miss + (n > max ? 1 : 0); continue; }
+      const buf = await get(u, true, 1);
+      const ok = buf && buf.slice(0, 5).toString() === "%PDF-";
+      const ds = ok ? parseSofia(pdfText(buf), u) : [];
+      prev.files[u] = ds.length;
+      if (ds.length) { prev.decisions.push(...ds); added += ds.length; miss = 0; } else if (n > max) miss++;
+    }
+    if (y < thisYear) (prev.done ??= {})[y] = true;
+  }
+  return added;
+}
+
 const VERSION = 2; // смяна на разчитането → всички файлове се четат наново
 mkdirSync("data/council", { recursive: true });
 for (const [code, S] of Object.entries(SITES)) {
+  if (process.env.ONLY && process.env.ONLY !== code) continue;
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
+  if (S.numbered) {
+    const added = await numbered(code, S, prev);
+    const seen = new Map();
+    for (const d of prev.decisions) seen.set(`${d.date.slice(0, 4)}-${d.number}`, d);
+    const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: "https://council.sofia.bg", updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, decisions }));
+    console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
+    continue;
+  }
+  if (timeUp()) continue;
   const idx = await get(S.index);
   if (!idx) { console.log(`${S.name}: сайтът не отговаря, пазим старите данни`); continue; }
   // Старите години вече са прочетени: обхождаме само текущата и предходната.

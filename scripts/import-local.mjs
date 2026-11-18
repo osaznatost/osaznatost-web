@@ -27,7 +27,7 @@ function ownResolutions(code, officials) {
     const w = d.rapporteur ? who(d.rapporteur.name) : null;
     return {
       id: `${code}-${d.date}-${d.number}`, date: d.date, session: "", number: d.number, title: d.title, tags: d.tags, url: d.url, result: d.tally && d.tally.for * 2 <= d.tally.for + d.tally.against + d.tally.abstain ? "rejected" : d.result, tally: d.tally, votes: [],
-      text: d.text, rapporteur: d.rapporteur ? { name: w?.name ?? d.rapporteur.name.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()), role: d.rapporteur.role, slug: w?.slug ?? null } : null,
+      text: d.text, proposedBy: d.proposedBy ?? undefined, rapporteur: d.rapporteur ? { name: w?.name ?? d.rapporteur.name.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()), role: d.rapporteur.role, slug: w?.slug ?? null } : null,
     };
   });
 }
@@ -79,7 +79,13 @@ await pool(codes, 4, async (code) => {
       votes: (votes[r.id] ?? []).map((v) => [v.name, v.vote]),
     }));
   }
-  if (!resolutions) resolutions = ownResolutions(code, officials);
+  const own = ownResolutions(code, officials);
+  if (own && resolutions) {
+    // Собственото четене от сайта на съвета е по-пълно (заглавие, текст); от „Наясно“ взимаме гласуването, където го има.
+    const nk = new Map(resolutions.map((r) => [`${r.date.slice(0, 4)}-${r.number}`, r]));
+    for (const r of own) { const n = nk.get(`${r.date.slice(0, 4)}-${r.number}`); if (n) { r.tally ??= n.tally; r.votes = n.votes?.length ? n.votes : r.votes; r.session ||= n.session; if (n.result && n.result !== "unknown" && !r.tally) r.result = n.result; nk.delete(`${r.date.slice(0, 4)}-${r.number}`); } }
+    resolutions = [...own, ...nk.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
+  } else if (!resolutions) resolutions = own;
   const name = o?.registryName ?? null;
   writeFileSync(`data/local/${code}.json`, JSON.stringify({ code, name, generatedAt: o?.generatedAt ?? null, officials, resolutions }));
   for (const x of officials) people[x.slug] = [code, x.name, x.roleRaw];

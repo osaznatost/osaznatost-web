@@ -40,10 +40,7 @@ jobs:
         run: node scripts/import-polls.mjs
       - name: Европейски средства
         run: node scripts/import-funds.mjs
-      - name: Решения на общински съвети от сайтовете им (Ботевград)
-        run: |
-          sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
-          node scripts/import-council-sites.mjs || echo "Сайтовете на съветите не отговарят, продължаваме"
+      # Решенията на общинските съвети от сайтовете им се четат от council.yml (data/council); тук само се използват.
       - name: Хората зад поръчките (OCDS)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

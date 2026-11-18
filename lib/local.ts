@@ -15,7 +15,7 @@ export type Official = {
 export type Resolution = {
   id: string; date: string; session: string; number: string; title: string; tags: string[]; url: string | null; result: string | null;
   tally: { for: number; against: number; abstain: number; method: string } | null; votes: [string, string][];
-  text?: string; rapporteur?: { name: string; role: string; slug: string | null } | null;
+  text?: string; rapporteur?: { name: string; role: string; slug: string | null } | null; proposedBy?: string;
 };
 export type LocalData = { code: string; name: string | null; generatedAt: string | null; officials: Official[]; resolutions: Resolution[] | null };
 
