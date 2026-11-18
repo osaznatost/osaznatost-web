@@ -745,6 +745,57 @@
               "url": "https://static.eurofound.europa.eu/covid19db/cases/BG-2022-1_2110.html"
             }
           ]
+        },
+        {
+          "text": "Оставка или отстраняване на главния прокурор Иван Гешев",
+          "area": "Правосъдие",
+          "said": {
+            "who": "Управляващата коалиция (ПП, БСП, ИТН, ДБ), декларация в парламента",
+            "when": "януари 2022",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2022/01/15/4303019_zashto_upravliavashtata_koaliciia_poiska_ostavkata_na/"
+          },
+          "status": "failed",
+          "evidence": "Гешев отказа да подаде оставка. Правосъдният министър Надежда Йорданова внесе във ВСС предложение за предсрочното му освобождаване, но той остана на поста. ВСС го освободи едва през юни 2023 г., след края на мандата на правителството.",
+          "links": [
+            {
+              "title": "Капитал: защо коалицията поиска оставката на Гешев",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2022/01/15/4303019_zashto_upravliavashtata_koaliciia_poiska_ostavkata_na/"
+            },
+            {
+              "title": "БНТ: Гешев отказва да подаде оставка",
+              "url": "https://bnt.bg/news/geshev-after-demands-for-his-resignation-the-prosecutor-39s-office-is-doing-its-job-well-301121news.html"
+            },
+            {
+              "title": "БТА: ВСС обсъжда предложението на Йорданова (4 април 2022)",
+              "url": "https://www.bta.bg/bg/galleries/27730"
+            },
+            {
+              "title": "Sofia Globe: ВСС освобождава Гешев (юни 2023)",
+              "url": "https://sofiaglobe.com/2023/06/12/bulgarias-sjc-votes-to-sack-prosecutor-general-geshev/"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "декември 2021",
+              "what": "Гешев заявява, че няма да подаде оставка.",
+              "url": "https://bnt.bg/news/geshev-after-demands-for-his-resignation-the-prosecutor-39s-office-is-doing-its-job-well-301121news.html"
+            },
+            {
+              "date": "януари 2022",
+              "what": "Коалицията иска оставката му с декларация от трибуната.",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2022/01/15/4303019_zashto_upravliavashtata_koaliciia_poiska_ostavkata_na/"
+            },
+            {
+              "date": "април 2022",
+              "what": "ВСС разглежда предложението на правосъдния министър; Гешев остава на поста.",
+              "url": "https://www.bta.bg/bg/galleries/27730"
+            },
+            {
+              "date": "юни 2023",
+              "what": "ВСС освобождава Гешев (вече при друго правителство).",
+              "url": "https://sofiaglobe.com/2023/06/12/bulgarias-sjc-votes-to-sack-prosecutor-general-geshev/"
+            }
+          ]
         }
       ]
     },
