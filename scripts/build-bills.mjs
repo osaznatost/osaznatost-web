@@ -6,10 +6,18 @@ if (!existsSync(DIR)) process.exit(0);
 const out = [];
 // Изречения от докладите на комисиите, които си струва да се видят: обявен конфликт на интереси, несъгласие на министерство, гласуване в комисията.
 const sentences = (t) => t.replace(/\s+/g, " ").split(/(?<=[.!?])\s+(?=[А-ЯA-Z„])/);
-function notes(reports) {
+function notes(reports, sign) {
   const conflict = new Set(), against = new Set(), votes = [];
+  const SIGN = /\d{2}-\d{3}-\d{2,3}-\d+/g;
   for (const r of reports) {
+    // Общ доклад за няколко законопроекта: изречението важи за този законопроект само ако споменава неговия номер,
+    // или ако не споменава никакъв номер и докладът е само за него.
+    const joint = new Set((r.text ?? "").match(SIGN) ?? []).size > 1;
     for (const x of sentences(r.text ?? "")) {
+      // обявеният конфликт на интереси важи за цялото заседание
+      if (/конфликт на интереси/i.test(x) && /(няма да участва|не участва|отвод|декларира|заяви|обяви)/i.test(x) && x.length < 400) { conflict.add(x.trim()); continue; }
+      const signs = x.match(SIGN) ?? [];
+      if (signs.length ? !signs.includes(sign) : joint) continue;
       if (/конфликт на интереси/i.test(x) && /(няма да участва|не участва|отвод|декларира|заяви|обяви)/i.test(x) && x.length < 400) conflict.add(x.trim());
       if (/(министерств|агенци|комисия за|сметната палата|омбудсман)[^.]{0,120}не подкрепя/i.test(x) && x.length < 400) against.add(x.trim());
       const m = x.match(/„за“\s*[–-]?\s*(\d+)[^.]{0,30}„против“\s*[–-]?\s*(\d+)(?:[^.]{0,30}„въздържал(?:и)? се“\s*[–-]?\s*(\d+))?/)
@@ -30,7 +38,7 @@ for (const f of readdirSync(DIR).filter((x) => /^\d+\.json$/.test(x))) {
     reports: b.reports.map((r) => ({ date: r.date, committee: r.committee, stage: r.stage })),
     hall: b.hall.map((h) => ({ date: h.date, stage: h.stage, url: h.url })),
     proposals: b.proposals.length,
-    notes: notes(b.reports),
+    notes: notes(b.reports, b.sign),
   });
 }
 out.sort((a, b) => (a.date < b.date ? 1 : -1));
