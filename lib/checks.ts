@@ -7,7 +7,7 @@ export type Claim = {
   claim: string; verdict: Verdict; why: string; sources: { title: string; url: string }[];
   dossier?: string; law?: { slug: string; name: string };
 };
-export type Dossier = { slug: string; title: string; date: string; topic: string; lead: string; summary: string[]; stat?: string };
+export type Dossier = { slug: string; title: string; date: string; topic: string; lead: string; summary: string[]; stat?: string; facts?: [string, string, string?][] };
 
 const data = raw as { dossiers: Dossier[]; claims: Claim[] };
 
