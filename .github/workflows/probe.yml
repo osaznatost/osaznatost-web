@@ -7,29 +7,17 @@ jobs:
     steps:
       - run: |
           sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obshtina/poruchki -o l.html
-          python3 - <<'PY'
-          import re,html
-          s=open('l.html',encoding='utf-8',errors='ignore').read()
-          links=[]
-          for m in re.finditer(r'<a [^>]*href="(https://botevgrad.bg/obshtina/poruchka/[^"]+)"[^>]*>(.*?)</a>',s,re.S):
-              t=html.unescape(re.sub(r'<[^>]+>|\s+',' ',m.group(2))).strip()
-              if t: links.append((m.group(1),t))
-          print(len(links))
-          for u,t in links[:40]: print(t[:150],'|',u[-60:])
-          pag=set(re.findall(r'href="(https://botevgrad.bg/obshtina/poruchki[^"]*)"',s)); print(sorted(pag)[:15])
-          road=[u for u,t in links if re.search(r'улиц|асфалт|пътн|ремонт',t,re.I)]
-          open('road.txt','w').write(road[0] if road else links[0][0])
-          PY
-          U=$(cat road.txt); echo "##### $U"
-          curl -sSL -A "Mozilla/5.0" -m 30 "$U" -o p.html
+          for U in https://botevgrad.bg/obshtina/poruchka/registar-na-plashtaniya-kam-kontragenti-3 https://botevgrad.bg/obshtina/poruchka/registar-na-osvobodeni-garantsii-po-obshtestveni-porachki-2; do
+          echo "##### $U"; curl -sSL -A "Mozilla/5.0" -m 30 "$U" -o p.html
           python3 - <<'PY'
           import re,html
           s=open('p.html',encoding='utf-8',errors='ignore').read()
-          i=s.find('<h1'); s=s[i:]; s=s[:s.find('footer')]
-          s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
-          s=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',s)
-          s=re.sub(r'<br\s*/?>|</(p|div|li|tr|h\d)>','\n',s)
-          s=html.unescape(re.sub(r'<[^>]+>','',s)); s=re.sub(r'[ \t]+',' ',s); s=re.sub(r'\n\s*\n+','\n',s)
-          print(s[:6000])
+          for m in re.finditer(r'<a [^>]*href="([^"]*data/[^"]+)"[^>]*>(.*?)</a>',s,re.S):
+              print(m.group(1),'|',html.unescape(re.sub(r'<[^>]+>|\s+',' ',m.group(2))).strip()[:100])
           PY
+          F=$(grep -oE 'https://botevgrad.bg/data/[a-z]+/files/[0-9]+\.(pdf|xlsx?|docx?)' p.html | head -1); echo "FIRST $F"
+          curl -sSL -m 60 "$F" -o f.bin; file f.bin; (pdftotext -layout f.bin - 2>/dev/null || true) | sed 's/  */ /g' | grep -v '^\s*$' | head -40
+          done
+          echo "##### EOP API"
+          curl -sS -m 30 -o t.json -w "%{http_code} %{content_type}\n" "https://app.eop.bg/api/public/tenders/598364" ; head -c 500 t.json; echo
+          curl -sS -m 30 -o t2.html -w "%{http_code} %{content_type}\n" "https://app.eop.bg/today/598364"; head -c 300 t2.html
