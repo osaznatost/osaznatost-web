@@ -43,7 +43,7 @@ function flags(c) {
   if (c.procedure_type && NO_COMP.test(c.procedure_type)) f.push(["direct", ex ? 5 : 20]);
   if (ex && f.length) f.push(["legal", 0]);
   if (est > 0 && v > est * 1.05) f.push(["over", 10]);
-  if (est > 0 && c.offers_count === 1 && v >= est * 0.97 && v <= est * 1.0001) f.push(["exact", 10]);
+  if (est > 0 && c.offers_count === 1 && v >= est * 0.97 && v <= est * 1.0001 && !(c.procedure_type && NO_COMP.test(c.procedure_type))) f.push(["exact", 10]);
   const ad = added.get(`${c.buyer_eik}|${c.contract_number}`) ?? 0;
   if (v > 0 && ad / v > 0.1) f.push(["annex", ad / v > 0.3 ? 20 : 12]);
   if ((c.disqualified_offers_count ?? 0) > 0 && (c.offers_count ?? 0) - (c.disqualified_offers_count ?? 0) <= 1) f.push(["disq", 15]);

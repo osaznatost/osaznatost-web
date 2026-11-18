@@ -23,7 +23,8 @@ export function contractFlags(c: Contract, annexes: Annex[] = [], political: num
   if (c.procedure_type && NO_COMPETITION.test(c.procedure_type)) f.push({ id: "direct", label: "Без открит конкурс", why: `Процедура: ${c.procedure_type.toLowerCase()}.`, weight: ex ? 5 : 20 });
   if (ex && f.length) f.push({ id: "legal", label: "Законово обяснение", why: `${ex.why} Затова горните флагове тежат по-малко.`, weight: 0 });
   if (est > 0 && v > est * 1.05) f.push({ id: "over", label: "Над прогнозната стойност", why: `Договорът е с ${Math.round((v / est - 1) * 100)}% над очакваното от възложителя.`, weight: 10 });
-  if (est > 0 && c.offers_count === 1 && v >= est * 0.97 && v <= est * 1.0001) f.push({ id: "exact", label: "Цена почти равна на прогнозата", why: "Единственият участник предлага почти точно колкото възложителят е очаквал.", weight: 10 });
+  // При договаряне без обявление прогнозата често се определя след преговорите, затова там флагът не носи информация.
+  if (est > 0 && c.offers_count === 1 && v >= est * 0.97 && v <= est * 1.0001 && !(c.procedure_type && NO_COMPETITION.test(c.procedure_type))) f.push({ id: "exact", label: "Цена почти равна на прогнозата", why: "Единственият участник предлага почти точно колкото възложителят е очаквал.", weight: 10 });
   const added = annexes.reduce((s, a) => s + Math.max(0, a.value_difference_eur ?? 0), 0);
   if (v > 0 && added / v > 0.1) f.push({ id: "annex", label: "Оскъпяване с анекси", why: `Анексите добавят ${Math.round((added / v) * 100)}% към цената.`, weight: added / v > 0.3 ? 20 : 12 });
   if ((c.disqualified_offers_count ?? 0) > 0 && (c.offers_count ?? 0) - (c.disqualified_offers_count ?? 0) <= 1) f.push({ id: "disq", label: "Отстранени конкуренти", why: `Отстранени ${c.disqualified_offers_count} оферти и остава един кандидат.`, weight: 15 });
