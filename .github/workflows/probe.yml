@@ -6,11 +6,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for d in 2026-11-12; do
-            curl -sS -m 30 "https://storage.eop.bg/open-data-$d?list-type=2" | python3 -c "
-          import sys,re,urllib.parse
-          s=sys.stdin.read(); print(s[:300])
-          for k in re.findall(r'<Key>(.*?)</Key>',s): print(k)"
-          done
-          echo "##### botevgrad buyer profile"
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/ -o h.html; grep -oE 'href="[^"]*(profil|kupuvach|pazar|poruch)[^"]*"' h.html | sort -u | head
+          D=2026-11-12; DD=12.11.2026
+          curl -sS -m 120 -o o.json "https://storage.eop.bg/open-data-$D/$(python3 -c "import urllib.parse;print(urllib.parse.quote('Автоматично генерирани данни за обявления, публикувани в ЦАИС ЕОП на $DD г., съгласно стандарт OCDS.json'))")"
+          curl -sS -m 120 -o p.json "https://storage.eop.bg/open-data-$D/$(python3 -c "import urllib.parse;print(urllib.parse.quote('Автоматично генерирани данни за поръчки, публикувани в ЦАИС ЕОП на $DD.json'))")"
+          ls -la o.json p.json
+          python3 - <<'PY'
+          import json,collections
+          o=json.load(open('o.json'))
+          print(type(o), list(o.keys())[:10] if isinstance(o,dict) else len(o))
+          rel=o.get('releases') if isinstance(o,dict) else o
+          print('releases',len(rel))
+          tags=collections.Counter(t for r in rel for t in r.get('tag',[])); print(tags)
+          keys=collections.Counter(k for r in rel for k in r.keys()); print(keys)
+          # show one with implementation / contracts
+          def show(r,n=3500): print(json.dumps(r,ensure_ascii=False)[:n]); print('-----')
+          shown=set()
+          for r in rel:
+            for t in r.get('tag',[]):
+              if t not in shown: shown.add(t); print('TAG',t); show(r,2500)
+          p=json.load(open('p.json')); pr=p if isinstance(p,list) else p.get('data',p)
+          print('PORACHKI', type(p), len(pr)); print(json.dumps(pr[0] if isinstance(pr,list) else pr,ensure_ascii=False)[:2500])
+          PY
