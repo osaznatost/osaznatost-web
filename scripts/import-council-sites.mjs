@@ -8,7 +8,8 @@ const UA = { "User-Agent": "Mozilla/5.0 (osaznatost.bg; отворени дан�
 const SITES = {
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
 };
-const get = async (u, bin = false) => { for (let i = 0; i < 3; i++) { try { const r = await fetch(u, { headers: UA }); if (r.ok) return bin ? Buffer.from(await r.arrayBuffer()) : await r.text(); } catch {} await new Promise((s) => setTimeout(s, 1500)); } return null; };
+// Сайтът на общината не подава пълната верига от сертификати и fetch() в Node отказва; curl се справя.
+const get = async (u, bin = false) => { for (let i = 0; i < 3; i++) { try { const b = execFileSync("curl", ["-sSLf", "-m", "90", "-A", UA["User-Agent"], u], { maxBuffer: 1 << 28 }); return bin ? b : b.toString("utf8"); } catch {} await new Promise((s) => setTimeout(s, 1500)); } return null; };
 const ws = (s) => s.replace(/[ \t ]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
 const flat = (s) => s.replace(/\s+/g, " ").trim();
 
