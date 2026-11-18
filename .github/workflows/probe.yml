@@ -5,4 +5,8 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Временна проба; съдържанието се сменя при нужда"
+      - run: |
+          q() { curl -sS -m 60 -X POST https://api.ted.europa.eu/v3/notices/search -H 'Content-Type: application/json' -d "$1" | head -c 3500; echo; echo -----; }
+          q '{"query":"buyer-country=BGR AND notice-type=can-standard AND publication-date>=20200101 AND publication-date<20220101","fields":["publication-number","publication-date","notice-title","buyer-name","winner-name","total-value","tender-value","organisation-identifier-buyer","winner-identifier","classification-cpv","procedure-type","received-submissions-type-val"],"limit":2,"page":1}'
+          q '{"query":"buyer-country=BGR AND notice-type=can-standard AND publication-date>=20200101 AND publication-date<20220101","fields":["publication-number","notice-title","buyer-name","winner-name","total-value"],"limit":2,"page":1}'
+          q '{"query":"buyer-country=BGR AND publication-date>=20200101 AND publication-date<20220101","fields":["publication-number","notice-type","form-type"],"limit":3,"page":1}'
