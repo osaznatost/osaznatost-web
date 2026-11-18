@@ -11,8 +11,9 @@ import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { MPS } from "@/lib/parliament";
 import { tendersByContact } from "@/lib/projects";
 
+// Предварително само кметовете; останалите ~6000 профила се правят при първо отваряне и се кешират.
 export function generateStaticParams() {
-  return Object.keys(PEOPLE).map((slug) => ({ slug }));
+  return Object.entries(PEOPLE).filter(([, p]) => p[2] === "Кмет").map(([slug]) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -42,7 +43,11 @@ async function StakeCheck({ code, o }: { code: string; o: Official }) {
   );
 }
 
-export default async function Lice({ params }: { params: Promise<{ slug: string }> }) {
+export default function Lice({ params }: { params: Promise<{ slug: string }> }) {
+  return <Suspense fallback={<Page><p className="text-muted">Зареждане на профила…</p></Page>}><Body params={params} /></Suspense>;
+}
+
+async function Body({ params }: { params: Promise<{ slug: string }> }) {
   const p = personBySlug((await params).slug);
   if (!p) notFound();
   const { o, L } = p;

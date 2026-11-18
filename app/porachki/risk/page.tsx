@@ -13,12 +13,9 @@ const FLAG: Record<string, string> = {
 };
 type Agg = { key: string; name: string; n: number; value: number; risky: number; riskyValue: number; single: number; political: number; avg: number; muni?: string; oblast?: string; level?: string };
 
-export default function Risk() {
-  const R = RISK as unknown as { updated: string | null; total: number; annexes: number; from: string | null; flagCount: Record<string, number>; byScore: Record<string, number>; years: Agg[]; oblasts: Agg[]; buyers: Agg[]; suppliers: Agg[]; top: { id: string; buyer: string; buyerEik: string; number: string; suppliers: string[]; supplierEiks: string[]; title: string; date: string; value: number; flags: string[]; score: number }[] };
-  if (!R.total) return <Page><Title back={{ href: "/porachki", label: "Поръчки" }}>Риск в обществените поръчки</Title><p className="text-[15px]">Класацията се изчислява при следващото обновяване на данните.</p></Page>;
+function Table({ rows, kind }: { rows: Agg[]; kind: "buyer" | "supplier" }) {
   const pc = (a: number, b: number) => (b ? `${fmt((a / b) * 100, 1)}%` : "–");
-  const yearsChart = R.years.flatMap((y) => [{ series: "Висок риск, % от договорите", x: Number(y.key), value: Math.round((y.risky / y.n) * 1000) / 10 }, { series: "Една оферта, % от договорите", x: Number(y.key), value: Math.round((y.single / y.n) * 1000) / 10 }]);
-  const Table = ({ rows, kind }: { rows: Agg[]; kind: "buyer" | "supplier" }) => (
+  return (
     <div className="overflow-x-auto"><table className="w-full text-[15px] num">
       <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">{kind === "buyer" ? "Възложител" : "Изпълнител"}</th><th className="text-right px-2">Договори</th><th className="text-right px-2">Общо</th><th className="text-right px-2">С висок риск</th><th className="text-right px-2">Сума с висок риск</th><th className="text-right px-2">Една оферта</th>{kind === "supplier" && <th className="text-right px-2">Връзка с политик</th>}</tr></thead>
       <tbody>{rows.map((b) => (
@@ -30,6 +27,13 @@ export default function Risk() {
         </tr>
       ))}</tbody></table></div>
   );
+}
+
+export default function Risk() {
+  const R = RISK as unknown as { updated: string | null; total: number; annexes: number; from: string | null; flagCount: Record<string, number>; byScore: Record<string, number>; years: Agg[]; oblasts: Agg[]; buyers: Agg[]; suppliers: Agg[]; top: { id: string; buyer: string; buyerEik: string; number: string; suppliers: string[]; supplierEiks: string[]; title: string; date: string; value: number; flags: string[]; score: number }[] };
+  if (!R.total) return <Page><Title back={{ href: "/porachki", label: "Поръчки" }}>Риск в обществените поръчки</Title><p className="text-[15px]">Класацията се изчислява при следващото обновяване на данните.</p></Page>;
+  const pc = (a: number, b: number) => (b ? `${fmt((a / b) * 100, 1)}%` : "–");
+  const yearsChart = R.years.flatMap((y) => [{ series: "Висок риск, % от договорите", x: Number(y.key), value: Math.round((y.risky / y.n) * 1000) / 10 }, { series: "Една оферта, % от договорите", x: Number(y.key), value: Math.round((y.single / y.n) * 1000) / 10 }]);
   return (
     <Page>
       <Title back={{ href: "/porachki", label: "Поръчки" }} kicker="Червени флагове за цялата страна"
@@ -37,7 +41,7 @@ export default function Risk() {
         Риск в обществените поръчки
       </Title>
       <section className="bg-surface rounded-sm p-4 mb-10 max-w-4xl text-[15px]">
-        <p><b>Как да се чете.</b> Високият риск (45+ точки) означава, че в договора се срещат няколко признака, които в практиката на ЕС често съпътстват злоупотреби. Това е списък за проверка, не обвинение. Обратното също е вярно: договор без флагове може да е проблемен по причини, които данните не показват.</p>
+        <p><b>Как да се чете.</b> Високият риск (45+ точки) означава, че в договора се срещат няколко признака, които в практиката на ЕС често съпътстват злоупотреби. Това е списък за проверка, не обвинение. Обратното също е вярно: договор без флагове може да е проблемен по причини, които данните не показват. <Link href="/porachki/metodologiya">Методология: как се смята всеки сигнал и кога греши</Link>.</p>
       </section>
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[["Висок риск", R.byScore.high, "45+ точки"], ["Среден риск", R.byScore.mid, "20–44 точки"], ["Нисък риск", R.byScore.low, "под 20 точки"], ["Без флагове", R.byScore.none, ""]].map(([l, v, n]) => (

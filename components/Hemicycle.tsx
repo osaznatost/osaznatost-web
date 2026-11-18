@@ -7,7 +7,7 @@ export function Hemicycle({ groups }: { groups: { label: string; seats: number }
   const r0 = 0.38, r1 = 1;
   const radii = Array.from({ length: rows }, (_, i) => r0 + ((r1 - r0) * i) / (rows - 1));
   const sumR = radii.reduce((a, b) => a + b, 0);
-  let counts = radii.map((r) => Math.round((total * r) / sumR));
+  const counts = radii.map((r) => Math.round((total * r) / sumR));
   counts[rows - 1] += total - counts.reduce((a, b) => a + b, 0);
   const seats: { x: number; y: number; a: number }[] = [];
   radii.forEach((r, i) => {

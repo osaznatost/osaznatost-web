@@ -37,7 +37,11 @@ export default function Home() {
             <p className="mt-6 text-lg text-white/80 max-w-md">
               Гласувания, бюджет, дълг и цени, проследени до първоизточника. Ние показваме данните, а изводите правите вие.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <form action="/tarsene" className="mt-8 flex gap-2 max-w-md">
+              <input name="q" placeholder="напр. асфалт Ботевград 2024" className="flex-1 rounded-md px-4 py-3 text-ink bg-white text-[16px]" />
+              <button className="bg-red hover:bg-red-dark text-white font-semibold px-4 rounded-md">Търси</button>
+            </form>
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link href="/parlament" className="no-underline bg-red hover:bg-red-dark text-white hover:text-white font-semibold px-5 py-3 rounded-md">Вижте гласуванията</Link>
               <Link href="/kalkulatori" className="no-underline ring-1 ring-white/40 hover:ring-white text-white hover:text-white px-5 py-3 rounded-md">Калкулатори</Link>
             </div>

@@ -9,7 +9,20 @@ const SITES = {
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
 };
 // Сайтът на общината не подава пълната верига от сертификати и fetch() в Node отказва; curl се справя.
-const get = async (u, bin = false) => { for (let i = 0; i < 3; i++) { try { const b = execFileSync("curl", ["-sSLf", "-m", "90", "-A", UA["User-Agent"], u], { maxBuffer: 1 << 28 }); return bin ? b : b.toString("utf8"); } catch {} await new Promise((s) => setTimeout(s, 1500)); } return null; };
+// Щадящо: пауза между заявките; ако сайтът покаже проверка срещу ботове, спираме и пазим прочетеното.
+let blocked = false;
+const get = async (u, bin = false) => {
+  if (blocked) return null;
+  for (let i = 0; i < 3; i++) {
+    await new Promise((s) => setTimeout(s, 2500));
+    try {
+      const b = execFileSync("curl", ["-sSLf", "-m", "90", "-A", UA["User-Agent"], u], { maxBuffer: 1 << 28 });
+      if (!bin && /request is being verified|One moment, please/i.test(b.toString("utf8").slice(0, 3000))) { blocked = true; console.log("Сайтът пусна проверка срещу ботове: спираме за днес"); return null; }
+      return bin ? b : b.toString("utf8");
+    } catch {}
+  }
+  return null;
+};
 const ws = (s) => s.replace(/[ \t ]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
 const flat = (s) => s.replace(/\s+/g, " ").trim();
 
@@ -71,7 +84,10 @@ for (const [code, S] of Object.entries(SITES)) {
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
   const idx = await get(S.index);
   if (!idx) { console.log(`${S.name}: сайтът не отговаря, пазим старите данни`); continue; }
-  const years = [...idx.matchAll(S.yearLink)].map((m) => ({ url: m[1], year: +m[2] })).filter((y) => y.year >= +S.from.slice(0, 4));
+  // Старите години вече са прочетени: обхождаме само текущата и предходната.
+  const known = Object.keys(prev.files).length > 0;
+  const thisYear = new Date().getFullYear();
+  const years = [...idx.matchAll(S.yearLink)].map((m) => ({ url: m[1], year: +m[2] })).filter((y) => y.year >= +S.from.slice(0, 4) && (!known || y.year >= thisYear - 1));
   const files = [];
   for (const y of years) {
     const page = await get(y.url);

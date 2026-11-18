@@ -11,6 +11,7 @@ const items = [
   { href: "/parlament", label: "Парламент" },
   { href: "/obeshtaniya", label: "Обещания" },
   { href: "/porachki", label: "Поръчки" },
+  { href: "/tarsene", label: "Търсене" },
   { href: "/mesta", label: "Места" },
   { href: "/statistiki", label: "Статистики" },
   { href: "/proverki", label: "Проверки" },

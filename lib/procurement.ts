@@ -133,3 +133,5 @@ export const muniContracts = (code: string, since: string) =>
   q<Contract>(`proc_contracts_geo?municipality_code=eq.${code}&contract_date=gte.${since}&order=contract_date.desc&limit=2000`);
 export const muniAnnexes = (code: string, since: string) =>
   q<Annex>(`proc_annexes_geo?municipality_code=eq.${code}&published_at=gte.${since}&order=published_at.desc&limit=2000`);
+/** Произволна заявка за четене (за търсенето). */
+export const rawQuery = <T,>(path: string) => q<T>(path);

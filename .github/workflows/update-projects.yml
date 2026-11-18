@@ -1,8 +1,6 @@
 name: Проекти (хората зад поръчките)
 
 on:
-  schedule:
-    - cron: "33 5 * * *"   # всеки ден
   workflow_dispatch:
     inputs:
       max_back:

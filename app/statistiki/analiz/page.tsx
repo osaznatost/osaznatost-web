@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BarRank, MultiLine } from "@/components/Charts";
 import { Page, Title } from "@/components/ui";
 import { formatDate } from "@/lib/parliament";
@@ -110,7 +111,7 @@ export default function Statistiki() {
       <Title lead={`Официалните данни за България, с история и сравнение с ЕС. Изводите са изчислени от самите данни и се обновяват автоматично. Последно обновяване: ${formatDate(STATS.updated)}`}>
         Анализи по теми
       </Title>
-      <p className="-mt-4 mb-8 text-[15px]"><a href="/statistiki">← Библиотеката с всички показатели</a></p>
+      <p className="-mt-4 mb-8 text-[15px]"><Link href="/statistiki">← Библиотеката с всички показатели</Link></p>
 
       <nav className="flex flex-wrap gap-2 mb-12">
         {NAV.map(([id, label]) => (

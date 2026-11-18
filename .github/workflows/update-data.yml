@@ -38,6 +38,11 @@ jobs:
         run: |
           sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1
           node scripts/import-council-sites.mjs || echo "Сайтовете на съветите не отговарят, продължаваме"
+      - name: Хората зад поръчките (OCDS)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/import-ocds-people.mjs || echo "ЦАИС ЕОП не отговаря, продължаваме"
       - name: Местна власт (декларации и общински съвети)
         run: node scripts/import-local.mjs
       - name: Профил на местата (преброяване, карти, държавни инвестиции)
@@ -53,6 +58,6 @@ jobs:
           if git diff --cached --quiet; then echo "Няма нови данни"; exit 0; fi
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"
-          git commit -m "Данни: обновени гласувания в парламента"
+          git commit -m "Данни: дневно обновяване"
           git pull --rebase
           git push
