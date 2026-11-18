@@ -6,12 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          E=https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data
-          dims() { curl -s "$E/$1?format=JSON&geo=BG&$2" | python3 -c "import json,sys;d=json.load(sys.stdin);print('$1', d.get('error') or {k:list(v['category']['index'])[:12] for k,v in d['dimension'].items() if k not in ('time',)})"; }
-          dims hlth_silc_08 "time=2023"
-          dims nama_10_fte "time=2023"
-          dims sdg_11_50 "time=2022"
-          dims env_air_aa "time=2022" || true
-          dims crim_off_cat "time=2022"
-          dims edat_lfse_03 "time=2023"
-          dims tps00001 "time=2024"
+          for u in https://botevgrad.bg/obsavet/ https://botevgrad.bg/obsavet https://botevgrad.bg/ ; do
+            echo "=== $u"; curl -sSL -A "Mozilla/5.0" -m 30 "$u" -o p.html -w "%{http_code} %{url_effective}\n"; grep -oE 'href="[^"]*"' p.html | sort -u | grep -iE 'obsav|savet|resh|protok|zased' | head -60
+          done
