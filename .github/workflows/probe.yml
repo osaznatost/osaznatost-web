@@ -5,14 +5,14 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - env:
-          U: ${{ secrets.SUPABASE_URL }}
-          K: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: |
-          for t in proc_contracts proc_annexes proc_buyers proc_import_state; do
-            n=$(curl -sS -I "$U/rest/v1/$t?select=*&limit=1" -H "apikey: $K" -H "Authorization: Bearer $K" -H "Prefer: count=exact" | grep -i content-range | sed 's/.*\///')
-            s=$(curl -sS "$U/rest/v1/$t?select=*&limit=2000&offset=50000" -H "apikey: $K" -H "Authorization: Bearer $K" | wc -c)
-            echo "$t bytes2000=$s"
+      - run: |
+          for F in winner-name winner-identifier organisation-name-tenderer tender-value total-value result-value-notice contract-value BT-720-Tender BT-500-Organization-Company BT-161-NoticeResult notice-title title-proc buyer-identifier organisation-identifier-buyer BT-501-Organization-Company received-submissions-type-val BT-759-LotResult winner-country estimated-value-proc award-date contract-conclusion-date BT-145-Contract; do
+            r=$(curl -sS -m 60 -X POST https://api.ted.europa.eu/v3/notices/search -H 'Content-Type: application/json' -d "{\"query\":\"buyer-country=BGR AND notice-type=can-standard AND publication-date>=20210301 AND publication-date<20210310\",\"fields\":[\"publication-number\",\"$F\"],\"limit\":3,\"page\":1}")
+            echo "== $F: $(echo "$r" | python3 -c "
+          import json,sys
+          try:
+            d=json.load(sys.stdin)
+            if 'notices' not in d: print('ERR',str(d)[:160])
+            else: print([n.get('$F') for n in d['notices']], 'total', d.get('totalNoticeCount'))
+          except Exception as e: print('X',e)" | cut -c1-400)"
           done
-          # опит за размера на базата (ако има такава функция)
-          curl -sS -X POST "$U/rest/v1/rpc/db_size" -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d '{}' | head -c 300; echo
