@@ -117,9 +117,14 @@ function parseWpPost(html, url, S) {
   if (!h) return [];
   const date = `${h[5]}-${h[4].padStart(2, "0")}-${h[3].padStart(2, "0")}`;
   // Текстът: след последното заглавие до „ПРЕДСЕДАТЕЛ“.
-  const start = t.lastIndexOf(h[0]);
-  const after = t.slice(start + h[0].length);
-  const main = after.slice(Math.max(0, after.search(/На основание|Общински съвет/))).split(/\n\s*ПРЕДСЕДАТЕЛ/)[0];
+  // Заглавието се повтаря (меню, „последни публикации“); взимаме срещането, след което идва самият текст.
+  let after = "";
+  for (let i = t.indexOf(h[0]); i >= 0; i = t.indexOf(h[0], i + 1)) {
+    const a = t.slice(i + h[0].length);
+    if (/^[\s\S]{0,600}?(На основание|\sреши\s*:)/i.test(a)) { after = a; break; }
+  }
+  if (!after) return [];
+  const main = after.slice(Math.max(0, after.search(/На основание|Общински съвет/))).split(/\n\s*ПРЕДСЕДАТЕЛ|This website uses cookies|\nСподели/)[0];
   const op = (main.split(/\sреши\s*:/i)[1] ?? main).trim();
   const body = ws(op);
   const first = flat(body).split(/(?<=[.;])\s/)[0];
