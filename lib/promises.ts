@@ -25,6 +25,6 @@ export const ORDER: Status[] = ["done", "kept", "partly", "in_progress", "at_ris
 export const GOOD: Status[] = ["done", "kept"];
 export const BAD: Status[] = ["not_met", "failed", "broken"];
 
-const SLUG: Record<string, string> = { "ПБ": "radev", "GOV-ZH": "zhelyazkov", "GOV-DK": "denkov", "GOV-PK": "petkov", "GOV-B3": "borisov-3", "GOV-OR": "oresharski", "GOV-B2": "borisov-2" };
+const SLUG: Record<string, string> = { "ПБ": "radev", "GOV-ZH": "zhelyazkov", "GOV-DK": "denkov", "GOV-PK": "petkov", "GOV-B3": "borisov-3", "GOV-OR": "oresharski", "GOV-B2": "borisov-2", "GOV-B1": "borisov-1" };
 export const govSlug = (g: Gov) => SLUG[g.party] ?? g.party.toLowerCase();
 export const findGov = (slug: string) => data.parties.find((g) => govSlug(g) === slug);
