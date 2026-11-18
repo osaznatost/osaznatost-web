@@ -28,7 +28,7 @@ async function releases(d) {
 // Общинските възложители (общината, училищата, градините, дружествата) с кода на общината им.
 const buyers = new Map();
 for (let off = 0; ; off += 1000) {
-  const q = TRACK ? `municipality_code=in.(${TRACK.join(",")})` : "level=eq.общински&municipality_code=not.is.null";
+  const q = TRACK ? `municipality_code=in.(${TRACK.join(",")})` : "level=neq.държавен&municipality_code=not.is.null";
   const r = await fetch(`${URL_}/rest/v1/proc_buyers?${q}&select=eik,municipality_code&order=eik&limit=1000&offset=${off}`, { headers: { apikey: KEY } });
   const rows = await r.json();
   for (const b of rows) buyers.set(b.eik, b.municipality_code);
