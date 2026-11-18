@@ -5,8 +5,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          for u in "https://ted.europa.eu/en/notice/56-2020/xml" "https://ted.europa.eu/bg/notice/56-2020/xml" "https://ted.europa.eu/udl?uri=TED:NOTICE:56-2020:DATA:EN:XML" "https://ted.europa.eu/packages/monthly/2020-01" "https://ted.europa.eu/packages/daily/202000001"; do
-            curl -sSL -m 120 -A "Mozilla/5.0 (X11; Linux x86_64)" -H "Accept: application/xml,*/*" -o o.bin -w "$u %{http_code} %{content_type} %{size_download}\n" "$u" -r 0-2000000 || true
-            head -c 200 o.bin | tr -d '\0' | head -c 200; echo
-          done
+      - uses: actions/checkout@v4
+      - env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          DRY: "1"
+          YEARS: "2020"
+          MAX_PACKAGES: "3"
+        run: python3 scripts/import-ted.py
