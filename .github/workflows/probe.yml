@@ -5,14 +5,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1 || true
       - run: |
-          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1 || true
-          A="Mozilla/5.0 (osaznatost.bg)"
-          echo "##### varna"
-          curl -sSL -m 40 -A "$A" "https://varnacouncil.bg/reshenija-na-obshtinski-savet-varna-mandat-2023-2027/" -o v.html -w "%{http_code} %{size_download}\n"
-          grep -oE 'href="[^"]*"' v.html | grep -vE "wp-content/(themes|plugins)|wp-includes|feed|\.css|\.js" | sort -u | grep -iE "pdf|doc|reshen|uploads|zased|protok" | head -40
-          F=$(grep -oE 'href="[^"]*\.(pdf|docx?)"' v.html | head -1 | cut -d'"' -f2); echo "FILE $F"
-          [ -n "$F" ] && curl -sSL -m 60 -A "$A" "$F" -o f.bin && file f.bin && (pdftotext -layout f.bin - 2>/dev/null | sed -n "95,230p")
-          echo "##### stara zagora"; curl -sSL -m 40 -A "$A" "https://www.starazagora.bg/bg/resheniya-i-protokoli/resheniya-ot-protokol-36-ot-29012026g" -o s1.html; grep -oE "href=\"[^\"]*\"" s1.html | grep -iE "pdf|doc|uploads|files" | head; python3 -c "import re,html;s=open('s1.html',encoding='utf-8',errors='replace').read();t=html.unescape(re.sub(r'<[^>]+>',' ',re.sub(r'<script.*?</script>','',s,flags=re.S)));i=t.find('Решение');print(re.sub(r'\\s+',' ',t[i:i+1500]))"
-          curl -sSL -m 40 -A "$A" "https://www.starazagora.bg/bg/resheniya-i-protokoli" -o s.html -w "%{http_code} %{size_download}\n"
-          grep -oE 'href="[^"]*"' s.html | sort -u | grep -iE "pdf|doc|reshen|uploads|protok" | head -40
+          for c in VAR06 SZR31; do
+            rm -f data/council/$c.json
+            ONLY=$c MINUTES=3 node scripts/import-council-sites.mjs
+            node -e 'const d=require("./data/council/'$c'.json");console.log(d.decisions.length);for(const x of d.decisions.slice(0,3))console.log(JSON.stringify(x).slice(0,700))' || true
+          done

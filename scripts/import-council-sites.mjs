@@ -10,6 +10,10 @@ const SITES = {
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
   // Общински съвет Русе (WordPress): всяко решение е отделна публикация „РЕШЕНИЕ № N Прието с Протокол № P/ДД.ММ.ГГГГг.“.
   RSE27: { name: "Русе", wpList: (p) => `https://obs.ruse-bg.eu/category/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f/${p > 1 ? `page/${p}/` : ""}`, wpPost: /href="(https:\/\/obs\.ruse-bg\.eu\/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%e2%84%96-\d+[^"]*)"/gi, from: "2023-11-01", council: "Общински съвет – Русе" },
+  // Общински съвет Варна: един PDF „РЕШЕНИЯ № <заседание> от <дата>“ на заседание; решенията са „<номер>-<точка>.“.
+  VAR06: { name: "Варна", sessionPdfs: "https://varnacouncil.bg/reshenija-na-obshtinski-savet-varna-mandat-2023-2027/", pdfLink: /href="(https:\/\/varnacouncil\.bg\/wp-content\/uploads\/[^"]*?РЕШЕНИЯ[^"]*?\.pdf)"/g, from: "2023-11-01", parse: "varna" },
+  // Общински съвет Стара Загора: страница на протокол със списък „Решение № N от ДД.ММ.ГГГГг. относно: …“ и PDF на всяко решение.
+  SZR31: { name: "Стара Загора", listPages: (p) => `https://www.starazagora.bg/bg/resheniya-i-protokoli${p > 0 ? `/page/${p * 20}` : ""}`, protoLink: /href="(bg\/resheniya-i-protokoli\/resheniya-ot-protokol-[^"#]+)"/g, base: "https://www.starazagora.bg/", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
 };
 // Сайтът на общината не подава пълната верига от сертификати и fetch() в Node отказва; curl се справя.
@@ -108,6 +112,82 @@ function parseSofia(text, url) {
 }
 const pdfText = (buf) => { writeFileSync("/tmp/c.pdf", buf); try { return execFileSync("pdftotext", ["-layout", "/tmp/c.pdf", "-"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
 
+// Варна: протокол-извлечение на цяло заседание.
+function parseVarna(text, url) {
+  const t = text.replace(/\f/g, "\n");
+  const dm = t.match(/проведено на\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  const sm = t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*\n\s*№\s*(\d+)/);
+  if (!dm) return [];
+  const date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  const out = [];
+  // Всяка точка от дневния ред: „по точка … ОТНОСНО … Докл.: Име – длъжност … Р Е Ш Е Н И Я: <решения>“.
+  for (const item of t.split(/Препис-извлечение!?/).slice(1)) {
+    const dk = item.match(/Докл\.?:\s*([^\n–—-]+?)\s*[–—-]\s*([^\n]+)/);
+    const rapporteur = dk ? { name: flat(dk[1]).replace(/^(д-р|инж\.?|арх\.?)\s*/i, ""), role: flat(dk[2]).toLowerCase().replace(/^председател на пк/, "председател на постоянна комисия").slice(0, 80) } : null;
+    const parts = item.split(/\n\s*(\d{2,5})-(\d{1,3})\.\s+/);
+    for (let i = 1; i + 2 < parts.length; i += 3) {
+      const number = parts[i], chunk = parts[i + 2] ?? "";
+      const body = ws(chunk.split(/\n\s*ПРЕДСЕДАТЕЛ|\n\s*Общински съвет – Варна прие/)[0]).replace(/\n\s*\d+\s*\n/g, "\n");
+      const by = body.match(/по (?:предложение|докладна записка) (?:на|от)\s+(?:г-н|г-жа)?\s*([^,\n]{3,120}?)(?:\s+с рег|,)/);
+      const op = flat(body).split(/Общински съвет\s*[–-]\s*Варна\s*/)[1] ?? flat(body);
+      const title = (op.length > 240 ? op.slice(0, 240).replace(/\s+\S*$/, "") + " …" : op).replace(/^./, (c) => c.toUpperCase());
+      out.push({
+        number, date, url, title, session: sm ? sm[1] : "", rapporteur, proposedBy: by ? flat(by[1]).replace(/^Кмета на Община Варна$/i, "кмета на общината") : null, tally: null,
+        result: /^\s*не\s+(приема|одобрява|дава)/i.test(op) ? "rejected" : "adopted",
+        tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+        text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body,
+      });
+    }
+  }
+  return out;
+}
+async function sessionPdfs(code, S, prev) {
+  const idx = await get(S.sessionPdfs);
+  if (!idx) return 0;
+  const files = [...new Set([...idx.matchAll(S.pdfLink)].map((m) => m[1]))];
+  let added = 0;
+  for (const u of files) {
+    if (timeUp() || blocked) break;
+    if (u in prev.files) continue;
+    const buf = await get(encodeURI(decodeURI(u)), true);
+    if (!buf) continue;
+    const ds = parseVarna(pdfText(buf), u).filter((d) => d.date >= S.from);
+    prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+  }
+  return added;
+}
+// Стара Загора: страници със списък на протоколите, на всяка — решенията със заглавие и PDF.
+async function protocolPages(code, S, prev) {
+  let added = 0;
+  for (let p = 0; p < 30; p++) {
+    if (timeUp() || blocked) break;
+    const list = await get(S.listPages(p));
+    if (!list) break;
+    const links = [...new Set([...list.matchAll(S.protoLink)].map((m) => S.base + m[1]))];
+    if (!links.length) break;
+    let old = 0;
+    for (const u of links) {
+      if (timeUp() || blocked) break;
+      if (u in prev.files && !(prev.files[u] === 0)) continue;
+      const page = await get(u);
+      if (!page) continue;
+      const tx = htmlText(page);
+      const pdfs = [...page.matchAll(/href="(uploads\/posts\/[^"]*?prepis_(\d+)[^"]*\.pdf)"/g)].map((m) => [m[2], S.base + m[1]]);
+      const ds = [];
+      for (const m of tx.matchAll(/Решение\s*№\s*(\d+)\s*от\s*(\d{1,2})\.(\d{1,2})\.(\d{4})\s*г?\.?\s*относно\s*:?\s*([^\n]+)/g)) {
+        const date = `${m[4]}-${m[3].padStart(2, "0")}-${m[2].padStart(2, "0")}`;
+        if (date < S.from) { old++; continue; }
+        const title = flat(m[5]).replace(/^./, (c) => c.toUpperCase());
+        ds.push({ number: m[1], date, url: pdfs.find((x) => x[0] === m[1])?.[1] ?? u, page: u, title: title.slice(0, 400), session: (u.match(/protokol-(\d+)/) ?? [])[1] ?? "", rapporteur: null, tally: null, result: "adopted",
+          tags: TAGS.filter(([, re]) => re.test(title)).map(([k]) => k).slice(0, 2) });
+      }
+      prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+    }
+    if (old > 0) break;
+  }
+  return added;
+}
+
 // WordPress: списък с публикации по страници, всяка публикация е едно решение в HTML.
 const htmlText = (h) => h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, "").replace(/<br\s*\/?>|<\/p>|<\/div>|<\/li>|<\/h\d>/gi, "\n").replace(/<[^>]+>/g, "")
   .replace(/&nbsp;/g, " ").replace(/&#8211;|&ndash;/g, "–").replace(/&#8220;|&#8222;|&bdquo;/g, "„").replace(/&#8221;|&ldquo;|&rdquo;/g, "“").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n));
@@ -197,12 +277,12 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered || S.wpList) {
-    const added = S.numbered ? await numbered(code, S, prev) : await wordpress(code, S, prev);
+  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages) {
+    const added = S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     for (const d of prev.decisions) { d.title = d.title.replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : new URL(S.wpList(1)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
