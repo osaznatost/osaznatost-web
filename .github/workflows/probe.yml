@@ -6,7 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for b in https://naiasno.bg https://electionsbg.com https://www.electionsbg.com; do
-            curl -sS -m 40 "$b/api/db/company?eik=200852966" -o c.json -w "$b %{http_code} %{content_type} %{size_download}\n"
-            head -c 1500 c.json; echo; echo ----
-          done
+          D=57f1e2e7-b235-45e8-94c4-4d69f0b1a690
+          curl -sS -m 60 -X POST https://data.egov.bg/api/getDatasetDetails -H 'Content-Type: application/json' -d "{\"dataset_uri\":\"$D\"}" -o d.json -w "details %{http_code}\n" || true; head -c 2500 d.json; echo
+          curl -sSL -m 60 "https://data.egov.bg/data/view/$D" -o v.html -w "view %{http_code}\n" || true; grep -oE 'resourceView/[0-9a-f-]{36}[^<]{0,160}' v.html | head -20
