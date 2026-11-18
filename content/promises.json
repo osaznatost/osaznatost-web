@@ -551,6 +551,44 @@
               "url": "https://assets.kpmg.com/content/dam/kpmg/bg/pdf/bg-tax-news-2022-07-14.pdf"
             }
           ]
+        },
+        {
+          "text": "Нито един пенсионер под линията на бедност (бюджет 2022 г.)",
+          "area": "Пенсии",
+          "said": {
+            "who": "Кирил Петков, министър-председател, при приемането на проектобюджета за 2022 г.",
+            "when": "януари 2022",
+            "url": "https://www.bta.bg/en/news/7454-Government-Adopts-2022-Draft-Budget-PM-Says-It-Will-be-Budget-of-Growth"
+          },
+          "status": "done",
+          "evidence": "От януари 2022 г. минималната пенсия с месечната добавка от 60 лв. е 430 лв. при линия на бедност 413 лв. От 1 юли 2022 г. минималната пенсия става 467 лв., с включена добавка.",
+          "links": [
+            {
+              "title": "Eurofound: месечна добавка към пенсиите, януари–юни 2022",
+              "url": "https://static.eurofound.europa.eu/covid19db/cases/BG-2022-1_2110.html"
+            },
+            {
+              "title": "Законопроект за антикризисните мерки, 30.05.2022 (минимална пенсия 467 лв.)",
+              "url": "https://www.zdrave.net/filesS/antikrizisni_20220530.docx"
+            }
+          ]
+        },
+        {
+          "text": "Добавка от 60 лв. към всяка пенсия от януари до юни 2022 г.",
+          "area": "Пенсии",
+          "said": {
+            "who": "Асен Василев, вицепремиер и министър на финансите",
+            "when": "декември 2021",
+            "url": "https://bta.bg/en/news/14198-Additional-Revenues-in-Budget-Amount-to-BGN-1-2-Bln-PM-Kiril-Petkov-Says"
+          },
+          "status": "done",
+          "evidence": "Добавката е изплащана на около 2 млн. пенсионери от 1 януари до 30 юни 2022 г. От 1 юли 2022 г. е включена в размера на пенсиите.",
+          "links": [
+            {
+              "title": "Eurofound: месечна добавка към пенсиите",
+              "url": "https://static.eurofound.europa.eu/covid19db/cases/BG-2022-1_2110.html"
+            }
+          ]
         }
       ]
     },
@@ -754,6 +792,61 @@
             {
               "title": "Капитал: три поредни намаления през 2013 г.",
               "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/01/23/2459238_energetika_problemite_se_kriiat_v_detailite/"
+            }
+          ]
+        },
+        {
+          "text": "Поевтиняване на тока за домакинствата с около 5% от 1 август 2013 г.",
+          "area": "Енергетика",
+          "said": {
+            "who": "Пламен Орешарски, министър-председател; потвърдено от министъра на икономиката Драгомир Стойнев",
+            "when": "17 юни 2013",
+            "url": "https://m.novinite.com/view_news.php?id=151310"
+          },
+          "status": "done",
+          "evidence": "ДКЕВР намали цените на електроенергията за битовите потребители с около 5% от 1 август 2013 г. „Капитал“ коментира, че при поетите от ВЕИ, АЕЦ и ТЕЦ разходи спадът можеше да е по-голям.",
+          "links": [
+            {
+              "title": "Капитал: Enter: 5% намаление (26.07.2013)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2013/07/26/2111227_enter_5_namalenie/"
+            }
+          ]
+        },
+        {
+          "text": "Обезщетението за отглеждане на дете от 1 до 2 години да стане 310 лв. вместо 240 лв.",
+          "area": "Семейства",
+          "said": {
+            "who": "Приоритети на кабинета „Орешарски“ (управленска програма)",
+            "when": "юни 2013",
+            "url": "https://www.bia-bg.com/uploads/files/positions/Oresharski_programme-2013.pdf"
+          },
+          "status": "done",
+          "evidence": "Народното събрание реши обезщетението да е 310 лв. от 1 юли 2013 г.",
+          "links": [
+            {
+              "title": "Народно събрание: обезщетението става 310 лв. от 1 юли 2013 г.",
+              "url": "https://old.parliament.bg/en/news/ID/2610"
+            }
+          ]
+        },
+        {
+          "text": "Изграждане на газопровода „Южен поток“ през България",
+          "area": "Енергетика",
+          "said": {
+            "who": "Министърът на икономиката и енергетиката Драгомир Стойнев потвърждава ангажимента към проекта",
+            "when": "април 2014",
+            "url": "https://blogs.lse.ac.uk/europpblog/2014/06/13/bulgarias-decision-to-suspend-work-on-the-south-stream-pipeline-is-likely-to-increase-the-eus-leverage-in-negotiations-with-russia-over-ukraine"
+          },
+          "status": "failed",
+          "evidence": "На 8 юни 2014 г. премиерът Орешарски спря работата по проекта до приключване на консултациите с Европейската комисия, която беше започнала наказателна процедура заради избора на изпълнител. През декември 2014 г. Русия се отказа от проекта.",
+          "links": [
+            {
+              "title": "Капитал: Орешарски спира „Южен поток“ (08.06.2014)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2014/06/08/2318167_oresharski_spira_jujen_potok/"
+            },
+            {
+              "title": "Капитал: Краят на големия корупционен шлем (05.12.2014)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2014/12/05/2433139_kraiat_na_golemiia_korupcionen_shlem/"
             }
           ]
         }
