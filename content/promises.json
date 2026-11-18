@@ -1,811 +1,828 @@
 {
- "updated": "2026-11-18",
- "parties": [
-  {
-   "party": "ПБ",
-   "name": "Прогресивна България",
-   "role": "Управляваща партия с мнозинство в 52-рото Народно събрание. Правителство „Радев“ от 8 май 2026 г.",
-   "programme": [
+  "updated": "2026-11-18",
+  "parties": [
     {
-     "title": "Предизборна програма, представена на 18–19 март 2026 г. (обзор в Капитал)",
-     "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+      "party": "ПБ",
+      "name": "Прогресивна България",
+      "role": "Управляваща партия с мнозинство в 52-рото Народно събрание. Правителство „Радев“ от 8 май 2026 г.",
+      "programme": [
+        {
+          "title": "Предизборна програма, представена на 18–19 март 2026 г. (обзор в Капитал)",
+          "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+        },
+        {
+          "title": "Програма за управление 2026–2030, приета на 12 август 2026 г.",
+          "url": "https://www.capital.bg/en/politics_and_society/2026/08/13/4945180_bulgarian_government_unveils_ambitious_plans_through/"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Смяна на Висшия съдебен съвет и избор на нов главен прокурор",
+          "area": "Правосъдие",
+          "said": {
+            "who": "Румен Радев",
+            "when": "март 2026",
+            "url": "https://www.bta.bg/bg/videos/35283"
+          },
+          "status": "in_progress",
+          "evidence": "Законът за съдебната власт е променен (ДВ бр. 60 от 1 юли 2026 г.). ВСС организира избор на членове от квотата на съдии, прокурори и следователи през октомври 2026 г. Нов главен прокурор още няма.",
+          "links": [
+            {
+              "title": "Гласуванията по Закона за съдебната власт",
+              "url": "/parlament/zakon/sadebnata-vlast"
+            },
+            {
+              "title": "ВСС: правила за избор на членове (2026)",
+              "url": "https://vss.justice.bg/root/f/upload/49/2026_Pravila_izbor_chlenove.pdf"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "8 май 2026",
+              "what": "Правителството „Радев“ встъпва в длъжност."
+            },
+            {
+              "date": "1 юли 2026",
+              "what": "Промени в Закона за съдебната власт (ДВ бр. 60).",
+              "url": "/parlament/zakon/sadebnata-vlast"
+            },
+            {
+              "date": "31 юли 2026",
+              "what": "Парламентът приема правила за избор на членове на ВСС от своята квота."
+            },
+            {
+              "date": "октомври 2026",
+              "what": "ВСС организира избор на членове от съдийската и прокурорската квота."
+            },
+            {
+              "date": "20 ноември 2026",
+              "what": "Изборът на членове на ВСС от квотата на парламента е в проектопрограмата.",
+              "url": "/parlament"
+            }
+          ],
+          "next": "Проверяваме след избора на новия ВСС и при избор на главен прокурор."
+        },
+        {
+          "text": "Публичните разходи да се върнат до 40% от БВП",
+          "area": "Публични финанси",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "not_met",
+          "evidence": "Бюджетът за 2026 г. предвижда разходи около 56,8 млрд. €, приблизително 45% от БВП. Целта не е изпълнена за 2026 г. Ще проверим отново с бюджета за 2027 г.",
+          "links": [
+            {
+              "title": "Бюджет 2026: обяснение и гласувания",
+              "url": "/parlament/zakon/darzhavniya-byudzhet-na-republika-balgariya-za-2026-g"
+            }
+          ],
+          "next": "Проверяваме с бюджета за 2027 г. (внесен през ноември 2026 г.)."
+        },
+        {
+          "text": "Ограничаване на дефицита и устойчив дълг",
+          "area": "Публични финанси",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "not_met",
+          "evidence": "Бюджетът за 2026 г. е с дефицит 5,7% от БВП (касово), най-високият от 20 години, и позволява до 10,1 млрд. € нов дълг. Правителството планира спад до 3,8% през 2027 г. Дългът е 29,9% от БВП през 2025 г.",
+          "links": [
+            {
+              "title": "Държавен дълг",
+              "url": "/pari/dalg"
+            },
+            {
+              "title": "Проверка: два поста за дълга",
+              "url": "/proverki/dalg-2026"
+            }
+          ],
+          "next": "Проверяваме с бюджета за 2027 г. и данните на Евростат за 2026 г. (април 2027 г.)."
+        },
+        {
+          "text": "Данъците да останат ниски и плоски",
+          "area": "Данъци",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "at_risk",
+          "evidence": "През 2026 г. данъкът върху доходите и корпоративният данък остават 10%, а пенсионната вноска не е вдигната. За 2027 г. обаче Министерството на финансите предлага нов данък върху свръхпечалбата от 33% за банки, застрахователи, търговски вериги за храни с поне 5 обекта, телекоми, обменни бюра и фирми за бързи кредити, както и поетапно удвояване на данъчните оценки на имотите до 2029 г. Това са предложения, още не са приети.",
+          "links": [
+            {
+              "title": "Калкулатор: данъци по пътя",
+              "url": "/kalkulatori/danaci"
+            },
+            {
+              "title": "CMS: данъчният пакет за 2027–2029 г.",
+              "url": "https://cms.law/en/bgr/legal-updates/bulgaria-announces-major-tax-reform-package-key-measures-for-2027-2029"
+            },
+            {
+              "title": "БТА: реакциите на опозицията",
+              "url": "https://www.bta.bg/en/news/1210785-gerb-slams-planned-tax-policy-for-2027"
+            }
+          ],
+          "next": "Ключово: дали данъкът върху свръхпечалбата от 33% ще влезе в бюджета за 2027 г."
+        },
+        {
+          "text": "Административна реформа и по-малка администрация",
+          "area": "Държавна администрация",
+          "said": {
+            "who": "Румен Радев",
+            "when": "2026",
+            "url": "https://www.bta.bg/bg/videos/41110"
+          },
+          "status": "in_progress",
+          "evidence": "Проектобюджетът за 2027 г. предвижда съкращаване на над 5 000 щатни бройки. Самият премиер казва, че „по-трудната част“ е през 2027 г.",
+          "links": [
+            {
+              "title": "Капитал: бюджет 2027 (06.11.2026)",
+              "url": "https://www.capital.bg/en/economy/2026/11/06/4977193_bulgarias_2027_budget_slight_spending_cuts_and_new/"
+            }
+          ],
+          "next": "Проверяваме реалното съкращение на щатните бройки в края на 2027 г."
+        },
+        {
+          "text": "Забрана законите да се променят със задна дата",
+          "area": "Бизнес среда",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "not_assessed",
+          "evidence": "Не открихме внесен общ текст за такава забрана. Конституционният съд отмени две разпоредби от бюджета за 2026 г. (за трудовия стаж при непълно работно време и за възнагражденията на младшите магистрати), но не заради обратно действие.",
+          "links": [
+            {
+              "title": "Капитал: КС отмени промените за почасовия труд (22.10.2026)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/danaci-osiguriavane/2026/10/22/4969795_upravliavashtite_shte_vnesat_otnovo_promenite_za/"
+            }
+          ],
+          "next": "Ще оценим, когато има внесен документ или изтече разумен срок (до 12 месеца от встъпването)."
+        },
+        {
+          "text": "Единен портал за разрешителни и принцип на „мълчаливото съгласие“",
+          "area": "Бизнес среда",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "not_assessed",
+          "evidence": "При проверката не открихме внесен законопроект или решение на Министерския съвет. Проверката продължава.",
+          "links": [],
+          "next": "Ще оценим, когато има внесен документ или изтече разумен срок (до 12 месеца от встъпването)."
+        },
+        {
+          "text": "Национална енергийна стратегия до 2050 г.",
+          "area": "Енергетика",
+          "said": {
+            "who": "Предизборна програма",
+            "when": "март 2026",
+            "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
+          },
+          "status": "not_assessed",
+          "evidence": "При проверката не открихме приета стратегия до 17.11.2026 г. Ще оценим, когато има официален документ или изтече разумен срок.",
+          "links": [],
+          "next": "Ще оценим, когато има внесен документ или изтече разумен срок (до 12 месеца от встъпването)."
+        }
+      ],
+      "term": "current",
+      "period": "от 8 май 2026 г."
     },
     {
-     "title": "Програма за управление 2026–2030, приета на 12 август 2026 г.",
-     "url": "https://www.capital.bg/en/politics_and_society/2026/08/13/4945180_bulgarian_government_unveils_ambitious_plans_through/"
+      "party": "GOV-ZH",
+      "name": "Правителство „Желязков“ (ГЕРБ–СДС, БСП, ИТН)",
+      "term": "past",
+      "period": "16 януари 2025 – 11 декември 2025 г. (оставка)",
+      "role": "Коалиция на ГЕРБ–СДС, БСП–Обединена левица и ИТН, с подкрепата на „ДПС–Ново начало“. Внесеният бюджет за 2026 г. предвиждаше по-високи осигуровки и по-висок данък върху дивидентите. Беше оттеглен след масови протести, а правителството подаде оставка на 11 декември 2025 г.",
+      "programme": [
+        {
+          "title": "Програма за управление 2025–2029 г.",
+          "url": "https://www.gov.bg/files/common/upravlenska%20programa.pdf"
+        },
+        {
+          "title": "Reuters (чрез ARY): правителството подава оставка след протестите",
+          "url": "https://arynews.tv/bulgaria-faces-political-turmoil-and-resignation"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Еврото от 1 януари 2026 г.",
+          "area": "Икономика",
+          "said": {
+            "who": "Росен Желязков",
+            "when": "януари 2025",
+            "url": "https://intellinews.com/bulgaria-s-new-government-gives-up-on-january-2026-eurozone-entry-363207"
+          },
+          "status": "done",
+          "evidence": "България е в еврозоната от 1 януари 2026 г. Подготовката е започнала при предишни правителства, но решението за членство е взето по време на този мандат.",
+          "links": [
+            {
+              "title": "БТА: от 1 януари 2026 г. еврото е официалното платежно средство",
+              "url": "https://www.bta.bg/bg/news/economy/948427-sled-vavezhdane-na-evroto-ot-1-yanuari-kak-shte-se-plashtat-zadalzheniyata-za-a"
+            },
+            {
+              "title": "БТА: Европейският парламент подкрепи присъединяването",
+              "url": "https://www.bta.bg/bg/videos/29092"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "4 юни 2025",
+              "what": "Извънреден доклад на ЕК потвърждава, че България вече изпълнява критериите.",
+              "url": "https://sofiaglobe.com/2025/07/08/ec-posts-q-and-a-on-bulgarias-changeover-to-the-euro/"
+            },
+            {
+              "date": "8 юли 2025",
+              "what": "Съветът на ЕС одобрява еврото от 1 януари 2026 г. Курсът е фиксиран на 1,95583 лв. за 1 €.",
+              "url": "https://www.banque-france.fr/en/press-release/bulgaria-join-euro-area-1-january-2026"
+            },
+            {
+              "date": "1 януари 2026",
+              "what": "България влиза в еврозоната."
+            }
+          ]
+        },
+        {
+          "text": "Бюджет 2025 с дефицит до 3% от БВП и разходи до 40% от БВП",
+          "area": "Бюджет",
+          "said": {
+            "who": "Росен Желязков",
+            "when": "4 февруари 2025",
+            "url": "https://www.bta.bg/en/news/827256-budget-draft-for-2025-sets-spending-at-40-of-gdp-deficit-below-3-says-pm-zhe"
+          },
+          "status": "failed",
+          "evidence": "По методологията на ЕС дефицитът за 2025 г. е 4,0% от БВП (Евростат, октомври 2026 г.). Предварителните данни на НСИ от април бяха 3,5%. Финансовият министър Теменужка Петкова твърди, че по касовата консолидирана програма дефицитът е в рамките на 3%. Правителството обаче беше обещало 3% и по двете методологии.",
+          "links": [
+            {
+              "title": "Евростат: дефицит и дълг по години",
+              "url": "/statistiki#dalg"
+            },
+            {
+              "title": "НСИ: дефицит 2025 г. по методологията на ЕС",
+              "url": "https://www.nsi.bg/file/35225/notifikacionni_tablici_za_dalga_i_deficita_na_sektor_darjavno_upravlenie.pdf"
+            },
+            {
+              "title": "БТА: Петкова за стабилните публични финанси",
+              "url": "https://www.bta.bg/bg/videos/34131"
+            },
+            {
+              "title": "Капитал: целта е 3% и по касова, и по начислена основа",
+              "url": "https://www.capital.bg/en/economy/2025/02/24/4747102_bulgarias_2025_budget_draft_eurozone_aspirations_vs/"
+            },
+            {
+              "title": "Дълг и дефицит по години",
+              "url": "/pari/dalg"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "21 март 2025",
+              "what": "Бюджетът за 2025 г. е приет с цел за дефицит до 3% от БВП."
+            },
+            {
+              "date": "април 2026",
+              "what": "НСИ (предварително): дефицит 3,5% от БВП."
+            },
+            {
+              "date": "октомври 2026",
+              "what": "Евростат: дефицит 4,0% от БВП за 2025 г.",
+              "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10dd_edpt1/default/table"
+            }
+          ],
+          "why": [
+            "Разходите растат по-бързо от приходите, най-вече заплатите в публичния сектор и социалните плащания.",
+            "Касовата сметка на финансовото министерство и методиката на ЕС (начислена основа) дават различни числа. Меродавна за Брюксел е методиката на ЕС."
+          ]
+        },
+        {
+          "text": "Без вдигане на данъците в бюджета за 2025 г.",
+          "area": "Данъци",
+          "said": {
+            "who": "Правителството",
+            "when": "март 2025",
+            "url": "https://www.bta.bg/bg/videos/26761"
+          },
+          "status": "done",
+          "evidence": "Бюджетът за 2025 г. е приет на 21 март 2025 г. без увеличение на данъците. За 2026 г. правителството внесе бюджет с по-високи осигуровки и по-висок данък върху дивидентите, но го оттегли след протестите.",
+          "links": [
+            {
+              "title": "Reuters (чрез ARY): оттегленият бюджет за 2026 г.",
+              "url": "https://arynews.tv/bulgaria-faces-political-turmoil-and-resignation"
+            },
+            {
+              "title": "Капитал: „Оттегляме бюджета“",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/12/02/4859422_purva_reakciia_ot_pravitelstvoto_sled_protesta/"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "21 март 2025",
+              "what": "Бюджетът за 2025 г. е приет без вдигане на данъците."
+            },
+            {
+              "date": "ноември 2025",
+              "what": "Проектобюджетът за 2026 г. предвижда по-високи осигуровки и по-висок данък върху дивидентите. Започват масови протести."
+            },
+            {
+              "date": "2 декември 2025",
+              "what": "Правителството оттегля проектобюджета.",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/12/02/4859422_purva_reakciia_ot_pravitelstvoto_sled_protesta/"
+            },
+            {
+              "date": "11 декември 2025",
+              "what": "Правителството подава оставка.",
+              "url": "https://bntnews.bg/news/pm-rosen-zhelyazkov-the-government-resigns-update-1369244news.html"
+            }
+          ],
+          "note": "Обещанието за 2025 г. е изпълнено. Опитът за по-високи данъци през 2026 г. е оттеглен след протестите."
+        }
+      ]
+    },
+    {
+      "party": "GOV-DK",
+      "name": "Правителство „Денков“ (ПП–ДБ и ГЕРБ–СДС)",
+      "term": "past",
+      "period": "6 юни 2023 – март 2024 г.",
+      "role": "Правителство с подкрепата на ПП–ДБ и ГЕРБ–СДС, с договорка за ротация на премиера след 9 месеца. Ротацията не се случи и последваха предсрочни избори.",
+      "programme": [
+        {
+          "title": "Програмата за управление, приета на 26 юли 2023 г. (intellinews)",
+          "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Еврото от 1 януари 2025 г.",
+          "area": "Икономика",
+          "said": {
+            "who": "Николай Денков",
+            "when": "юли 2023 и януари 2024",
+            "url": "https://www.bta.bg/bg/videos/19030"
+          },
+          "status": "failed",
+          "evidence": "България не влезе в еврозоната на 1 януари 2025 г., защото не изпълняваше критерия за инфлацията. Влезе година по-късно, на 1 януари 2026 г. Самият Денков казва през януари 2024 г., че датата не е „сакрална“.",
+          "links": [
+            {
+              "title": "БТА: Денков, датата не е сакрална",
+              "url": "https://bta.bg/en/news/604283-bulgaria-s-eurozone-entry-date-not-sacral-pm-denkov"
+            },
+            {
+              "title": "БТА: от 1 януари 2026 г. еврото е официалното платежно средство",
+              "url": "https://www.bta.bg/bg/news/economy/948427-sled-vavezhdane-na-evroto-ot-1-yanuari-kak-shte-se-plashtat-zadalzheniyata-za-a"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "26 юни 2024",
+              "what": "Редовните доклади на ЕК и ЕЦБ: България изпълнява всички критерии без инфлацията. Средната инфлация е 5,1% при референтна стойност 3,3% (по ЕЦБ).",
+              "url": "https://seenews.com/news/bulgaria-fails-to-meet-inflation-criterion-for-eurozone-entry-ec-ecb-1259679"
+            },
+            {
+              "date": "4 юни 2025",
+              "what": "Извънреден доклад на ЕК потвърждава, че България вече изпълнява критериите.",
+              "url": "https://sofiaglobe.com/2025/07/08/ec-posts-q-and-a-on-bulgarias-changeover-to-the-euro/"
+            },
+            {
+              "date": "8 юли 2025",
+              "what": "Съветът на ЕС одобрява еврото от 1 януари 2026 г. Курсът е фиксиран на 1,95583 лв. за 1 €.",
+              "url": "https://www.banque-france.fr/en/press-release/bulgaria-join-euro-area-1-january-2026"
+            }
+          ],
+          "why": [
+            "Единственият неизпълнен критерий е инфлацията. Тя зависи и от фактори извън властта на едно правителство: енергийните цени и растежа на заплатите.",
+            "Целта е постигната с една година закъснение, вече при правителството „Желязков“."
+          ],
+          "whySrc": [
+            "https://seenews.com/news/bulgaria-fails-to-meet-inflation-criterion-for-eurozone-entry-ec-ecb-1259679",
+            "https://bnb.bg/AboutUs/PressOffice/POPressReleases/POPRDate/PR_20240626_EN"
+          ]
+        },
+        {
+          "text": "Шенген до края на 2023 г.",
+          "area": "Външна политика",
+          "said": {
+            "who": "Програмата за управление",
+            "when": "26 юли 2023",
+            "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
+          },
+          "status": "partly",
+          "evidence": "Частично и със закъснение: свободно пътуване по въздух и море от 31 март 2024 г. Проверките по сухопътните граници отпаднаха от 1 януари 2025 г., вече при друго правителство.",
+          "links": [
+            {
+              "title": "Правителството: отчет след 9 месеца",
+              "url": "https://www.gov.bg/en/Press-center/News/Denkov-Gabriel-cabinet-reports-over-50-implementation-of-the-18-month-program-of-government-and-progress-in-all-sectors-in-its-first-nine-months-in-office"
+            },
+            {
+              "title": "БТА: решението за сухопътните граници",
+              "url": "https://www.bta.bg/en/news/798959-cc-db-hard-won-political-victory-for-bulgaria-"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "30 декември 2023",
+              "what": "Съветът на ЕС решава: без проверки по въздушните и морските граници от 31 март 2024 г.",
+              "url": "https://bta.bg/en/news/595586-decision-on-accession-of-bulgaria-romania-to-schengen-by-air-and-water-publishe"
+            },
+            {
+              "date": "31 март 2024",
+              "what": "Отпадат проверките на летищата и пристанищата. Сухопътните остават заради ветото на Австрия.",
+              "url": "https://www.globalsecurity.org/military/library/news/2024/12/mil-241212-rferl01.htm"
+            },
+            {
+              "date": "12 декември 2024",
+              "what": "Съветът решава да отпаднат и сухопътните проверки от 1 януари 2025 г.",
+              "url": "https://www.consilium.europa.eu/en/meetings/jha/2024/12/12"
+            }
+          ],
+          "why": [
+            "Главната пречка е ветото на Австрия за сухопътните граници, т.е. решение извън България.",
+            "Частичното влизане по въздух и море е постигнато при това правителство, а пълното е година по-късно."
+          ],
+          "whySrc": [
+            "https://www.globalsecurity.org/military/library/news/2024/12/mil-241212-rferl01.htm"
+          ]
+        },
+        {
+          "text": "Бюджети за 2023 и 2024 г. с дефицит до 3%",
+          "area": "Бюджет",
+          "said": {
+            "who": "Програмата за управление",
+            "when": "26 юли 2023",
+            "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
+          },
+          "status": "done",
+          "evidence": "Дефицитът за 2023 г. е 2,2% от БВП по думите на финансовия министър Асен Василев. Бюджетът за 2024 г. е приет с цел 3%, но изпълнението му е при следващите правителства.",
+          "links": [
+            {
+              "title": "Правителството: дефицит 2,2% за 2023 г.",
+              "url": "https://www.gov.bg/en/Press-center/News/Prime-Minister-Acad-Nikolai-Denkov-in-Davos-Bulgaria-aims-at-accession-to-the-Eurozone-on-1-January-2025"
+            },
+            {
+              "title": "Дълг и дефицит по години",
+              "url": "/pari/dalg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "party": "GOV-PK",
+      "name": "Правителство „Петков“ (ПП, БСП, ИТН, ДБ)",
+      "term": "past",
+      "period": "13 декември 2021 – 2 август 2022 г.",
+      "role": "Коалиция на ПП, БСП, ИТН и ДБ. ИТН напусна коалицията заради спора за ветото за Северна Македония. Правителството падна с вот на недоверие на 22 юни 2022 г. (123 на 116 гласа).",
+      "programme": [
+        {
+          "title": "Изявление на премиера Кирил Петков при предаването на властта (02.08.2022)",
+          "url": "https://www.gov.bg/en/Press-center/News/Statement-by-the-Prime-Minister-Kiril-Petkov"
+        },
+        {
+          "title": "Ал Джазира: правителството пада след вот на недоверие",
+          "url": "https://www.aljazeera.com/news/2022/6/22/bulgarias-ruling-four-party-coalition-faces-no-confidence-vote"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Еврото от 1 януари 2024 г.",
+          "area": "Икономика",
+          "said": {
+            "who": "Кирил Петков",
+            "when": "януари 2022",
+            "url": "https://www.bta.bg/en/news/12347-PM-Petkov-on-Bloomberg-Bulgaria-Fully-Committed-to-Adopt-Euro-in-January-202"
+          },
+          "status": "failed",
+          "evidence": "Правителството прие национален план за въвеждане на еврото от 1 януари 2024 г. През февруари 2023 г. следващото, служебно правителство обяви, че целта отпада заради закъснялото законодателство и високата инфлация. България влезе в еврозоната на 1 януари 2026 г.",
+          "links": [
+            {
+              "title": "intellinews: България се отказва от целта за януари 2024 г.",
+              "url": "https://intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
+            },
+            {
+              "title": "SeeNews: причините, по думите на министър Велкова",
+              "url": "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "май 2022",
+              "what": "Правителството „Петков“ приема национален план за въвеждане на еврото от 1 януари 2024 г., въпреки разногласия в коалицията.",
+              "url": "https://www.intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
+            },
+            {
+              "date": "юни 2022",
+              "what": "Правителството пада след вот на недоверие. Следват служебни кабинети и нови избори, а нужните закони не се приемат.",
+              "url": "https://www.intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
+            },
+            {
+              "date": "17 февруари 2023",
+              "what": "Служебният финансов министър Росица Велкова обявява, че датата 1 януари 2024 г. отпада. Нова цел: не по-късно от 1 януари 2025 г.",
+              "url": "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904"
+            }
+          ],
+          "why": [
+            "Инфлацията е над критерия за ценова стабилност.",
+            "Законите за въвеждането на еврото и промените в Закона за БНБ не са приети навреме заради политическата нестабилност и предсрочните избори.",
+            "Отговорността е споделена: правителството поставя датата, но пада преди да я осигури, а следващите парламенти не приемат законите."
+          ],
+          "whySrc": [
+            "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904",
+            "https://www.capital.bg/politika_i_ikonomika/ikonomika/2023/02/23/4452868_bulgariia_i_evroto_otlojenata_cl/"
+          ]
+        },
+        {
+          "text": "Нулева ставка на ДДС за хляба (и брашното) от 1 юли 2022 г.",
+          "area": "Данъци и цени",
+          "said": {
+            "who": "Правителството, в актуализацията на бюджета за 2022 г., приета на първо четене",
+            "when": "юни 2022",
+            "url": "https://new.bnr.bg/en/post/101663566/parliament-approves-budget-update-at-first-reading"
+          },
+          "status": "done",
+          "evidence": "Нулевата ставка е приета с изменението на Закона за държавния бюджет за 2022 г. (ДВ бр. 52 от 5 юли 2022 г.), в сила от 1 юли 2022 г. до 1 юли 2023 г.",
+          "links": [
+            {
+              "title": "KPMG: Данъчни новини, 14.07.2022",
+              "url": "https://assets.kpmg.com/content/dam/kpmg/bg/pdf/bg-tax-news-2022-07-14.pdf"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "party": "GOV-B3",
+      "name": "Правителство „Борисов 3“ (ГЕРБ и Обединени патриоти)",
+      "term": "past",
+      "period": "4 май 2017 – 12 май 2021",
+      "role": "Коалиция на ГЕРБ и Обединените патриоти (ВМРО, НФСБ, Атака), с подкрепата на „Воля“. Мандатът приключи с изборите на 4 април 2021 г.",
+      "programme": [
+        {
+          "title": "Програма за управление 2017–2021 (Министерски съвет)",
+          "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2017-2021-Government_Programme-GERB_Patrioti.pdf"
+        },
+        {
+          "title": "Капитал: разходните обещания на коалицията (април 2017)",
+          "url": "https://www.capital.bg/politika_i_ikonomika/mnenia/2017/04/21/2956073_razhodniiat_populizum_na_novata_koaliciia/"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Влизане в „чакалнята“ на еврозоната (ERM II) и в банковия съюз",
+          "area": "Еврозона",
+          "said": {
+            "who": "Програма за управление 2017–2021",
+            "when": "2017",
+            "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2017-2021-Government_Programme-GERB_Patrioti.pdf"
+          },
+          "status": "done",
+          "evidence": "На 10 юли 2020 г. левът е включен в ERM II при курс 1,95583 лв. за евро, а ЕЦБ установява тясно сътрудничество с БНБ (влизане в банковия съюз). Самото приемане на еврото става по-късно, от 1 януари 2026 г.",
+          "links": [
+            {
+              "title": "ЕЦБ: съобщение за България, 10 юли 2020",
+              "url": "https://www.ecb.europa.eu/press/pr/date/2020/html/ecb.pr200710~4aa5e3565a.en.html"
+            },
+            {
+              "title": "ЕЦБ: тясно сътрудничество с БНБ",
+              "url": "https://www.bankingsupervision.europa.eu/press/pr/date/2020/html/ssm.pr200710~ae2abe1f23.en.html"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "29 юни 2018",
+              "what": "България изпраща писмо за намерение с мерки преди ERM II (банков надзор, несъстоятелност, държавни фирми)."
+            },
+            {
+              "date": "10 юли 2020",
+              "what": "Левът влиза в ERM II, БНБ влиза в банковия съюз.",
+              "url": "https://www.ecb.europa.eu/press/pr/date/2020/html/ecb.pr200710~4aa5e3565a.en.html"
+            }
+          ]
+        },
+        {
+          "text": "Минимална работна заплата 650 лв. до края на мандата",
+          "area": "Доходи",
+          "said": {
+            "who": "Министърът на финансите Владислав Горанов",
+            "when": "август 2017",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2017/08/20/3027475_durjavata_shte_opredeli_osiguritelnite_pragove_ako/"
+          },
+          "status": "done",
+          "evidence": "Минималната заплата е 460 лв. през 2017 г. и става 650 лв. от 1 януари 2021 г. (332 € по фиксирания курс), по данните на Евростат.",
+          "links": [
+            {
+              "title": "Минималната заплата през годините",
+              "url": "/statistiki/min_wage"
+            }
+          ]
+        },
+        {
+          "text": "Средна заплата 1500 лв. в края на мандата",
+          "area": "Доходи",
+          "said": {
+            "who": "Програмата на ГЕРБ и Обединените патриоти",
+            "when": "април 2017",
+            "url": "https://www.capital.bg/politika_i_ikonomika/mnenia/2017/04/21/2956073_razhodniiat_populizum_na_novata_koaliciia/"
+          },
+          "status": "done",
+          "evidence": "По НСИ средната брутна заплата е около 1000 лв. при обещанието. За март 2021 г. е 1500 лв., а средно за първото тримесечие на 2021 г. е 1462 лв. Част от скока в края на мандата може да идва от пандемията: когато най-нископлатените губят работа, средното се вдига, без никой да получава повече.",
+          "note": "Целта е постигната на месечна база в последните седмици на мандата.",
+          "links": [
+            {
+              "title": "НСИ: заети и заплати, II тримесечие 2021 (1525 лв.)",
+              "url": "https://www.nsi.bg/file/23352/EmplsSalary2021q2_07PI42S.pdf"
+            },
+            {
+              "title": "НСИ: първо тримесечие 2021 (1462 лв. средно за страната)",
+              "url": "https://www.nsi.bg/tsb/wp-content/uploads/2021/05/SRZ-I-2021-brgs.pdf"
+            },
+            {
+              "title": "НСИ: март 2021 г. (1500 лв.)",
+              "url": "https://www.nsi.bg/tsb/wp-content/uploads/2021/05/19_Trud_I_trim_2021.pdf"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "party": "GOV-B2",
+      "name": "Правителство „Борисов 2“ (ГЕРБ и Реформаторски блок)",
+      "term": "past",
+      "period": "7 ноември 2014 – 27 януари 2017",
+      "role": "Коалиция на ГЕРБ и Реформаторския блок, с подкрепата на Патриотичния фронт и АБВ. Подаде оставка след президентските избори през ноември 2016 г.",
+      "programme": [
+        {
+          "title": "Протокол от заседание на Министерския съвет, 1 декември 2014 (фискални цели)",
+          "url": "https://beta.strategy.bg/index.php/download/1157907"
+        }
+      ],
+      "promises": [
+        {
+          "text": "Бюджетен дефицит до 3% от БВП през 2015 г., 2,5% през 2016 г. и 2% през 2017 г.",
+          "area": "Бюджет",
+          "said": {
+            "who": "Министерският съвет, актуализирана средносрочна прогноза",
+            "when": "1 декември 2014",
+            "url": "https://beta.strategy.bg/index.php/download/1157907"
+          },
+          "status": "done",
+          "evidence": "Целите са изпълнени с резерв. По данните на Евростат (методологията на ЕС) дефицитът е 1,9% от БВП през 2015 г., а през 2016 г. бюджетът е на излишък от 0,3%. През 2014 г. дефицитът е бил 5,4% (включително изплащането на гарантираните влогове в КТБ).",
+          "links": [
+            {
+              "title": "Дефицит и дълг по години",
+              "url": "/statistiki/deficit"
+            }
+          ]
+        },
+        {
+          "text": "Допълнителен пакет здравни услуги, покриван от здравния фонд, от 2016 г.",
+          "area": "Здраве",
+          "said": {
+            "who": "Министърът на здравеопазването Петър Москов",
+            "when": "2015",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2016/12/09/2879142_obeshtaniiata_na_petur_moskov/"
+          },
+          "status": "failed",
+          "evidence": "Към края на мандата няма внесен проект за такъв пакет (Капитал, декември 2016 г.).",
+          "links": [
+            {
+              "title": "Капитал: обещанията на Петър Москов",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2016/12/09/2879142_obeshtaniiata_na_petur_moskov/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "party": "GOV-OR",
+      "name": "Правителство „Орешарски“ (БСП и ДПС)",
+      "term": "past",
+      "period": "29 май 2013 – 6 август 2014",
+      "role": "Правителство с мандат на БСП, подкрепено от ДПС и (с мълчаливо съгласие) от „Атака“. Подаде оставка след масови протести (от юни 2013 г.) и загубата на европейските избори през 2014 г.",
+      "programme": [
+        {
+          "title": "Приоритети на кабинета „Орешарски“ (2013)",
+          "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2013-Government_program-Oresharski.pdf"
+        },
+        {
+          "title": "Отчет на правителството",
+          "url": "https://www.mon.bg/nfs/2018/01/14_01_17_governmentreport_3.pdf"
+        }
+      ],
+      "promises": [
+        {
+          "text": "По-висока минимална заплата от 1 октомври 2013 г.",
+          "area": "Доходи",
+          "said": {
+            "who": "Стабилизационни и неотложни мерки, приети от Народното събрание",
+            "when": "19 юни 2013",
+            "url": "https://www.infobusiness.bcci.bg/econ-21-6-13.html"
+          },
+          "status": "partly",
+          "evidence": "Минималната заплата не е увеличена от 1 октомври 2013 г. Остава 310 лв. до края на годината и става 340 лв. (174 €) от 1 януари 2014 г., по данните на Евростат.",
+          "links": [
+            {
+              "title": "Минималната заплата по години",
+              "url": "/statistiki/min_wage"
+            }
+          ]
+        },
+        {
+          "text": "По-евтин ток за домакинствата",
+          "area": "Енергетика",
+          "said": {
+            "who": "Програмата на кабинета и мерките от юни 2013 г.",
+            "when": "2013",
+            "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2013-Government_program-Oresharski.pdf"
+          },
+          "status": "done",
+          "evidence": "През 2013 г. цените на тока за бита са намалени три пъти поред (поевтиняване с около 5% от лятото на 2013 г.). Цената е свалена административно, а не чрез по-евтини договори с централите, и дефицитът в енергийната система расте: НЕК трупа дългове към централите.",
+          "note": "Обещанието е изпълнено, но с цената на по-голям дефицит в енергетиката, платен по-късно.",
+          "links": [
+            {
+              "title": "Капитал: „Ценови магии“ (юли 2013)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2013/07/22/2108373_cenovi_magii/"
+            },
+            {
+              "title": "Капитал: НЕК потъна в дългове (декември 2013)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2013/12/04/2196425_nek_potuna_v_dulgove/"
+            },
+            {
+              "title": "Капитал: три поредни намаления през 2013 г.",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/01/23/2459238_energetika_problemite_se_kriiat_v_detailite/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "party": "GOV-B1",
+      "name": "Правителство „Борисов 1“ (ГЕРБ)",
+      "term": "past",
+      "period": "27 юли 2009 – 13 март 2013",
+      "role": "Еднопартийно правителство на ГЕРБ с подкрепата на „Атака“, „Синята коалиция“ и РЗС. Подаде оставка през февруари 2013 г. след протестите срещу високите сметки за ток.",
+      "programme": [],
+      "promises": [
+        {
+          "text": "Кандидатстване за ERM II („чакалнята“ на еврозоната) в началото на 2010 г. и въвеждане на еврото през 2013 г.",
+          "area": "Еврозона",
+          "said": {
+            "who": "Симеон Дянков, министър на финансите, пред Bloomberg",
+            "when": "11 ноември 2009",
+            "url": "https://seenews.com/news/bulgaria-seeks-to-adopt-euro-in-2013-bloomberg-251556"
+          },
+          "status": "failed",
+          "evidence": "На 9 април 2010 г. правителството обяви, че няма да кандидатства за ERM II през 2010 г., след като дефицитът за 2009 г. беше преизчислен над допустимото. България влиза в ERM II чак през юли 2020 г., а в еврозоната – през 2026 г.",
+          "links": [
+            {
+              "title": "Капитал: България казва „чао“ на еврото засега (09.04.2010)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2010/04/09/885107_bulgariia_kazva_chao_na_evroto_zasega/"
+            },
+            {
+              "title": "Европейска комисия: България и Хърватия във валутния механизъм II (2020)",
+              "url": "https://old.parliament.bg/pub/EUBUL/2020071311522110072020_IP-20-1321.pdf"
+            }
+          ]
+        },
+        {
+          "text": "Откриване на магистрала „Люлин“ (София – Перник) на 15 май 2011 г.",
+          "area": "Инфраструктура",
+          "said": {
+            "who": "Бойко Борисов, министър-председател",
+            "when": "преди 15 май 2011",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/05/15/1089773_namerenata_magistrala/"
+          },
+          "status": "done",
+          "evidence": "Магистралата е открита на обещаната дата, 15 май 2011 г., след четири години строителство, спиране на финансирането през 2008 г. и оскъпяване с над 45 млн. евро.",
+          "links": [
+            {
+              "title": "Капитал: Намерената магистрала (15.05.2011)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/05/15/1089773_namerenata_magistrala/"
+            }
+          ]
+        },
+        {
+          "text": "Да не се вдига възрастта за пенсиониране („Нищо не ме кара да вдигам сега възрастта за пенсия“).",
+          "area": "Пенсии",
+          "said": {
+            "who": "Бойко Борисов, министър-председател",
+            "when": "есента на 2010",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/11/18/1207343_re_fwd_re_pensionna_reforma/"
+          },
+          "status": "failed",
+          "evidence": "Година по-късно, през ноември 2011 г., самият премиер заявява, че без реформата „след 2–3 години никой няма да има пенсия“, и правителството предлага по-ранно вдигане на пенсионната възраст.",
+          "links": [
+            {
+              "title": "Капитал: Пенсионна реформа (18.11.2011)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/11/18/1207343_re_fwd_re_pensionna_reforma/"
+            }
+          ]
+        }
+      ]
     }
-   ],
-   "promises": [
-    {
-     "text": "Смяна на Висшия съдебен съвет и избор на нов главен прокурор",
-     "area": "Правосъдие",
-     "said": {
-      "who": "Румен Радев",
-      "when": "март 2026",
-      "url": "https://www.bta.bg/bg/videos/35283"
-     },
-     "status": "in_progress",
-     "evidence": "Законът за съдебната власт е променен (ДВ бр. 60 от 1 юли 2026 г.). ВСС организира избор на членове от квотата на съдии, прокурори и следователи през октомври 2026 г. Нов главен прокурор още няма.",
-     "links": [
-      {
-       "title": "Гласуванията по Закона за съдебната власт",
-       "url": "/parlament/zakon/sadebnata-vlast"
-      },
-      {
-       "title": "ВСС: правила за избор на членове (2026)",
-       "url": "https://vss.justice.bg/root/f/upload/49/2026_Pravila_izbor_chlenove.pdf"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "8 май 2026",
-       "what": "Правителството „Радев“ встъпва в длъжност."
-      },
-      {
-       "date": "1 юли 2026",
-       "what": "Промени в Закона за съдебната власт (ДВ бр. 60).",
-       "url": "/parlament/zakon/sadebnata-vlast"
-      },
-      {
-       "date": "31 юли 2026",
-       "what": "Парламентът приема правила за избор на членове на ВСС от своята квота."
-      },
-      {
-       "date": "октомври 2026",
-       "what": "ВСС организира избор на членове от съдийската и прокурорската квота."
-      },
-      {
-       "date": "20 ноември 2026",
-       "what": "Изборът на членове на ВСС от квотата на парламента е в проектопрограмата.",
-       "url": "/parlament"
-      }
-     ],
-     "next": "Проверяваме след избора на новия ВСС и при избор на главен прокурор."
-    },
-    {
-     "text": "Публичните разходи да се върнат до 40% от БВП",
-     "area": "Публични финанси",
-     "said": {
-      "who": "Предизборна програма",
-      "when": "март 2026",
-      "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
-     },
-     "status": "not_met",
-     "evidence": "Бюджетът за 2026 г. предвижда разходи около 56,8 млрд. €, приблизително 45% от БВП. Целта не е изпълнена за 2026 г. Ще проверим отново с бюджета за 2027 г.",
-     "links": [
-      {
-       "title": "Бюджет 2026: обяснение и гласувания",
-       "url": "/parlament/zakon/darzhavniya-byudzhet-na-republika-balgariya-za-2026-g"
-      }
-     ],
-     "next": "Проверяваме с бюджета за 2027 г. (внесен през ноември 2026 г.)."
-    },
-    {
-     "text": "Ограничаване на дефицита и устойчив дълг",
-     "area": "Публични финанси",
-     "said": {
-      "who": "Предизборна програма",
-      "when": "март 2026",
-      "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
-     },
-     "status": "not_met",
-     "evidence": "Бюджетът за 2026 г. е с дефицит 5,7% от БВП (касово), най-високият от 20 години, и позволява до 10,1 млрд. € нов дълг. Правителството планира спад до 3,8% през 2027 г. Дългът е 29,9% от БВП през 2025 г.",
-     "links": [
-      {
-       "title": "Държавен дълг",
-       "url": "/pari/dalg"
-      },
-      {
-       "title": "Проверка: два поста за дълга",
-       "url": "/proverki/dalg-2026"
-      }
-     ],
-     "next": "Проверяваме с бюджета за 2027 г. и данните на Евростат за 2026 г. (април 2027 г.)."
-    },
-    {
-     "text": "Данъците да останат ниски и плоски",
-     "area": "Данъци",
-     "said": {
-      "who": "Предизборна програма",
-      "when": "март 2026",
-      "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
-     },
-     "status": "at_risk",
-     "evidence": "През 2026 г. данъкът върху доходите и корпоративният данък остават 10%, а пенсионната вноска не е вдигната. За 2027 г. обаче Министерството на финансите предлага нов данък върху свръхпечалбата от 33% за банки, застрахователи, търговски вериги за храни с поне 5 обекта, телекоми, обменни бюра и фирми за бързи кредити, както и поетапно удвояване на данъчните оценки на имотите до 2029 г. Това са предложения, още не са приети.",
-     "links": [
-      {
-       "title": "Калкулатор: данъци по пътя",
-       "url": "/kalkulatori/danaci"
-      },
-      {
-       "title": "CMS: данъчният пакет за 2027–2029 г.",
-       "url": "https://cms.law/en/bgr/legal-updates/bulgaria-announces-major-tax-reform-package-key-measures-for-2027-2029"
-      },
-      {
-       "title": "БТА: реакциите на опозицията",
-       "url": "https://www.bta.bg/en/news/1210785-gerb-slams-planned-tax-policy-for-2027"
-      }
-     ],
-     "next": "Ключово: дали данъкът върху свръхпечалбата от 33% ще влезе в бюджета за 2027 г."
-    },
-    {
-     "text": "Административна реформа и по-малка администрация",
-     "area": "Държавна администрация",
-     "said": {
-      "who": "Румен Радев",
-      "when": "2026",
-      "url": "https://www.bta.bg/bg/videos/41110"
-     },
-     "status": "in_progress",
-     "evidence": "Проектобюджетът за 2027 г. предвижда съкращаване на над 5 000 щатни бройки. Самият премиер казва, че „по-трудната част“ е през 2027 г.",
-     "links": [
-      {
-       "title": "Капитал: бюджет 2027 (06.11.2026)",
-       "url": "https://www.capital.bg/en/economy/2026/11/06/4977193_bulgarias_2027_budget_slight_spending_cuts_and_new/"
-      }
-     ],
-     "next": "Проверяваме реалното съкращение на щатните бройки в края на 2027 г."
-    },
-    {
-     "text": "Забрана законите да се променят със задна дата",
-     "area": "Бизнес среда",
-     "said": {
-      "who": "Предизборна програма",
-      "when": "март 2026",
-      "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
-     },
-     "status": "not_assessed",
-     "evidence": "Не открихме внесен общ текст за такава забрана. Конституционният съд отмени две разпоредби от бюджета за 2026 г. (за трудовия стаж при непълно работно време и за възнагражденията на младшите магистрати), но не заради обратно действие.",
-     "links": [
-      {
-       "title": "Капитал: КС отмени промените за почасовия труд (22.10.2026)",
-       "url": "https://www.capital.bg/politika_i_ikonomika/danaci-osiguriavane/2026/10/22/4969795_upravliavashtite_shte_vnesat_otnovo_promenite_za/"
-      }
-     ],
-     "next": "Ще оценим, когато има внесен документ или изтече разумен срок (до 12 месеца от встъпването)."
-    },
-    {
-     "text": "Единен портал за разрешителни и принцип на „мълчаливото съгласие“",
-     "area": "Бизнес среда",
-     "said": {
-      "who": "Предизборна програма",
-      "when": "март 2026",
-      "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
-     },
-     "status": "not_assessed",
-     "evidence": "При проверката не открихме внесен законопроект или решение на Министерския съвет. Проверката продължава.",
-     "links": [],
-     "next": "Ще оценим, когато има внесен документ или изтече разумен срок (до 12 месеца от встъпването)."
-    },
-    {
-     "text": "Национална енергийна стратегия до 2050 г.",
-     "area": "Енергетика",
-     "said": {
-      "who": "Предизборна програма",
-      "when": "март 2026",
-      "url": "https://www.capital.bg/en/politics_and_society/2026/04/23/4905183_radevs_economic_vision_for_bulgaria/"
-     },
-     "status": "not_assessed",
-     "evidence": "При проверката не открихме приета стратегия до 17.11.2026 г. Ще оценим, когато има официален документ или изтече разумен срок.",
-     "links": [],
-     "next": "Ще оценим, когато има внесен документ или изтече разумен срок (до 12 месеца от встъпването)."
-    }
-   ],
-   "term": "current",
-   "period": "от 8 май 2026 г."
-  },
-  {
-   "party": "GOV-ZH",
-   "name": "Правителство „Желязков“ (ГЕРБ–СДС, БСП, ИТН)",
-   "term": "past",
-   "period": "16 януари 2025 – 11 декември 2025 г. (оставка)",
-   "role": "Коалиция на ГЕРБ–СДС, БСП–Обединена левица и ИТН, с подкрепата на „ДПС–Ново начало“. Внесеният бюджет за 2026 г. предвиждаше по-високи осигуровки и по-висок данък върху дивидентите. Беше оттеглен след масови протести, а правителството подаде оставка на 11 декември 2025 г.",
-   "programme": [
-    {
-     "title": "Програма за управление 2025–2029 г.",
-     "url": "https://www.gov.bg/files/common/upravlenska%20programa.pdf"
-    },
-    {
-     "title": "Reuters (чрез ARY): правителството подава оставка след протестите",
-     "url": "https://arynews.tv/bulgaria-faces-political-turmoil-and-resignation"
-    }
-   ],
-   "promises": [
-    {
-     "text": "Еврото от 1 януари 2026 г.",
-     "area": "Икономика",
-     "said": {
-      "who": "Росен Желязков",
-      "when": "януари 2025",
-      "url": "https://intellinews.com/bulgaria-s-new-government-gives-up-on-january-2026-eurozone-entry-363207"
-     },
-     "status": "done",
-     "evidence": "България е в еврозоната от 1 януари 2026 г. Подготовката е започнала при предишни правителства, но решението за членство е взето по време на този мандат.",
-     "links": [
-      {
-       "title": "БТА: от 1 януари 2026 г. еврото е официалното платежно средство",
-       "url": "https://www.bta.bg/bg/news/economy/948427-sled-vavezhdane-na-evroto-ot-1-yanuari-kak-shte-se-plashtat-zadalzheniyata-za-a"
-      },
-      {
-       "title": "БТА: Европейският парламент подкрепи присъединяването",
-       "url": "https://www.bta.bg/bg/videos/29092"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "4 юни 2025",
-       "what": "Извънреден доклад на ЕК потвърждава, че България вече изпълнява критериите.",
-       "url": "https://sofiaglobe.com/2025/07/08/ec-posts-q-and-a-on-bulgarias-changeover-to-the-euro/"
-      },
-      {
-       "date": "8 юли 2025",
-       "what": "Съветът на ЕС одобрява еврото от 1 януари 2026 г. Курсът е фиксиран на 1,95583 лв. за 1 €.",
-       "url": "https://www.banque-france.fr/en/press-release/bulgaria-join-euro-area-1-january-2026"
-      },
-      {
-       "date": "1 януари 2026",
-       "what": "България влиза в еврозоната."
-      }
-     ]
-    },
-    {
-     "text": "Бюджет 2025 с дефицит до 3% от БВП и разходи до 40% от БВП",
-     "area": "Бюджет",
-     "said": {
-      "who": "Росен Желязков",
-      "when": "4 февруари 2025",
-      "url": "https://www.bta.bg/en/news/827256-budget-draft-for-2025-sets-spending-at-40-of-gdp-deficit-below-3-says-pm-zhe"
-     },
-     "status": "failed",
-     "evidence": "По методологията на ЕС дефицитът за 2025 г. е 4,0% от БВП (Евростат, октомври 2026 г.). Предварителните данни на НСИ от април бяха 3,5%. Финансовият министър Теменужка Петкова твърди, че по касовата консолидирана програма дефицитът е в рамките на 3%. Правителството обаче беше обещало 3% и по двете методологии.",
-     "links": [
-      {
-       "title": "Евростат: дефицит и дълг по години",
-       "url": "/statistiki#dalg"
-      },
-      {
-       "title": "НСИ: дефицит 2025 г. по методологията на ЕС",
-       "url": "https://www.nsi.bg/file/35225/notifikacionni_tablici_za_dalga_i_deficita_na_sektor_darjavno_upravlenie.pdf"
-      },
-      {
-       "title": "БТА: Петкова за стабилните публични финанси",
-       "url": "https://www.bta.bg/bg/videos/34131"
-      },
-      {
-       "title": "Капитал: целта е 3% и по касова, и по начислена основа",
-       "url": "https://www.capital.bg/en/economy/2025/02/24/4747102_bulgarias_2025_budget_draft_eurozone_aspirations_vs/"
-      },
-      {
-       "title": "Дълг и дефицит по години",
-       "url": "/pari/dalg"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "21 март 2025",
-       "what": "Бюджетът за 2025 г. е приет с цел за дефицит до 3% от БВП."
-      },
-      {
-       "date": "април 2026",
-       "what": "НСИ (предварително): дефицит 3,5% от БВП."
-      },
-      {
-       "date": "октомври 2026",
-       "what": "Евростат: дефицит 4,0% от БВП за 2025 г.",
-       "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10dd_edpt1/default/table"
-      }
-     ],
-     "why": [
-      "Разходите растат по-бързо от приходите, най-вече заплатите в публичния сектор и социалните плащания.",
-      "Касовата сметка на финансовото министерство и методиката на ЕС (начислена основа) дават различни числа. Меродавна за Брюксел е методиката на ЕС."
-     ]
-    },
-    {
-     "text": "Без вдигане на данъците в бюджета за 2025 г.",
-     "area": "Данъци",
-     "said": {
-      "who": "Правителството",
-      "when": "март 2025",
-      "url": "https://www.bta.bg/bg/videos/26761"
-     },
-     "status": "done",
-     "evidence": "Бюджетът за 2025 г. е приет на 21 март 2025 г. без увеличение на данъците. За 2026 г. правителството внесе бюджет с по-високи осигуровки и по-висок данък върху дивидентите, но го оттегли след протестите.",
-     "links": [
-      {
-       "title": "Reuters (чрез ARY): оттегленият бюджет за 2026 г.",
-       "url": "https://arynews.tv/bulgaria-faces-political-turmoil-and-resignation"
-      },
-      {
-       "title": "Капитал: „Оттегляме бюджета“",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/12/02/4859422_purva_reakciia_ot_pravitelstvoto_sled_protesta/"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "21 март 2025",
-       "what": "Бюджетът за 2025 г. е приет без вдигане на данъците."
-      },
-      {
-       "date": "ноември 2025",
-       "what": "Проектобюджетът за 2026 г. предвижда по-високи осигуровки и по-висок данък върху дивидентите. Започват масови протести."
-      },
-      {
-       "date": "2 декември 2025",
-       "what": "Правителството оттегля проектобюджета.",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2025/12/02/4859422_purva_reakciia_ot_pravitelstvoto_sled_protesta/"
-      },
-      {
-       "date": "11 декември 2025",
-       "what": "Правителството подава оставка.",
-       "url": "https://bntnews.bg/news/pm-rosen-zhelyazkov-the-government-resigns-update-1369244news.html"
-      }
-     ],
-     "note": "Обещанието за 2025 г. е изпълнено. Опитът за по-високи данъци през 2026 г. е оттеглен след протестите."
-    }
-   ]
-  },
-  {
-   "party": "GOV-DK",
-   "name": "Правителство „Денков“ (ПП–ДБ и ГЕРБ–СДС)",
-   "term": "past",
-   "period": "6 юни 2023 – март 2024 г.",
-   "role": "Правителство с подкрепата на ПП–ДБ и ГЕРБ–СДС, с договорка за ротация на премиера след 9 месеца. Ротацията не се случи и последваха предсрочни избори.",
-   "programme": [
-    {
-     "title": "Програмата за управление, приета на 26 юли 2023 г. (intellinews)",
-     "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
-    }
-   ],
-   "promises": [
-    {
-     "text": "Еврото от 1 януари 2025 г.",
-     "area": "Икономика",
-     "said": {
-      "who": "Николай Денков",
-      "when": "юли 2023 и януари 2024",
-      "url": "https://www.bta.bg/bg/videos/19030"
-     },
-     "status": "failed",
-     "evidence": "България не влезе в еврозоната на 1 януари 2025 г., защото не изпълняваше критерия за инфлацията. Влезе година по-късно, на 1 януари 2026 г. Самият Денков казва през януари 2024 г., че датата не е „сакрална“.",
-     "links": [
-      {
-       "title": "БТА: Денков, датата не е сакрална",
-       "url": "https://bta.bg/en/news/604283-bulgaria-s-eurozone-entry-date-not-sacral-pm-denkov"
-      },
-      {
-       "title": "БТА: от 1 януари 2026 г. еврото е официалното платежно средство",
-       "url": "https://www.bta.bg/bg/news/economy/948427-sled-vavezhdane-na-evroto-ot-1-yanuari-kak-shte-se-plashtat-zadalzheniyata-za-a"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "26 юни 2024",
-       "what": "Редовните доклади на ЕК и ЕЦБ: България изпълнява всички критерии без инфлацията. Средната инфлация е 5,1% при референтна стойност 3,3% (по ЕЦБ).",
-       "url": "https://seenews.com/news/bulgaria-fails-to-meet-inflation-criterion-for-eurozone-entry-ec-ecb-1259679"
-      },
-      {
-       "date": "4 юни 2025",
-       "what": "Извънреден доклад на ЕК потвърждава, че България вече изпълнява критериите.",
-       "url": "https://sofiaglobe.com/2025/07/08/ec-posts-q-and-a-on-bulgarias-changeover-to-the-euro/"
-      },
-      {
-       "date": "8 юли 2025",
-       "what": "Съветът на ЕС одобрява еврото от 1 януари 2026 г. Курсът е фиксиран на 1,95583 лв. за 1 €.",
-       "url": "https://www.banque-france.fr/en/press-release/bulgaria-join-euro-area-1-january-2026"
-      }
-     ],
-     "why": [
-      "Единственият неизпълнен критерий е инфлацията. Тя зависи и от фактори извън властта на едно правителство: енергийните цени и растежа на заплатите.",
-      "Целта е постигната с една година закъснение, вече при правителството „Желязков“."
-     ],
-     "whySrc": [
-      "https://seenews.com/news/bulgaria-fails-to-meet-inflation-criterion-for-eurozone-entry-ec-ecb-1259679",
-      "https://bnb.bg/AboutUs/PressOffice/POPressReleases/POPRDate/PR_20240626_EN"
-     ]
-    },
-    {
-     "text": "Шенген до края на 2023 г.",
-     "area": "Външна политика",
-     "said": {
-      "who": "Програмата за управление",
-      "when": "26 юли 2023",
-      "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
-     },
-     "status": "partly",
-     "evidence": "Частично и със закъснение: свободно пътуване по въздух и море от 31 март 2024 г. Проверките по сухопътните граници отпаднаха от 1 януари 2025 г., вече при друго правителство.",
-     "links": [
-      {
-       "title": "Правителството: отчет след 9 месеца",
-       "url": "https://www.gov.bg/en/Press-center/News/Denkov-Gabriel-cabinet-reports-over-50-implementation-of-the-18-month-program-of-government-and-progress-in-all-sectors-in-its-first-nine-months-in-office"
-      },
-      {
-       "title": "БТА: решението за сухопътните граници",
-       "url": "https://www.bta.bg/en/news/798959-cc-db-hard-won-political-victory-for-bulgaria-"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "30 декември 2023",
-       "what": "Съветът на ЕС решава: без проверки по въздушните и морските граници от 31 март 2024 г.",
-       "url": "https://bta.bg/en/news/595586-decision-on-accession-of-bulgaria-romania-to-schengen-by-air-and-water-publishe"
-      },
-      {
-       "date": "31 март 2024",
-       "what": "Отпадат проверките на летищата и пристанищата. Сухопътните остават заради ветото на Австрия.",
-       "url": "https://www.globalsecurity.org/military/library/news/2024/12/mil-241212-rferl01.htm"
-      },
-      {
-       "date": "12 декември 2024",
-       "what": "Съветът решава да отпаднат и сухопътните проверки от 1 януари 2025 г.",
-       "url": "https://www.consilium.europa.eu/en/meetings/jha/2024/12/12"
-      }
-     ],
-     "why": [
-      "Главната пречка е ветото на Австрия за сухопътните граници, т.е. решение извън България.",
-      "Частичното влизане по въздух и море е постигнато при това правителство, а пълното е година по-късно."
-     ],
-     "whySrc": [
-      "https://www.globalsecurity.org/military/library/news/2024/12/mil-241212-rferl01.htm"
-     ]
-    },
-    {
-     "text": "Бюджети за 2023 и 2024 г. с дефицит до 3%",
-     "area": "Бюджет",
-     "said": {
-      "who": "Програмата за управление",
-      "when": "26 юли 2023",
-      "url": "https://intellinews.com/bulgaria-s-government-sets-new-target-dates-for-schengen-and-eurozone-entry-285681/"
-     },
-     "status": "done",
-     "evidence": "Дефицитът за 2023 г. е 2,2% от БВП по думите на финансовия министър Асен Василев. Бюджетът за 2024 г. е приет с цел 3%, но изпълнението му е при следващите правителства.",
-     "links": [
-      {
-       "title": "Правителството: дефицит 2,2% за 2023 г.",
-       "url": "https://www.gov.bg/en/Press-center/News/Prime-Minister-Acad-Nikolai-Denkov-in-Davos-Bulgaria-aims-at-accession-to-the-Eurozone-on-1-January-2025"
-      },
-      {
-       "title": "Дълг и дефицит по години",
-       "url": "/pari/dalg"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "party": "GOV-PK",
-   "name": "Правителство „Петков“ (ПП, БСП, ИТН, ДБ)",
-   "term": "past",
-   "period": "13 декември 2021 – 2 август 2022 г.",
-   "role": "Коалиция на ПП, БСП, ИТН и ДБ. ИТН напусна коалицията заради спора за ветото за Северна Македония. Правителството падна с вот на недоверие на 22 юни 2022 г. (123 на 116 гласа).",
-   "programme": [
-    {
-     "title": "Изявление на премиера Кирил Петков при предаването на властта (02.08.2022)",
-     "url": "https://www.gov.bg/en/Press-center/News/Statement-by-the-Prime-Minister-Kiril-Petkov"
-    },
-    {
-     "title": "Ал Джазира: правителството пада след вот на недоверие",
-     "url": "https://www.aljazeera.com/news/2022/6/22/bulgarias-ruling-four-party-coalition-faces-no-confidence-vote"
-    }
-   ],
-   "promises": [
-    {
-     "text": "Еврото от 1 януари 2024 г.",
-     "area": "Икономика",
-     "said": {
-      "who": "Кирил Петков",
-      "when": "януари 2022",
-      "url": "https://www.bta.bg/en/news/12347-PM-Petkov-on-Bloomberg-Bulgaria-Fully-Committed-to-Adopt-Euro-in-January-202"
-     },
-     "status": "failed",
-     "evidence": "Правителството прие национален план за въвеждане на еврото от 1 януари 2024 г. През февруари 2023 г. следващото, служебно правителство обяви, че целта отпада заради закъснялото законодателство и високата инфлация. България влезе в еврозоната на 1 януари 2026 г.",
-     "links": [
-      {
-       "title": "intellinews: България се отказва от целта за януари 2024 г.",
-       "url": "https://intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
-      },
-      {
-       "title": "SeeNews: причините, по думите на министър Велкова",
-       "url": "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "май 2022",
-       "what": "Правителството „Петков“ приема национален план за въвеждане на еврото от 1 януари 2024 г., въпреки разногласия в коалицията.",
-       "url": "https://www.intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
-      },
-      {
-       "date": "юни 2022",
-       "what": "Правителството пада след вот на недоверие. Следват служебни кабинети и нови избори, а нужните закони не се приемат.",
-       "url": "https://www.intellinews.com/bulgaria-abandons-january-2024-euro-adoption-target-270401"
-      },
-      {
-       "date": "17 февруари 2023",
-       "what": "Служебният финансов министър Росица Велкова обявява, че датата 1 януари 2024 г. отпада. Нова цел: не по-късно от 1 януари 2025 г.",
-       "url": "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904"
-      }
-     ],
-     "why": [
-      "Инфлацията е над критерия за ценова стабилност.",
-      "Законите за въвеждането на еврото и промените в Закона за БНБ не са приети навреме заради политическата нестабилност и предсрочните избори.",
-      "Отговорността е споделена: правителството поставя датата, но пада преди да я осигури, а следващите парламенти не приемат законите."
-     ],
-     "whySrc": [
-      "https://seenews.com/news/bulgaria-unable-to-meet-eurozone-accession-target-date-fin-min-814904",
-      "https://www.capital.bg/politika_i_ikonomika/ikonomika/2023/02/23/4452868_bulgariia_i_evroto_otlojenata_cl/"
-     ]
-    }
-   ]
-  },
-  {
-   "party": "GOV-B3",
-   "name": "Правителство „Борисов 3“ (ГЕРБ и Обединени патриоти)",
-   "term": "past",
-   "period": "4 май 2017 – 12 май 2021",
-   "role": "Коалиция на ГЕРБ и Обединените патриоти (ВМРО, НФСБ, Атака), с подкрепата на „Воля“. Мандатът приключи с изборите на 4 април 2021 г.",
-   "programme": [
-    {
-     "title": "Програма за управление 2017–2021 (Министерски съвет)",
-     "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2017-2021-Government_Programme-GERB_Patrioti.pdf"
-    },
-    {
-     "title": "Капитал: разходните обещания на коалицията (април 2017)",
-     "url": "https://www.capital.bg/politika_i_ikonomika/mnenia/2017/04/21/2956073_razhodniiat_populizum_na_novata_koaliciia/"
-    }
-   ],
-   "promises": [
-    {
-     "text": "Влизане в „чакалнята“ на еврозоната (ERM II) и в банковия съюз",
-     "area": "Еврозона",
-     "said": {
-      "who": "Програма за управление 2017–2021",
-      "when": "2017",
-      "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2017-2021-Government_Programme-GERB_Patrioti.pdf"
-     },
-     "status": "done",
-     "evidence": "На 10 юли 2020 г. левът е включен в ERM II при курс 1,95583 лв. за евро, а ЕЦБ установява тясно сътрудничество с БНБ (влизане в банковия съюз). Самото приемане на еврото става по-късно, от 1 януари 2026 г.",
-     "links": [
-      {
-       "title": "ЕЦБ: съобщение за България, 10 юли 2020",
-       "url": "https://www.ecb.europa.eu/press/pr/date/2020/html/ecb.pr200710~4aa5e3565a.en.html"
-      },
-      {
-       "title": "ЕЦБ: тясно сътрудничество с БНБ",
-       "url": "https://www.bankingsupervision.europa.eu/press/pr/date/2020/html/ssm.pr200710~ae2abe1f23.en.html"
-      }
-     ],
-     "timeline": [
-      {
-       "date": "29 юни 2018",
-       "what": "България изпраща писмо за намерение с мерки преди ERM II (банков надзор, несъстоятелност, държавни фирми)."
-      },
-      {
-       "date": "10 юли 2020",
-       "what": "Левът влиза в ERM II, БНБ влиза в банковия съюз.",
-       "url": "https://www.ecb.europa.eu/press/pr/date/2020/html/ecb.pr200710~4aa5e3565a.en.html"
-      }
-     ]
-    },
-    {
-     "text": "Минимална работна заплата 650 лв. до края на мандата",
-     "area": "Доходи",
-     "said": {
-      "who": "Министърът на финансите Владислав Горанов",
-      "when": "август 2017",
-      "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2017/08/20/3027475_durjavata_shte_opredeli_osiguritelnite_pragove_ako/"
-     },
-     "status": "done",
-     "evidence": "Минималната заплата е 460 лв. през 2017 г. и става 650 лв. от 1 януари 2021 г. (332 € по фиксирания курс), по данните на Евростат.",
-     "links": [
-      {
-       "title": "Минималната заплата през годините",
-       "url": "/statistiki/min_wage"
-      }
-     ]
-    },
-    {
-     "text": "Средна заплата 1500 лв. в края на мандата",
-     "area": "Доходи",
-     "said": {
-      "who": "Програмата на ГЕРБ и Обединените патриоти",
-      "when": "април 2017",
-      "url": "https://www.capital.bg/politika_i_ikonomika/mnenia/2017/04/21/2956073_razhodniiat_populizum_na_novata_koaliciia/"
-     },
-     "status": "done",
-     "evidence": "По НСИ средната брутна заплата е около 1000 лв. при обещанието. За март 2021 г. е 1500 лв., а средно за първото тримесечие на 2021 г. е 1462 лв. Част от скока в края на мандата може да идва от пандемията: когато най-нископлатените губят работа, средното се вдига, без никой да получава повече.",
-     "note": "Целта е постигната на месечна база в последните седмици на мандата.",
-     "links": [
-      {
-       "title": "НСИ: заети и заплати, II тримесечие 2021 (1525 лв.)",
-       "url": "https://www.nsi.bg/file/23352/EmplsSalary2021q2_07PI42S.pdf"
-      },
-      {
-       "title": "НСИ: първо тримесечие 2021 (1462 лв. средно за страната)",
-       "url": "https://www.nsi.bg/tsb/wp-content/uploads/2021/05/SRZ-I-2021-brgs.pdf"
-      },
-      {
-       "title": "НСИ: март 2021 г. (1500 лв.)",
-       "url": "https://www.nsi.bg/tsb/wp-content/uploads/2021/05/19_Trud_I_trim_2021.pdf"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "party": "GOV-B2",
-   "name": "Правителство „Борисов 2“ (ГЕРБ и Реформаторски блок)",
-   "term": "past",
-   "period": "7 ноември 2014 – 27 януари 2017",
-   "role": "Коалиция на ГЕРБ и Реформаторския блок, с подкрепата на Патриотичния фронт и АБВ. Подаде оставка след президентските избори през ноември 2016 г.",
-   "programme": [
-    {
-     "title": "Протокол от заседание на Министерския съвет, 1 декември 2014 (фискални цели)",
-     "url": "https://beta.strategy.bg/index.php/download/1157907"
-    }
-   ],
-   "promises": [
-    {
-     "text": "Бюджетен дефицит до 3% от БВП през 2015 г., 2,5% през 2016 г. и 2% през 2017 г.",
-     "area": "Бюджет",
-     "said": {
-      "who": "Министерският съвет, актуализирана средносрочна прогноза",
-      "when": "1 декември 2014",
-      "url": "https://beta.strategy.bg/index.php/download/1157907"
-     },
-     "status": "done",
-     "evidence": "Целите са изпълнени с резерв. По данните на Евростат (методологията на ЕС) дефицитът е 1,9% от БВП през 2015 г., а през 2016 г. бюджетът е на излишък от 0,3%. През 2014 г. дефицитът е бил 5,4% (включително изплащането на гарантираните влогове в КТБ).",
-     "links": [
-      {
-       "title": "Дефицит и дълг по години",
-       "url": "/statistiki/deficit"
-      }
-     ]
-    },
-    {
-     "text": "Допълнителен пакет здравни услуги, покриван от здравния фонд, от 2016 г.",
-     "area": "Здраве",
-     "said": {
-      "who": "Министърът на здравеопазването Петър Москов",
-      "when": "2015",
-      "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2016/12/09/2879142_obeshtaniiata_na_petur_moskov/"
-     },
-     "status": "failed",
-     "evidence": "Към края на мандата няма внесен проект за такъв пакет (Капитал, декември 2016 г.).",
-     "links": [
-      {
-       "title": "Капитал: обещанията на Петър Москов",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2016/12/09/2879142_obeshtaniiata_na_petur_moskov/"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "party": "GOV-OR",
-   "name": "Правителство „Орешарски“ (БСП и ДПС)",
-   "term": "past",
-   "period": "29 май 2013 – 6 август 2014",
-   "role": "Правителство с мандат на БСП, подкрепено от ДПС и (с мълчаливо съгласие) от „Атака“. Подаде оставка след масови протести (от юни 2013 г.) и загубата на европейските избори през 2014 г.",
-   "programme": [
-    {
-     "title": "Приоритети на кабинета „Орешарски“ (2013)",
-     "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2013-Government_program-Oresharski.pdf"
-    },
-    {
-     "title": "Отчет на правителството",
-     "url": "https://www.mon.bg/nfs/2018/01/14_01_17_governmentreport_3.pdf"
-    }
-   ],
-   "promises": [
-    {
-     "text": "По-висока минимална заплата от 1 октомври 2013 г.",
-     "area": "Доходи",
-     "said": {
-      "who": "Стабилизационни и неотложни мерки, приети от Народното събрание",
-      "when": "19 юни 2013",
-      "url": "https://www.infobusiness.bcci.bg/econ-21-6-13.html"
-     },
-     "status": "partly",
-     "evidence": "Минималната заплата не е увеличена от 1 октомври 2013 г. Остава 310 лв. до края на годината и става 340 лв. (174 €) от 1 януари 2014 г., по данните на Евростат.",
-     "links": [
-      {
-       "title": "Минималната заплата по години",
-       "url": "/statistiki/min_wage"
-      }
-     ]
-    },
-    {
-     "text": "По-евтин ток за домакинствата",
-     "area": "Енергетика",
-     "said": {
-      "who": "Програмата на кабинета и мерките от юни 2013 г.",
-      "when": "2013",
-      "url": "https://www.bia-bg.com/uploads/files/Government_programmes/2013-Government_program-Oresharski.pdf"
-     },
-     "status": "done",
-     "evidence": "През 2013 г. цените на тока за бита са намалени три пъти поред (поевтиняване с около 5% от лятото на 2013 г.). Цената е свалена административно, а не чрез по-евтини договори с централите, и дефицитът в енергийната система расте: НЕК трупа дългове към централите.",
-     "note": "Обещанието е изпълнено, но с цената на по-голям дефицит в енергетиката, платен по-късно.",
-     "links": [
-      {
-       "title": "Капитал: „Ценови магии“ (юли 2013)",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2013/07/22/2108373_cenovi_magii/"
-      },
-      {
-       "title": "Капитал: НЕК потъна в дългове (декември 2013)",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2013/12/04/2196425_nek_potuna_v_dulgove/"
-      },
-      {
-       "title": "Капитал: три поредни намаления през 2013 г.",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/01/23/2459238_energetika_problemite_se_kriiat_v_detailite/"
-      }
-     ]
-    }
-   ]
-  },
-  {
-   "party": "GOV-B1",
-   "name": "Правителство „Борисов 1“ (ГЕРБ)",
-   "term": "past",
-   "period": "27 юли 2009 – 13 март 2013",
-   "role": "Еднопартийно правителство на ГЕРБ с подкрепата на „Атака“, „Синята коалиция“ и РЗС. Подаде оставка през февруари 2013 г. след протестите срещу високите сметки за ток.",
-   "programme": [],
-   "promises": [
-    {
-     "text": "Кандидатстване за ERM II („чакалнята“ на еврозоната) в началото на 2010 г. и въвеждане на еврото през 2013 г.",
-     "area": "Еврозона",
-     "said": {
-      "who": "Симеон Дянков, министър на финансите, пред Bloomberg",
-      "when": "11 ноември 2009",
-      "url": "https://seenews.com/news/bulgaria-seeks-to-adopt-euro-in-2013-bloomberg-251556"
-     },
-     "status": "failed",
-     "evidence": "На 9 април 2010 г. правителството обяви, че няма да кандидатства за ERM II през 2010 г., след като дефицитът за 2009 г. беше преизчислен над допустимото. България влиза в ERM II чак през юли 2020 г., а в еврозоната – през 2026 г.",
-     "links": [
-      {
-       "title": "Капитал: България казва „чао“ на еврото засега (09.04.2010)",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2010/04/09/885107_bulgariia_kazva_chao_na_evroto_zasega/"
-      },
-      {
-       "title": "Европейска комисия: България и Хърватия във валутния механизъм II (2020)",
-       "url": "https://old.parliament.bg/pub/EUBUL/2020071311522110072020_IP-20-1321.pdf"
-      }
-     ]
-    },
-    {
-     "text": "Откриване на магистрала „Люлин“ (София – Перник) на 15 май 2011 г.",
-     "area": "Инфраструктура",
-     "said": {
-      "who": "Бойко Борисов, министър-председател",
-      "when": "преди 15 май 2011",
-      "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/05/15/1089773_namerenata_magistrala/"
-     },
-     "status": "done",
-     "evidence": "Магистралата е открита на обещаната дата, 15 май 2011 г., след четири години строителство, спиране на финансирането през 2008 г. и оскъпяване с над 45 млн. евро.",
-     "links": [
-      {
-       "title": "Капитал: Намерената магистрала (15.05.2011)",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/05/15/1089773_namerenata_magistrala/"
-      }
-     ]
-    },
-    {
-     "text": "Да не се вдига възрастта за пенсиониране („Нищо не ме кара да вдигам сега възрастта за пенсия“).",
-     "area": "Пенсии",
-     "said": {
-      "who": "Бойко Борисов, министър-председател",
-      "when": "есента на 2010",
-      "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/11/18/1207343_re_fwd_re_pensionna_reforma/"
-     },
-     "status": "failed",
-     "evidence": "Година по-късно, през ноември 2011 г., самият премиер заявява, че без реформата „след 2–3 години никой няма да има пенсия“, и правителството предлага по-ранно вдигане на пенсионната възраст.",
-     "links": [
-      {
-       "title": "Капитал: Пенсионна реформа (18.11.2011)",
-       "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2011/11/18/1207343_re_fwd_re_pensionna_reforma/"
-      }
-     ]
-    }
-   ]
-  }
- ]
+  ]
 }
