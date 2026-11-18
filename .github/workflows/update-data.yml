@@ -32,6 +32,8 @@ jobs:
           node scripts/fix-groups.mjs
       - name: Държавен бюджет (последният приет закон и изпълнението му)
         run: node scripts/import-budget.mjs
+      - name: Точност на социологическите агенции
+        run: node scripts/import-polls.mjs
       - name: Европейски средства
         run: node scripts/import-funds.mjs
       - name: Решения на общински съвети от сайтовете им (Ботевград)
