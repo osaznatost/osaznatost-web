@@ -9,6 +9,7 @@ import { firmUrl, fmtEur, placeSuppliersAll } from "@/lib/procurement";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { MPS } from "@/lib/parliament";
+import { tendersByContact } from "@/lib/projects";
 
 export function generateStaticParams() {
   return Object.keys(PEOPLE).map((slug) => ({ slug }));
@@ -53,6 +54,7 @@ export default async function Lice({ params }: { params: Promise<{ slug: string 
   const colleagues = L.officials.filter((x) => x.slug !== o.slug && ["mayor", "deputy_mayor", "council_chair", "chief_architect"].includes(x.role));
   const d = o.decl;
   const proposed = (L.resolutions ?? []).filter((r) => r.rapporteur?.slug === o.slug);
+  const runs = tendersByContact(o.name);
   return (
     <Page>
       <Title back={{ href: `${muniHref}/vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}
@@ -112,6 +114,14 @@ export default async function Lice({ params }: { params: Promise<{ slug: string 
             <li key={r.id}><span className="text-sm text-muted num">{r.date.split("-").reverse().join(".")} · № {r.number}</span> {r.title}{r.tally && <span className="text-sm num text-muted"> ({r.tally.for} за, <span className={r.tally.against ? "text-red" : ""}>{r.tally.against} против</span>, {r.tally.abstain} въздържали се)</span>}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer" className="text-sm">PDF</a></>}</li>
           ))}</ul>
           {proposed.length > 25 && <p className="text-sm mt-2"><Link href={`${muniHref}/vlast#resheniya`}>Всички решения на съвета</Link></p>}
+        </section>
+      )}
+
+      {runs.length > 0 && (
+        <section className="mb-10">
+          <SectionTitle>Води обществени поръчки ({runs.length})</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Поръчки, в които е посочен(а) като лице за контакт на възложителя в обявленията в ЦАИС ЕОП. <Link href={`${muniHref}/proekti`}>Всички проекти на общината</Link>.</p>
+          <ul className="space-y-1.5 text-[15px]">{runs.slice(0, 30).map((t) => <li key={t.id}>{t.title.replace(/^[„"]|[“"]$/g, "")}{t.suppliers.length ? <span className="text-sm text-muted"> → {t.suppliers.join(", ")}</span> : null}</li>)}</ul>
         </section>
       )}
 

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { localData, personHref } from "@/lib/local";
 import { buyerContracts, buyerPlace, firmUrl, fmtDate, fmtEur, type Annex, type Contract } from "@/lib/procurement";
-import { councilFor, deadlineOf, peopleFor, supervisionFor } from "@/lib/projects";
+import { councilFor, deadlineOf, officialByName, peopleFor, supervisionFor } from "@/lib/projects";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 
 const MANDATE = "2023-11-06";
@@ -54,7 +54,7 @@ export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[
         <Step n={2} title="Обявяване и избор на изпълнител">
           <p><b>Възложител:</b> {c.buyer_name}. Процедура: {c.procedure_type ?? "–"}{c.award_method ? `, критерий „${c.award_method.toLowerCase()}“` : ""}. Прогнозна стойност: {fmtEur(c.estimated_value_eur)}.</p>
           <p><b>Оферти:</b> {c.offers_count ?? people?.bids ?? "–"}{c.offers_count === 1 ? " (само една)" : ""}{c.disqualified_offers_count ? `, отстранени ${c.disqualified_offers_count}` : ""}.</p>
-          {people?.contacts.length ? <p><b>Води процедурата (лице за контакт на възложителя):</b> {people.contacts.join(", ")}.</p> : null}
+          {people?.contacts.length ? <p><b>Води процедурата (лице за контакт на възложителя):</b> {people.contacts.map((n, i) => { const o = officialByName(n, L?.officials); return <span key={n}>{i ? ", " : ""}{o ? <><Link href={personHref(o.slug)}>{o.name}</Link> ({o.roleRaw.toLowerCase()})</> : n}</span>; })}.</p> : null}
           <p className="text-sm text-muted">Комисията, която оценява офертите, и решението за избор (кой го е подписал) са в преписката на поръчката в ЦАИС ЕОП, не в отворените данни.</p>
         </Step>
 

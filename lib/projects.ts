@@ -69,3 +69,17 @@ export const CATEGORY: [string, RegExp][] = [
 export const categoryOf = (t: string) => CATEGORY.find(([, re]) => re.test(t))?.[0] ?? "Други";
 export const deadlineOf = (c: Pick<Contract, "contract_date" | "contract_period_days">) =>
   c.contract_date && c.contract_period_days ? new Date(Date.parse(c.contract_date) + c.contract_period_days * 864e5).toISOString().slice(0, 10) : null;
+
+/** Лице за контакт → длъжностно лице от общината (по първо и последно име), ако съвпада. */
+export function officialByName<T extends { name: string; slug: string; roleRaw: string }>(name: string, officials: T[] | undefined) {
+  const p = name.toUpperCase().split(/\s+/).filter(Boolean);
+  if (p.length < 2 || !officials) return null;
+  return officials.find((o) => { const q = o.name.toUpperCase().split(/\s+/); return q[0] === p[0] && q.at(-1) === p.at(-1) && (p.length < 3 || q.length < 3 || q[1] === p[1]); }) ?? null;
+}
+
+/** Поръчките, в които лицето е посочено като лице за контакт на възложителя. */
+export function tendersByContact(name: string) {
+  const p = name.toUpperCase().split(/\s+/);
+  return Object.entries(P.tenders).filter(([, t]) => t.contacts.some((c) => { const q = c.toUpperCase().split(/\s+/).filter(Boolean); return q[0] === p[0] && q.at(-1) === p.at(-1); }))
+    .map(([id, t]) => ({ id, title: t.title ?? "", suppliers: Object.values(t.suppliers).map((s) => s.name) }));
+}
