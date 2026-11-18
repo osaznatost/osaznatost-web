@@ -28,24 +28,47 @@ async function api(u) {
 const strip = (h) => String(h ?? "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&quot;/g, "\"").replace(/&amp;/g, "&").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim();
 const longText = (o) => Object.values(o ?? {}).filter((v) => typeof v === "string" && v.length > 300).map(strip).join("\n\n");
 
-async function pdf(url, max) {
+const clean = (t) => t.replace(/[ \t]+/g, " ").replace(/-\n(?=[а-я])/g, "").replace(/\n\s*\n+/g, "\n").trim();
+// Текст от PDF; ако е сканиран (без текстов слой), разпознаване на страниците с tesseract (български).
+// pages: "tail" — последните страници (мотивите са накрая на законопроекта), "head" — първите.
+async function pdf(url, max, pages = "head", nOcr = 6) {
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(60000) });
+    const r = await fetch(encodeURI(url), { signal: AbortSignal.timeout(90000) });
     if (!r.ok) return "";
-    const buf = Buffer.from(await r.arrayBuffer());
-    writeFileSync("/tmp/b.pdf", buf);
-    const t = execFileSync("pdftotext", ["-layout", "-enc", "UTF-8", "/tmp/b.pdf", "-"], { maxBuffer: 64e6 }).toString();
-    return t.replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n").trim().slice(0, max);
+    writeFileSync("/tmp/b.pdf", Buffer.from(await r.arrayBuffer()));
+    let t = clean(execFileSync("pdftotext", ["-layout", "-enc", "UTF-8", "/tmp/b.pdf", "-"], { maxBuffer: 64e6 }).toString());
+    if (t.length > 300) {
+      if (pages === "tail") { const i = t.search(/М\s*О\s*Т\s*И\s*В\s*И/); if (i > 0) t = t.slice(i); }
+      return t.slice(0, max);
+    }
+    const info = execFileSync("pdfinfo", ["/tmp/b.pdf"]).toString();
+    const n = Number(info.match(/Pages:\s+(\d+)/)?.[1] ?? 1);
+    const from = pages === "tail" ? Math.max(1, n - nOcr + 1) : 1, to = pages === "tail" ? n : Math.min(n, nOcr);
+    execFileSync("bash", ["-c", "rm -f /tmp/pg-*"]);
+    execFileSync("pdftoppm", ["-r", "150", "-gray", "-f", String(from), "-l", String(to), "-png", "/tmp/b.pdf", "/tmp/pg"]);
+    const files = execFileSync("bash", ["-c", "ls /tmp/pg-*.png | sort -V"]).toString().trim().split("\n").filter(Boolean);
+    let out = "";
+    for (const f of files) out += execFileSync("tesseract", [f, "-", "-l", "bul", "--psm", "4"], { maxBuffer: 16e6, stdio: ["ignore", "pipe", "ignore"] }).toString() + "\n";
+    out = clean(out);
+    if (pages === "tail") { const i = out.search(/М\s*О\s*Т\s*И\s*В\s*И/); if (i > 0) out = out.slice(i); }
+    return out.slice(0, max);
   } catch { return ""; }
 }
 
 // Откъс от стенограмата: от първото споменаване на закона нататък.
 function excerpt(body, title, max) {
   const t = strip(body);
-  const key = (title.match(/(Закона? за [^,]{6,60}|[А-Я][а-я]+ кодекс)/)?.[1] ?? title).replace(/^Закон /, "Закона ").slice(0, 50);
-  let i = t.indexOf(key);
-  if (i < 0) i = t.toLowerCase().indexOf(key.toLowerCase().slice(0, 30));
-  return i < 0 ? "" : t.slice(Math.max(0, i - 300), i + max);
+  const key = (title.match(/(Закона? за [^,]{6,60}|[А-Я][а-я]+ кодекс)/)?.[1] ?? title).replace(/^Закон /, "Закона ").slice(0, 45).toLowerCase();
+  const low = t.toLowerCase();
+  // Началото на точката: споменаване на закона, след което до 2500 знака има „доклад“ (докладът на комисията открива обсъждането),
+  // а не обявяването на програмата („като точка ...“).
+  let best = -1;
+  for (let i = low.indexOf(key); i >= 0; i = low.indexOf(key, i + key.length)) {
+    const after = low.slice(i, i + 2500), before = low.slice(Math.max(0, i - 400), i);
+    if (/доклад/.test(after) && !/като точка|програмата за работата/.test(before + after.slice(0, 300))) { best = i; break; }
+  }
+  if (best < 0) best = low.lastIndexOf(key);
+  return best < 0 ? "" : t.slice(Math.max(0, best - 200), best + max);
 }
 
 const IDX = `${DIR}/index.json`;
@@ -62,7 +85,8 @@ for (let id = index.last + 1; miss < 250 && Date.now() < deadline; id++) {
 }
 
 // 2) Подробности и текстове за още необработените (и за обновяване на тези с ново движение).
-const todo = Object.entries(index.bills).filter(([, x]) => !x.done || (process.env.REFRESH && !x.final));
+const VERSION = 2;
+const todo = Object.entries(index.bills).filter(([, x]) => !x.done || (x.v ?? 1) < VERSION || (process.env.REFRESH && !x.final));
 for (const [id] of todo) {
   if (Date.now() > deadline) break;
   const b = await api(`bill/${id}`);
@@ -79,21 +103,33 @@ for (const [id] of todo) {
     motives: "", reports: [], opinions: [], hall: [], proposals: (b.proposal_12_list ?? []).map((p) => ({ doc: p.RN_DOC, date: p.DAT_DOC, by: names(p.imp_list) })),
   };
   const f = b.file_list?.[0]?.FILENAME;
-  if (f) out.motives = await pdf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000);
-  for (const r of [...(b.stan_list ?? []), ...(b.stan_list2_1 ?? []), ...(b.stan_list_veto ?? [])].slice(0, 4)) {
+  if (f) out.motives = await pdf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000, "tail", 7);
+  // Доклади на комисиите (първо и второ четене, вето) и становища на външни организации. Текстът е в A_Cm_Stan_text
+  // или в приложен файл (PDF/DOC), който сваляме.
+  const docText = async (j, max) => {
+    let t = strip(j?.A_Cm_Stan_text ?? "") || longText(j);
+    if (t.length < 200) for (const f of j?.files ?? []) {
+      const p = f.A_Cm_StanF_file ?? "";
+      if (/\.pdf$/i.test(p)) { t = await pdf(`https://www.parliament.bg${p}`, max, "head", 3); if (t) break; }
+    }
+    return t.slice(0, max);
+  };
+  const seen = new Set();
+  const stanAll = ["stan_list", "stan_list2_1", "stan_list_veto"].flatMap((k) => (b[k] ?? []).map((r) => ({ ...r, k })));
+  for (const r of stanAll.filter((r) => !seen.has(r.A_Cm_Stanid) && seen.add(r.A_Cm_Stanid)).slice(0, 5)) {
     const j = await api(`com-stan/${r.A_ns_C_id}/${r.A_Cm_Stanid}`);
-    out.reports.push({ date: r.A_Cm_Stan_date, committee: r.A_ns_CL_value, stage: r.L_Act_St_name, title: r.A_Cm_Stan_sub, text: longText(j).slice(0, 9000) });
+    out.reports.push({ date: r.A_Cm_Stan_date, committee: r.A_ns_CL_value, stage: r.L_Act_St_name, title: r.A_Cm_Stan_sub, text: await docText(j, 9000) });
   }
   for (const r of (b.standp_list ?? []).slice(0, 12)) {
     const j = await api(`com-stan/${r.A_ns_C_id}/${r.A_Cm_Stanid}`);
-    out.opinions.push({ date: r.A_Cm_Stan_date, title: r.A_Cm_Stan_sub, text: longText(j).slice(0, 3500) });
+    out.opinions.push({ date: r.A_Cm_Stan_date, title: r.A_Cm_Stan_sub, text: await docText(j, 3500) });
   }
   for (const s of (b.steno_hall ?? []).filter((x) => x.Pl_Sten_id).slice(0, 3)) {
     const j = await api(`pl-sten/${s.Pl_Sten_id}`);
     out.hall.push({ date: s.L_Act_St_date, stage: s.L_Act_St2_name, url: `https://www.parliament.bg/bg/plenaryst/ns/${NS}/ID/${s.Pl_Sten_id}`, text: excerpt(j?.Pl_Sten_body, out.title, 18000) });
   }
   writeFileSync(`${DIR}/${id}.json`, JSON.stringify(out));
-  index.bills[id] = { sign: out.sign, date: out.date, title: out.title, final: out.final, withdrawn: out.withdrawn, adopted: out.adopted, done: true };
+  index.bills[id] = { sign: out.sign, date: out.date, title: out.title, final: out.final, withdrawn: out.withdrawn, adopted: out.adopted, done: true, v: VERSION };
   n++;
   if (n % 10 === 0) writeFileSync(IDX, JSON.stringify(index));
 }
