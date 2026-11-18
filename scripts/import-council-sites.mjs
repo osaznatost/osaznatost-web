@@ -8,6 +8,8 @@ const UA = { "User-Agent": "Mozilla/5.0 (osaznatost.bg; отворени дан�
 const SITES = {
   // Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
+  // Общински съвет Русе (WordPress): всяко решение е отделна публикация „РЕШЕНИЕ № N Прието с Протокол № P/ДД.ММ.ГГГГг.“.
+  RSE27: { name: "Русе", wpList: (p) => `https://obs.ruse-bg.eu/category/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f/${p > 1 ? `page/${p}/` : ""}`, wpPost: /href="(https:\/\/obs\.ruse-bg\.eu\/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%e2%84%96-\d+[^"]*)"/gi, from: "2023-11-01", council: "Общински съвет – Русе" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
 };
 // Сайтът на общината не подава пълната верига от сертификати и fetch() в Node отказва; curl се справя.
@@ -106,6 +108,58 @@ function parseSofia(text, url) {
 }
 const pdfText = (buf) => { writeFileSync("/tmp/c.pdf", buf); try { return execFileSync("pdftotext", ["-layout", "/tmp/c.pdf", "-"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
 
+// WordPress: списък с публикации по страници, всяка публикация е едно решение в HTML.
+const htmlText = (h) => h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, "").replace(/<br\s*\/?>|<\/p>|<\/div>|<\/li>|<\/h\d>/gi, "\n").replace(/<[^>]+>/g, "")
+  .replace(/&nbsp;/g, " ").replace(/&#8211;|&ndash;/g, "–").replace(/&#8220;|&#8222;|&bdquo;/g, "„").replace(/&#8221;|&ldquo;|&rdquo;/g, "“").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(+n));
+function parseWpPost(html, url, S) {
+  const t = htmlText(html);
+  const h = t.match(/РЕШЕНИЕ\s*№\s*(\d+)\s*Прието с Протокол\s*№\s*(\d+)\s*\/\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (!h) return [];
+  const date = `${h[5]}-${h[4].padStart(2, "0")}-${h[3].padStart(2, "0")}`;
+  // Текстът: след последното заглавие до „ПРЕДСЕДАТЕЛ“.
+  const start = t.lastIndexOf(h[0]);
+  const after = t.slice(start + h[0].length);
+  const main = after.slice(Math.max(0, after.search(/На основание|Общински съвет/))).split(/\n\s*ПРЕДСЕДАТЕЛ/)[0];
+  const op = (main.split(/\sреши\s*:/i)[1] ?? main).trim();
+  const body = ws(op);
+  const first = flat(body).split(/(?<=[.;])\s/)[0];
+  const title = first.replace(/^\d+\.\s*/, "").slice(0, 300);
+  const pdf = html.match(/href="([^"]+\.pdf)"/)?.[1] ?? null;
+  return [{
+    number: h[1], date, url: pdf ?? url, page: url, title, session: h[2], rapporteur: null, tally: null,
+    result: /^\s*(1\.\s*)?не\s+(приема|одобрява|дава)/i.test(body) ? "rejected" : "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body,
+  }];
+}
+async function wordpress(code, S, prev) {
+  let added = 0;
+  for (let p = 1; p < 400; p++) {
+    if (timeUp() || blocked) break;
+    const list = await get(S.wpList(p), false, 2);
+    if (!list) break;
+    const links = [...new Set([...list.matchAll(S.wpPost)].map((m) => m[1]))];
+    if (!links.length) break;
+    let fresh = 0, old = 0;
+    for (const u of links) {
+      if (timeUp() || blocked) break;
+      if (u in prev.files) continue;
+      fresh++;
+      const page = await get(u);
+      if (!page) continue;
+      const ds = parseWpPost(page, u, S);
+      prev.files[u] = ds.length;
+      for (const d of ds) { if (d.date >= S.from) { prev.decisions.push(d); added++; } else old++; }
+    }
+    // Списъкът е от най-новите към най-старите: при пълно обхождане спираме, щом стигнем до решения отпреди мандата
+    // или до страница без нищо ново (когато вече сме прочели всичко веднъж).
+    if (old > 0 || (fresh === 0 && prev.complete)) break;
+    if (p > 1 && fresh === 0 && !prev.complete) continue;
+  }
+  if (!timeUp() && !blocked) prev.complete = true;
+  return added;
+}
+
 // Номерирани решения: обхождаме номерата по години; спираме след 40 поредни липсващи над най-големия известен.
 async function numbered(code, S, prev) {
   let added = 0;
@@ -137,12 +191,12 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered) {
-    const added = await numbered(code, S, prev);
+  if (S.numbered || S.wpList) {
+    const added = S.numbered ? await numbered(code, S, prev) : await wordpress(code, S, prev);
     const seen = new Map();
     for (const d of prev.decisions) { d.title = d.title.replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: "https://council.sofia.bg", updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : new URL(S.wpList(1)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
