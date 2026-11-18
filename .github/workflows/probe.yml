@@ -6,13 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sSL -m 60 https://ted.europa.eu/en/notice/56-2020/xml -o n.xml -w "%{http_code} %{content_type}\n"
-          python3 - <<'PY'
-          import re
-          s=open('n.xml',encoding='utf-8',errors='ignore').read()
-          print(len(s))
-          i=s.find('<CONTRACTING_BODY'); print(s[i:i+900])
-          i=s.find('<OBJECT_CONTRACT'); print(s[i:i+700])
-          i=s.find('<PROCEDURE'); print(s[i:i+400])
-          i=s.find('<AWARD_CONTRACT'); print(s[i:i+2200])
-          PY
+          for u in "https://ted.europa.eu/en/notice/56-2020/xml" "https://ted.europa.eu/bg/notice/56-2020/xml" "https://ted.europa.eu/udl?uri=TED:NOTICE:56-2020:DATA:EN:XML" "https://ted.europa.eu/packages/monthly/2020-01" "https://ted.europa.eu/packages/daily/202000001"; do
+            curl -sSL -m 120 -A "Mozilla/5.0 (X11; Linux x86_64)" -H "Accept: application/xml,*/*" -o o.bin -w "$u %{http_code} %{content_type} %{size_download}\n" "$u" -r 0-2000000 || true
+            head -c 200 o.bin | tr -d '\0' | head -c 200; echo
+          done
