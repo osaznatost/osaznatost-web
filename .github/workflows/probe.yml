@@ -6,15 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/reshenie/resheniya-na-obs-ot-2026g-3311 -o p.html
-          python3 - <<'PY'
-          import re,html
-          s=open('p.html',encoding='utf-8',errors='ignore').read()
-          i=s.find('Виж всички'); i=s.find('</nav>') 
-          k=s.find('resheniya-na-obs-ot-2026')
-          body=s[s.find('<h1'):] if '<h1' in s else s
-          t=re.sub(r'<script.*?</script>|<style.*?</style>','',body,flags=re.S)
-          print(re.sub(r'\n\s*\n+','\n',re.sub(r'<(?!a |/a)[^>]+>','',t))[:6000])
-          PY
-          F=$(grep -oE 'https?://botevgrad.bg/data/obsavet/files/[0-9]+\.pdf' p.html | head -1); echo "PDF $F"
-          curl -sSL -m 60 "$F" -o d.pdf && sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1; pdftotext -layout d.pdf - | head -120
+          mkdir out; cd out
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/reshenie/resheniya-na-obs-ot-2026g-3311 -o r2026.html
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/obsavet -o zased.html
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/view/savetnitsi-4 -o savet.html
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/view/dneven-red-arhiv-20 -o dnevred.html
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/data/obsavet/files/1781877401.pdf -o sample.pdf
+      - uses: actions/upload-artifact@v4
+        with: { name: probe, path: out }
