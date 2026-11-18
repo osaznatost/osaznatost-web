@@ -24,9 +24,10 @@ jobs:
         env:
           MINUTES: "48"
           REFRESH: ${{ inputs.refresh }}
+      - run: node scripts/build-bills.mjs
       - name: Запис
         run: |
-          git add data/bills-src
+          git add data/bills-src data/bills.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"

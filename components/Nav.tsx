@@ -9,7 +9,9 @@ const groups: { title: string; items: { href: string; label: string; about: stri
   {
     title: "Власт",
     items: [
+      { href: "/vlast", label: "Властта", about: "Кой решава, как се приемат законите, сигнали" },
       { href: "/parlament", label: "Парламент", about: "Кой как гласува, закони, партии, депутати" },
+      { href: "/parlament/zakoni", label: "Всички закони", about: "Етап, вносители, двете страни, сигнали" },
       { href: "/obeshtaniya", label: "Обещания", about: "Какво обещаха правителствата и какво стана" },
       { href: "/proverki", label: "Проверки", about: "Вярно ли е казаното, корупционни дела" },
     ],
@@ -38,7 +40,7 @@ const groups: { title: string; items: { href: string; label: string; about: stri
     ],
   },
 ];
-const DESKTOP = groups.flatMap((g) => g.items.filter((i) => i.href !== "/metodologiya" && i.href !== "/rechnik").map((i) => ({ ...i, group: g.title })));
+const DESKTOP = groups.flatMap((g) => g.items.filter((i) => !["/metodologiya", "/rechnik", "/parlament/zakoni"].includes(i.href)).map((i) => ({ ...i, group: g.title })));
 const isActive = (path: string, href: string) => path === href || path.startsWith(href + "/");
 
 function SearchIcon() {
