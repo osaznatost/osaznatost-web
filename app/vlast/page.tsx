@@ -23,6 +23,8 @@ export default function Vlast() {
   const sameDay = laws.filter((l) => l.signals.some((s) => s.title === "Двете четения в един ден"));
   const fast = laws.filter((l) => l.signals.some((s) => /^Само \d+ дни между/.test(s.title)));
   const trans = laws.filter((l) => l.signals.some((s) => /преходните и заключителните/.test(s.title)));
+  const cut = laws.filter((l) => l.signals.some((s) => /^Съкратен срок за предложения/.test(s.title)));
+  const coi = laws.filter((l) => l.signals.some((s) => /конфликт на интереси/.test(s.title)));
   const mpFirms = MPS.map((m) => ({ m, firms: firmsOfMp(m.id) })).filter((x) => x.firms.length).sort((a, b) => b.firms.length - a.firms.length);
   const false_ = CLAIMS.filter((c) => c.verdict === "Невярно" || c.verdict === "Подвеждащо");
   const promises = PROMISES.parties.flatMap((g) => g.promises.map((p) => ({ g, p })));
@@ -31,6 +33,7 @@ export default function Vlast() {
   const tiles: [string, string | number, string, string][] = [
     ["Закони със сериозен сигнал", high.length, `от ${laws.length} гласувани закона`, "#signali"],
     ["Нови текстове в заключителните разпоредби", trans.length, "закона, променени така на второ четене", "/parlament/signali"],
+    ["Закони със съкратен срок за предложения", cut.length, "по-малко от обичайните 7 дни между четенията", "#signali"],
     ["Депутати с дял или управление във фирми", mpFirms.length, "по Търговския регистър и декларациите", "#firmi"],
     ["Неизпълнени обещания", bad, `при ${good} изпълнени, ${PROMISES.parties.length} правителства`, "/obeshtaniya"],
     ["Подвеждащи или неверни твърдения", false_.length, "проверени с източници", "/proverki"],
@@ -44,7 +47,7 @@ export default function Vlast() {
       </Title>
       <SectionNav items={[["koy", "Кой управлява"], ["signali", "Сигнали"], ["kak", "Как се приема закон"], ["zakoni", "Законите"], ["firmi", "Депутати и фирми"], ["proverka", "Как да проверите"]]} />
 
-      <section className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-14">
+      <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-14">
         {tiles.map(([l, v, n, href]) => (
           <Link key={l} href={href} className="block bg-surface rounded-sm p-4 no-underline text-ink hover:ring-2 hover:ring-green">
             <p className="text-sm text-muted">{l}</p>
@@ -72,6 +75,8 @@ export default function Vlast() {
 
       <Anchor id="signali" title="Сигнали" lead="Особености в начина на приемане на законите, открити автоматично. Те не доказват нарушение, а показват къде да се прочете внимателно.">
         <div className="grid gap-4 md:grid-cols-3">
+          <SignalList title="Съкратен срок за предложения" items={cut} why="Мнозинството гласува по-кратък срок за промени между четенията." />
+          <SignalList title="Обявен конфликт на интереси" items={coi} why="Депутати са заявили в комисията, че имат потенциален конфликт на интереси." />
           <SignalList title="Двете четения в един ден" items={sameDay} why="Няма време за предложения и обсъждане между четенията." />
           <SignalList title="Под 7 дни между четенията" items={fast} why="По-малко време да се видят и оспорят промените." />
           <SignalList title="Нови текстове в заключителните разпоредби" items={trans} why="Там често се променят други закони, без обществено обсъждане." />
