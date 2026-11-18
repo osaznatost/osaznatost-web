@@ -7,8 +7,18 @@ jobs:
     steps:
       - run: |
           curl -sS -m 30 https://app.eop.bg/today/598364 -o i.html
-          for js in $(grep -oE 'src="[^"]+\.js"' i.html | sed 's/src="//;s/"//'); do curl -sS -m 60 "https://app.eop.bg/$js" -o "b_$(basename $js)"; done
-          ls -la b_*
-          cat b_*.js | grep -oE '"[^"]{0,40}(api|Api|API)[^"]{0,80}"' | sort -u | head -80
-          cat b_*.js | grep -oE '(https?:)?//[a-z0-9.-]+eop\.bg[^"'"'"' ]{0,60}' | sort -u | head -30
-          cat b_*.js | grep -oE '"/?(tenders?|public|documents?|procedures?)/[^"]{0,80}"' | sort -u | head -60
+          R=$(grep -oE 'runtime\.[a-f0-9]+\.js' i.html | head -1); curl -sS https://app.eop.bg/$R -o rt.js
+          M=$(grep -oE 'main\.[a-f0-9]+\.js' i.html | head -1); curl -sS https://app.eop.bg/$M -o main.js
+          python3 - <<'PY'
+          import re
+          s=open('rt.js').read()
+          # webpack chunk map: {123:"abc123..."}
+          pairs=re.findall(r'(\d+):"([a-f0-9]{16})"',s)
+          print(len(pairs)); open('chunks.txt','w').write('\n'.join(f'{a}.{b}.js' for a,b in pairs))
+          PY
+          mkdir c; for f in $(cat chunks.txt); do curl -sS -m 30 "https://app.eop.bg/$f" -o "c/$f"; done
+          cat main.js c/*.js > all.js; ls c | wc -l
+          grep -oE '"[^"]{0,30}(api/|/api)[^"]{0,90}"' all.js | sort -u | head -60
+          grep -oE '`[^`]{0,40}(api|Api)[^`]{0,100}`' all.js | sort -u | head -60
+          grep -oE '(apiUrl|baseUrl|apiBase|API_URL|serverUrl)[^,;]{0,120}' all.js | sort -u | head -30
+          grep -oE '"[a-zA-Z/{}-]*(document|Document)[a-zA-Z/{}-]*"' all.js | sort -u | head -50
