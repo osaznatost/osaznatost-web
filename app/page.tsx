@@ -43,19 +43,19 @@ export default function Home() {
   return (
     <Page>
       <section className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen bg-deep text-white -mt-8 sm:-mt-12">
-        <div className="mx-auto max-w-[88rem] px-4 sm:px-6 pt-10 sm:pt-14 pb-12 grid gap-10 lg:grid-cols-[1fr_1.15fr] items-start">
+        <div className="mx-auto max-w-[88rem] px-4 sm:px-6 pt-8 sm:pt-14 pb-10 sm:pb-12 grid gap-8 sm:gap-10 lg:grid-cols-[1fr_1.15fr] items-start">
           <div>
-            <h1 className="display text-[3.6rem] sm:text-[5.2rem]">
-              Какво прави държавата.<br />С числа и<br className="sm:hidden" /> източници.
+            <h1 className="display text-[2.9rem] sm:text-[5.2rem]">
+              Какво прави държавата.<br />С числа и източници.
             </h1>
-            <p className="mt-6 text-lg text-white/80 max-w-md">
+            <p className="mt-4 sm:mt-6 text-[17px] sm:text-lg text-white/80 max-w-md">
               Гласувания, бюджет, дълг и цени, проследени до първоизточника. Ние показваме данните, а изводите правите вие.
             </p>
-            <form action="/tarsene" className="mt-8 flex gap-2 max-w-md">
+            <form action="/tarsene" className="mt-6 sm:mt-8 flex gap-2 max-w-md">
               <input name="q" placeholder="напр. асфалт Ботевград 2024" className="flex-1 rounded-md px-4 py-3 text-ink bg-white text-[16px]" />
               <button className="bg-red hover:bg-red-dark text-white font-semibold px-4 rounded-md">Търси</button>
             </form>
-            <div className="mt-4 flex flex-wrap gap-3">
+            <div className="mt-4 hidden sm:flex flex-wrap gap-3">
               <Link href="/parlament" className="no-underline bg-red hover:bg-red-dark text-white hover:text-white font-semibold px-5 py-3 rounded-md">Вижте гласуванията</Link>
               <Link href="/kalkulatori" className="no-underline ring-1 ring-white/40 hover:ring-white text-white hover:text-white px-5 py-3 rounded-md">Калкулатори</Link>
             </div>
@@ -73,7 +73,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className={`grid grid-cols-2 gap-3 sm:gap-5 ${b ? "lg:grid-cols-4" : "lg:grid-cols-3"} mt-10 mb-16`}>
+      <section className={`grid grid-cols-2 gap-3 sm:gap-5 ${b ? "lg:grid-cols-4" : "lg:grid-cols-3"} mt-8 sm:mt-10 mb-12 sm:mb-16`}>
         <KeyNumber
           label="Държавен дълг, 2025"
           value={`${num(d25.value)}%`}
@@ -108,12 +108,12 @@ export default function Home() {
 
       <section className="mb-14">
         <SectionTitle right={<Link href="/kalkulatori">Всички</Link>}>Калкулатори</SectionTitle>
-        <ul className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <ul className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {calcs.map((c) => (
             <li key={c.href}>
-              <Link href={c.href} className="group block h-full no-underline rounded-lg p-5 bg-white ring-1 ring-rule hover:ring-green hover:bg-surface">
-                <span className="display block text-[1.7rem] text-ink group-hover:text-green">{c.t}</span>
-                <span className="block text-muted text-[15px] mt-2">{c.d}</span>
+              <Link href={c.href} className="group block h-full no-underline rounded-lg p-4 sm:p-5 bg-white ring-1 ring-rule hover:ring-green hover:bg-surface">
+                <span className="display block text-[1.4rem] sm:text-[1.7rem] leading-tight text-ink group-hover:text-green">{c.t}</span>
+                <span className="hidden sm:block text-muted text-[15px] mt-2">{c.d}</span>
               </Link>
             </li>
           ))}

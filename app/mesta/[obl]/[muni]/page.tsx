@@ -48,7 +48,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
       <SectionNav items={[["pari", "Пари"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ["porachki", "Поръчки"], ["izbori", "Избори"]]} />
-      <div id="pari" className="scroll-mt-20" />
+      <div id="pari" className="scroll-mt-32 lg:scroll-mt-20" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Дълг на общината</p><p className="display text-[2.2rem]">{mn(fin?.debt)}</p><p className="text-xs text-muted">{fin?.arrears ? `просрочени задължения: ${mn(fin.arrears)}` : "без просрочени задължения"}</p></div>
@@ -58,7 +58,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
 
 
       {C && (
-        <section id="hora" className="mb-12 scroll-mt-20">
+        <section id="hora" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>Хората</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Преброяване 2021 г. (НСИ). Сравнение с областта и страната.</p>
           <div className="grid gap-6 lg:grid-cols-3">
@@ -98,7 +98,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       )}
 
       {P?.map && (
-        <section id="naseleni" className="mb-12 scroll-mt-20">
+        <section id="naseleni" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>Населените места</SectionTitle>
           <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><SettlementMap geo={P.map} names={names} /></div>
           <p className="text-sm text-muted mt-2">Землищата на {m.settlements.length} населени места. В тъмно са градовете.</p>
@@ -159,7 +159,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       )}
 
       {el && (
-        <section id="izbori" className="mb-12 scroll-mt-20">
+        <section id="izbori" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>Как гласува на 19 април 2026 г.</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4">Избирателна активност: {el.turnout ? `${fmt(el.turnout, 1)}%` : "–"} ({el.voted.toLocaleString("bg-BG")} от {el.reg.toLocaleString("bg-BG")}).</p>
           <ul className="space-y-2 max-w-3xl">{el.lists.map((l) => (

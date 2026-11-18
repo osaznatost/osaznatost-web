@@ -169,7 +169,7 @@ export default function Struktura() {
         <p className="text-[15px] mt-3 max-w-3xl">През {y} г. заплатите са {f1(pct(val("gdp_income", "D1", y), gdp))}% от БВП, а печалбите и доходите на самонаетите {f1(pct(val("gdp_income", "B2A3G", y), gdp))}%. За сравнение, през {first} г. заплатите са {f1(pct(val("gdp_income", "D1", first), val("gdp_income", "B1GQ", first)))}%.</p>
       </section>
 
-      <section id="sabitiya" className="mb-14 scroll-mt-24">
+      <section id="sabitiya" className="mb-14 scroll-mt-32 lg:scroll-mt-24">
         <SectionTitle>Решения и събития</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Средният реален растеж за трите години преди и трите години след всяко събитие. Съвпадението във времето не доказва причина: в същите години действат и много други фактори, например световната икономика.</p>
         <ol className="space-y-3">

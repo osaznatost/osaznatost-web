@@ -27,7 +27,7 @@ export default async function Programa({ params }: { params: Promise<{ code: str
       <Title back={{ href: "/ikonomika/evrosredstva", label: "Европейски средства" }} kicker={`${PERIOD[p.period] ?? p.period} · ${FUND_NAME[p.fund] ?? p.fund}`}
         lead={<>Код на програмата: {p.code}. Данни от регистъра ИСУН към {FUNDS.updated}.</>}>{p.name}</Title>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[
           ["Договорени", mn(p.contracted), `${p.contracts.toLocaleString("bg-BG")} договора`],
           ["Изплатени", mn(p.paid), `${fmt(p.pct, 0)}% от договореното`],

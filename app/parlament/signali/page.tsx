@@ -30,7 +30,7 @@ export default function Signali() {
       </section>
       <section className="grid gap-4 sm:grid-cols-3 mb-10">
         {[["Гласувания с нови текстове на второ четене", sig.length], ["От тях в преходните и заключителните разпоредби", trans.length], ["Приети", sig.filter((x) => x.v.outcome !== "rejected").length]].map(([l, n]) => (
-          <div key={l as string} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{n}</p></div>
+          <div key={l as string} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{n}</p></div>
         ))}
       </section>
       <section className="mb-10 max-w-3xl">

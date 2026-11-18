@@ -141,7 +141,7 @@ export default function Byudzhet() {
         Държавният бюджет {B.year}
       </Title>
 
-      {is2026 && <><section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      {is2026 && <><section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6">
         {[
           ["Всички разходи на държавата", "56,8 млрд. €", "консолидирана програма: централен бюджет, НОИ, Здравна каса, общини"],
           ["Всички приходи", "49,6 млрд. €", "данъци, осигуровки, еврофондове"],

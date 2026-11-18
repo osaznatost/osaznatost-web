@@ -84,7 +84,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         <p className="text-xs text-muted mt-3">Флагът е повод за въпрос, не доказателство за нарушение. Някои рискове (например фирма, създадена малко преди търга, или съвпадащи адреси на участниците) още не се проверяват, защото данните не са публични в машинно четим вид.</p>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[
           ["Прогнозна стойност", fmtEur(c.estimated_value_eur), "колкото възложителят е очаквал"],
           ["Договорена стойност", fmtEur(c.contract_value_eur), c.contract_currency === "BGN" ? `договорен в лева: ${c.contract_value?.toLocaleString("bg-BG")} лв.` : c.lot ? `обособена позиция ${c.lot}` : ""],
@@ -93,7 +93,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         ].map(([l, v, n]) => (
           <div key={l} className="bg-surface rounded-sm p-4">
             <p className="text-sm text-muted">{l}</p>
-            <p className={`display num text-[2.4rem] mt-1 ${l === "Оферти" && c.offers_count === 1 ? "text-red" : ""}`}>{v}</p>
+            <p className={`display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words ${l === "Оферти" && c.offers_count === 1 ? "text-red" : ""}`}>{v}</p>
             {n && <p className="text-sm">{n}</p>}
           </div>
         ))}
@@ -186,7 +186,7 @@ function AnnexOnly({ annexes }: { annexes: Awaited<ReturnType<typeof annexesByRe
           ["Стойност преди анексите", fmtEur(first.last_value_eur)],
           ["Стойност сега", fmtEur(a.current_value_eur)],
           ["Промяна", first.last_value_eur && a.current_value_eur ? `${a.current_value_eur >= first.last_value_eur ? "+" : ""}${Math.round((a.current_value_eur / first.last_value_eur - 1) * 100)}%` : "—"],
-        ].map(([l, v]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p></div>)}
+        ].map(([l, v]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p></div>)}
       </section>
       <div className="bg-surface p-4 rounded-sm max-w-3xl mb-8 text-[15px]">
         Договорът е сключен преди 1 януари 2025 г. и обявлението за него още не е в нашата база (внасяме историята постепенно). Затова тук няма брой оферти и процедура, а само анексите.

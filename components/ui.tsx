@@ -41,7 +41,7 @@ export function KeyNumber({
       <p className="text-sm sm:text-[15px] text-muted">{label}</p>
       <p className="display num text-[2rem] sm:text-[3.4rem] leading-none mt-2 break-words text-ink">{value}</p>
       {note && <p className="text-sm sm:text-[15px] mt-2">{note}</p>}
-      <div className="mt-auto pt-3 flex flex-wrap justify-between gap-2 text-sm">
+      <div className="mt-auto pt-3 flex flex-wrap justify-between gap-x-2 gap-y-1 text-xs sm:text-sm">
         {source && <span className="text-muted">Източник: <a href={source.url} target="_blank" rel="noreferrer">{source.title}</a></span>}
         {href && <Link href={href} className="font-semibold">Виж повече</Link>}
       </div>

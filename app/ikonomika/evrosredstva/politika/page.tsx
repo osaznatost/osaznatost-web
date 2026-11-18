@@ -27,10 +27,10 @@ export default function Politika() {
           ["Депутати с връзка", String(byMp.size), "настоящи и бивши, по Търговския регистър и декларациите"],
           ["Бенефициенти", String(new Set(FUNDS.mpConnected.map((x) => x.eik)).size), "фирми, общински дружества, организации"],
           ["С лично участие", String(mps.filter((m) => m.personal).length), "депутатът има дял или е собственик на частна фирма"],
-        ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
+        ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
       </section>
 
-      <section id="sluchai" className="mb-14 scroll-mt-24">
+      <section id="sluchai" className="mb-14 scroll-mt-32 lg:scroll-mt-24">
         <SectionTitle>Случаи, разкрити от журналисти</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-2 max-w-3xl">Мярка „{C.measure.name}“ ({C.measure.fund}): два кръга, общо около 1,15 млрд. лв. за батерии за съхранение на ток. Мярката е под внимание, защото много от одобрените фирми водят до политици, бивши министри и известни бизнесмени. Официалният списък на одобрените е на <a href={C.measure.officialList} target="_blank" rel="noreferrer">сайта на Министерството на енергетиката</a>.</p>
         <p className="text-[15px] text-muted mb-4 max-w-3xl">Всеки случай е проверен срещу регистъра ИСУН: сумата, описана в медията, съвпада със сумата в регистъра. Това потвърждава, че фирмата е получила договор. Дали има нарушение, решават контролните органи и съдът.</p>

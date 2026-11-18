@@ -108,7 +108,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         </p>
       )}
 
-      <section id="izbirateli" className="mb-14 scroll-mt-20">
+      <section id="izbirateli" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Къде са избирателите</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Делът на листата от гласовете за партии във всяка община. Посочи община, за да видиш числата.</p>
         <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><VoteMap shares={shares} color={p.color} label={p.list} /></div>
@@ -124,7 +124,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         </details>
       </section>
 
-      <section id="profil" className="mb-14 scroll-mt-20">
+      <section id="profil" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Кой гласува за тях</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-5 max-w-3xl">Каква част от избирателите на листата е във всяка група, сравнено с всички гласували. {EXIT.note}</p>
         <div className="grid gap-6 md:grid-cols-2">
@@ -153,7 +153,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
       </section>
 
       {keyLaws.length > 0 && (
-        <section id="zakoni" className="mb-14 scroll-mt-20">
+        <section id="zakoni" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>Как гласува по ключовите закони</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Позицията на мнозинството в групата при първо гласуване (принципно съгласие) и при последното гласуване по закона. Сравни с това, което партията заявява за себе си: {p.about}</p>
           <div className="overflow-x-auto"><table className="w-full text-[15px]">
@@ -169,7 +169,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         </section>
       )}
 
-      <section id="temi" className="mb-14 scroll-mt-20">
+      <section id="temi" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Как гласува по теми</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Позицията на мнозинството в групата при всички {n(ALLV.length)} поименни гласувания в {"52-рото"} Народно събрание, по вид. „Разделени“: няма ясно мнозинство в групата.</p>
         <div className="overflow-x-auto"><table className="w-full text-[15px] num">
@@ -179,7 +179,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         <p className="text-[15px] mt-4 max-w-3xl">При ясна позиция „за“ или „против“ групата е била от губещата страна в <b>{decided ? Math.round((lost / decided) * 100) : 0}%</b> от гласуванията ({n(lost)} от {n(decided)}). Висок дял означава опозиция, нисък — управляващи или съюзници на мнозинството.</p>
       </section>
 
-      <section id="saiuznici" className="mb-14 scroll-mt-20">
+      <section id="saiuznici" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>С кого гласува</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Колко често позицията на групата съвпада с позицията на всяка друга група (когато и двете имат ясна позиция). Това показва реалните съюзи в залата, независимо какво се говори.</p>
         <ul className="space-y-2 max-w-2xl">{allies.map((a) => { const pm = partyByGroup(a.g); return (
@@ -187,7 +187,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
             <div className="h-2 rounded-full bg-surface mt-1"><div className="h-full rounded-full" style={{ width: `${a.v * 100}%`, background: pm?.color ?? "#888" }} /></div></li>); })}</ul>
       </section>
 
-      <section id="signali" className="mb-14 scroll-mt-20">
+      <section id="signali" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Дела и санкции</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Само случаи с официален документ или медии, които го цитират: обвинение, съдебно дело, присъда или чужди санкции. Обвиненият се смята за невинен до влизане в сила на присъда.</p>
         {caseList.length + sanctioned.length + mpCases.length === 0 ? <p className="text-[15px]">Няма записани случаи за хора от тази група. Списъкът се попълва само с източници.</p> : (
@@ -198,7 +198,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
           </ul>)}
         <p className="text-xs text-muted mt-3">Пълен списък: <Link href="/proverki/sankcii">Санкции, обвинения и присъди</Link>.</p>
       </section>
-      <section id="subsidiya" className="mb-14 scroll-mt-20">
+      <section id="subsidiya" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Държавна субсидия</SectionTitle>
         <div className="grid gap-4 md:grid-cols-3 mb-4">
           <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><p className="text-sm text-muted">По старата ставка ({fmt(SUBSIDY.before, 2)} € на глас)</p><p className="display text-[2rem]">{eur(list.votes * SUBSIDY.before)}</p><p className="text-xs text-muted">годишно, до 30 април 2026 г.</p></div>
@@ -214,7 +214,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         <p className="text-xs text-muted mt-3">Източници: {SUBSIDY.sources.map((s, i) => <span key={s.url}>{i > 0 && "; "}<a href={s.url} target="_blank" rel="noreferrer">{s.title}</a></span>)}. Сметката е брой гласове × ставката.</p>
       </section>
 
-      <section id="deputati" className="mb-6 scroll-mt-20">
+      <section id="deputati" className="mb-6 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Депутатите ({mps.length})</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Присъствие на поименните гласувания и колко пъти всеки е гласувал различно от мнозинството в групата си. Подредени от най-рядко присъстващите.</p>
         <div className="overflow-x-auto"><table className="w-full text-[15px] num">

@@ -65,14 +65,14 @@ export default function PokupatelnaSila() {
         Какво купува минималната заплата
       </Title>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-12">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-12">
         {[
           ["Минимална заплата в България", eur(bg), wPeriod ? `бруто, ${wPeriod.replace("-S1", ", първо полугодие").replace("-S2", ", второ полугодие")}` : ""],
           ["В Румъния", eur(ro), bg && ro ? `${Math.round(((ro - bg) / bg) * 100)}% повече в евро` : ""],
           ["Храна в България спрямо ЕС", hasPli && pli("BG", "A010101") ? `${Math.round(pli("BG", "A010101")!)}%` : "–", "от средната европейска цена"],
           ["Храна в Румъния спрямо ЕС", hasPli && pli("RO", "A010101") ? `${Math.round(pli("RO", "A010101")!)}%` : "–", "от средната европейска цена"],
         ].map(([l, v, n]) => (
-          <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>
+          <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p><p className="text-xs text-muted">{n}</p></div>
         ))}
       </section>
 

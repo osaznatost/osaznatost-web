@@ -74,16 +74,31 @@ export default function Ceni() {
       </Anchor>
 
       <Anchor id="veregi" title="Кои вериги са по-евтини" lead="Средно с колко процента типичната цена във веригата е над или под типичната за страната, по стоките, които веригата продава (поне 20 от 85; само търговци с поне 5 обекта). Сравнението е грубо: веригите продават различни марки и разфасовки.">
-        <div className="overflow-x-auto"><table className="w-full text-[15px] num">
-          <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Търговец</th><th className="text-right px-2">Спрямо страната</th><th className="text-right px-2">Стоки</th><th className="text-right px-2">Обекти</th></tr></thead>
-          <tbody>{chainIdx.map((x) => <tr key={x.ch} className="border-b border-rule"><td className="py-1.5 pr-3">{x.ch}</td><td className={`text-right px-2 font-semibold ${x.idx < 0 ? "text-green" : "text-red"}`}>{pc(x.idx)}</td><td className="text-right px-2">{x.items}</td><td className="text-right px-2">{x.stores.toLocaleString("bg-BG")}</td></tr>)}</tbody>
-        </table></div>
+        {(() => {
+          const table = (rows: typeof chainIdx) => (
+            <table className="w-full text-[15px] num">
+              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Търговец</th><th className="text-right px-2 font-normal">Спрямо страната</th><th className="text-right px-2 font-normal">Обекти</th></tr></thead>
+              <tbody>{rows.map((x) => <tr key={x.ch} className="border-b border-rule"><td className="py-1.5 pr-3">{x.ch}<span className="block sm:inline sm:ml-2 text-xs text-muted">{x.items} стоки</span></td><td className={`text-right px-2 font-semibold ${x.idx < 0 ? "text-green" : "text-red"}`}>{pc(x.idx)}</td><td className="text-right px-2">{x.stores.toLocaleString("bg-BG")}</td></tr>)}</tbody>
+            </table>
+          );
+          const big = chainIdx.filter((x) => x.stores >= 20), small = chainIdx.filter((x) => x.stores < 20);
+          return (
+            <>
+              <p className="text-sm font-semibold mb-1">Големите вериги (20+ обекта)</p>
+              {table(big)}
+              {small.length > 0 && (
+                <details className="mt-3">
+                  <summary className="cursor-pointer font-semibold text-green py-1">По-малки вериги и магазини ({small.length})</summary>
+                  {table(small)}
+                </details>
+              )}
+            </>
+          );
+        })()}
       </Anchor>
 
       <Anchor id="oblasti" title="По области" lead="С колко процента основните стоки от кошницата са средно по-скъпи или по-евтини в областта спрямо цялата страна.">
-        <div className="overflow-x-auto"><table className="w-full text-[15px] num">
-          <tbody>{oblastIdx.map((x) => <tr key={x.o} className="border-b border-rule"><td className="py-1.5 pr-3">{x.o}</td><td className={`text-right px-2 font-semibold ${x.idx < 0 ? "text-green" : "text-red"}`}>{pc(x.idx)}</td></tr>)}</tbody>
-        </table></div>
+        <ol className="columns-2 lg:columns-3 gap-8 text-[15px] num">{oblastIdx.map((x) => <li key={x.o} className="flex justify-between gap-2 border-b border-rule py-1.5 break-inside-avoid"><span className="truncate">{x.o}</span><span className={`font-semibold ${x.idx < 0 ? "text-green" : "text-red"}`}>{pc(x.idx)}</span></li>)}</ol>
       </Anchor>
 
       <Anchor id="mesta" title="Най-евтини и най-скъпи населени места" lead="Само населени места с данни за поне 10 стоки от кошницата. Броят и видът на магазините влияят: където има само малки обекти, цените обикновено са по-високи.">

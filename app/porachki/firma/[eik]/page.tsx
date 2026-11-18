@@ -64,15 +64,15 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         </a>
       )}
       <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ["plateno", "Платено"], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
-      <div id="obobshtenie" className="scroll-mt-20" />
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <div id="obobshtenie" className="scroll-mt-32 lg:scroll-mt-20" />
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[
           ["Договори", String(s?.contracts ?? contracts.length)],
           ["Обща стойност", fmtEur(s?.total_eur)],
           ["Възложители", String(s?.buyers ?? byBuyer.size)],
           ["С една оферта", String(s?.single_offer ?? 0)],
         ].map(([l, v]) => (
-          <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p></div>
+          <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p></div>
         ))}
       </section>
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
@@ -118,11 +118,11 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         </Anchor>
       )}
 
-      <section id="aneksi" className="mb-10 scroll-mt-20">
+      <section id="aneksi" className="mb-10 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Анекси{annexSum > 0 && <span className="text-xl text-muted font-normal"> (+{fmtEur(annexSum)})</span>}</SectionTitle>
         <AnnexList items={annexes.slice(0, 20)} />
       </section>
-      <section id="dogovori" className="scroll-mt-20">
+      <section id="dogovori" className="scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle right={<a href={`/rss/firma/${eik}`}>Абонамент (RSS)</a>}>Договори</SectionTitle>
         <ContractList items={contracts} hideSupplier />
       </section>

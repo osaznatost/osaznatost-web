@@ -48,7 +48,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
       </div>
 
       {secs.length > 0 && (
-        <section id="ikonomika" className="mb-12 scroll-mt-20">
+        <section id="ikonomika" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>С какво се изкарва прехраната</SectionTitle>
           <ul className="space-y-2 max-w-3xl">{secs.map((x) => (
             <li key={x.code} className="text-[15px]"><div className="flex justify-between"><span>{x.name}</span><span className="num">{fmt(x.share, 1)}%</span></div>
@@ -59,7 +59,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
       )}
 
       {lists.length > 0 && (
-        <section id="izbori" className="mb-12 scroll-mt-20">
+        <section id="izbori" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>Как гласува на 19 април 2026 г.</SectionTitle>
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{lists.map((l) => (
             <li key={l.name} className="ring-1 ring-rule rounded-sm p-3 bg-white flex justify-between items-center"><Link href={`/parlament/partiya/${l.slug}`} className="inline-flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ background: l.color }} />{l.name}</Link><span className="num font-semibold">{fmt((l.votes / aggTot) * 100, 1)}%</span></li>
@@ -68,10 +68,10 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
       )}
 
       {OC && (
-        <section id="hora" className="mb-12 scroll-mt-20">
+        <section id="hora" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
           <SectionTitle>Хората</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Преброяване 2021 г. (НСИ), спрямо страната.</p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6">
             {[
               ["Деца до 14 г.", share(OC.age.age0_14, OC.population), share(BG.age.age0_14, BG.population)],
               ["Над 65 г.", share(OC.age.age65plus, OC.population), share(BG.age.age65plus, BG.population)],
@@ -105,7 +105,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
         </section>
       )}
 
-      <section id="obshtini" className="mb-12 scroll-mt-20">
+      <section id="obshtini" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Общините</SectionTitle>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">

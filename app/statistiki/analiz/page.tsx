@@ -13,7 +13,7 @@ function Section({ id, title, lead, children, sources, takeaway }: {
   id: string; title: string; lead?: string; children: React.ReactNode; sources: string[]; takeaway?: React.ReactNode;
 }) {
   return (
-    <section id={id} className="mb-16 scroll-mt-24">
+    <section id={id} className="mb-16 scroll-mt-32 lg:scroll-mt-24">
       <h2 className="display text-[2.2rem] leading-none mb-2">{title}</h2>
       {lead && <p className="text-[16px] text-muted max-w-3xl mb-4">{lead}</p>}
       {takeaway && <div className="bg-surface rounded-sm p-4 mb-5 max-w-3xl text-[16px]">{takeaway}</div>}

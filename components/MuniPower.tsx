@@ -137,7 +137,7 @@ export function MuniPower({ code }: { code: string }) {
     <>
       {!L ? <p className="text-[15px] bg-surface rounded-sm p-4 mb-10">Още нямаме данни за ръководството на тази община.</p> : (
         <>
-          <section id="rakovodstvo" className="mb-12 scroll-mt-24">
+          <section id="rakovodstvo" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
             <SectionTitle>Ръководство</SectionTitle>
             <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">{lead.map((x) => (
               <li key={x.slug} className={`ring-1 rounded-sm p-4 bg-white ${x.decl?.stakes.length ? "ring-[#e08a2e]" : "ring-rule"}`}>
@@ -148,13 +148,13 @@ export function MuniPower({ code }: { code: string }) {
             ))}</ul>
           </section>
 
-          <section id="konflikt" className="mb-12 scroll-mt-24">
+          <section id="konflikt" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
             <SectionTitle>Конфликт на интереси: дялове във фирми срещу поръчките на общината</SectionTitle>
             <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Сравняваме фирмите, в които кметът, заместниците, главният архитект и съветниците (или съпрузите им) декларират дялове, с фирмите, спечелили поръчки от общината, училищата, болниците и общинските дружества. Не виждаме роднини извън семейството и фирми, притежавани чрез посредници.</p>
             <Suspense fallback={<p className="text-muted">Проверка…</p>}><Conflicts code={code} officials={L.officials} /></Suspense>
           </section>
 
-          <section id="savetnici" className="mb-12 scroll-mt-24">
+          <section id="savetnici" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
             <SectionTitle>Общински съветници ({council.length})</SectionTitle>
             <div className="overflow-x-auto">
               <table className="w-full text-[15px]">
@@ -173,7 +173,7 @@ export function MuniPower({ code }: { code: string }) {
             <p className="text-xs text-muted mt-2">Листата и преференциите са от местните избори на 29 октомври 2023 г. Доходът е облагаемият доход на лицето от годишната декларация.</p>
           </section>
 
-          <section id="resheniya" className="mb-12 scroll-mt-24">
+          <section id="resheniya" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
             <SectionTitle>Решения на общинския съвет</SectionTitle>
             {!res ? (
               <p className="text-[15px] bg-surface rounded-sm p-4 max-w-3xl">За тази община още не четем протоколите на съвета. Засега ги имаме за {Object.values(LOCAL_INDEX.munis).filter((x) => x.resolutions).length} общини. Протоколите на общината се публикуват на сайта на общинския съвет, обикновено като PDF.</p>

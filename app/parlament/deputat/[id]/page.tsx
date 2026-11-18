@@ -89,7 +89,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       )}
       <SectionNav items={[["bio", "Биография"], ...((sanc || cases.length) ? [["korupciya", "Разследвания и съд"] as [string, string]] : []), ["pari", "Фирми и пари"], ["glasuvaniya", "Гласувания"], ["ds", "Държавна сигурност"], ["proverki", "Проверени твърдения"]]} />
 
-      <div id="bio" className="grid gap-6 lg:grid-cols-2 mb-12 scroll-mt-20">
+      <div id="bio" className="grid gap-6 lg:grid-cols-2 mb-12 scroll-mt-32 lg:scroll-mt-20">
         <section className="ring-1 ring-rule rounded-sm p-5 bg-white">
           <h2 className="font-semibold text-lg mb-3">Биография</h2>
           <dl className="grid grid-cols-[9rem_1fr] gap-x-3 gap-y-1.5 text-[15px]">
@@ -139,7 +139,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         </section>
       )}
 
-      <div id="korupciya" className="scroll-mt-20" />
+      <div id="korupciya" className="scroll-mt-32 lg:scroll-mt-20" />
       {cases.length > 0 && (
         <section className="mb-12">
           <SectionTitle>Разследвания, обвинения и присъди</SectionTitle>
@@ -169,7 +169,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         {firmsOfPerson(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
       </Anchor>
 
-      <section id="ds" className="mb-12 scroll-mt-20">
+      <section id="ds" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Държавна сигурност</SectionTitle>
         {ds.status === "declared" ? (
           <div className="ring-2 ring-[#e2b33b] rounded-sm p-4 bg-[#fffaf0] max-w-3xl">

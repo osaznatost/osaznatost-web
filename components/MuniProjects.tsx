@@ -35,10 +35,10 @@ export async function MuniProjects({ code }: { code: string }) {
   for (const c of cs) c.supplier_eiks.forEach((e, i) => { const x = top.get(e) ?? { name: c.supplier_names[i] ?? e, n: 0, v: 0 }; x.n++; x.v += (c.contract_value_eur ?? 0) / c.supplier_eiks.length; top.set(e, x); });
   return (
     <>
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-8">
         {[["Договори от 11.2023", cs.length.toLocaleString("bg-BG"), "на общината, училищата, градините и дружествата ѝ"], ["Обща стойност", fmtEur(total), "по договорите, без анексите"],
           ["С една оферта", `${Math.round((single / cs.length) * 100)}%`, `${single} договора без реална конкуренция`], ["Оскъпени с анекси", fmtEur([...annexBy.values()].reduce((s, x) => s + x.plus, 0)), `${annexBy.size} договора с анекси`]]
-          .map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
+          .map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.6rem] sm:text-[2rem] leading-none mt-1 break-words">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
       </section>
       <section className="mb-10 grid gap-6 lg:grid-cols-2">
         <div className="text-[15px]">

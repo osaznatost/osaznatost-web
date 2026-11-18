@@ -11,8 +11,26 @@ export function PolDot({ eik }: { eik: string }) {
   return null;
 }
 
-export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contract[]; hideBuyer?: boolean; hideSupplier?: boolean }) {
+/** Първите `first` реда се виждат, останалите са под „Покажи още“ — за да не става страницата безкрайна на телефона. */
+function More<T>({ items, first, render, label }: { items: T[]; first: number; render: (x: T[]) => React.ReactNode; label: string }) {
+  if (items.length <= first + 3) return <>{render(items)}</>;
+  return (
+    <>
+      {render(items.slice(0, first))}
+      <details className="mt-1">
+        <summary className="cursor-pointer font-semibold text-green py-2">Покажи още {items.length - first} {label}</summary>
+        {render(items.slice(first))}
+      </details>
+    </>
+  );
+}
+
+export function ContractList({ items, hideBuyer, hideSupplier, first = 15 }: { items: Contract[]; hideBuyer?: boolean; hideSupplier?: boolean; first?: number }) {
   if (!items.length) return <p className="text-muted text-[15px]">Няма договори.</p>;
+  return <More items={items} first={first} label="договора" render={(xs) => <ContractRows items={xs} hideBuyer={hideBuyer} hideSupplier={hideSupplier} />} />;
+}
+
+function ContractRows({ items, hideBuyer, hideSupplier }: { items: Contract[]; hideBuyer?: boolean; hideSupplier?: boolean }) {
   return (
     <ul className="divide-y divide-rule border-y border-rule">
       {items.map((c) => (
@@ -39,8 +57,12 @@ export function ContractList({ items, hideBuyer, hideSupplier }: { items: Contra
   );
 }
 
-export function AnnexList({ items }: { items: Annex[] }) {
+export function AnnexList({ items, first = 8 }: { items: Annex[]; first?: number }) {
   if (!items.length) return <p className="text-muted text-[15px]">Няма анекси.</p>;
+  return <More items={items} first={first} label="анекса" render={(xs) => <AnnexRows items={xs} />} />;
+}
+
+function AnnexRows({ items }: { items: Annex[] }) {
   return (
     <ul className="divide-y divide-rule border-y border-rule">
       {items.map((a) => {

@@ -35,7 +35,7 @@ export default function Sankcii() {
           ["Санкционирани българи", String(P.length), `${active.length} с мерки в сила`],
           ["„Магнитски“ (САЩ)", String(P.filter((p) => p.measures.some((m) => m.regime === "GLOMAG")).length), "замразени активи в САЩ"],
           ["Великобритания", String(P.filter((p) => p.measures.some((m) => m.regime === "UKGAC")).length), "активи и забрана за влизане"],
-        ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.4rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
+        ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
       </section>
 
       <section className="mb-10 max-w-3xl">
@@ -44,7 +44,7 @@ export default function Sankcii() {
         <ul className="text-[15px] space-y-1">{[...byParty.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="flex justify-between border-b border-rule py-1"><span>{k}</span><b className="num">{n}</b></li>)}</ul>
       </section>
 
-      <section id="sankcii" className="mb-12 scroll-mt-24">
+      <section id="sankcii" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
         <SectionTitle>Санкционираните</SectionTitle>
         <ul className="grid gap-4 lg:grid-cols-2">{P.map((p) => (
           <li key={p.name} className="ring-1 ring-rule rounded-sm p-5 bg-white">
@@ -60,7 +60,7 @@ export default function Sankcii() {
         ))}</ul>
       </section>
 
-      <section id="dela" className="mb-12 scroll-mt-24">
+      <section id="dela" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
         <SectionTitle>Обвинения и присъди в България</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Политици и високопоставени лица с обвинения или присъди, само по съобщения на прокуратурата и съдилищата или медии, които ги цитират. Нивото е най-важното: обвинението не е доказателство за вина.</p>
         <ul className="flex flex-wrap gap-3 mb-5 text-sm">{Object.entries(CASES.levels).map(([k, l]) => <li key={k} className="bg-surface rounded-sm px-3 py-2 max-w-xs"><b>{l.label}</b>: {l.about}</li>)}</ul>

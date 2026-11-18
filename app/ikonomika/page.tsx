@@ -14,13 +14,13 @@ const TONE_TEXT: Record<Tone, string> = { good: "text-[#2f7d57]", mid: "text-[#9
 function Gauge({ label, value, unit, eu, tone, why, href }: { label: string; value: string; unit?: string; eu?: string; tone: Tone; why: string; href: string }) {
   return (
     <a href={href} className={`no-underline text-ink block bg-white ring-1 ring-rule rounded-sm p-4 border-t-4 ${TONE[tone]} hover:bg-surface`}>
-      <div className="flex justify-between items-baseline gap-2">
+      <div className="flex flex-wrap justify-between items-baseline gap-x-2">
         <p className="text-sm text-muted">{label}</p>
         <span className={`text-xs font-semibold ${TONE_TEXT[tone]}`}>{TONE_LABEL[tone]}</span>
       </div>
-      <p className="display num text-[2.6rem] leading-none mt-2">{value}<span className="text-lg font-normal text-muted">{unit}</span></p>
+      <p className="display num text-[2rem] sm:text-[2.6rem] leading-none mt-2">{value}<span className="text-lg font-normal text-muted">{unit}</span></p>
       {eu && <p className="text-sm mt-1">ЕС: <b className="num">{eu}</b></p>}
-      <p className="text-sm text-muted mt-2">{why}</p>
+      <p className="hidden sm:block text-sm text-muted mt-2">{why}</p>
     </a>
   );
 }
@@ -37,7 +37,7 @@ function Chart({ title, children, note }: { title: string; children: React.React
 
 function Block({ id, title, lead, children, sources }: { id: string; title: string; lead: React.ReactNode; children: React.ReactNode; sources: string[] }) {
   return (
-    <section id={id} className="mb-16 scroll-mt-24">
+    <section id={id} className="mb-16 scroll-mt-32 lg:scroll-mt-24">
       <SectionTitle>{title}</SectionTitle>
       <div className="text-[16px] max-w-3xl -mt-2 mb-5">{lead}</div>
       {children}
@@ -84,28 +84,8 @@ export default function Ikonomika() {
       <Title lead={`Осем числа, които показват дали икономиката е здрава, с история и сравнение с ЕС. Данните идват от Евростат и се обновяват автоматично (последно на ${formatDate(STATS.updated)}).`}>
         Здравето на икономиката
       </Title>
-      <Link href="/ikonomika/struktura" className="block ring-1 ring-rule rounded-sm p-4 mb-8 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-        <p className="font-semibold text-lg">Анатомия на икономиката →</p>
-        <p className="text-[15px] text-muted">Кои сектори създават стойност, за какво се харчи БВП, колко остава за заплати и колко за печалби, решенията през годините и разликите между областите.</p>
-      </Link>
-      <Link href="/ikonomika/investicii" className="block ring-1 ring-rule rounded-sm p-4 mb-8 -mt-5 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-        <p className="font-semibold text-lg">Чуждестранни инвестиции →</p>
-        <p className="text-[15px] text-muted">Колко са вложили чуждите компании, от кои държави, в кои отрасли и колко печелят от това.</p>
-      </Link>
-      <Link href="/ikonomika/evrosredstva" className="block ring-1 ring-rule rounded-sm p-4 mb-8 -mt-5 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-        <p className="font-semibold text-lg">Европейски средства →</p>
-        <p className="text-[15px] text-muted">83 хиляди договора: фондове, програми, усвояване, общини, бенефициенти и връзки с политици.</p>
-      </Link>
-      <Link href="/ikonomika/potoci" className="block ring-1 ring-rule rounded-sm p-4 mb-8 -mt-5 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-        <p className="font-semibold text-lg">Кръвоносната система →</p>
-        <p className="text-[15px] text-muted">Как се разпределя създаденото, какво влиза и излиза от страната, кое носи печалба и кои държавни фирми губят.</p>
-      </Link>
-      <Link href="/ikonomika/pokupatelna-sila" className="block ring-1 ring-rule rounded-sm p-4 mb-8 -mt-5 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
-        <p className="font-semibold text-lg">Какво купува минималната заплата →</p>
-        <p className="text-[15px] text-muted">Храна, хляб, ток, горива, дрехи: колко реално купуват 620 € в България срещу Румъния, Хърватия, Полша и други.</p>
-      </Link>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6">
         <Gauge label={`Растеж на икономиката, ${g.x}`} value={fmt(g.value)} unit="%" eu={`${fmt(gEu.value)}%`} tone={tone.growth} why="Реален ръст на БВП. Над 2,5% означава, че догонваме ЕС." href="#rastezh" />
         <Gauge label={`Инфлация, ${inf.x}`} value={fmt(inf.value)} unit="%" eu={`${fmt(infEu.value)}%`} tone={tone.inflation} why="Средногодишно поскъпване. Целта на ЕЦБ е 2%." href="#ceni" />
         <Gauge label={`Безработица, ${un.x}`} value={fmt(un.value)} unit="%" eu={`${fmt(unEu.value)}%`} tone={tone.unemployment} why="Дял на търсещите работа от работната сила." href="#trud" />
@@ -115,6 +95,13 @@ export default function Ikonomika() {
         <Gauge label={`БВП на човек, ${pps.x}`} value={fmt(pps.value, 0)} unit=" (ЕС = 100)" tone={tone.pps} why={`По покупателна способност. Преди 10 години: ${fmt(pps10?.value ?? 0, 0)}.`} href="#rastezh" />
         <Gauge label={`Неравенство (Джини), ${gini.x}`} value={fmt(gini.value)} eu={fmt(giniEu.value)} tone={tone.gini} why="0 = всички имат еднакъв доход, 100 = един има всичко." href="#trud" />
       </section>
+      <nav aria-label="Подробно по теми" className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-12">
+        <Link href="/ikonomika/struktura" className="block ring-1 ring-rule rounded-sm p-3 sm:p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green"><span className="font-semibold sm:text-lg leading-snug block">Анатомия на икономиката →</span><span className="hidden sm:block text-sm text-muted mt-1">Кои сектори създават стойност, за какво се харчи БВП, колко остава за заплати и колко за печалби, решенията през годините и разликите между областите.</span></Link>
+        <Link href="/ikonomika/investicii" className="block ring-1 ring-rule rounded-sm p-3 sm:p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green"><span className="font-semibold sm:text-lg leading-snug block">Чуждестранни инвестиции →</span><span className="hidden sm:block text-sm text-muted mt-1">Колко са вложили чуждите компании, от кои държави, в кои отрасли и колко печелят от това.</span></Link>
+        <Link href="/ikonomika/evrosredstva" className="block ring-1 ring-rule rounded-sm p-3 sm:p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green"><span className="font-semibold sm:text-lg leading-snug block">Европейски средства →</span><span className="hidden sm:block text-sm text-muted mt-1">83 хиляди договора: фондове, програми, усвояване, общини, бенефициенти и връзки с политици.</span></Link>
+        <Link href="/ikonomika/potoci" className="block ring-1 ring-rule rounded-sm p-3 sm:p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green"><span className="font-semibold sm:text-lg leading-snug block">Кръвоносната система →</span><span className="hidden sm:block text-sm text-muted mt-1">Как се разпределя създаденото, какво влиза и излиза от страната, кое носи печалба и кои държавни фирми губят.</span></Link>
+        <Link href="/ikonomika/pokupatelna-sila" className="block ring-1 ring-rule rounded-sm p-3 sm:p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green"><span className="font-semibold sm:text-lg leading-snug block">Какво купува минималната заплата →</span><span className="hidden sm:block text-sm text-muted mt-1">Храна, хляб, ток, горива, дрехи: колко реално купуват 620 € в България срещу Румъния, Хърватия, Полша и други.</span></Link>
+      </nav>
       <p className="text-xs text-muted mb-14 max-w-3xl">Оценките „добре / внимание / проблем“ са по прости, обявени прагове: целта за инфлация на ЕЦБ, границите за дълг и дефицит в правилата на ЕС и средното за ЕС за пазара на труда. Те не са мнение за правителство.</p>
 
       <Block id="rastezh" title="Растеж и богатство" sources={["nama_10_gdp", "tec00114"]}

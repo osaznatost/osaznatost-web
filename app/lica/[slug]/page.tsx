@@ -82,7 +82,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
         </section>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[
           ["Доход за " + (d?.fiscalYear ?? "–"), eur(d?.income), d?.incomeSpouse ? `съпруг/а: ${eur(d.incomeSpouse)}` : "облагаем доход по декларация"],
           ["Имоти и МПС", d ? `${d.realEstate} · ${d.vehicles}` : "–", "брой имоти · брой превозни средства"],

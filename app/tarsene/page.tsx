@@ -32,10 +32,10 @@ async function Results({ sp }: { sp: Promise<{ q?: string }> }) {
       <p className="text-[15px] mb-6"><b>Разбрахме:</b> {p.understood.join(" · ") || "–"}.{p.firm && !firmEiks.length ? " Не намерихме изпълнител с такова име; търсим само сред възложителите." : ""}</p>
       {!rows.length ? <p className="text-[15px] bg-surface rounded-sm p-4">Няма договори по тези условия в базата (основно 2022–2026 г.). Опитайте с по-малко думи или друга година.</p> : (
         <>
-          <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+          <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
             {[["Договори", `${rows.length >= 1000 ? "над " : ""}${rows.length.toLocaleString("bg-BG")}`, rows.length >= 1000 ? "показваме първите 1000 по стойност" : "по разбраните условия"], ["Обща стойност", fmtEur(total), "по договорите, без анексите"],
               ["С една оферта", `${Math.round((single / rows.length) * 100)}%`, `${single} договора`], ["Най-голям изпълнител", sup[0] ? `${Math.round((sup[0][1].v / Math.max(1, total)) * 100)}%` : "–", sup[0]?.[1].name ?? ""]]
-              .map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
+              .map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.6rem] sm:text-[2rem] leading-none mt-1 break-words">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
           </section>
           <section className="grid gap-8 lg:grid-cols-3 mb-10">
             <div><SectionTitle>Кой взима</SectionTitle><ul className="space-y-1 text-[15px]">{sup.slice(0, 10).map(([e, x]) => <li key={e} className="flex justify-between gap-2"><Link href={firmUrl(e)}>{x.name}</Link><span className="num whitespace-nowrap text-sm">{fmtEur(x.v)} · {x.n}</span></li>)}</ul></div>

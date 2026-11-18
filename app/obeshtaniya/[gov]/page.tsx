@@ -50,7 +50,7 @@ export default async function Gov({ params }: { params: Promise<{ gov: string }>
       )}
 
       {areas.map((a) => (
-        <section key={a} id={`t-${a}`} className="mb-12 scroll-mt-24">
+        <section key={a} id={`t-${a}`} className="mb-12 scroll-mt-32 lg:scroll-mt-24">
           <SectionTitle>{a}</SectionTitle>
           <ul className="grid gap-4 lg:grid-cols-2">
             {g.promises.map((x, i) => ({ x, i })).filter(({ x }) => x.area === a).map(({ x, i }) => <PromiseCard key={i} x={x} id={`p${i}`} />)}

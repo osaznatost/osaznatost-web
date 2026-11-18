@@ -44,9 +44,9 @@ export default function Risk() {
       <section className="bg-surface rounded-sm p-4 mb-10 max-w-4xl text-[15px]">
         <p><b>Как да се чете.</b> Високият риск (45+ точки) означава, че в договора се срещат няколко признака, които в практиката на ЕС често съпътстват злоупотреби. Това е списък за проверка, не обвинение. Обратното също е вярно: договор без флагове може да е проблемен по причини, които данните не показват. <Link href="/porachki/metodologiya">Методология: как се смята всеки сигнал и кога греши</Link>.</p>
       </section>
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
+      <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[["Висок риск", R.byScore.high, "45+ точки"], ["Среден риск", R.byScore.mid, "20–44 точки"], ["Нисък риск", R.byScore.low, "под 20 точки"], ["Без флагове", R.byScore.none, ""]].map(([l, v, n]) => (
-          <div key={l as string} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2.2rem] mt-1">{(v as number).toLocaleString("bg-BG")}</p><p className="text-xs text-muted">{pc(v as number, R.total)} от договорите {n ? `· ${n}` : ""}</p></div>
+          <div key={l as string} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.6rem] sm:text-[2.2rem] leading-none mt-1 break-words">{(v as number).toLocaleString("bg-BG")}</p><p className="text-xs text-muted">{pc(v as number, R.total)} от договорите {n ? `· ${n}` : ""}</p></div>
         ))}
       </section>
       <section className="mb-12 grid gap-8 lg:grid-cols-2">

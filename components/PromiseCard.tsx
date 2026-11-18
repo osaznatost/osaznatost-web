@@ -6,7 +6,7 @@ const Ext = ({ url, children }: { url: string; children: React.ReactNode }) =>
 
 export function PromiseCard({ x, id }: { x: Promise_; id?: string }) {
   return (
-    <li id={id} className="scroll-mt-24 rounded-xl ring-1 ring-rule bg-white p-5 flex flex-col">
+    <li id={id} className="scroll-mt-32 lg:scroll-mt-24 rounded-xl ring-1 ring-rule bg-white p-5 flex flex-col">
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm text-muted">{x.area}</p>
         <span className="text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap" style={{ background: STATUS[x.status].color, color: STATUS[x.status].text }}>{STATUS[x.status].label}</span>
