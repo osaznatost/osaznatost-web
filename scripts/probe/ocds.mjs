@@ -2,10 +2,8 @@ const key = (d) => { const [y, m, dd] = d.split("-"); return `Автоматич
 const d = "2026-11-10";
 const r = await fetch(`https://storage.eop.bg/open-data-${d}/${encodeURIComponent(key(d))}`);
 const rel = JSON.parse((await r.text()).replace(/^﻿/, "")).releases;
-const tags = {}; for (const x of rel) for (const t of x.tag ?? []) tags[t] = (tags[t] ?? 0) + 1;
-console.log(rel.length, tags);
-const withP = rel.filter((x) => x.tender?.tenderPeriod);
-console.log("with tenderPeriod", withP.length);
-for (const x of withP.slice(0, 3)) console.log(JSON.stringify({ tag: x.tag, date: x.date, id: x.tender.id, ocid: x.ocid, tp: x.tender.tenderPeriod, method: x.tender.procurementMethod, md: x.tender.procurementMethodDetails, val: x.tender.value, amend: x.tender.amendments?.length, docs: x.tender.documents?.length }).slice(0, 700));
-const am = rel.filter((x) => (x.tag ?? []).some((t) => /amend|update/i.test(t)));
-for (const x of am.slice(0, 2)) console.log("AM", JSON.stringify({ tag: x.tag, id: x.tender?.id, tp: x.tender?.tenderPeriod, am: x.tender?.amendments }).slice(0, 700));
+const t = rel.find((x) => x.tag?.includes("tender"));
+const walk = (o, p = "", out = []) => { if (o && typeof o === "object") { for (const [k, v] of Object.entries(o)) walk(v, p ? `${p}.${k}` : k, out); } else out.push(`${p}=${String(o).slice(0, 80)}`); return out; };
+console.log(walk(t).filter((l) => !/parties\.\d+\.(address|contactPoint)/.test(l)).slice(0, 120).join("\n"));
+const a = rel.find((x) => x.tag?.includes("tenderAmendment"));
+console.log("=====AMEND"); console.log(walk(a).slice(0, 80).join("\n"));
