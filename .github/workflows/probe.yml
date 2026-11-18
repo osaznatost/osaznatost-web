@@ -16,7 +16,7 @@ jobs:
           pairs=re.findall(r'(\d+):"([a-f0-9]{16})"',s)
           print(len(pairs)); open('chunks.txt','w').write('\n'.join(f'{a}.{b}.js' for a,b in pairs))
           PY
-          mkdir c; for f in $(cat chunks.txt); do curl -sS -m 30 "https://app.eop.bg/$f" -o "c/$f"; done
+          mkdir c; for f in $(cat chunks.txt); do curl -sS -m 30 --retry 3 "https://app.eop.bg/$f" -o "c/$f" || true; sleep 0.3; done
           cat main.js c/*.js > all.js; ls c | wc -l
           grep -oE '"[^"]{0,30}(api/|/api)[^"]{0,90}"' all.js | sort -u | head -60
           grep -oE '`[^`]{0,40}(api|Api)[^`]{0,100}`' all.js | sort -u | head -60
