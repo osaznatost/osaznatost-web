@@ -123,13 +123,13 @@ function parseVarna(text, url) {
   // Всяка точка от дневния ред: „по точка … ОТНОСНО … Докл.: Име – длъжност … Р Е Ш Е Н И Я: <решения>“.
   for (const item of t.split(/Препис-извлечение!?/).slice(1)) {
     const dk = item.match(/Докл\.?:\s*([^\n–—-]+?)\s*[–—-]\s*([^\n]+)/);
-    const rapporteur = dk ? { name: flat(dk[1]).replace(/^(д-р|инж\.?|арх\.?)\s*/i, ""), role: flat(dk[2]).toLowerCase().replace(/^председател на пк/, "председател на постоянна комисия").slice(0, 80) } : null;
+    const rapporteur = dk ? { name: flat(dk[1]).replace(/^(д-р|инж\.?|арх\.?)\s*/i, ""), role: flat(dk[2]).toLowerCase().replace(/^председател на пк/, "председател на постоянна комисия").replace(/^председател на обс.*/, "председател на общинския съвет").slice(0, 80) } : null;
     const parts = item.split(/\n\s*(\d{2,5})-(\d{1,3})\.\s+/);
     for (let i = 1; i + 2 < parts.length; i += 3) {
       const number = parts[i], chunk = parts[i + 2] ?? "";
       const body = ws(chunk.split(/\n\s*ПРЕДСЕДАТЕЛ|\n\s*Общински съвет – Варна прие/)[0]).replace(/\n\s*\d+\s*\n/g, "\n");
       const by = body.match(/по (?:предложение|докладна записка) (?:на|от)\s+(?:г-н|г-жа)?\s*([^,\n]{3,120}?)(?:\s+с рег|,)/);
-      const op = flat(body).split(/Общински съвет\s*[–-]\s*Варна\s*/)[1] ?? flat(body);
+      const op = (flat(body).split(/Общински съвет\s*[–-]\s*Варна\s*/)[1] ?? flat(body)).replace(/^[,\s]*(?:РЕШИ|реши)\s*:\s*(?:1\.\s*)?/, "");
       const title = (op.length > 240 ? op.slice(0, 240).replace(/\s+\S*$/, "") + " …" : op).replace(/^./, (c) => c.toUpperCase());
       out.push({
         number, date, url, title, session: sm ? sm[1] : "", rapporteur, proposedBy: by ? flat(by[1]).replace(/^Кмета на Община Варна$/i, "кмета на общината") : null, tally: null,
