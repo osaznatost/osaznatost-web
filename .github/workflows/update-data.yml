@@ -30,6 +30,8 @@ jobs:
           node scripts/import-mps.mjs
           node scripts/import-mp-history.mjs
           node scripts/fix-groups.mjs
+      - name: Държавен бюджет (последният приет закон и изпълнението му)
+        run: node scripts/import-budget.mjs
       - name: Европейски средства
         run: node scripts/import-funds.mjs
       - name: Решения на общински съвети от сайтовете им (Ботевград)

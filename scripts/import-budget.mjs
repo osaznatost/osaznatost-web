@@ -1,10 +1,13 @@
-// Държавен бюджет: закон 2026 (приходи, разходи, трансфери, министерства) и изпълнение досега.
+// Държавен бюджет: последният приет закон (годината се избира сама) (приходи, разходи, трансфери, министерства) и изпълнение досега.
 // Източник: Министерство на финансите, обработено от „Наясно“ (MIT).
 import { writeFileSync } from "node:fs";
 const R = "https://raw.githubusercontent.com/atanasster/electionsbg/main/data/budget";
-const get = async (f) => (await fetch(`${R}/${f}`)).json();
-const [law, admin, frame] = await Promise.all([get("derived/law_framework.json"), get("derived/admin_flow.json"), get("derived/fy2026_frame.json")]);
-const Y = "2026";
+const get = async (f) => { const r = await fetch(`${R}/${f}`); return r.ok ? r.json() : null; };
+const [law, admin] = await Promise.all([get("derived/law_framework.json"), get("derived/admin_flow.json")]);
+// Най-новата година, за която има и закон, и разпределение по министерства. Когато излезе
+// бюджет 2027, страницата минава на него сама; предишните години остават за сравнение.
+const Y = Object.keys(law).filter((y) => law[y]?.revenue && admin.fiscalYears[y]?.ministries?.length).sort().at(-1);
+const frame = (await get(`derived/fy${Y}_frame.json`)) ?? { throughMonth: null, revenue: null, expenditure: null };
 const eur = (n) => n?.amount?.amountEur ?? null;
 const lines = (node) => (node?.lines ?? []).map((l) => ({ code: l.code, label: l.labelBg, eur: eur(l), lines: lines(l) }));
 const a = admin.fiscalYears[Y];
@@ -32,5 +35,5 @@ const out = {
     ministries: Object.fromEntries((admin.fiscalYears[y]?.ministries ?? []).map((m) => [m.nameBg, m.plannedEur])),
   }])),
 };
-writeFileSync("data/budget-2026.json", JSON.stringify(out));
-console.log("приходи", out.revenue.total, "разходи", out.expenditure.total, "трансфери", out.transfers.totalEur, "салдо", out.balance, "министерства", out.ministries.length);
+writeFileSync("data/budget.json", JSON.stringify(out));
+console.log("година", Y, "приходи", out.revenue.total, "разходи", out.expenditure.total, "трансфери", out.transfers.totalEur, "салдо", out.balance, "министерства", out.ministries.length);

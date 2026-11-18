@@ -2,6 +2,7 @@ import Link from "next/link";
 import { KeyNumber, Page, num, SectionTitle } from "@/components/ui";
 import { NS, VOTES, formatDate } from "@/lib/parliament";
 import { VoteBoard } from "@/components/parliament";
+import { HomeFeed } from "@/components/HomeFeed";
 import { CPI_GROUPS, CPI_MONTHLY, DEBT_GDP, DEBT_GDP_SOURCE, P } from "@/lib/params";
 
 const calcs = [
@@ -92,26 +93,7 @@ export default function Home() {
         </ul>
       </section>
 
-      <section className="grid gap-10 md:grid-cols-2">
-        <div>
-          <SectionTitle>Първа проверка</SectionTitle>
-          <p className="text-lg font-semibold">Дългът: два поста, противоположни изводи</p>
-          <p className="text-muted mt-2">
-            Два поста за един и същи бюджет с противоположни изводи. Разделихме ги на отделни твърдения и проверяваме всяко срещу данните на МФ и Евростат.
-          </p>
-          <p className="mt-3"><Link href="/proverki/dalg-2026">Прочетете проверката</Link></p>
-        </div>
-        <div>
-          <SectionTitle>Парламент</SectionTitle>
-          <p className="text-muted mb-3">Всички поименни гласувания на 52-рото Народно събрание: кой как гласува, колко присъстват групите и с кого гласуват еднакво.</p>
-          <p className="mb-8"><Link href="/parlament">Вижте гласуванията</Link></p>
-          <SectionTitle>Скоро</SectionTitle>
-          <ul className="space-y-2 text-muted">
-                                    <li><span className="text-ink font-semibold">Поръчки</span>: кой печели обществените пари и кой стои зад фирмата</li>
-            <li><span className="text-ink font-semibold">Статистики</span>: всичко за България, с история и сравнение с ЕС</li>
-          </ul>
-        </div>
-      </section>
+      <HomeFeed />
     </Page>
   );
 }

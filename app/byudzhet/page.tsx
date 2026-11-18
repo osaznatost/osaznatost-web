@@ -3,11 +3,11 @@ import { LawAnalysis } from "@/components/LawAnalysis";
 import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
 import { TallyBar } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import raw from "@/data/budget-2026.json";
+import raw from "@/data/budget.json";
 import { getLaw } from "@/lib/laws";
 import { PARTIES, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
-export const metadata = { title: "Държавният бюджет 2026" };
+export const metadata = { title: `Държавният бюджет ${(raw as { year: number }).year}` };
 
 type Line = { code: string; label: string; eur: number | null; lines: Line[] };
 type TLine = { code: string; depth: number; labelBg: string; plannedEur: number };
@@ -15,7 +15,7 @@ const B = raw as unknown as {
   source: string; year: number; revenue: { total: number; lines: Line[] }; expenditure: { total: number; lines: Line[] };
   euContribution: number; transfers: { lines: TLine[]; totalEur: number }; balance: number;
   ministries: { name: string; planned: number }[];
-  execution: { throughMonth: number; revenue: { ytdEur: number; annualisedEur: number; lowEur: number; highEur: number }; expenditure: { ytdEur: number; annualisedEur: number; lowEur: number; highEur: number } };
+  execution: { throughMonth: number | null; revenue: { ytdEur: number; annualisedEur: number; lowEur: number; highEur: number }; expenditure: { ytdEur: number; annualisedEur: number; lowEur: number; highEur: number } };
   history: { year: number; revenue: number; expenditure: number; transfers: number | null; balance: number | null }[];
   prev: Record<string, { revenue: Record<string, number | null>; expenditure: Record<string, number | null>; transfers: Record<string, number>; ministries: Record<string, number> }>;
 };
@@ -131,15 +131,17 @@ export default function Byudzhet() {
   ].sort((a, b) => b.value - a.value);
 
   const ex = B.execution;
-  const law = getLaw("darzhavniya-byudzhet-na-republika-balgariya-za-2026-g");
+  const LAW_SLUG = `darzhavniya-byudzhet-na-republika-balgariya-za-${B.year}-g`;
+  const law = getLaw(LAW_SLUG);
+  const is2026 = B.year === 2026; // редакционният текст (гласувания, дефицит, дълг) е писан за бюджет 2026
 
   return (
     <Page>
-      <Title lead="Откъде идват парите на държавата, къде отиват, кой ги гласува и какво се очаква. Числата са от закона, приет на 24 юли 2026 г., и от отчетите за изпълнението му.">
-        Държавният бюджет 2026
+      <Title lead={`Откъде идват парите на държавата, къде отиват, кой ги гласува и какво се очаква. Числата са от закона${is2026 ? ", приет на 24 юли 2026 г.," : ` за ${B.year} г.`} и от отчетите за изпълнението му. Годините от ${B.history[0]?.year} насам са за сравнение по-долу.`}>
+        Държавният бюджет {B.year}
       </Title>
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      {is2026 && <><section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         {[
           ["Всички разходи на държавата", "56,8 млрд. €", "консолидирана програма: централен бюджет, НОИ, Здравна каса, общини"],
           ["Всички приходи", "49,6 млрд. €", "данъци, осигуровки, еврофондове"],
@@ -153,7 +155,7 @@ export default function Byudzhet() {
           </div>
         ))}
       </section>
-      <p className="text-xs text-muted mb-12">Обобщените числа са по закона и анализите, цитирани по-долу (източници [2], [3] и [4]). Разбивката под тях е за централния бюджет, по данни на Министерството на финансите.</p>
+      <p className="text-xs text-muted mb-12">Обобщените числа са по закона и анализите, цитирани по-долу (източници [2], [3] и [4]). Разбивката под тях е за централния бюджет, по данни на Министерството на финансите.</p></>}
 
       <section className="mb-14">
         <SectionTitle>Откъде идват и къде отиват парите</SectionTitle>
@@ -202,7 +204,7 @@ export default function Byudzhet() {
         <p className="text-xs text-muted">{B.source}. Редовете се сравняват по код в закона; когато класификацията се промени, старата година показва „–“.</p>
       </section>
 
-      <section className="mb-14">
+      {ex.throughMonth ? <section className="mb-14">
         <SectionTitle>Как се изпълнява досега</SectionTitle>
         <div className="grid gap-4 md:grid-cols-2">
           {[
@@ -212,23 +214,25 @@ export default function Byudzhet() {
             const x = e as typeof ex.revenue, p = plan as number;
             return (
               <div key={l as string} className="ring-1 ring-rule rounded-sm p-4">
-                <p className="font-semibold">{l as string}, януари–{MONTHS[ex.throughMonth]}</p>
+                <p className="font-semibold">{l as string}, януари–{MONTHS[ex.throughMonth ?? 0]}</p>
                 <p className="display num text-[2.4rem] leading-none mt-2">{bn(x.ytdEur)}</p>
                 <p className="text-[15px] mt-2">При обичайния ритъм това значи около <b>{bn(x.annualisedEur, 1)}</b> за цялата година (между {bn(x.lowEur, 1)} и {bn(x.highEur, 1)}).{l === "Приходи" && <> Планът е {bn(p, 1)}: {x.annualisedEur < p ? <span className="text-red font-semibold">очаква се недостиг от около {bn(p - x.annualisedEur, 1)}</span> : "приходите вървят по план"}.</>}</p>
               </div>
             );
           })}
         </div>
-        <p className="text-xs text-muted mt-2">Оценката за цялата година е по дела, който първите {ex.throughMonth} месеца обичайно имат в годината (2022–2025). {B.source}.</p>
-      </section>
+        <p className="text-xs text-muted mt-2">Оценката за цялата година е по дела, който първите {ex.throughMonth} месеца обичайно имат в годината ({B.year - 4}–{B.year - 1}). {B.source}.</p>
+      </section> : <p className="text-[15px] bg-surface rounded-sm p-4 mb-14 max-w-3xl">Отчетите за изпълнението на бюджета за {B.year} г. ще се появят тук след първия месечен отчет на Министерството на финансите.</p>}
 
       <section className="mb-14">
         <SectionTitle>Кой гласува бюджета</SectionTitle>
+        {is2026 ? (<>
         <div className="grid gap-4 lg:grid-cols-2">
           <VoteCard id="2026-07-15-13" label="Първо четене, 15 юли 2026 г." />
           <VoteCard id="2026-07-24-14" label="Второ четене, член 1 (приходите и разходите), 24 юли 2026 г." />
         </div>
-        <p className="text-[15px] mt-3 max-w-3xl">На първо четене бюджетът мина с гласовете на „Прогресивна България“ и ДПС. На второ четене основният член мина само с гласовете на „Прогресивна България“, а ДПС гласува против. Проектът на съдебната власт, внесен отделно от ВСС, беше отхвърлен без нито един глас „за“. <Link href="/parlament/zakon/darzhavniya-byudzhet-na-republika-balgariya-za-2026-g">Всички гласувания по бюджета</Link>.</p>
+        <p className="text-[15px] mt-3 max-w-3xl">На първо четене бюджетът мина с гласовете на „Прогресивна България“ и ДПС. На второ четене основният член мина само с гласовете на „Прогресивна България“, а ДПС гласува против. Проектът на съдебната власт, внесен отделно от ВСС, беше отхвърлен без нито един глас „за“. <Link href={`/parlament/zakon/${LAW_SLUG}`}>Всички гласувания по бюджета</Link>.</p>
+        </>) : <p className="text-[15px] max-w-3xl">Гласуванията по бюджета за {B.year} г. са в <Link href={`/parlament/zakon/${LAW_SLUG}`}>страницата на закона</Link> и в <Link href="/parlament">парламента</Link>.</p>}
       </section>
 
       {law && (

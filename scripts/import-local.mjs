@@ -26,7 +26,7 @@ function ownResolutions(code, officials) {
   return C.decisions.map((d) => {
     const w = d.rapporteur ? who(d.rapporteur.name) : null;
     return {
-      id: `${code}-${d.date}-${d.number}`, date: d.date, session: "", number: d.number, title: d.title, tags: d.tags, url: d.url, result: d.result, tally: d.tally, votes: [],
+      id: `${code}-${d.date}-${d.number}`, date: d.date, session: "", number: d.number, title: d.title, tags: d.tags, url: d.url, result: d.tally && d.tally.for * 2 <= d.tally.for + d.tally.against + d.tally.abstain ? "rejected" : d.result, tally: d.tally, votes: [],
       text: d.text, rapporteur: d.rapporteur ? { name: w?.name ?? d.rapporteur.name.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()), role: d.rapporteur.role, slug: w?.slug ?? null } : null,
     };
   });
