@@ -219,13 +219,13 @@ function parseWpPost(html, url, S) {
   }];
 }
 async function wordpress(code, S, prev) {
-  let added = 0;
+  let added = 0, ended = false; // ended: стигнахме края на списъка или решения отпреди мандата
   for (let p = 1; p < 400; p++) {
     if (timeUp() || blocked) break;
     const list = await get(S.wpList(p), false, 2);
     if (!list) break;
     const links = [...new Set([...list.matchAll(S.wpPost)].map((m) => m[1]))];
-    if (!links.length) break;
+    if (!links.length) { ended = true; break; }
     let fresh = 0, old = 0;
     for (const u of links) {
       if (timeUp() || blocked) break;
@@ -239,10 +239,11 @@ async function wordpress(code, S, prev) {
     }
     // Списъкът е от най-новите към най-старите: при пълно обхождане спираме, щом стигнем до решения отпреди мандата
     // или до страница без нищо ново (когато вече сме прочели всичко веднъж).
-    if (old > 0 || (fresh === 0 && prev.complete)) break;
+    if (old > 0) { ended = true; break; }
+    if (fresh === 0 && prev.complete) break;
     if (p > 1 && fresh === 0 && !prev.complete) continue;
   }
-  if (!timeUp() && !blocked) prev.complete = true;
+  if (ended) prev.complete = true;
   return added;
 }
 
