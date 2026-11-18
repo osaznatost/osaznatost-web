@@ -6,15 +6,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for u in https://botevgrad.bg/obs/reshenia https://botevgrad.bg/obs/obsavet ; do
-            echo "=== $u"; curl -sSL -A "Mozilla/5.0" -m 30 "$u" -o p.html -w "%{http_code}\n"
-            python3 - <<'PY'
+          curl -sSL -A "Mozilla/5.0" -m 30 https://botevgrad.bg/obs/reshenie/resheniya-na-obs-ot-2026g-3311 -o p.html
+          python3 - <<'PY'
           import re,html
           s=open('p.html',encoding='utf-8',errors='ignore').read()
-          i=s.find('<main'); i= i if i>0 else s.find('content')
-          t=re.sub(r'<script.*?</script>|<style.*?</style>','',s[i:],flags=re.S)
-          for m in re.finditer(r'<a [^>]*href="([^"]+)"[^>]*>(.*?)</a>',t,re.S):
-              txt=re.sub(r'<[^>]+>|\s+',' ',m.group(2)).strip()
-              if txt or 'files' in m.group(1): print(m.group(1),'|',html.unescape(txt)[:90])
+          i=s.find('Виж всички'); i=s.find('</nav>') 
+          k=s.find('resheniya-na-obs-ot-2026')
+          body=s[s.find('<h1'):] if '<h1' in s else s
+          t=re.sub(r'<script.*?</script>|<style.*?</style>','',body,flags=re.S)
+          print(re.sub(r'\n\s*\n+','\n',re.sub(r'<(?!a |/a)[^>]+>','',t))[:6000])
           PY
-          done 2>&1 | head -150
+          F=$(grep -oE 'https?://botevgrad.bg/data/obsavet/files/[0-9]+\.pdf' p.html | head -1); echo "PDF $F"
+          curl -sSL -m 60 "$F" -o d.pdf && sudo apt-get install -qq -y poppler-utils >/dev/null 2>&1; pdftotext -layout d.pdf - | head -120
