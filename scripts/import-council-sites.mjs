@@ -88,7 +88,7 @@ function parseSofia(text, url) {
   if (!nm || !dm) return [];
   const number = nm[1].replace(/\s/g, ""), date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
   const afterDate = t.slice(t.indexOf(dm[0]) + dm[0].length);
-  const title = flat(afterDate.split(/\n\s*(?:На основание|Мотиви|С Т О Л И Ч Н И Я Т|СТОЛИЧНИЯТ ОБЩИНСКИ)/)[0]).replace(/^За\s+/, "").replace(/^./, (c) => c.toUpperCase());
+  const title = flat(afterDate.split(/\n\s*(?:На основание|Мотиви|С Т О Л И Ч Н И Я Т|СТОЛИЧНИЯТ ОБЩИНСКИ)/)[0]).replace(/^(?:[А-ЯA-Z]\s+)?За\s+/, "").replace(/^./, (c) => c.toUpperCase());
   const rest = afterDate.split(/Р\s*Е\s*Ш\s*И\s*:/)[1] ?? "";
   const body = ws(rest.split(/\n\s*(?:Настоящото решение е прието|Решението е прието|ПРЕДСЕДАТЕЛ НА СТОЛИЧНИЯ|Приложени[ея]:?\s*\n)/)[0]);
   const pm = t.match(/Протокол\s*№\s*(\d+)[^\n]{0,40}?(?:т\.|точка)\s*(\d+)/);
@@ -140,7 +140,7 @@ for (const [code, S] of Object.entries(SITES)) {
   if (S.numbered) {
     const added = await numbered(code, S, prev);
     const seen = new Map();
-    for (const d of prev.decisions) seen.set(`${d.date.slice(0, 4)}-${d.number}`, d);
+    for (const d of prev.decisions) { d.title = d.title.replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
     writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: "https://council.sofia.bg", updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
