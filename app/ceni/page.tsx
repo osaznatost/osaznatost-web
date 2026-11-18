@@ -43,7 +43,7 @@ export default function Ceni() {
   const chainIdx = Object.keys(L.chains).map((ch) => {
     const rel = cats.filter((c) => c.chains[ch]).map((c) => c.chains[ch].med / c.med);
     return { ch, stores: L.chains[ch], items: rel.length, idx: rel.length ? (rel.reduce((a, b) => a + b, 0) / rel.length - 1) * 100 : 0 };
-  }).filter((x) => x.items >= 20).sort((a, b) => a.idx - b.idx);
+  }).filter((x) => x.items >= 20 && x.stores >= 5).sort((a, b) => a.idx - b.idx);
   const oblastIdx = [...new Set(cats.flatMap((c) => Object.keys(c.oblasts)))].map((o) => {
     const rel = cats.filter((c) => L.basket.includes(c.id) && c.oblasts[o]).map((c) => c.oblasts[o] / c.med);
     return { o, items: rel.length, idx: rel.length ? (rel.reduce((a, b) => a + b, 0) / rel.length - 1) * 100 : 0 };
@@ -73,7 +73,7 @@ export default function Ceni() {
         </div>
       </Anchor>
 
-      <Anchor id="veregi" title="Кои вериги са по-евтини" lead="Средно с колко процента типичната цена във веригата е над или под типичната за страната, по стоките, които веригата продава (поне 20 от 85). Сравнението е грубо: веригите продават различни марки и разфасовки.">
+      <Anchor id="veregi" title="Кои вериги са по-евтини" lead="Средно с колко процента типичната цена във веригата е над или под типичната за страната, по стоките, които веригата продава (поне 20 от 85; само търговци с поне 5 обекта). Сравнението е грубо: веригите продават различни марки и разфасовки.">
         <div className="overflow-x-auto"><table className="w-full text-[15px] num">
           <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Търговец</th><th className="text-right px-2">Спрямо страната</th><th className="text-right px-2">Стоки</th><th className="text-right px-2">Обекти</th></tr></thead>
           <tbody>{chainIdx.map((x) => <tr key={x.ch} className="border-b border-rule"><td className="py-1.5 pr-3">{x.ch}</td><td className={`text-right px-2 font-semibold ${x.idx < 0 ? "text-green" : "text-red"}`}>{pc(x.idx)}</td><td className="text-right px-2">{x.items}</td><td className="text-right px-2">{x.stores.toLocaleString("bg-BG")}</td></tr>)}</tbody>
