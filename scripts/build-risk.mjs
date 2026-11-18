@@ -4,6 +4,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { legalException } from "../lib/legalException.mjs";
 import { politicalStrength } from "../lib/politicalFlag.mjs";
+import { signalFlags, tenderSignal } from "../lib/tenderSignals.mjs";
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 const HEAD = { apikey: KEY };
@@ -29,7 +30,7 @@ async function all(table, select, key = "id") {
     last = rows[rows.length - 1][key];
   }
 }
-const C = await all("proc_contracts", "id,buyer_eik,buyer_name,supplier_eiks,supplier_names,tender_name,contract_number,contract_date,contract_type,procedure_type,offers_count,disqualified_offers_count,estimated_value_eur,contract_value_eur,has_subcontractors,subcontracting_percent");
+const C = await all("proc_contracts", "id,tender_id,buyer_eik,buyer_name,supplier_eiks,supplier_names,tender_name,contract_number,contract_date,contract_type,procedure_type,offers_count,disqualified_offers_count,estimated_value_eur,contract_value_eur,has_subcontractors,subcontracting_percent");
 const A = await all("proc_annexes", "id,buyer_eik,contract_number,value_difference_eur");
 const B = await all("proc_buyers", "eik,municipality,municipality_code,oblast,level", "eik");
 const buyerInfo = new Map(B.map((b) => [b.eik, b]));
@@ -54,6 +55,7 @@ function flags(c) {
   if (ps === 1) f.push(["political_name", 8]);
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push(["sub", 8]);
   if (young(c)) f.push(["new", 15]);
+  for (const [id, w] of signalFlags(tenderSignal(c.tender_id))) f.push([id, w]);
   return f;
 }
 const scored = C.map((c) => { const f = flags(c); return { c, f: f.map((x) => x[0]), s: Math.min(100, f.reduce((a, x) => a + x[1], 0)) }; });

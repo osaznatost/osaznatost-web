@@ -10,7 +10,7 @@ export const metadata = { title: "Риск в обществените поръ�
 const FLAG: Record<string, string> = {
   single: "Само една оферта", direct: "Без открит конкурс", over: "Над прогнозната стойност", exact: "Цена почти равна на прогнозата при един участник",
   annex: "Оскъпяване с анекси над 10%", disq: "Отстранени конкуренти, остава един", threshold: "Цена точно под прага", political: "Изпълнител, свързан с политик", political_name: "Възможна връзка с длъжностно лице (по имена)", sub: "Над 50% подизпълнители",
-  new: "Нова фирма (до година преди договора)", legal: "Законово обяснение (борса, монопол, закон)",
+  new: "Нова фирма (до година преди договора)", legal: "Законово обяснение (борса, монопол, закон)", short: "Кратък срок за оферти", changes: "Чести промени в условията",
 };
 type Agg = { key: string; name: string; n: number; value: number; risky: number; riskyValue: number; single: number; political: number; avg: number; muni?: string; oblast?: string; level?: string };
 
