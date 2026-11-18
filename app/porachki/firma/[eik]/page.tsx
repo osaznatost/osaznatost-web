@@ -8,7 +8,10 @@ import Link from "next/link";
 import { Network, type NetNode } from "@/components/Network";
 import { firmUrl, politicalLinks } from "@/lib/procurement";
 import { sanctionsFor } from "@/lib/sanctions";
-import { mpHref } from "@/lib/funds";
+import { FUNDS, mpHref } from "@/lib/funds";
+import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
+import { Anchor, SectionNav } from "@/components/SectionNav";
+import { contractUrl } from "@/lib/procurement";
 
 export const metadata = { title: "Фирма" };
 
@@ -34,6 +37,17 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
     ...[...partners.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 6).map(([e, p]) => ({ id: `p${e}`, label: p.name, sub: `заедно в ${p.n} дог.`, href: firmUrl(e), group: "partner" as const, weight: p.sum })),
     ...pl.map((l, i) => ({ id: `l${i}`, label: l.who, sub: [l.kind === "mp" ? `депутат${l.party ? `, ${l.party}` : ""}` : l.position, l.roles.join(", ")].filter(Boolean).join(" · "), href: l.kind === "mp" && l.mpId ? mpHref(l.mpId, l.who) : localPage(l.who) ?? undefined, group: (sanctionsFor(l.who) ? "sanction" : "politician") as NetNode["group"] })),
   ];
+  const political = personalLink(eik);
+  const scored = contracts.map((c) => {
+    const ax = annexes.filter((a) => a.buyer_eik === c.buyer_eik && a.contract_number === c.contract_number);
+    const f = contractFlags(c, ax, political);
+    return { c, f, score: riskScore(f) };
+  });
+  const high = scored.filter((x) => x.score >= 45);
+  const eu = FUNDS.mpConnected.filter((x) => x.eik === eik);
+  const serial = FUNDS.integrity.serial.find((x) => x.eik === eik);
+  const years = new Map<string, number>();
+  for (const c of contracts) if (c.contract_date) years.set(c.contract_date.slice(0, 4), (years.get(c.contract_date.slice(0, 4)) ?? 0) + (c.contract_value_eur ?? 0));
   const annexSum = annexes.reduce((x, a) => x + Math.max(0, a.value_difference_eur ?? 0), 0);
 
   return (
@@ -42,6 +56,13 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         lead={s ? `Печелила е ${s.contracts} договора от ${fmtDate(s.first_date)} до ${fmtDate(s.last_date)}.` : undefined}>
         {name}
       </Title>
+      {(pl.length > 0 || high.length > 0) && (
+        <a href={pl.length ? "#vrazki" : "#risk"} className="block ring-2 ring-red rounded-sm p-4 mb-6 bg-white no-underline text-ink max-w-4xl">
+          <b>{[pl.length > 0 && `Свързана с ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
+        </a>
+      )}
+      <SectionNav items={[["obobshtenie", "Обобщение"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
+      <div id="obobshtenie" className="scroll-mt-20" />
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[
           ["Договори", String(s?.contracts ?? contracts.length)],
@@ -54,7 +75,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
       </section>
       {net.length > 1 && (
         <section className="mb-10">
-          <SectionTitle>Мрежа от връзки</SectionTitle>
+          <SectionTitle>Мрежа от връзки</SectionTitle><span id="vrazki" className="block -mt-24 pt-24" />
           <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">С кои възложители работи фирмата, с кои фирми участва в обединения и кои политици или длъжностни лица са свързани с нея (Търговски регистър и декларации). Кликни върху възел за подробности.</p>
           <div className="ring-1 ring-rule rounded-sm p-4 bg-white"><Network center={name} nodes={net} /></div>
         </section>
@@ -68,11 +89,32 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           </ul>
         </div>
       </section>
-      <section className="mb-10">
+      <Anchor id="risk" title="Рискови договори" lead={<>Договорите на фирмата с най-много червени флагове. Сигнал е повод за въпрос, не доказателство. <Link href="/porachki/metodologiya">Как се смята</Link>.</>}>
+        {high.length ? (
+          <ul className="divide-y divide-rule border-y border-rule text-[15px]">{[...scored].sort((a, b) => b.score - a.score || (b.c.contract_value_eur ?? 0) - (a.c.contract_value_eur ?? 0)).slice(0, 15).map(({ c, f, score }) => (
+            <li key={c.id} className="py-2 grid grid-cols-[2.6rem_1fr_auto] gap-3">
+              <span className={`text-xs font-semibold px-1.5 py-1 rounded-full text-center h-fit ${score >= 45 ? "bg-red text-white" : "bg-surface"}`}>{score}</span>
+              <span><Link href={contractUrl(c.id)}>{c.tender_name.slice(0, 160)}</Link><span className="block text-sm text-muted">{fmtDate(c.contract_date)} · {c.buyer_name} · {f.map((x) => x.label.toLowerCase()).join(", ")}</span></span>
+              <span className="num">{fmtEur(c.contract_value_eur)}</span>
+            </li>
+          ))}</ul>
+        ) : <p className="text-[15px]">Няма договори с висок риск.</p>}
+        {years.size > 1 && <p className="text-sm text-muted mt-3">По години: {[...years.entries()].sort().map(([y, v]) => `${y}: ${fmtEur(v)}`).join(" · ")}.</p>}
+      </Anchor>
+
+      {(eu.length > 0 || serial) && (
+        <Anchor id="evro" title="Евросредства">
+          {serial && <p className="text-[15px] mb-2">Бенефициент по <b>{serial.programmes}</b> европейски програми за общо <b>{fmtEur(serial.total)}</b>{serial.top.length ? `: ${serial.top.map((t) => `${t.name} (${fmtEur(t.eur)})`).join("; ")}` : ""}.</p>}
+          {eu.map((x) => <p key={x.mpId + x.eik} className="text-[15px]">Свързана с <Link href={mpHref(x.mpId, x.mp)}>{x.mp}</Link>: {x.contracts} договора по европейски програми, договорени {fmtEur(x.contracted)}, изплатени {fmtEur(x.paid)}.</p>)}
+          <p className="text-xs text-muted mt-2">Източник: ИСУН, обработено от „Наясно“.</p>
+        </Anchor>
+      )}
+
+      <section id="aneksi" className="mb-10 scroll-mt-20">
         <SectionTitle>Анекси{annexSum > 0 && <span className="text-xl text-muted font-normal"> (+{fmtEur(annexSum)})</span>}</SectionTitle>
         <AnnexList items={annexes.slice(0, 20)} />
       </section>
-      <section>
+      <section id="dogovori" className="scroll-mt-20">
         <SectionTitle>Договори</SectionTitle>
         <ContractList items={contracts} hideSupplier />
       </section>

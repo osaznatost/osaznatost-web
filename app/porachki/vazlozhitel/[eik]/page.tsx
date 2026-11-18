@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
+import { placeHref } from "@/lib/regions";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur, politicalLinks } from "@/lib/procurement";
 import { contractFlags, personalLink, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
@@ -38,7 +39,8 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   return (
     <>
       <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`Възложител · ЕИК ${eik}`}
-        lead={<>{contracts[0]?.buyer_type}{place?.municipality_code && <> · <Link href={`/porachki?oblast=${encodeURIComponent(place.oblast ?? "")}&obshtina=${place.municipality_code}`}>{place.settlement ? `${place.settlement}, ` : ""}община {place.municipality}</Link></>}{place?.level && ` · ${place.level}`}</>}>{name}</Title>
+        lead={<>{contracts[0]?.buyer_type}{place?.municipality_code && <> · {place.ekatte ? <Link href={placeHref.settlement(place.municipality_code, place.ekatte)}>{place.settlement}</Link> : null}{place.ekatte ? ", " : ""}<Link href={placeHref.muni(place.municipality_code)}>община {place.municipality}</Link></>}{place?.level && ` · ${place.level}`}</>}>{name}</Title>
+      {/^община\s/i.test(name) && place?.municipality_code && <Link href={placeHref.muni(place.municipality_code)} className="block ring-1 ring-rule rounded-sm p-4 mb-8 bg-white no-underline text-ink hover:ring-2 hover:ring-green max-w-4xl"><b>Всичко за {name.toLowerCase().replace(/^община/, "общината")} на едно място →</b> <span className="text-muted">хората, парите, кой управлява, проектите и решенията на съвета.</span></Link>}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-10">
         {[
           ["Договори в базата", String(contracts.length)],

@@ -5,4 +5,8 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Временна проба; съдържанието се сменя при нужда"
+      - run: |
+          for b in https://naiasno.bg https://electionsbg.com https://www.electionsbg.com; do
+            curl -sS -m 40 "$b/api/db/company?eik=200852966" -o c.json -w "$b %{http_code} %{content_type} %{size_download}\n"
+            head -c 1500 c.json; echo; echo ----
+          done
