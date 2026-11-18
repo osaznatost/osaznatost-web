@@ -5,8 +5,14 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          q() { curl -sS -m 60 -X POST https://api.ted.europa.eu/v3/notices/search -H 'Content-Type: application/json' -d "$1" | head -c 3500; echo; echo -----; }
-          q '{"query":"buyer-country=BGR AND notice-type=can-standard AND publication-date>=20200101 AND publication-date<20220101","fields":["publication-number","publication-date","notice-title","buyer-name","winner-name","total-value","tender-value","organisation-identifier-buyer","winner-identifier","classification-cpv","procedure-type","received-submissions-type-val"],"limit":2,"page":1}'
-          q '{"query":"buyer-country=BGR AND notice-type=can-standard AND publication-date>=20200101 AND publication-date<20220101","fields":["publication-number","notice-title","buyer-name","winner-name","total-value"],"limit":2,"page":1}'
-          q '{"query":"buyer-country=BGR AND publication-date>=20200101 AND publication-date<20220101","fields":["publication-number","notice-type","form-type"],"limit":3,"page":1}'
+      - env:
+          U: ${{ secrets.SUPABASE_URL }}
+          K: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          for t in proc_contracts proc_annexes proc_buyers proc_import_state; do
+            n=$(curl -sS -I "$U/rest/v1/$t?select=*&limit=1" -H "apikey: $K" -H "Authorization: Bearer $K" -H "Prefer: count=exact" | grep -i content-range | sed 's/.*\///')
+            s=$(curl -sS "$U/rest/v1/$t?select=*&limit=2000&offset=50000" -H "apikey: $K" -H "Authorization: Bearer $K" | wc -c)
+            echo "$t rows=$n sample2000_bytes=$s"
+          done
+          # опит за размера на базата (ако има такава функция)
+          curl -sS -X POST "$U/rest/v1/rpc/db_size" -H "apikey: $K" -H "Authorization: Bearer $K" -H "Content-Type: application/json" -d '{}' | head -c 300; echo
