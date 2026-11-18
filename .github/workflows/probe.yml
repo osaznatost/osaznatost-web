@@ -7,9 +7,20 @@ jobs:
     steps:
       - run: |
           A="Mozilla/5.0 (osaznatost.bg)"
-          for u in https://www.plovdiv.bg/item/obshtinski-savet/ https://www.plovdiv.bg/obshtinski-savet/ https://obs.plovdiv.bg/ https://www.plovdiv.bg/category/obshtinski-savet/resheniya/ https://www.varna.bg/bg/obs https://www.varna.bg/bg/129 https://varna.bg/bg/1222 https://www.varnacouncil.bg/ https://obs.varna.bg/ https://www.ruse-bg.eu/bg/pages/159/index.html https://obs.ruse-bg.eu/ https://www.starazagora.bg/bg/obshtinski-savet https://obs.starazagora.bg/ https://www.pleven.bg/bg/obshtinski-savet https://obs.pleven.bg/; do
-            code=$(curl -sSL -m 40 -A "$A" -o p.html -w "%{http_code} %{url_effective}" "$u" || echo fail)
-            echo "== $u -> $code $(wc -c <p.html 2>/dev/null)"
-            grep -oiE 'href="[^"]*(reshen|решен|protokol|протокол|obs|council)[^"]*"' p.html 2>/dev/null | sort -u | head -15
+          for b in https://obs.ruse-bg.eu https://varnacouncil.bg; do
+            echo "##### $b"
+            curl -sSL -m 40 -A "$A" "$b/wp-json/wp/v2/categories?per_page=100" | python3 -c 'import sys,json
+          try:
+            for c in json.load(sys.stdin): print(c["id"],c["count"],c["slug"][:60],c["name"])
+          except Exception as e: print("ERR",e)'
             sleep 2
           done
+          echo "##### ruse posts in решения"
+          RC=$(curl -sSL -m 40 -A "$A" "https://obs.ruse-bg.eu/wp-json/wp/v2/categories?search=%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F" | python3 -c 'import sys,json;print(json.load(sys.stdin)[0]["id"])')
+          curl -sSL -m 60 -A "$A" -D h.txt "https://obs.ruse-bg.eu/wp-json/wp/v2/posts?categories=$RC&per_page=3" -o p.json; grep -i "x-wp-total" h.txt
+          python3 -c 'import json;d=json.load(open("p.json"))
+          for p in d: print(p["date"],p["link"]); print(p["title"]["rendered"][:200]); print(p["content"]["rendered"][:2500]); print("----")'
+          echo "##### stara zagora"
+          curl -sSL -m 40 -A "$A" "https://www.starazagora.bg/bg/arhiv-resheniya" -o sz.html; grep -oE 'href="[^"]*"' sz.html | grep -iE "resh|pdf|doc|protok" | sort -u | head -30
+          echo "##### varna arhiv"
+          curl -sSL -m 40 -A "$A" "https://varnacouncil.bg/arhiv/" -o va.html; grep -oE 'href="[^"]*"' va.html | grep -iE "resh|pdf|doc|protok|reshen" | sort -u | head -30
