@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 URL, KEY = os.environ["SUPABASE_URL"], os.environ["SUPABASE_SECRET_KEY"]
 YEARS = [int(y) for y in os.environ.get("YEARS", "2020,2021").split(",")]
 MAX = int(os.environ.get("MAX_PACKAGES", "120"))
-STATE = "data/ted-state.json"
+STATE = "scripts/ted-state.json"  # в scripts/, за да не публикува сайта при всяко пускане
 BGN = 1.95583
 H = {"apikey": KEY, "Authorization": f"Bearer {KEY}", "Content-Type": "application/json"}
 
@@ -96,7 +96,7 @@ def parse(xml_bytes):
         item = ac.get("ITEM") or str(len(rows) + 1)
         rows.append({
             "id": f"ted|{pub}|{item}", "notice_id": int(year) * 1000000 + int(no), "published_at": date_pub, "unp": f"TED {pub}",
-            "tender_id": int(year) * 1000000 + int(no), "tender_name": (text(ac, "TITLE") and title and f"{title}: {text(ac, 'TITLE')}") or title or text(ac, "TITLE"),
+            "tender_id": int(year) * 1000000 + int(no), "tender_name": (f"{title}: {text(ac, 'TITLE')}" if title and text(ac, "TITLE") and text(ac, "TITLE").rstrip(".") != title.rstrip(".") else (title or text(ac, "TITLE"))),
             "procedure_type": ptype, "legal_basis": "TED (обявление в Официалния вестник на ЕС)", "cpv": cpv, "contract_type": ctype,
             "estimated_value": est_v, "currency": est_c, "estimated_value_eur": eur(est_v, est_c),
             "buyer_eik": eik(text(cb, "NATIONALID")), "buyer_name": text(cb, "OFFICIALNAME"),

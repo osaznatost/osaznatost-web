@@ -5,11 +5,4 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          DRY: "1"
-          YEARS: "2020"
-          MAX_PACKAGES: "3"
-        run: python3 scripts/import-ted.py
+      - run: echo "Временна проба; съдържанието се сменя при нужда"

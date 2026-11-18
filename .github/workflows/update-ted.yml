@@ -1,0 +1,41 @@
+name: TED 2020–2021
+
+# Внася поръчките от европейската база TED за годините, които липсват в ЦАИС ЕОП.
+# Всяко пускане обработва до MAX_PACKAGES дневни пакета; пуска се ръчно, докато не стигне края.
+on:
+  workflow_dispatch:
+    inputs:
+      years:
+        default: "2020,2021"
+      max_packages:
+        default: "130"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ted
+  cancel-in-progress: false
+
+jobs:
+  ted:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Внос от TED
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          YEARS: ${{ inputs.years }}
+          MAX_PACKAGES: ${{ inputs.max_packages }}
+        run: python3 scripts/import-ted.py
+      - name: Запис на напредъка
+        run: |
+          git add scripts/ted-state.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "TED: напредък на вноса"
+          git pull --rebase
+          git push
