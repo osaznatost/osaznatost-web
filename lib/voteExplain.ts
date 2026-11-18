@@ -27,7 +27,10 @@ export function lawFromTitle(title: string): { name: string; slug: string } | un
   name = name.replace(/\s+(първо|второ)\s+гласуване.*$/i, "").trim();
   const slug = translit(name.toLowerCase().replace(/^закон за\s+/, ""))
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/^-|-$/g, "")
+    // едно и също име, изписано различно в заглавията
+    .replace(/^danaka-varhu/, "danak-varhu").replace(/-z-(\d{4}-g)$/, "-za-$1");
+  name = name.replace(/^Закон за данъка върху добавената/, "Закон за данък върху добавената").replace(/ з (\d{4} г\.)$/, " за $1");
   return { name, slug };
 }
 

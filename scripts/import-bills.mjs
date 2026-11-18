@@ -118,7 +118,7 @@ for (const [id] of todo) {
   const stanAll = ["stan_list", "stan_list2_1", "stan_list_veto"].flatMap((k) => (b[k] ?? []).map((r) => ({ ...r, k })));
   for (const r of stanAll.filter((r) => !seen.has(r.A_Cm_Stanid) && seen.add(r.A_Cm_Stanid)).slice(0, 5)) {
     const j = await api(`com-stan/${r.A_ns_C_id}/${r.A_Cm_Stanid}`);
-    out.reports.push({ date: r.A_Cm_Stan_date, committee: r.A_ns_CL_value, stage: r.L_Act_St_name, title: r.A_Cm_Stan_sub, text: await docText(j, 9000) });
+    out.reports.push({ date: r.A_Cm_Stan_date, committee: r.A_ns_CL_value, stage: r.L_Act_St_name, title: r.A_Cm_Stan_sub, text: await docText(j, r.L_Act_St_name === "първо гласуване" ? 20000 : 9000) });
   }
   for (const r of (b.standp_list ?? []).slice(0, 12)) {
     const j = await api(`com-stan/${r.A_ns_C_id}/${r.A_Cm_Stanid}`);
