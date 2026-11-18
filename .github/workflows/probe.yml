@@ -6,12 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1 || true
-          for u in r-266-2025 r-1-2024 r-5-2024 r-900-2024 r-128-2026 r-500-2026 r-700-2026 r-1-2023; do
-            code=$(curl -sSL -m 60 -A "Mozilla/5.0 (osaznatost.bg)" -o "$u.pdf" -w "%{http_code} %{content_type} %{size_download}" "https://council.sofia.bg/documents/d/guest/$u" || echo fail)
-            echo "== $u $code"
+          A="Mozilla/5.0 (osaznatost.bg)"
+          for u in https://www.plovdiv.bg/item/obshtinski-savet/ https://www.plovdiv.bg/obshtinski-savet/ https://obs.plovdiv.bg/ https://www.plovdiv.bg/category/obshtinski-savet/resheniya/ https://www.varna.bg/bg/obs https://www.varna.bg/bg/129 https://varna.bg/bg/1222 https://www.varnacouncil.bg/ https://obs.varna.bg/ https://www.ruse-bg.eu/bg/pages/159/index.html https://obs.ruse-bg.eu/ https://www.starazagora.bg/bg/obshtinski-savet https://obs.starazagora.bg/ https://www.pleven.bg/bg/obshtinski-savet https://obs.pleven.bg/; do
+            code=$(curl -sSL -m 40 -A "$A" -o p.html -w "%{http_code} %{url_effective}" "$u" || echo fail)
+            echo "== $u -> $code $(wc -c <p.html 2>/dev/null)"
+            grep -oiE 'href="[^"]*(reshen|решен|protokol|протокол|obs|council)[^"]*"' p.html 2>/dev/null | sort -u | head -15
             sleep 2
           done
-          pdftotext -layout r-128-2026.pdf - | head -80
-          echo ======; pdftotext -layout r-5-2024.pdf - | head -60
-          echo ======; pdftotext -layout r-900-2024.pdf - | tail -30
