@@ -8,6 +8,7 @@ import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui"
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
+import { MpMentions } from "@/components/MpMentions";
 import { billsOfMp, billLawPage } from "@/lib/bills";
 import { VERDICT, autoChecksFor } from "@/lib/autoChecks";
 import { FUNDS } from "@/lib/funds";
@@ -92,7 +93,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
           <b>{[sanc && "Санкциониран за корупция", ...[...new Set(cases.map((c) => c.levelLabel))].map((l) => `${l} (${cases.filter((c) => c.levelLabel === l).length})`)].filter(Boolean).join(" · ")}.</b> Подробно по-долу, с източниците.
         </a>
       )}
-      <SectionNav items={[["bio", "Биография"], ...((sanc || cases.length) ? [["korupciya", "Разследвания и съд"] as [string, string]] : []), ["pari", "Фирми и пари"], ...(mb.sponsored.length || mb.conflict.length ? [["zakonoproekti", `Законопроекти (${mb.sponsored.length})`] as [string, string]] : []), ["glasuvaniya", "Гласувания"], ["ds", "Държавна сигурност"], ["proverki", "Проверени твърдения"]]} />
+      <SectionNav items={[["bio", "Биография"], ...((sanc || cases.length) ? [["korupciya", "Разследвания и съд"] as [string, string]] : []), ["pari", "Фирми и пари"], ...(mb.sponsored.length || mb.conflict.length ? [["zakonoproekti", `Законопроекти (${mb.sponsored.length})`] as [string, string]] : []), ["glasuvaniya", "Гласувания"], ["ds", "Държавна сигурност"], ["proverki", "Проверени твърдения"], ...(ambiguous ? [] : [["mediya", "В медиите"] as [string, string]])]} />
 
       <div id="bio" className="grid gap-6 lg:grid-cols-2 mb-12 scroll-mt-32 lg:scroll-mt-20">
         <section className="ring-1 ring-rule rounded-sm p-5 bg-white">
@@ -222,6 +223,12 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
             </div>
           </div>
         </section>
+      )}
+
+      {!ambiguous && (
+        <Anchor id="mediya" title="В медиите" lead={<>Последните статии, в които е споменат с точното си име, от медиите в раздел <a href="/novini">Новини</a> (по Google News). Споменаване не означава изявление на депутата.</>}>
+          <Suspense fallback={<p className="text-muted">Търсене в медиите…</p>}><MpMentions name={fl(mp.name)} /></Suspense>
+        </Anchor>
       )}
 
       <section className="mb-12">

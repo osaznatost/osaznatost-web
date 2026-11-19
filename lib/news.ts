@@ -51,3 +51,22 @@ export const CONTEXT: { re: RegExp; label: string; href: string }[] = [
   { re: /безработ/i, label: "Безработицата", href: "/statistiki/unemployment" },
   { re: /имот|жилищ|наем/i, label: "Жилища срещу наеми", href: "/statistiki/analiz#zhilishta" },
 ];
+
+/** Последните споменавания на човек в медиите от списъка горе (Google News, търсене по точното име). */
+export async function mentionsOf(fullName: string): Promise<NewsItem[]> {
+  "use cache";
+  cacheLife("days");
+  const q = `"${fullName}" (${OUTLETS.map((o) => `site:${o.domain}`).join(" OR ")})`;
+  try {
+    const r = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=bg&gl=BG&ceid=BG:bg`, { headers: { "user-agent": "Mozilla/5.0 Osaznatost" }, signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return [];
+    const xml = await r.text();
+    return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)].slice(0, 8).map(([, it]) => {
+      const src = unesc(it.match(/<source[^>]*>([\s\S]*?)<\/source>/)?.[1] ?? "");
+      const t = unesc(it.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "").replace(/\s+-\s+[^-]*$/, "");
+      return { title: t, url: unesc(it.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? ""), date: new Date(it.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? 0).toISOString().slice(0, 10), outlet: src };
+    }).filter((x) => x.title && x.url);
+  } catch {
+    return [];
+  }
+}
