@@ -9,4 +9,4 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null
-      - run: node scripts/probe/bill.mjs
+      - run: node scripts/probe/mp.mjs
