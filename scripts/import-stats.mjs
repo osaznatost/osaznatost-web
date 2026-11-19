@@ -112,7 +112,7 @@ const SERIES = [
   { id: "death_rate", ds: "demo_gind", filter: { indic_de: "GDEATHRT", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "net_migration", ds: "demo_gind", filter: { indic_de: "CNMIGRATRT", geo: ["BG", "EU27_2020"] }, by: "geo" },
   // Образование
-  { id: "pm25", ds: "sdg_11_50", filter: { unit: "UG_M3", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "pm25_deaths", ds: "sdg_11_52", filter: { geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
   { id: "crime_area", ds: "ilc_mddw03", filter: { hhcomp: "TOTAL", rskpovth: "TOTAL", unit: "PC", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
   { id: "early_leavers", ds: "edat_lfse_14", filter: { sex: "T", wstatus: "POP", unit: "PC", age: "Y18-24", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "tertiary", ds: "edat_lfse_03", filter: { sex: "T", isced11: "ED5-8", unit: "PC", age: "Y25-34", geo: ["BG", "EU27_2020"] }, by: "geo" },
