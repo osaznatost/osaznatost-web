@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { Label, Page, Title } from "@/components/ui";
 import corrections from "@/content/corrections.json";
+import PROMISES from "@/content/promises.json";
+import CASES from "@/content/cases.json";
+import CHECKS from "@/content/checks.json";
 
 export const metadata = { title: "Как работим", description: "Кой стои зад „Осъзнатост“, откъде са данните, кое се обновява само и кое пишат хора, как поправяме грешки." };
 
@@ -20,7 +23,7 @@ export default function Metodologiya() {
           Прилагаме една и съща методология за всички, независимо кой управлява.
         </p>
         <nav className="bg-surface rounded-sm p-4 text-[15px]">
-          <a href="#koy">Кой стои зад проекта</a> · <a href="#avtomatichno">Кое е автоматично и кое пишат хора</a> · <a href="#fakt">Факт, твърдение, оценка</a> · <a href="#zakon">Как разказваме закон</a> · <a href="#signal">Сигнал не е обвинение</a> · <a href="#iztochnici">Източници</a> · <a href="#greshki">Грешки и поправки</a>
+          <a href="#koy">Кой стои зад проекта</a> · <a href="#avtomatichno">Кое е автоматично и кое пишат хора</a> · <a href="#fakt">Факт, твърдение, оценка</a> · <a href="#zakon">Как разказваме закон</a> · <a href="#signal">Сигнал не е обвинение</a> · <a href="#ednakvo">Еднакъв подход към всички</a> · <a href="#iztochnici">Източници</a> · <a href="#greshki">Грешки и поправки</a>
         </nav>
 
         <H id="koy">Кой стои зад проекта</H>
@@ -48,6 +51,38 @@ export default function Metodologiya() {
 
         <H id="signal">Сигнал не е обвинение</H>
         <p>Сигнал не е обвинение, а обвинение не е присъда. Червеният флаг в поръчка или законопроект е повод за въпрос, не доказателство за нарушение. При всяко съдебно дело показваме точния му статус (обвинен, подсъдим, осъден, оправдан, прекратено) и документа, на който се основава.</p>
+
+        <H id="ednakvo">Еднакъв подход към всички</H>
+        <p>
+          За да се види дали не изкривяваме картината, тук броим какво сме записали за всяка страна. Броят се смята автоматично от данните на сайта.
+          Разлика в броя не означава сама по себе си пристрастие: някои правителства са управлявали по-дълго, а случаите зависят от това какво са направили прокуратурата и съдът.
+        </p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[15px] border-collapse">
+            <thead><tr className="text-left border-b border-rule"><th className="py-1 pr-3">Правителство</th><th className="py-1 px-2 num">Обещания</th><th className="py-1 px-2 num">Изпълнени</th><th className="py-1 px-2 num">Частично / в процес</th><th className="py-1 px-2 num">Неизпълнени</th><th className="py-1 pl-2 num">Непроверени</th></tr></thead>
+            <tbody>{PROMISES.parties.map((g) => {
+              const st = g.promises.map((x) => x.status as string);
+              const n = (...k: string[]) => st.filter((x) => k.includes(x)).length;
+              return (
+                <tr key={g.party} className="border-b border-rule">
+                  <td className="py-1 pr-3">{g.party === "ПБ" ? "Правителство „Радев“ (Прогресивна България)" : g.name}</td>
+                  <td className="py-1 px-2 num">{st.length}</td>
+                  <td className="py-1 px-2 num">{n("done", "kept")}</td>
+                  <td className="py-1 px-2 num">{n("partly", "in_progress", "at_risk")}</td>
+                  <td className="py-1 px-2 num">{n("failed", "not_met", "broken")}</td>
+                  <td className="py-1 pl-2 num">{n("not_assessed")}</td>
+                </tr>
+              );
+            })}</tbody>
+          </table>
+        </div>
+        <p className="text-[15px]">
+          <b>Съдебни случаи по партия:</b>{" "}
+          {Object.entries(CASES.cases.reduce<Record<string, number>>((a, c) => { const k = c.party || "без партия"; a[k] = (a[k] ?? 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} (${v})`).join(", ")}.{" "}
+          <b>Проверени твърдения по автор:</b>{" "}
+          {Object.entries(CHECKS.claims.reduce<Record<string, number>>((a, c) => { a[c.who] = (a[c.who] ?? 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} (${v})`).join(", ")}.
+          Пълните списъци: <Link href="/obeshtaniya">обещания</Link>, <Link href="/proverki/sankcii">санкции и съдебни случаи</Link>, <Link href="/proverki">проверки</Link>.
+        </p>
 
         <H id="iztochnici">Източници</H>
         <p>
