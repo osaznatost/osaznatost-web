@@ -4,8 +4,9 @@ import { LAWS } from "@/lib/laws";
 import { lawSignals, type LawSignal } from "@/lib/lawSignals";
 import { VOTES, type Vote } from "@/lib/parliament";
 import { lawFromTitle } from "@/lib/voteExplain";
+import { autoFor } from "@/lib/lawAuto";
 
-export type LawRow = { slug: string; name: string; votes: Vote[]; first: string; last: string; stage: "first" | "second"; adopted: boolean; signals: LawSignal[]; explained: boolean; bills: Bill[] };
+export type LawRow = { slug: string; name: string; votes: Vote[]; first: string; last: string; stage: "first" | "second"; adopted: boolean; signals: LawSignal[]; explained: boolean; auto: boolean; bills: Bill[] };
 
 let cache: LawRow[] | null = null;
 export function lawIndex(): LawRow[] {
@@ -25,7 +26,7 @@ export function lawIndex(): LawRow[] {
     return {
       slug, name: g.name, votes: g.votes, first: dates[0], last: dates.at(-1)!, stage: second ? "second" : "first",
       adopted: bills.some((b) => b.dv) || (second && g.votes.some((v) => /второ гласуване/i.test(v.title) && v.outcome !== "rejected")),
-      signals: lawSignals(g.votes, bills), explained: Boolean(LAWS[slug]), bills,
+      signals: lawSignals(g.votes, bills), explained: Boolean(LAWS[slug]), auto: bills.some((b) => autoFor(b.id)), bills,
     } satisfies LawRow;
   }).sort((a, b) => (a.last < b.last ? 1 : -1));
   return cache;

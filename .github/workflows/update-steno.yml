@@ -1,0 +1,29 @@
+name: Стенограми — числа в изказванията и автоматична сверка
+on:
+  schedule:
+    - cron: "47 3 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: steno
+  cancel-in-progress: false
+jobs:
+  steno:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/import-steno.mjs
+      - run: node scripts/build-claims-auto.mjs
+      - name: Запис
+        run: |
+          git add data/steno-claims.json data/checks-auto.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Стенограми: автоматична сверка на числата"
+          git pull --rebase -X theirs
+          git push

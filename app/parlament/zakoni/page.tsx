@@ -14,7 +14,7 @@ export default function Zakoni() {
   const flagged = laws.filter((l) => l.signals.some((s) => s.level === "high")).length;
   return (
     <Page>
-      <Title back={{ href: "/parlament", label: "Парламент" }} kicker="Проследяване" lead={<>Всеки закон, по който е гласувано в 52-рото Народно събрание: докъде е стигнал, кой го е внесъл, има ли обяснение на двете страни и има ли сигнали за начина, по който е приет. Обяснени: {explained} от {laws.length}. Със сериозен сигнал: {flagged}.</>}>
+      <Title back={{ href: "/parlament", label: "Парламент" }} kicker="Проследяване" lead={<>Всеки закон, по който е гласувано в 52-рото Народно събрание: докъде е стигнал, кой го е внесъл, има ли обяснение на двете страни и има ли сигнали за начина, по който е приет. С редакторско обобщение: {explained} от {laws.length}; с автоматично извлечени цитати от документите: {laws.filter((l) => l.auto).length}. Със сериозен сигнал: {flagged}.</>}>
         Всички закони
       </Title>
       <ul className="divide-y divide-rule border-y border-rule">
@@ -32,7 +32,7 @@ export default function Zakoni() {
                 <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm">{l.signals.filter((s) => s.level !== "info").map((s) => <li key={s.title} className="flex items-center gap-1.5"><span className={`inline-block w-2 h-2 rounded-full ${DOT[s.level]}`} />{s.title}</li>)}</ul>
               )}
             </div>
-            <span className={`text-xs font-semibold rounded-full px-2.5 py-1 h-fit w-fit whitespace-nowrap ${l.explained ? "bg-[#d7ecd9] text-[#1f5c2a]" : "bg-surface text-muted"}`}>{l.explained ? "обяснен: двете страни" : "обяснението се подготвя"}</span>
+            <span className={`text-xs font-semibold rounded-full px-2.5 py-1 h-fit w-fit whitespace-nowrap ${l.explained ? "bg-[#d7ecd9] text-[#1f5c2a]" : l.auto ? "bg-[#e8eef7] text-[#24456b]" : "bg-surface text-muted"}`}>{l.explained ? "двете страни: редакторско обобщение" : l.auto ? "двете страни: цитати от документите" : "чака доклад на комисията"}</span>
           </li>
         ))}
       </ul>

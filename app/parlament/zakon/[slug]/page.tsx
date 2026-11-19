@@ -7,6 +7,8 @@ import { LawAnalysis } from "@/components/LawAnalysis";
 import { PARTIES, VOTES, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 import { explain, lawFromTitle } from "@/lib/voteExplain";
 import { billsForLaw, type Bill } from "@/lib/bills";
+import { autoFor } from "@/lib/lawAuto";
+import { AutoLawView } from "@/components/AutoLawView";
 import { lawSignals, type LawSignal } from "@/lib/lawSignals";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Term } from "@/components/Term";
@@ -70,7 +72,9 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
   };
   const bills = billsForLaw(slug);
   const signals = lawSignals(votes, bills);
-  const nav: [string, string][] = [["nakratko", "Накратко"], ...(signals.length ? [["signali", `Сигнали (${signals.length})`] as [string, string]] : []), ...(bills.length ? [["zakonoproekti", "Кой внесе и кой се изказа"] as [string, string]] : []), ...(law?.motives || law?.critics ? [["argumenti", "Двете страни"] as [string, string]] : []), ["grupi", "Как гласуваха"], ["glasuvaniya", `Гласувания (${votes.length})`]];
+  // автоматично извлечените цитати: за законопроектите, по които е гласувано (най-новите първо)
+  const autos = bills.filter((b) => !b.withdrawn).map((b) => autoFor(b.id)).filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, 4);
+  const nav: [string, string][] = [["nakratko", "Накратко"], ...(signals.length ? [["signali", `Сигнали (${signals.length})`] as [string, string]] : []), ...(bills.length ? [["zakonoproekti", "Кой внесе и кой се изказа"] as [string, string]] : []), ...(law?.motives || law?.critics || autos.length ? [["argumenti", "Двете страни"] as [string, string]] : []), ["grupi", "Как гласуваха"], ["glasuvaniya", `Гласувания (${votes.length})`]];
 
   return (
     <Page>
@@ -88,7 +92,7 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
           </div>
         ) : (
           <div className="max-w-4xl bg-surface p-5 rounded-sm text-[15px] space-y-2">
-            <p>Обяснението на съдържанието (какво променя, кого засяга, какво казват вносителите и критиците) се подготвя от мотивите, докладите на комисиите, становищата и дебата в залата.</p>
+            <p>Редакторско обобщение още няма.{autos.length ? <> По-долу, в „<a href="#argumenti">Двете страни</a>“, са дословните цитати от документите на парламента, подредени автоматично.</> : " Ще се появи автоматично, когато парламентът публикува доклада на комисията."}</p>
             {bills[0] && <p>Междувременно: законопроектът е внесен на {formatDate(bills[0].date)} от {bills[0].byGov ? "Министерския съвет" : who(bills[0])}. Пълният текст и мотивите са в <a href={bills[0].url} target="_blank" rel="noreferrer">parliament.bg</a>.</p>}
           </div>
         )}
@@ -114,6 +118,11 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
       )}
 
       {law && <div id="argumenti" className="scroll-mt-32 lg:scroll-mt-20 max-w-4xl"><LawAnalysis law={law} /></div>}
+      {autos.length > 0 && (
+        <Anchor id={law ? "dokumenti" : "argumenti"} title={law ? "Още от документите" : "Двете страни: какво казват документите"} lead={law ? "Дословни цитати от докладите, мотивите и стенограмите, извлечени автоматично." : "Обобщение от редактор още няма. По-долу са дословни цитати от докладите на комисиите, мотивите и стенограмите, подредени автоматично по правила: какво се предлага, кой какво каза и какви възражения има."}>
+          <div className="space-y-4 max-w-4xl">{autos.map((a, i) => <AutoLawView key={a.id} a={a} open={!law && i === 0} />)}</div>
+        </Anchor>
+      )}
 
       <section id="grupi" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Как гласуваха групите по този закон</SectionTitle>
