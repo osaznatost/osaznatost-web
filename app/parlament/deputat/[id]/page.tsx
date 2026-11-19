@@ -9,6 +9,7 @@ import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { billsOfMp, billLaw } from "@/lib/bills";
+import { VERDICT, autoChecksFor } from "@/lib/autoChecks";
 import { FUNDS } from "@/lib/funds";
 import { firmsOfMp, localPage } from "@/lib/people";
 import { PersonFirms } from "@/components/TrBox";
@@ -227,6 +228,19 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         <SectionTitle>Проверени твърдения</SectionTitle><span id="proverki" />
         {claims.length ? <div className="grid gap-3">{claims.map((c) => <ClaimCard key={c.id} c={c} />)}</div>
           : <p className="text-[15px] max-w-3xl">Още нямаме проверени твърдения на този депутат. Проверяваме конкретни публични твърдения с числа, по равно за всички (<Link href="/proverki">как работим</Link>). Рейтинг на истинност показваме само когато проверките са достатъчно, за да не подвеждат.</p>}
+        {(() => {
+          // съименниците не се смесват: показваме автоматичната сверка само при уникално име и фамилия
+          const ac = ambiguous ? [] : autoChecksFor(mp.name);
+          if (!ac.length) return null;
+          const n = (v: "match" | "close" | "off") => ac.filter((c) => c.verdict === v).length;
+          return (
+            <div className="mt-6 max-w-4xl">
+              <p className="font-semibold">Числата в изказванията му (автоматична сверка)</p>
+              <p className="text-[15px] text-muted">{ac.length} изказвания с число, сравнени с официалните данни: {n("match")} съвпадат, {n("close")} са близо, {n("off")} се разминават. <Link href="/proverki/chisla">Как работи</Link></p>
+              <ul className="mt-2 space-y-2 text-[15px]">{ac.slice(0, 5).map((c) => <li key={c.id}><span className={`text-xs font-semibold rounded-full px-2 py-0.5 mr-2 ${VERDICT[c.verdict].cls}`}>{VERDICT[c.verdict].label}</span>„{c.text.slice(0, 220)}“ — официално {c.official.toLocaleString("bg-BG")}{c.unit === "%" ? "%" : " €"} ({c.period}). <a href={c.url} target="_blank" rel="noreferrer">стенограма</a></li>)}</ul>
+            </div>
+          );
+        })()}
         <p className="text-sm text-muted mt-3">Доверие и одобрение: социологическите агенции публикуват доверие само към лидерите, не към всеки депутат. Където има данни, ще ги добавим с източник.</p>
       </section>
 

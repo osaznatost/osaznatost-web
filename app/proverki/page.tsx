@@ -45,6 +45,10 @@ export default function Proverki() {
             <p className="font-semibold text-lg">Корупция: санкции, обвинения, присъди →</p>
             <p className="text-[15px] text-muted">Българите в списъка „Магнитски“ и в британските санкции: кой, кога, за какво, по официалните документи. Ясно разграничение между сигнал, обвинение, присъда и санкция.</p>
           </Link>
+          <Link href="/proverki/chisla" className="block ring-1 ring-rule rounded-sm p-4 mt-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
+            <p className="font-semibold text-lg">Числата в парламента: автоматична сверка →</p>
+            <p className="text-[15px] text-muted">Всяка нощ: числата, казани от трибуната (инфлация, безработица, дълг, дефицит, растеж, минимална заплата), сравнени с официалните данни. Без изкуствен интелект, само правило.</p>
+          </Link>
           <Link href="/proverki/sotsiologiya" className="block ring-1 ring-rule rounded-sm p-4 mt-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
             <p className="font-semibold text-lg">Социология: кой колко точно предсказва изборите →</p>
             <p className="text-[15px] text-muted">Последното проучване на всяка агенция преди изборите срещу резултата. Средна грешка, системни отклонения по партии.</p>

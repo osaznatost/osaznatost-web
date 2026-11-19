@@ -35,10 +35,14 @@ export default function Home() {
   const [y, m] = cpi.period.split("-");
   const monthName = new Date(Number(y), Number(m) - 1).toLocaleDateString("bg-BG", { month: "long", year: "numeric" });
 
-  // Най-оспорваното гласуване по закон от последните 30 дни в данните
-  const cutoff = new Date(new Date(VOTES[0].date).getTime() - 30 * 864e5).toISOString().slice(0, 10);
-  const featured = [...VOTES].filter((v) => v.date >= cutoff && /закон/i.test(v.title) && !/процедура/i.test(v.title))
+  // Най-оспорваното гласуване по закон от последното заседание (ако в този ден няма закон — от последната седмица)
+  const lastDay = VOTES.reduce((m, v) => (v.date > m ? v.date : m), "");
+  const isLaw = (v: (typeof VOTES)[number]) => /закон/i.test(v.title) && !/процедура/i.test(v.title);
+  const weekAgo = new Date(new Date(lastDay).getTime() - 6 * 864e5).toISOString().slice(0, 10);
+  const pool = VOTES.filter((v) => v.date === lastDay && isLaw(v));
+  const featured = (pool.length ? pool : VOTES.filter((v) => v.date >= weekAgo && isLaw(v)))
     .sort((a, b) => (b.contest ?? 0) - (a.contest ?? 0))[0] ?? VOTES[0];
+  const dayCount = VOTES.filter((v) => v.date === lastDay).length;
 
   return (
     <Page>
@@ -61,7 +65,7 @@ export default function Home() {
             </div>
           </div>
           <div className="bg-white/[0.06] rounded-xl p-5 sm:p-6 ring-1 ring-white/10">
-            <p className="text-sm text-white/70">Последно оспорвано гласуване, {formatDate(featured.date)}</p>
+            <p className="text-sm text-white/70">{featured.date === lastDay ? "Най-оспорваното гласуване от последното заседание" : "Най-оспорваното гласуване от последната седмица"}, {formatDate(featured.date)}</p>
             <p className="text-lg font-semibold mt-1 mb-5 leading-snug">
               <Link href={`/parlament/glasuvane/${featured.id}`} className="text-white hover:text-white no-underline hover:underline">{featured.title}</Link>
             </p>
@@ -69,6 +73,7 @@ export default function Home() {
             <p className="mt-5 text-[15px] text-white/85 num">
               <b className="text-white">{featured.outcome === "rejected" ? "Отхвърлено" : "Прието"}</b> с {featured.tally.yes} гласа „за“, {featured.tally.no} „против“ и {featured.tally.abstain} „въздържал се“. {featured.tally.absent} не гласуваха.
             </p>
+            <p className="mt-3 text-sm text-white/70">На {formatDate(lastDay)} е имало {dayCount} гласувания. <Link href="/parlament#zasedaniya" className="text-white underline">Виж всички</Link>. Данните се обновяват автоматично всяка сутрин и вечер в дните на заседания.</p>
           </div>
         </div>
       </section>
