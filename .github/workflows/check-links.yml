@@ -16,3 +16,4 @@ jobs:
       - run: npm ci
       - run: npx next build
       - run: node scripts/check-links.mjs
+      - run: node scripts/check-sources.mjs
