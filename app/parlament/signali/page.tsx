@@ -12,12 +12,27 @@ export const metadata = { title: "Сигнали в законодателств
 const SECOND = /второ гласуване/i;
 const NEW = /(параграф|чл\.|член)[^,]*[–-]\s*нов(и|а)?(?![а-я])/i;
 const TRANS = /преходни и заключителни|заключителни разпоредби|преходни разпоредби/i;
+// Бранш по ключови думи в заглавието на гласуването или на закона. Правилата са публични и еднакви за всички.
+const SECTORS: [string, RegExp][] = [
+  ["Енергетика", /енерг|електр|газ(?!ет)|топлоф|възобнов|нефт|горив/i],
+  ["Хазарт", /хазарт/i],
+  ["Тютюн и алкохол", /акциз|тютюн|спирт|алкохол|ракия/i],
+  ["Земеделие и гори", /земедел|гори|горит|фуражи|ветеринар|храни|рибарств|посев/i],
+  ["Здравеопазване и лекарства", /здрав|лекарств|медицин|аптек|болни/i],
+  ["Строителство и имоти", /строител|устройство на територията|кадаст|имот/i],
+  ["Транспорт и пътища", /пътищ|пътн|транспорт|автомоб|железопът|авиац/i],
+  ["Финанси и банки", /банк|кредит|застрах|платеж|ценни книжа|инвестиционн/i],
+  ["Обществени поръчки", /обществените поръчки|концеси/i],
+  ["Данъци", /данък|данъци|ДДС|облагане/i],
+];
+const sectorOf = (t: string) => SECTORS.find(([, r]) => r.test(t))?.[0] ?? null;
 
 export default function Signali() {
-  const sig = VOTES.filter((v) => SECOND.test(v.title) && NEW.test(v.title)).map((v) => ({ v, trans: TRANS.test(v.title), law: lawFromTitle(v.title) }))
+  const sig = VOTES.filter((v) => SECOND.test(v.title) && NEW.test(v.title)).map((v) => ({ v, trans: TRANS.test(v.title), law: lawFromTitle(v.title), sector: sectorOf(v.title) }))
     .sort((a, b) => Number(b.trans) - Number(a.trans) || (a.v.date < b.v.date ? 1 : -1));
   const trans = sig.filter((x) => x.trans);
   const groups = PARTIES;
+  const bySector = Object.entries(sig.reduce<Record<string, number>>((a, x) => { if (x.sector) a[x.sector] = (a[x.sector] ?? 0) + 1; return a; }, {})).sort((a, b) => b[1] - a[1]);
   const support = Object.fromEntries(groups.map((g) => [g, sig.filter((x) => partyPosition(partyBreakdown(x.v)[g] ?? { y: 0, n: 0, a: 0, x: 0 }) === "y").length]));
   return (
     <Page>
@@ -42,12 +57,21 @@ export default function Signali() {
           <li key={g} className="flex justify-between border-b border-rule py-1"><span>{partyName(g)}</span><b className="num">{support[g]} от {sig.length}</b></li>
         ))}</ul>
       </section>
+      {bySector.length > 0 && (
+        <section className="mb-10 max-w-3xl">
+          <SectionTitle>По бранш</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-3">Бранш се определя автоматично по ключови думи в заглавието (например „акциз“, „хазарт“, „енергетика“). Гласуване без такава дума остава без бранш.</p>
+          <ul className="space-y-1 text-[15px]">{bySector.map(([k, n]) => (
+            <li key={k} className="flex justify-between border-b border-rule py-1"><span>{k}</span><b className="num">{n}</b></li>
+          ))}</ul>
+        </section>
+      )}
       <section className="mb-12">
         <SectionTitle>Гласуванията</SectionTitle>
-        <ul className="divide-y divide-rule border-y border-rule text-[15px]">{sig.map(({ v, trans: t, law }) => (
+        <ul className="divide-y divide-rule border-y border-rule text-[15px]">{sig.map(({ v, trans: t, law, sector }) => (
           <li key={v.id} className="py-2 grid sm:grid-cols-[7rem_1fr_auto] gap-x-3">
             <span className="text-sm text-muted num">{formatDate(v.date)}</span>
-            <span>{t && <span className="text-xs font-semibold text-white bg-red rounded-full px-2 py-0.5 mr-2">заключителни разпоредби</span>}<Link href={`/parlament/glasuvane/${v.id}`}>{v.title}</Link>{law && <span className="block text-sm"><Link href={`/parlament/zakon/${law.slug}`}>всички гласувания по закона</Link></span>}</span>
+            <span>{t && <span className="text-xs font-semibold text-white bg-red rounded-full px-2 py-0.5 mr-2">заключителни разпоредби</span>}{sector && <span className="text-xs rounded-full px-2 py-0.5 mr-2 bg-surface">{sector}</span>}<Link href={`/parlament/glasuvane/${v.id}`}>{v.title}</Link>{law && <span className="block text-sm"><Link href={`/parlament/zakon/${law.slug}`}>всички гласувания по закона</Link></span>}</span>
             <OutcomeTag outcome={v.outcome} />
           </li>
         ))}</ul>
