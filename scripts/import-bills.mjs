@@ -97,7 +97,7 @@ for (const [id] of todo) {
     url: `https://www.parliament.bg/bg/bills/ID/${id}`, withdrawn: !!b.withdrawn,
     dv: b.L_Act_dv_iss ? `ДВ, бр. ${b.L_Act_dv_iss}/${b.L_Act_dv_year}` : null, adopted: b.L_Act_date2?.slice(0, 10) ?? null,
     veto: b.L_Act_veto_date ?? null,
-    sponsors: names(b.imp_list), sponsorsMin: (b.imp_list_min ?? []).map((m) => m.A_ns_MPL_Name1 ?? m.name ?? JSON.stringify(m)).slice(0, 3),
+    sponsors: names(b.imp_list), sponsorIds: (b.imp_list ?? []).map((p) => p.A_ns_MP_id), sponsorsMin: (b.imp_list_min ?? []).map((m) => m.A_ns_MPL_Name1 ?? m.name ?? JSON.stringify(m)).slice(0, 3),
     committees: (b.dist_list ?? []).map((c) => `${c.A_ns_CL_value} (${c.L_Act_DTL_value})`),
     union: (b.union_list ?? []).map((u) => u.L_Act_sign ?? u.L_ActL_title ?? ""),
     motives: "", reports: [], opinions: [], hall: [], proposals: (b.proposal_12_list ?? []).map((p) => ({ doc: p.RN_DOC, date: p.DAT_DOC, by: names(p.imp_list) })),

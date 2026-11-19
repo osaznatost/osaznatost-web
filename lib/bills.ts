@@ -6,7 +6,7 @@ import { lawFromTitle } from "@/lib/voteExplain";
 export type Bill = {
   id: number; sign: string; date: string; title: string; final: string | null; url: string; withdrawn: boolean;
   adopted: string | null; dv: string | null; veto: string | null; byGov: boolean;
-  sponsors: string[]; committees: string[];
+  sponsors: string[]; sponsorIds?: number[]; committees: string[];
   opinions: { date: string; title: string }[];
   reports: { date: string; committee: string; stage: string }[];
   hall: { date: string; stage: string; url: string }[];
@@ -26,4 +26,16 @@ export function billsForLaw(slug: string): Bill[] {
 }
 export function billLaw(b: Pick<Bill, "title">) {
   return lawFromTitle(b.title.replace(/^Законопроект/, "")) ?? lawFromTitle(b.title.replace(/^Законопроект/, "Закон"));
+}
+
+const nameKey = (s: string) => { const p = s.trim().toUpperCase().split(/\s+/); return `${p[0]} ${p.at(-1)}`; };
+/** Законопроектите, сред чиито вносители е депутатът (по име и фамилия), и в чиито доклади е обявил конфликт на интереси. */
+export function billsOfMp(fullName: string, pid?: number, ambiguous = false) {
+  const key = nameKey(fullName);
+  // по номера в parliament.bg, ако го има; иначе по име, но не и когато двама депутати имат едно и също име и фамилия
+  const sponsored = allBills().filter((b) => (pid && b.sponsorIds?.length ? b.sponsorIds.includes(pid) : !ambiguous && b.sponsors.some((s) => nameKey(s) === key)));
+  const parts = fullName.trim().split(/\s+/), fl = `${parts[0]} ${parts.at(-1)}`;
+  let conflict = allBills().filter((b) => (b.notes?.conflict ?? []).some((c) => c.includes(fl)));
+  if (ambiguous) conflict = conflict.filter((b) => sponsored.includes(b)); // при съвпадащи имена — само ако е и вносител
+  return { sponsored, conflict };
 }

@@ -33,7 +33,7 @@ for (const f of readdirSync(DIR).filter((x) => /^\d+\.json$/.test(x))) {
     id: b.id, sign: b.sign, date: b.date, title: b.title, final: b.final, url: b.url, withdrawn: b.withdrawn,
     adopted: b.adopted, dv: b.dv, veto: b.veto,
     byGov: /-602-/.test(b.sign) || /Министерски съвет/i.test(b.motives.slice(0, 400)),
-    sponsors: b.sponsors, committees: b.committees,
+    sponsors: b.sponsors, sponsorIds: b.sponsorIds ?? [], committees: b.committees,
     opinions: b.opinions.map((o) => ({ date: o.date, title: o.title.replace(/^Становище (на |от )?/i, "") })),
     reports: b.reports.map((r) => ({ date: r.date, committee: r.committee, stage: r.stage })),
     hall: b.hall.map((h) => ({ date: h.date, stage: h.stage, url: h.url })),

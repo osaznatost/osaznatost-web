@@ -8,6 +8,7 @@ import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui"
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
+import { billsOfMp, billLaw } from "@/lib/bills";
 import { FUNDS } from "@/lib/funds";
 import { firmsOfMp, localPage } from "@/lib/people";
 import { PersonFirms } from "@/components/TrBox";
@@ -72,6 +73,9 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
   const claims = claimsFor(mp.name);
   const sanc = sanctionsFor(mp.name);
   const cases = casesFor(mp.name);
+  const fl = (n: string) => { const p = n.split(/\s+/); return `${p[0]} ${p.at(-1)}`; };
+  const ambiguous = MPS.filter((m) => fl(m.name) === fl(mp.name)).length > 1;
+  const mb = billsOfMp(mp.name, mp.pid, ambiguous);
   const current = (prof?.ms ?? []).filter((m) => String(m.to).startsWith("9999") && [3, 4, 6, 9].includes(m.t));
   const listName = (n: number) => ELECTIONS.parties.find((p) => p.num === n)?.name ?? "";
   const meta = partyByGroup(mp.party);
@@ -87,7 +91,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
           <b>{[sanc && "Санкциониран за корупция", ...[...new Set(cases.map((c) => c.levelLabel))].map((l) => `${l} (${cases.filter((c) => c.levelLabel === l).length})`)].filter(Boolean).join(" · ")}.</b> Подробно по-долу, с източниците.
         </a>
       )}
-      <SectionNav items={[["bio", "Биография"], ...((sanc || cases.length) ? [["korupciya", "Разследвания и съд"] as [string, string]] : []), ["pari", "Фирми и пари"], ["glasuvaniya", "Гласувания"], ["ds", "Държавна сигурност"], ["proverki", "Проверени твърдения"]]} />
+      <SectionNav items={[["bio", "Биография"], ...((sanc || cases.length) ? [["korupciya", "Разследвания и съд"] as [string, string]] : []), ["pari", "Фирми и пари"], ...(mb.sponsored.length || mb.conflict.length ? [["zakonoproekti", `Законопроекти (${mb.sponsored.length})`] as [string, string]] : []), ["glasuvaniya", "Гласувания"], ["ds", "Държавна сигурност"], ["proverki", "Проверени твърдения"]]} />
 
       <div id="bio" className="grid gap-6 lg:grid-cols-2 mb-12 scroll-mt-32 lg:scroll-mt-20">
         <section className="ring-1 ring-rule rounded-sm p-5 bg-white">
@@ -168,6 +172,25 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         <Suspense fallback={<p className="text-muted">Проверка на фирмите…</p>}><MpMoney id={mp.id} name={mp.name} /></Suspense>
         {firmsOfPerson(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
       </Anchor>
+
+      {(mb.sponsored.length > 0 || mb.conflict.length > 0) && (
+        <Anchor id="zakonoproekti" title="Внесени законопроекти" lead="Законопроектите в този парламент, сред чиито вносители е депутатът (по данни от parliament.bg). Съвпадението е по име и фамилия.">
+          {mb.conflict.length > 0 && (
+            <div className="border-l-4 border-red bg-[#fdeff1] rounded-sm p-4 mb-4 max-w-4xl">
+              <p className="font-semibold">Обявен конфликт на интереси</p>
+              <ul className="text-[15px] mt-1 space-y-1">{mb.conflict.map((b) => { const l = billLaw(b); return <li key={b.id}>{l ? <Link href={`/parlament/zakon/${l.slug}`}>{b.title.replace(/^Законопроект /, "")}</Link> : b.title}: „{b.notes!.conflict[0].slice(0, 220)}“</li>; })}</ul>
+            </div>
+          )}
+          <ul className="divide-y divide-rule border-y border-rule max-w-5xl">
+            {mb.sponsored.slice(0, 40).map((b) => { const l = billLaw(b); return (
+              <li key={b.id} className="py-2 grid gap-1 sm:grid-cols-[1fr_auto] sm:gap-4">
+                <span>{l ? <Link href={`/parlament/zakon/${l.slug}`}>{b.title}</Link> : <a href={b.url} target="_blank" rel="noreferrer">{b.title}</a>}<span className="block text-sm text-muted">№ {b.sign} · {b.sponsors.length > 1 ? `с още ${b.sponsors.length - 1} вносители` : "единствен вносител"}</span></span>
+                <span className={`text-sm whitespace-nowrap ${b.dv ? "text-green font-semibold" : b.withdrawn ? "text-muted" : "text-muted"}`}>{b.dv ? `приет, ${b.dv}` : b.withdrawn ? "оттеглен" : `внесен ${b.date.split("-").reverse().join(".")}`}</span>
+              </li>
+            ); })}
+          </ul>
+        </Anchor>
+      )}
 
       <section id="ds" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Държавна сигурност</SectionTitle>
