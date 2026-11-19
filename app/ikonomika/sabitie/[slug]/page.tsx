@@ -4,6 +4,7 @@ import { MultiLine } from "@/components/Charts";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { EVENTS, EVENT_INDICATORS, findEvent } from "@/lib/economy";
 import { STATS, fmt } from "@/lib/stats";
+import { CATALOG } from "@/lib/statCatalog";
 
 export function generateStaticParams() {
   return EVENTS.map((e) => ({ slug: e.slug }));
@@ -55,7 +56,7 @@ export default async function Sabitie({ params }: { params: Promise<{ slug: stri
             <thead><tr className="border-b border-rule text-left"><th className="py-2 pr-3">Показател</th><th className="px-2 text-right">Преди</th><th className="px-2 text-right">След</th><th className="px-2 text-right">Промяна</th><th className="px-2 text-right text-muted">ЕС преди → след</th></tr></thead>
             <tbody>{rows.map((r) => (
               <tr key={r.id} className="border-b border-rule">
-                <td className="py-2 pr-3"><Link href={`/statistiki/${r.id}`}>{r.label}</Link> <span className="text-xs text-muted">{r.unit}</span></td>
+                <td className="py-2 pr-3">{CATALOG[r.id] ? <Link href={`/statistiki/${r.id}`}>{r.label}</Link> : <Link href="/ikonomika/investicii">{r.label}</Link>} <span className="text-xs text-muted">{r.unit}</span></td>
                 <td className="px-2 text-right">{f(r.b, r.unit)}</td>
                 <td className="px-2 text-right">{r.a == null ? (e.year + 2 > new Date(STATS.updated).getFullYear() ? "още няма" : "няма данни") : f(r.a, r.unit)}</td>
                 <td className={`px-2 text-right font-semibold ${r.good == null ? "" : r.good ? "text-[#2f9e6a]" : "text-red"}`}>{r.d == null ? "–" : `${r.d > 0 ? "+" : ""}${fmt(r.d, 1)}`}</td>

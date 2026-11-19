@@ -58,7 +58,7 @@ function Header({ path }: { path: string }) {
   const setOpen = (v: boolean | ((o: boolean) => boolean)) => setOpenAt((typeof v === "function" ? v(open) : v) ? path : null);
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
-    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenAt(null); };
     window.addEventListener("keydown", esc);
     return () => { window.removeEventListener("keydown", esc); document.body.style.overflow = ""; };
   }, [open]);

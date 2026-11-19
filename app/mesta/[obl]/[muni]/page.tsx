@@ -8,7 +8,6 @@ import { FIN_SOURCE } from "@/lib/places";
 import { fmt } from "@/lib/stats";
 import { SettlementMap } from "@/components/SettlementMap";
 import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
-import { localData } from "@/lib/local";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { MuniPower } from "@/components/MuniPower";
@@ -39,7 +38,6 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
   const P = placeData(m.code), C = P?.census, OC = PLACE_OBL.oblasts[m.code.slice(0, 3)], BG = PLACE_OBL.country;
-  const L = localData(m.code);
   const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
   const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
 

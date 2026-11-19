@@ -8,7 +8,7 @@ import { KeyNumber, Page, num, pct, SectionTitle, Title } from "@/components/ui"
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
-import { billsOfMp, billLaw } from "@/lib/bills";
+import { billsOfMp, billLawPage } from "@/lib/bills";
 import { VERDICT, autoChecksFor } from "@/lib/autoChecks";
 import { FUNDS } from "@/lib/funds";
 import { firmsOfMp, localPage } from "@/lib/people";
@@ -179,11 +179,11 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
           {mb.conflict.length > 0 && (
             <div className="border-l-4 border-red bg-[#fdeff1] rounded-sm p-4 mb-4 max-w-4xl">
               <p className="font-semibold">Обявен конфликт на интереси</p>
-              <ul className="text-[15px] mt-1 space-y-1">{mb.conflict.map((b) => { const l = billLaw(b); return <li key={b.id}>{l ? <Link href={`/parlament/zakon/${l.slug}`}>{b.title.replace(/^Законопроект /, "")}</Link> : b.title}: „{b.notes!.conflict[0].slice(0, 220)}“</li>; })}</ul>
+              <ul className="text-[15px] mt-1 space-y-1">{mb.conflict.map((b) => { const l = billLawPage(b); return <li key={b.id}>{l ? <Link href={`/parlament/zakon/${l.slug}`}>{b.title.replace(/^Законопроект /, "")}</Link> : <a href={b.url} target="_blank" rel="noreferrer">{b.title.replace(/^Законопроект /, "")}</a>}: „{b.notes!.conflict[0].slice(0, 220)}“</li>; })}</ul>
             </div>
           )}
           <ul className="divide-y divide-rule border-y border-rule max-w-5xl">
-            {mb.sponsored.slice(0, 40).map((b) => { const l = billLaw(b); return (
+            {mb.sponsored.slice(0, 40).map((b) => { const l = billLawPage(b); return (
               <li key={b.id} className="py-2 grid gap-1 sm:grid-cols-[1fr_auto] sm:gap-4">
                 <span>{l ? <Link href={`/parlament/zakon/${l.slug}`}>{b.title}</Link> : <a href={b.url} target="_blank" rel="noreferrer">{b.title}</a>}<span className="block text-sm text-muted">№ {b.sign} · {b.sponsors.length > 1 ? `с още ${b.sponsors.length - 1} вносители` : "единствен вносител"}</span></span>
                 <span className={`text-sm whitespace-nowrap ${b.dv ? "text-green font-semibold" : b.withdrawn ? "text-muted" : "text-muted"}`}>{b.dv ? `приет, ${b.dv}` : b.withdrawn ? "оттеглен" : `внесен ${b.date.split("-").reverse().join(".")}`}</span>

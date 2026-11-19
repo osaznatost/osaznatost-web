@@ -87,8 +87,8 @@ export function MoneyFlow({ nodes, links, columns, minHeight = 300, unit = eur }
   }
 
   return (
-    <div ref={ref} className="w-full relative" onMouseLeave={() => setHover(null)}>
-      <svg width={width} height={height} role="img" aria-label="Паричен поток">
+    <div ref={ref} className="w-full min-w-0 max-w-full overflow-hidden relative" onMouseLeave={() => setHover(null)}>
+      <svg width={width} height={height} className="block max-w-full" role="img" aria-label="Паричен поток">
         <defs>
           <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="6" height="6" fill="#e7efea" />

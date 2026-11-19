@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { KeyNumber, Page, num, SectionTitle } from "@/components/ui";
-import { NS, VOTES, formatDate } from "@/lib/parliament";
+import { VOTES, formatDate } from "@/lib/parliament";
 import { VoteBoard } from "@/components/parliament";
 import { HomeFeed } from "@/components/HomeFeed";
 import { CPI_GROUPS, CPI_MONTHLY, DEBT_GDP, DEBT_GDP_SOURCE, P } from "@/lib/params";

@@ -2,6 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { lawFromTitle } from "@/lib/voteExplain";
+import { VOTES } from "@/lib/parliament";
 
 export type Bill = {
   id: number; sign: string; date: string; title: string; final: string | null; url: string; withdrawn: boolean;
@@ -26,6 +27,14 @@ export function billsForLaw(slug: string): Bill[] {
 }
 export function billLaw(b: Pick<Bill, "title">) {
   return lawFromTitle(b.title.replace(/^Законопроект/, "")) ?? lawFromTitle(b.title.replace(/^Законопроект/, "Закон"));
+}
+
+let voted: Set<string> | null = null;
+/** Законът на законопроекта, само ако има страница (т.е. по него е гласувано); иначе null. */
+export function billLawPage(b: Pick<Bill, "title">) {
+  if (!voted) { voted = new Set(); for (const v of VOTES) { const l = lawFromTitle(v.title); if (l) voted.add(l.slug); } }
+  const l = billLaw(b);
+  return l && voted.has(l.slug) ? l : null;
 }
 
 const nameKey = (s: string) => { const p = s.trim().toUpperCase().split(/\s+/); return `${p[0]} ${p.at(-1)}`; };

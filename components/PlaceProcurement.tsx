@@ -4,7 +4,6 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { PolDot } from "@/components/proc";
 import { AnnexList, ContractList, NOT_READY } from "@/components/proc";
-import { SectionTitle } from "@/components/ui";
 import { findMunicipality, findOblast, findSettlement } from "@/lib/places";
 import {
   PROC_READY, type PlaceFilter, type PlaceStat, biggestAnnexes, biggestContracts, firmUrl, fmtDate, fmtEur, importState, latestContracts,

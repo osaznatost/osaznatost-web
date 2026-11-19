@@ -1,0 +1,18 @@
+name: Проверка за счупени линкове
+on:
+  schedule:
+    - cron: "29 2 * * 0"   # всяка неделя
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx next build
+      - run: node scripts/check-links.mjs

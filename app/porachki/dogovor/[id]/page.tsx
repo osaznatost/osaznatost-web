@@ -7,7 +7,6 @@ import { ProjectPath } from "@/components/ProjectPath";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { tenderSignal } from "@/lib/tenderSignals.mjs";
 import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
-import { politicalLinks } from "@/lib/procurement";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
 import { Term } from "@/components/Term";
 

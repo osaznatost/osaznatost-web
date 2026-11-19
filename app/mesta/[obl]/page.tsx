@@ -8,7 +8,7 @@ import { REGIONAL_SECTORS, val } from "@/lib/economy";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, oblastStats } from "@/lib/regions";
 import { STATS, fmt } from "@/lib/stats";
 import { ChoroMap } from "@/components/ChoroMap";
-import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
+import { EDU, PLACE_OBL, placeData, share } from "@/lib/place";
 
 export function generateStaticParams() { return oblastList().map((o) => ({ obl: o.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ obl: string }> }) {

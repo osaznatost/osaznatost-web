@@ -5,7 +5,7 @@ import { Page, SectionTitle, Title } from "@/components/ui";
 import { explain } from "@/lib/voteExplain";
 import { getLaw, paragraphKey, type ParagraphNote } from "@/lib/laws";
 import { LawAnalysis, OutcomeList } from "@/components/LawAnalysis";
-import { MPS, PARLIAMENT_SOURCE, PARTIES, TOPICS, VOTES, VOTE_LABEL, type VoteCode, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
+import { MPS, PARLIAMENT_SOURCE, PARTIES, VOTES, VOTE_LABEL, type VoteCode, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
 export function generateStaticParams() {
   return VOTES.map((v) => ({ id: v.id }));
