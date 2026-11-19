@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignalNote from "@/components/SignalNote";
 import { OutcomeTag } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { PARTIES, VOTES, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
@@ -27,6 +28,7 @@ export default function Signali() {
       <section className="bg-surface rounded-sm p-4 mb-10 max-w-4xl text-[15px] space-y-2">
         <p><b>Какво е сигналът.</b> Законопроектът се обсъжда публично преди първо четене. След това депутатите могат да внасят предложения, които понякога променят смисъла на закона или добавят текстове по съвсем друга тема. Те минават по-бързо и с по-малко внимание.</p>
         <p><b>Какво не е.</b> Повечето нови текстове на второ четене са технически или полезни поправки. Сигналът е повод да се прочете текстът, не доказателство за лобизъм. За 10 закона имаме подробен анализ на мотивите и критиките.</p>
+        <SignalNote className="mt-2" />
       </section>
       <section className="grid gap-4 sm:grid-cols-3 mb-10">
         {[["Гласувания с нови текстове на второ четене", sig.length], ["От тях в преходните и заключителните разпоредби", trans.length], ["Приети", sig.filter((x) => x.v.outcome !== "rejected").length]].map(([l, n]) => (

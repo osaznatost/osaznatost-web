@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignalNote from "@/components/SignalNote";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow";
@@ -103,6 +104,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         <SectionTitle>Сигнали</SectionTitle>
         <div className="max-w-3xl"><SignalList items={sig} /></div>
         <p className="text-xs text-muted mt-2 max-w-3xl">Сигналите са автоматични и показват кога поръчката заслужава по-внимателен поглед. Те не са обвинение в нарушение.</p>
+        <SignalNote className="mt-1" />
       </section>
 
       <section className="mb-10">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignalNote from "@/components/SignalNote";
 import { Hemicycle } from "@/components/Hemicycle";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Term } from "@/components/Term";
@@ -81,6 +82,7 @@ export default function Vlast() {
           <SignalList title="Под 7 дни между четенията" items={fast} why="По-малко време да се видят и оспорят промените." />
           <SignalList title="Нови текстове в заключителните разпоредби" items={trans} why="Там често се променят други закони, без обществено обсъждане." />
         </div>
+        <SignalNote className="mt-3" />
       </Anchor>
 
       <Anchor id="kak" title="Как се приема закон и къде е рискът" lead="Седем стъпки. Червеното показва местата, където най-често се промъкват текстове в полза на тесен кръг.">

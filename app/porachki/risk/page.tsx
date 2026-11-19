@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignalNote from "@/components/SignalNote";
 import { MultiLine } from "@/components/Charts";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import RISK from "@/data/risk.json";
@@ -43,6 +44,7 @@ export default function Risk() {
       </Title>
       <section className="bg-surface rounded-sm p-4 mb-10 max-w-4xl text-[15px]">
         <p><b>Как да се чете.</b> Високият риск (45+ точки) означава, че в договора се срещат няколко признака, които в практиката на ЕС често съпътстват злоупотреби. Това е списък за проверка, не обвинение. Обратното също е вярно: договор без флагове може да е проблемен по причини, които данните не показват. <Link href="/porachki/metodologiya">Методология: как се смята всеки сигнал и кога греши</Link>.</p>
+        <SignalNote className="mt-2" />
       </section>
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[["Висок риск", R.byScore.high, "45+ точки"], ["Среден риск", R.byScore.mid, "20–44 точки"], ["Нисък риск", R.byScore.low, "под 20 точки"], ["Без флагове", R.byScore.none, ""]].map(([l, v, n]) => (

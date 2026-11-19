@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SignalNote from "@/components/SignalNote";
 import { notFound } from "next/navigation";
 import { OutcomeTag } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
@@ -102,6 +103,7 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
         <Anchor id="signali" title="Сигнали" lead="Автоматично открити особености в начина, по който е приет законът. Не са доказателство за нарушение, а повод текстът да се прочете внимателно.">
           <ul className="grid gap-3 md:grid-cols-2 max-w-5xl">{signals.map((x) => <SignalCard key={x.title} s={x} />)}</ul>
           <p className="text-sm mt-3"><Link href="/parlament/signali">Всички сигнали в парламента</Link></p>
+          <SignalNote className="mt-2" />
         </Anchor>
       )}
 

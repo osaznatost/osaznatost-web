@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import SignalNote from "@/components/SignalNote";
 import { Suspense } from "react";
 import Link from "next/link";
 import { PolDot } from "@/components/proc";
@@ -71,6 +72,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
       <section id="risk" className="mb-10 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Най-рисковите договори</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Индекс от червени флагове (една оферта, без открит конкурс, оскъпяване с анекси, цена точно под прага, връзка с политик и др.). {risky.length} от {contracts.length} договора ({riskShare}%) имат среден или висок риск.</p>
+        <SignalNote className="-mt-2 mb-4" />
         {risky.length ? (
           <ul className="divide-y divide-rule border-y border-rule text-[15px]">{risky.slice(0, 15).map(({ c, fl, score }) => (
             <li key={c.id} className="py-2 grid sm:grid-cols-[5.5rem_1fr_auto] gap-x-3 items-start">
