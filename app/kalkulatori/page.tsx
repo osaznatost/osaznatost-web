@@ -120,6 +120,10 @@ export default function Kalkulatori() {
           <p className="text-sm text-muted mt-3">За сравнение: минималната работна заплата е {eur(P.minWage.value, 2)}, а максималният осигурителен доход е {eur(P.maxInsurable.value)}.</p>
         </Card>
 
+        <Card href="/kalkulatori/danaci-razhodi" kicker="Бюджет" title="Данъци срещу разходи" cta="Сравни данък с разходите">
+          <p className="text-[15px]">Изберете данък и нова ставка. Инструментът показва колко пари на година е промяната и с колко процента трябва да се намали всеки голям разход в бюджета, за да се получи същата сума.</p>
+        </Card>
+
         <article className="bg-deep text-white rounded-sm p-5">
           <p className="text-sm text-white/70 font-semibold">Ставките, с които смятаме</p>
           <h2 className="display text-[2rem] leading-none mt-1 mb-4">Актуални параметри</h2>
