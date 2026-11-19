@@ -41,7 +41,27 @@ export default function Sankcii() {
       <section className="mb-10 max-w-3xl">
         <SectionTitle>По партийна принадлежност</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-3">Принадлежността е към момента на санкцията или сегашната, ако е известна. Броят сам по себе си не показва коя партия е „по-корумпирана“: санкциите засягат малко хора и зависят от приоритетите на чуждите правителства.</p>
+        <p className="font-semibold mt-2">Санкции</p>
         <ul className="text-[15px] space-y-1">{[...byParty.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="flex justify-between border-b border-rule py-1"><span>{k}</span><b className="num">{n}</b></li>)}</ul>
+        {(() => {
+          // съдебните случаи по партия и по ниво, по един и същи начин за всички
+          const LV = ["conviction", "nonfinal", "trial", "charged", "dropped", "acquitted"] as const;
+          const LBL = CASES.levels as Record<string, { label: string }>;
+          const rows = new Map<string, Record<string, number>>();
+          for (const c of CASES.cases) { const k = c.party || "без партия / неизвестна"; const r = rows.get(k) ?? {}; r[c.level] = (r[c.level] ?? 0) + 1; rows.set(k, r); }
+          return (
+            <div className="mt-6 overflow-x-auto">
+              <p className="font-semibold">Обвинения и присъди</p>
+              <table className="w-full text-[15px] num mt-1">
+                <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="py-1 pr-3 font-normal">Партия</th>{LV.map((l) => <th key={l} className="py-1 pr-3 font-normal">{LBL[l]?.label}</th>)}</tr></thead>
+                <tbody>{[...rows.entries()].sort((a, b) => Object.values(b[1]).reduce((x, y) => x + y, 0) - Object.values(a[1]).reduce((x, y) => x + y, 0)).map(([k, r]) => (
+                  <tr key={k} className="border-b border-rule"><td className="py-1 pr-3">{k}</td>{LV.map((l) => <td key={l} className="py-1 pr-3">{r[l] ?? "—"}</td>)}</tr>
+                ))}</tbody>
+              </table>
+              <p className="text-sm text-muted mt-2">Включваме само случаи с обвинение или съдебен акт и официален източник, по едни и същи правила за всички партии. Сравнително малкият брой случаи не позволява изводи коя партия е „по-корумпирана“.</p>
+            </div>
+          );
+        })()}
       </section>
 
       <section id="sankcii" className="mb-12 scroll-mt-32 lg:scroll-mt-24">

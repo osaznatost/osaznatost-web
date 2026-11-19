@@ -40,6 +40,32 @@ export default function Obeshtaniya() {
       ))}
 
       <section className="mb-12">
+        <SectionTitle>Сравнение на правителствата</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Еднакъв метод за всички: брой проследени обещания по резултат. Сравняваме само правителства с поне 10 проследени обещания, иначе разликата може да е случайна. Обещанията са подбрани така, че да могат да се измерят, а не за да покажат някого в добра или лоша светлина.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-[15px] num">
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="py-2 pr-4 font-normal">Правителство</th><th className="py-2 pr-4 font-normal">Обещания</th><th className="py-2 pr-4 font-normal">Изпълнени</th><th className="py-2 pr-4 font-normal">Частично / в процес</th><th className="py-2 pr-4 font-normal">Не / нарушени</th><th className="py-2 font-normal">Неоценени</th></tr></thead>
+            <tbody>
+              {data.parties.filter((g) => g.promises.length >= 10).map((g) => {
+                const n = (ss: string[]) => g.promises.filter((x) => ss.includes(x.status)).length;
+                return (
+                  <tr key={g.party} className="border-b border-rule">
+                    <td className="py-2 pr-4"><Link href={`/obeshtaniya/${govSlug(g)}`}>{g.name.replace(/\s*\(.*\)/, "")}</Link></td>
+                    <td className="py-2 pr-4">{g.promises.length}</td>
+                    <td className="py-2 pr-4 text-green">{n(GOOD)}</td>
+                    <td className="py-2 pr-4">{n(["partly", "in_progress", "at_risk"])}</td>
+                    <td className="py-2 pr-4 text-red">{n(BAD)}</td>
+                    <td className="py-2">{n(["not_assessed"])}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="text-sm text-muted mt-2">Правителството „Радев“ е още на власт: част от обещанията му са оценени „досега“, а не в края на мандата.</p>
+      </section>
+
+      <section className="mb-12">
         <SectionTitle>По теми</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4">Едни и същи теми при различните правителства: кой какво е обещал и докъде е стигнал.</p>
         <div className="space-y-6">
