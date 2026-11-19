@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: update-stats
+  cancel-in-progress: false
+
 jobs:
   stats:
     runs-on: ubuntu-latest
