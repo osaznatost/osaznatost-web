@@ -1044,6 +1044,52 @@
               "url": "https://bntnews.bg/news/pm-borissov-ministers-met-carriers-over-demands-for-the-toll-system-1310746news.html"
             }
           ]
+        },
+        {
+          "text": "Конституционна реформа на съдебната власт: ВСС на две колегии, по-малко влияние на прокуратурата",
+          "area": "Правосъдие",
+          "said": {
+            "who": "Управляващата коалиция (проект, внесен от 132 депутати; министър Христо Иванов)",
+            "when": "май 2015",
+            "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/05/26/2541234_upravliavashtite_vnesoha_proekta_za_promeni_v/"
+          },
+          "status": "partly",
+          "evidence": "Промените в Конституцията бяха приети на 16 декември 2015 г.: ВСС е разделен на съдийска и прокурорска колегия. Но на второ четене текстовете бяха значително променени спрямо първото четене и правосъдният министър Христо Иванов подаде оставка на 9 декември 2015 г. в знак на протест. Анализатори определиха резултата като „компромис на статуквото“.",
+          "links": [
+            {
+              "title": "Капитал: управляващите внесоха проекта (26.05.2015)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/05/26/2541234_upravliavashtite_vnesoha_proekta_za_promeni_v/"
+            },
+            {
+              "title": "Капитал: „Компромисът на статуквото“ (08.12.2015)",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/12/08/2665755_kompromisut_na_statukvoto/"
+            },
+            {
+              "title": "Sofia Globe: министърът на правосъдието подава оставка (09.12.2015)",
+              "url": "https://sofiaglobe.com/?p=48409"
+            },
+            {
+              "title": "RAI: България приема промените в Конституцията (16.12.2015)",
+              "url": "https://archive.rai-see.org/?p=7681"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "26 май 2015",
+              "what": "132 депутати внасят проекта за промени в Конституцията.",
+              "url": "https://www.capital.bg/politika_i_ikonomika/bulgaria/2015/05/26/2541234_upravliavashtite_vnesoha_proekta_za_promeni_v/"
+            },
+            {
+              "date": "9 декември 2015",
+              "what": "Второ четене с променени текстове; Христо Иванов подава оставка.",
+              "url": "https://sofiaglobe.com/?p=48409"
+            },
+            {
+              "date": "16 декември 2015",
+              "what": "Окончателно приемане: ВСС с две колегии.",
+              "url": "https://archive.rai-see.org/?p=7681"
+            }
+          ]
         }
       ]
     },
