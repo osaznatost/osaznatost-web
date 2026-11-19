@@ -103,8 +103,13 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
 
       {bills.length > 0 && (
         <Anchor id="zakonoproekti" title="Кой внесе и кой се изказа" lead={<>Законопроектите, с които е променян законът в този парламент: вносители, комисии, становища на външни организации и обсъжданията в залата.</>}>
-          <ul className="space-y-4 max-w-5xl">{bills.slice(0, 8).map((b) => <BillCard key={b.id} b={b} />)}</ul>
-          {bills.length > 8 && <p className="text-sm text-muted mt-2">и още {bills.length - 8} законопроекта.</p>}
+          <ul className="space-y-4 max-w-5xl">{bills.slice(0, 2).map((b) => <BillCard key={b.id} b={b} />)}</ul>
+          {bills.length > 2 && (
+            <details className="mt-3 max-w-5xl">
+              <summary className="cursor-pointer font-semibold text-green py-2">Още {bills.length - 2} законопроекта по този закон</summary>
+              <ul className="space-y-4 mt-2">{bills.slice(2, 12).map((b) => <BillCard key={b.id} b={b} />)}</ul>
+            </details>
+          )}
         </Anchor>
       )}
 
@@ -175,7 +180,7 @@ function BillCard({ b }: { b: Bill }) {
         {(b.notes?.conflict.length ?? 0) > 0 && <><dt className="text-red font-semibold">Конфликт на интереси</dt><dd>{b.notes!.conflict[0]}</dd></>}
         {(b.notes?.against.length ?? 0) > 0 && <><dt className="text-muted">Несъгласие</dt><dd>{b.notes!.against[0]}</dd></>}
         {b.proposals > 0 && <><dt className="text-muted">Предложения</dt><dd>{b.proposals} писмени предложения на депутати между <Term k="parvo-chetene">първо</Term> и <Term k="vtoro-chetene">второ четене</Term></dd></>}
-        {b.hall.length > 0 && <><dt className="text-muted">В залата</dt><dd>{b.hall.map((h, i) => <span key={i}>{i > 0 && ", "}<a href={h.url} target="_blank" rel="noreferrer">{formatDate(h.date)}</a> ({h.stage})</span>)}</dd></>}
+        {b.hall.length > 0 && <><dt className="text-muted">В залата</dt><dd>{b.hall.filter((h, i, a) => a.findIndex((x) => x.url === h.url && x.stage === h.stage) === i).map((h, i) => <span key={i}>{i > 0 && ", "}<a href={h.url} target="_blank" rel="noreferrer">{formatDate(h.date)}</a> ({h.stage})</span>)}</dd></>}
         {b.dv && <><dt className="text-muted">Обнародван</dt><dd>{b.dv}{b.adopted && `, приет на ${formatDate(b.adopted)}`}</dd></>}
       </dl>
     </li>
