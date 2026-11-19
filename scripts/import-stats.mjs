@@ -113,7 +113,9 @@ const SERIES = [
   { id: "net_migration", ds: "demo_gind", filter: { indic_de: "CNMIGRATRT", geo: ["BG", "EU27_2020"] }, by: "geo" },
   // Образование
   { id: "pm25_deaths", ds: "sdg_11_52", filter: { unit: "RT", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
-  { id: "trust_politics", ds: "ilc_pw03", filter: { sex: "T", age: "Y_GE16", isced11: "TOTAL", unit: "RTG", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "trust_legal", ds: "ilc_pw03b", filter: { domain: "LEG", sex: "T", age: "Y_GE16", isced11: "TOTAL", unit: "RTG", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "trust_others", ds: "ilc_pw03", filter: { sex: "T", age: "Y_GE16", isced11: "TOTAL", unit: "RTG", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
+  { id: "trust_politics", ds: "ilc_pw03b", filter: { domain: "POLIT", sex: "T", age: "Y_GE16", isced11: "TOTAL", unit: "RTG", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
   { id: "crime_area", ds: "ilc_mddw03", filter: { hhcomp: "TOTAL", rskpovth: "TOTAL", unit: "PC", geo: ["BG", "EU27_2020", "RO", "EL", "HR", "PL", "HU"] }, by: "geo" },
   { id: "early_leavers", ds: "edat_lfse_14", filter: { sex: "T", wstatus: "POP", unit: "PC", age: "Y18-24", geo: ["BG", "EU27_2020"] }, by: "geo" },
   { id: "tertiary", ds: "edat_lfse_03", filter: { sex: "T", isced11: "ED5-8", unit: "PC", age: "Y25-34", geo: ["BG", "EU27_2020"] }, by: "geo" },
