@@ -85,7 +85,7 @@ for (let id = index.last + 1; miss < 250 && Date.now() < deadline; id++) {
 }
 
 // 2) Подробности и текстове за още необработените (и за обновяване на тези с ново движение).
-const VERSION = 3;
+const VERSION = 4;
 const todo = Object.entries(index.bills).filter(([, x]) => !x.done || (x.v ?? 1) < VERSION || (process.env.REFRESH && !x.final));
 for (const [id] of todo) {
   if (Date.now() > deadline) break;
@@ -124,6 +124,9 @@ for (const [id] of todo) {
     out.reports.push({ date: r.A_Cm_Stan_date, committee: r.A_ns_CL_value, stage: r.L_Act_St_name, title: r.A_Cm_Stan_sub, text: await docText(j, r.L_Act_St_name === "първо гласуване" ? 20000 : 9000) });
   }
   for (const r of (b.standp_list ?? []).slice(0, 12)) {
+    // разпознатите вече становища не се разпознават отново
+    const old = prev?.opinions?.find((o) => o.title === r.A_Cm_Stan_sub && o.text?.length > 200);
+    if (old) { out.opinions.push(old); continue; }
     const j = await api(`com-stan/${r.A_ns_C_id}/${r.A_Cm_Stanid}`);
     out.opinions.push({ date: r.A_Cm_Stan_date, title: r.A_Cm_Stan_sub, text: await docText(j, 3500) });
   }
