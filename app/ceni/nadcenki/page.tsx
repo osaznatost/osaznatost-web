@@ -3,6 +3,7 @@ import path from "node:path";
 import Link from "next/link";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Page, Title } from "@/components/ui";
+import IDENT from "@/content/identical-products.json";
 
 export const metadata = { title: "Надценки и цени спрямо чужбина" };
 
@@ -14,8 +15,8 @@ type Cat = { name: string; med: number; n: number; chains: Record<string, { med:
 type Latest = { date: string; chains: Record<string, number>; cats: Record<string, Cat> };
 type EU = { year: string; food: Record<string, number>; aic: Record<string, number>; aicYear: string | null };
 
-const root = process.cwd();
-const read = <T,>(...p: string[]): T | null => { const f = path.join(root, ...p); return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as T) : null; };
+const dir = path.join(process.cwd(), "data", "prices");
+const read = <T,>(f: string): T | null => (existsSync(path.join(dir, f)) ? (JSON.parse(readFileSync(path.join(dir, f), "utf8")) as T) : null);
 const eur = (v: number) => `${v.toLocaleString("bg-BG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const pc = (v: number) => `${v > 0 ? "+" : ""}${Math.round(v).toLocaleString("bg-BG")}%`;
 const dmy = (d: string) => d.split("-").reverse().join(".");
@@ -25,19 +26,19 @@ const WHOLE_MAP: [RegExp, number, string][] = [
   [/^Захар$/, 38, "Захар, 1 кг"], [/^Брашно тип"?500"?$/, 40, "Брашно тип 500, 1 кг"], [/^Ориз$/, 35, "Ориз, 1 кг"], [/^Фасул зрял$/, 33, "Боб, 1 кг"], [/^Леща$/, 34, "Леща, 1 кг"],
   [/^Слънчогледово олио/, 42, "Олио, 1 л"], [/^Прясно мляко кут\.?\/бут\. 1л 3%$/, 6, "Прясно мляко 3%, 1 л"], [/^Кисело мляко коф\.\s?0\.400кг 3% и над 3%$/, 7, "Кисело мляко, 400 г"],
   [/^Бяло саламурено сирене от кр\. мляко$/, 8, "Бяло сирене, 1 кг (насипно)"], [/^Кашкавал - Витоша$/, 10, "Кашкавал, 1 кг (насипен)"], [/^Пилешки бут цял$/, 17, "Пилешки бут, 1 кг"], [/^Кайма смес$/, 25, "Кайма, 1 кг"],
-  [/^Ябълки$/, 53, "Ябълки, 1 кг"], [/^Банани$/, 52, "Банани, 1 кг"], [/^Лимони$/, 50, "Лимони, 1 кг"], [/^Портокали$/, 51, "Портокали, 1 кг"], [/^Домати$/, 54, "Домати, 1 кг"], [/^Краставици$/, 58, "Краставици, 1 кг"],
-  [/^Картофи$/, 61, "Картофи, 1 кг"], [/^Зеле$/, 57, "Зеле, 1 кг"], [/^Моркови$/, 56, "Моркови, 1 кг"], [/^Лук зрял$/, 55, "Кромид лук, 1 кг"], [/^Чесън/, 59, "Чесън, 1 кг"],
+  [/^Ябълки$/, 53, "Ябълки, 1 кг"], [/^Банани$/, 52, "Банани, 1 кг"], [/^Лимони$/, 50, "Лимони, 1 кг"], [/^Портокали$/, 51, "Портокали, 1 кг"], [/^Домати оранжерийни$/, 54, "Домати, 1 кг"], [/^Краставици оранжерийни$/, 58, "Краставици, 1 кг"],
+  [/^Картофи$/, 61, "Картофи, 1 кг"], [/^Зеле главесто$/, 57, "Зеле, 1 кг"], [/^Моркови$/, 56, "Моркови, 1 кг"], [/^Лук кромид зрял$/, 55, "Кромид лук, 1 кг"], [/^Чесън зрял$/, 59, "Чесън, 1 кг"],
 ];
 const CHAINS = ["Лидл България", "Кауфланд България", "Билла", "ФАНТАСТИКО", "T Market"];
 const NAMES: Record<string, string> = { BG: "България", RO: "Румъния", EL: "Гърция", HR: "Хърватия", PL: "Полша", HU: "Унгария", CZ: "Чехия", SK: "Словакия", SI: "Словения", AT: "Австрия", DE: "Германия", FR: "Франция", IT: "Италия", ES: "Испания", PT: "Португалия", NL: "Нидерландия", BE: "Белгия", LU: "Люксембург", IE: "Ирландия", DK: "Дания", SE: "Швеция", FI: "Финландия", EE: "Естония", LV: "Латвия", LT: "Литва", CY: "Кипър", MT: "Малта" };
 
 export default function Nadcenki() {
-  const ident = read<{ items: Ident[] }>("content", "identical-products.json")?.items ?? [];
-  const P = read<Prod>("data", "prices", "products.json");
-  const A = read<Abroad>("data", "prices", "abroad.json");
-  const W = read<Whole>("data", "prices", "wholesale.json");
-  const L = read<Latest>("data", "prices", "latest.json");
-  const E = read<EU>("data", "prices", "eu-levels.json");
+  const ident = IDENT.items as Ident[];
+  const P = read<Prod>("products.json");
+  const A = read<Abroad>("abroad.json");
+  const W = read<Whole>("wholesale.json");
+  const L = read<Latest>("latest.json");
+  const E = read<EU>("eu-levels.json");
 
   const rows = ident.map((i) => ({ i, bg: P?.items[i.id], at: A?.items[i.id] })).filter((r) => r.bg && r.at)
     .map((r) => ({ ...r, diff: (r.bg!.med / r.at!.price - 1) * 100 }));
@@ -53,6 +54,8 @@ export default function Nadcenki() {
     return [{ name, label: m[2], w: w.eur, all: c.med, chains }];
   }) : [];
   const ratio = (v: number | null, w: number) => (v == null ? null : (v / w - 1) * 100);
+  const chainCols = CHAINS.filter((ch) => whole.some((x) => x.chains[ch] != null));
+  const odd = (r: number) => r < -40 || r > 120; // твърде далеч от цената на едро: най-често различна разфасовка в данните на веригата
 
   const eu = E ? Object.keys(NAMES).filter((c) => E.food[c] && E.aic[c]).map((c) => ({ c, food: E.food[c], aic: E.aic[c], burden: (E.food[c] / E.aic[c]) * 100 })).sort((a, b) => b.burden - a.burden) : [];
   const bgEu = eu.find((x) => x.c === "BG");
@@ -94,24 +97,24 @@ export default function Nadcenki() {
         {whole.length === 0 ? <p className="text-muted">Данните се събират. Опитай отново по-късно.</p> : (
           <div className="overflow-x-auto">
             <table className="w-full text-[15px] num min-w-[640px]">
-              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Стока</th><th className="text-right px-2 font-normal">На едро</th><th className="text-right px-2 font-normal">Всички магазини</th>{CHAINS.map((ch) => <th key={ch} className="text-right px-2 font-normal">{ch.replace(" България", "")}</th>)}</tr></thead>
+              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Стока</th><th className="text-right px-2 font-normal">На едро</th><th className="text-right px-2 font-normal">Всички магазини</th>{chainCols.map((ch) => <th key={ch} className="text-right px-2 font-normal">{ch.replace(" България", "")}</th>)}</tr></thead>
               <tbody>{whole.map((x) => (
                 <tr key={x.name} className="border-b border-rule">
                   <td className="py-1.5 pr-3">{x.label}</td>
                   <td className="text-right px-2">{eur(x.w)}</td>
                   <td className="text-right px-2"><span className="font-semibold">{pc(ratio(x.all, x.w)!)}</span><span className="block text-xs text-muted">{eur(x.all)}</span></td>
-                  {CHAINS.map((ch) => { const r = ratio(x.chains[ch], x.w); return <td key={ch} className="text-right px-2">{r == null ? <span className="text-muted">–</span> : <><span>{pc(r)}</span><span className="block text-xs text-muted">{eur(x.chains[ch]!)}</span></>}</td>; })}
+                  {chainCols.map((ch) => { const r = ratio(x.chains[ch], x.w); return <td key={ch} className="text-right px-2">{r == null ? <span className="text-muted">–</span> : <><span className={odd(r) ? "text-muted" : ""}>{pc(r)}{odd(r) && "*"}</span><span className="block text-xs text-muted">{eur(x.chains[ch]!)}</span></>}</td>; })}
                 </tr>))}</tbody>
             </table>
           </div>
         )}
-        <p className="text-sm text-muted mt-3 max-w-3xl">Процентът показва с колко обичайната цена на дребно е над средната цена на едро. Отрицателно число значи, че в магазина стоката се продава под средната цена на едро (например по-евтина марка или голям договор с доставчик). Сравняваме само стоки, при които единицата е една и съща (килограм, литър или същата разфасовка).</p>
+        <p className="text-sm text-muted mt-3 max-w-3xl">Процентът показва с колко обичайната цена на дребно е над средната цена на едро. Отрицателно число значи, че в магазина стоката се продава под средната цена на едро (например по-евтина марка или голям договор с доставчик). Със звездичка (*) са разлики под −40% или над +120%: най-често веригата е подала в групата „за 1 кг“ цена на пакет с друго тегло, затова тези стойности не са сигурни. Сравняваме само стоки, при които единицата е една и съща (килограм, литър или същата разфасовка). За плодовете и зеленчуците взимаме цената на едро на българската продукция (ДКСБТ дава вноса отделно).</p>
       </Anchor>
 
       <Anchor id="evropa" title="Храната в България спрямо ЕС" lead={E ? `Евростат, ${E.year} г.: ценово равнище на храните и безалкохолните напитки и реално потребление на човек (стандарт на покупателна способност), и двете спрямо средното за ЕС = 100.` : undefined}>
         {!bgEu ? <p className="text-muted">Данните се събират.</p> : (
           <>
-            <p className="max-w-3xl text-[15px] mb-4">В България храната струва <b>{Math.round(bgEu.food)}%</b> от средната цена в ЕС, а потреблението на човек е <b>{Math.round(bgEu.aic)}%</b> от средното. Затова спрямо доходите храната тежи с около <b>{pc(bgEu.burden - 100)}</b> повече от средното за ЕС. Това е показател за тежестта на цените, а не за надценките на търговците.</p>
+            <p className="max-w-3xl text-[15px] mb-4">В България храната струва <b>{Math.round(bgEu.food)}%</b> от средната цена в ЕС, а потреблението на човек е <b>{Math.round(bgEu.aic)}%</b> от средното. Затова спрямо доходите храната тежи {bgEu.burden >= 100 ? <>с около <b>{Math.round(bgEu.burden - 100)}%</b> повече</> : <>с около <b>{Math.round(100 - bgEu.burden)}%</b> по-малко</>} от средното за ЕС. Това е показател за тежестта на цените, а не за надценките на търговците.</p>
             <ol className="columns-1 sm:columns-2 gap-8 text-[15px] num">{eu.map((x) => (
               <li key={x.c} className={`flex justify-between gap-2 border-b border-rule py-1.5 break-inside-avoid ${x.c === "BG" ? "font-semibold" : ""}`}>
                 <span>{NAMES[x.c]}</span><span><span className="text-sm text-muted mr-2">цени {Math.round(x.food)} · потребление {Math.round(x.aic)}</span><span className={x.burden > 100 ? "text-red" : "text-green"}>{pc(x.burden - 100)}</span></span>
