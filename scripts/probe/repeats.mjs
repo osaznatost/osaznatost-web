@@ -21,7 +21,9 @@ for (let i = 0; i < items.length; i++) {
   }
   const tenders = new Set(g.map((x) => items[x].c.tender_id || items[x].c.contract_date));
   const span = Math.max(...g.map((x) => items[x].d)) - Math.min(...g.map((x) => items[x].d));
-  if (g.length >= 2 && tenders.size >= 2 && span >= 90 * 864e5) { g.forEach((x) => used.add(x)); out.push(g.map((x) => items[x].c)); }
+  const years = g.map((x) => items[x].c.tender_name.match(/20\d\d/)?.[0]);
+  const annual = years.every(Boolean) && new Set(years).size === g.length;
+  if (g.length >= 2 && tenders.size >= 2 && span >= 90 * 864e5 && !annual) { g.forEach((x) => used.add(x)); out.push(g.map((x) => items[x].c)); }
 }
 out.sort((a, b) => b.length - a.length);
 console.log("Групи повтарящи се поръчки:", out.length);

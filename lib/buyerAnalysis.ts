@@ -25,7 +25,10 @@ export function repeatedWork(cs: Contract[]): Cluster[] {
     // искаме поне две различни процедури и поне 90 дни между първата и последната.
     const tenders = new Set(group.map((g) => items[g].c.tender_id || items[g].c.contract_date));
     const span = Math.max(...group.map((g) => items[g].d)) - Math.min(...group.map((g) => items[g].d));
-    if (group.length >= 2 && tenders.size >= 2 && span >= 90 * 864e5) {
+    // Годишни услуги („… за 2022 г.“, „… за 2023 г.“) са очаквано повторение, не повторна работа.
+    const years = group.map((g) => items[g].c.tender_name.match(/20\d\d/)?.[0]);
+    const annual = years.every(Boolean) && new Set(years).size === group.length;
+    if (group.length >= 2 && tenders.size >= 2 && span >= 90 * 864e5 && !annual) {
       group.forEach((g) => used.add(g));
       const cc = group.map((g) => items[g].c).sort((a, b) => (a.contract_date! < b.contract_date! ? -1 : 1));
       const ds = group.map((g) => items[g].d);
