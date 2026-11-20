@@ -12,7 +12,18 @@ const api = async (method, body) => {
   return r.json();
 };
 const d = await api("getDatasetDetails", { dataset_uri: DATASET });
-const resources = d?.data?.resources ?? d?.resources ?? [];
+let resources = d?.data?.resources ?? d?.resources ?? [];
+if (!resources.length) {
+  // Ресурсите са в отделен метод; страниците са по 100 записа.
+  for (let page = 1; page < 20; page++) {
+    const r = await api("listResources", { criteria: { dataset_uri: DATASET }, records_per_page: 100, page_number: page });
+    const list = r?.resources ?? r?.data?.resources ?? r?.data ?? [];
+    if (page === 1 && !Array.isArray(list)) console.log("listResources:", JSON.stringify(r).slice(0, 800));
+    if (!Array.isArray(list) || !list.length) break;
+    resources.push(...list);
+    if (list.length < 100) break;
+  }
+}
 if (!resources.length) { console.error("Наборът няма ресурси или форматът на отговора е друг:", JSON.stringify(d).slice(0, 500)); process.exit(1); }
 let got = 0;
 for (const res of resources) {
