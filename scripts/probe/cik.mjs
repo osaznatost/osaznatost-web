@@ -1,13 +1,10 @@
-const H = { "user-agent": "Mozilla/5.0 osaznatost", accept: "application/json" };
-const tryj = async (u, opt = {}) => { try { const r = await fetch(u, { ...opt, headers: { ...H, ...(opt.headers || {}) }, signal: AbortSignal.timeout(25000) }); const t = await r.text(); console.log("## TRY", u.slice(0, 140), r.status, t.slice(0, 900).replace(/\s+/g, " ")); return t; } catch (e) { console.log("## TRY", u.slice(0, 140), "ERR", e.cause?.code || e.message); } };
-for (const slug of ["vorratsschrank-15012", "nudeln-und-reis-15027"]) {
-  const t = await tryj(`https://shop.billa.at/api/product-discovery/products?categorySlug=${slug}&page=0&pageSize=500&storeId=00-10`);
-  try { const j = JSON.parse(t); console.log("## AT", slug, "total", j.total, "got", j.results.length, j.results.slice(0, 5).map((p) => p.name + " " + p.amount + p.volumeLabelShort + " " + p.price.regular.value)); } catch {}
-}
-await tryj("https://shop.billa.at/api/categories?storeId=00-10");
-await tryj("https://shop.billa.at/api/product-discovery/categories?storeId=00-10");
-await tryj("https://www.mega-image.ro/api/v1/?operationName=GetProductSearch&variables=" + encodeURIComponent(JSON.stringify({ searchQuery: "barilla", pageSize: 5, currentPage: 0, lang: "ro" })), { headers: { "apollo-require-preflight": "true", "x-apollo-operation-name": "GetProductSearch" } });
+const H = { "user-agent": "Mozilla/5.0 osaznatost" };
 const html = await (await fetch("https://www.mega-image.ro/search?q=barilla", { headers: H })).text();
-const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/); console.log("## MI next data", m ? m[1].length : 0, m ? m[1].slice(0, 300) : "");
-console.log("## MI prices in html", [...html.matchAll(/"price":\{[^}]{0,200}\}/g)].slice(0, 3).map((x) => x[0]));
-console.log("## MI hashes", [...new Set([...html.matchAll(/sha256Hash[^0-9a-f]{0,6}([0-9a-f]{64})/g)].map((x) => x[1]))].slice(0, 5));
+const nd = JSON.parse(html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)[1]);
+const s = JSON.stringify(nd); let i = s.search(/"name":"[^"]*Barilla/i); console.log("## MI barilla at", i, s.slice(Math.max(0, i - 300), i + 900));
+console.log("## MI apollo keys", Object.keys(nd.props?.pageProps || {}).slice(0, 30), Object.keys(nd.props?.apolloState || nd.props?.pageProps?.apolloState || {}).slice(0, 10));
+for (const u of ["https://shop.billa.at/suche/barilla", "https://shop.billa.at/search?q=barilla", "https://shop.billa.at/kategorie/vorratsschrank/nudeln-und-reis-15027"]) {
+  const r = await fetch(u, { headers: H }); const t = await r.text();
+  const j = t.indexOf("Barilla"); console.log("## AT", u, r.status, t.length, "barilla at", j, t.slice(Math.max(0, j - 200), j + 400).replace(/\s+/g, " "));
+  console.log("## AT api urls", [...new Set([...t.matchAll(/\/api\/[a-zA-Z0-9\-\/]+/g)].map((m) => m[0]))].slice(0, 30));
+}
