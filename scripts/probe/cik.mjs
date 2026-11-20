@@ -1,8 +1,9 @@
-import { execFileSync } from "node:child_process";
-const d = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
-execFileSync("curl", ["-sSLf", "-m", "300", "-o", "/tmp/k.zip", `https://kolkostruva.bg/opendata_files/${d}.zip`]);
-execFileSync("unzip", ["-o", "-q", "/tmp/k.zip", "-d", "/tmp/k"]);
-console.log(execFileSync("bash", ["-c", `cd /tmp/k; for f in *Лидл* *Билла*; do echo "## $f"; ls -la "$f"; file "$f"; head -c 600 "$f" | iconv -f utf-16 -t utf-8 2>/dev/null | head -5; echo; head -c 400 "$f" | od -c | head -5; done`]).toString());
-for (const u of ["https://shop.billa.at/api/product-discovery/products?page=0&pageSize=3&storeId=00-10", "https://shop.billa.at/api/product-discovery/products?categorySlug=milchprodukte&page=0&pageSize=3&storeId=00-10", "https://shop.billa.cz/api/product-discovery/products?page=0&pageSize=3"]) {
-  try { const x = await fetch(u, { headers: { "user-agent": "Mozilla/5.0 osaznatost", accept: "application/json" } }); console.log("## TRY", u, x.status, (await x.text()).slice(0, 900)); } catch (e) { console.log("## TRY", u, e.message); }
+const x = await fetch("https://shop.billa.at/api/product-discovery/products?categorySlug=milchprodukte&page=0&pageSize=2&storeId=00-10", { headers: { "user-agent": "Mozilla/5.0 osaznatost", accept: "application/json" } });
+const j = await x.json();
+console.log("## keys", Object.keys(j), "total", j.total ?? j.count);
+console.log("## product", JSON.stringify(j.results?.[0] ?? j.products?.[0] ?? j.items?.[0]).slice(0, 2500));
+const s = await fetch("https://shop.billa.at/api/product-discovery/products?searchTerm=milka&page=0&pageSize=5&storeId=00-10", { headers: { "user-agent": "Mozilla/5.0 osaznatost", accept: "application/json" } });
+const k = await s.json(); console.log("## search milka", s.status, (k.results || []).map(p => [p.name, p.price?.regular?.value ?? JSON.stringify(p.price).slice(0, 120), p.packageLabel]).slice(0, 5));
+for (const u of ["https://shop.billa.cz/api/product-discovery/products?searchTerm=milka&page=0&pageSize=3&storeId=00-10", "https://shop.billa.sk/api/product-discovery/products?searchTerm=milka&page=0&pageSize=3"]) {
+  try { const r = await fetch(u, { headers: { "user-agent": "Mozilla/5.0 osaznatost", accept: "application/json" } }); console.log("## TRY", u, r.status, r.headers.get("content-type"), (await r.text()).slice(0, 300)); } catch (e) { console.log("## TRY", u, e.message); }
 }
