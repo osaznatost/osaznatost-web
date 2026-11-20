@@ -1,0 +1,23 @@
+name: Lighthouse (на живия сайт)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  lh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Достъпност на страниците
+        run: |
+          for u in / /porachki/dogovor/n~130020522~49850 /parlament/deputat/5221; do
+            echo "$u -> $(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "https://osaznatost-web.vercel.app$u")"
+          done
+      - name: Lighthouse (телефон)
+        run: |
+          for u in /porachki/dogovor/n~130020522~49850; do
+            npx -y lighthouse@12 "https://osaznatost-web.vercel.app$u" --quiet --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility --output=json --output-path=/tmp/lh.json || true
+            node -e "const r=require('/tmp/lh.json');console.log('$u', 'performance', Math.round(r.categories.performance.score*100), 'accessibility', Math.round(r.categories.accessibility.score*100), 'LCP', r.audits['largest-contentful-paint'].displayValue, 'final URL', r.finalDisplayedUrl)" || true
+          done
