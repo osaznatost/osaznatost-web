@@ -1,15 +1,14 @@
-const sites = {
-  VRATSA: ["https://www.vratza.bg", "https://www.vratza.bg/obshtinski-savet"],
-  SILISTRA: ["https://www.silistra.bg"],
-  BLAG: ["https://www.blagoevgrad.bg"],
-  YAMBOL: ["https://yambol.bg", "https://yambol.bg/obshtinski-savet"],
-};
-for (const [k, urls] of Object.entries(sites)) for (const u of urls) {
-  try {
-    const r = await fetch(u, { signal: AbortSignal.timeout(20000), headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
-    const t = await r.text();
-    const links = [...t.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/g)].map(m => [m[1], m[2].replace(/<[^>]+>/g, "").trim()]).filter(([h, x]) => /решени|заседан|протокол|общински съвет/i.test(x + " " + decodeURIComponent(h)));
-    console.log("##", k, u, r.status, t.length);
-    for (const l of links.slice(0, 25)) console.log("  ", l[1].slice(0, 60), "=>", l[0]);
-  } catch (e) { console.log("##", k, u, "ERR", e.cause?.code || e.message); }
-}
+const r = await fetch("https://yambol.bg/uploads/E4CC01AC0CC9C4733AD7B3E55B21184F", { headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
+const buf = Buffer.from(await r.arrayBuffer());
+const ct = r.headers.get("content-type") || "";
+const m = ct.match(/charset=([\w-]+)/i);
+let html = new TextDecoder(m ? m[1] : "utf-8").decode(buf);
+console.log("## ", r.status, ct, r.headers.get("content-disposition"), html.length);
+const meta = html.match(/charset=["']?([\w-]+)/i); console.log("## meta", meta && meta[1]);
+if (meta && /1251/.test(meta[1])) html = new TextDecoder("windows-1251").decode(buf);
+const text = html.replace(/<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n");
+console.log("## text", text.length);
+console.log(text.slice(0, 2500));
+const idx = [...text.matchAll(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№?\s*\d+/g)].length; console.log("## reshenie count", idx);
+const ot = [...text.matchAll(/ОТНОСНО/gi)].length; console.log("## otnosno", ot);
+console.log(text.slice(5000, 7000));

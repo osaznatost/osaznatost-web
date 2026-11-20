@@ -1,14 +1,14 @@
-const u = "https://yambol.bg/mandat-2023-2027";
-const r = await fetch(u, { signal: AbortSignal.timeout(30000), headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
-const t = await r.text();
-console.log("## ", r.status, t.length);
-const links = [...t.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,300}?)<\/a>/g)].map(m => [m[1], m[2].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()]);
-const doc = links.filter(([h, x]) => /uploads|\.pdf|\.doc|reshen|protokol|zasedan/i.test(h) || /решени|протокол/i.test(x));
-console.log("## docs", doc.length);
-for (const l of doc.slice(0, 40)) console.log("  ", l[1].slice(0, 90), "=>", l[0].slice(0, 120));
-for (const l of doc.slice(-10)) console.log("  END", l[1].slice(0, 90), "=>", l[0].slice(0, 120));
-const first = doc.find(([h]) => /uploads/.test(h));
-if (first) {
-  const f = await fetch(new URL(first[0], u), { headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
-  console.log("## first", f.status, f.headers.get("content-type"), f.headers.get("content-disposition"), (await f.arrayBuffer()).byteLength);
-}
+const r = await fetch("https://yambol.bg/uploads/E4CC01AC0CC9C4733AD7B3E55B21184F", { headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
+const buf = Buffer.from(await r.arrayBuffer());
+const ct = r.headers.get("content-type") || "";
+const m = ct.match(/charset=([\w-]+)/i);
+let html = new TextDecoder(m ? m[1] : "utf-8").decode(buf);
+console.log("## ", r.status, ct, r.headers.get("content-disposition"), html.length);
+const meta = html.match(/charset=["']?([\w-]+)/i); console.log("## meta", meta && meta[1]);
+if (meta && /1251/.test(meta[1])) html = new TextDecoder("windows-1251").decode(buf);
+const text = html.replace(/<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n");
+console.log("## text", text.length);
+console.log(text.slice(0, 2500));
+const idx = [...text.matchAll(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№?\s*\d+/g)].length; console.log("## reshenie count", idx);
+const ot = [...text.matchAll(/ОТНОСНО/gi)].length; console.log("## otnosno", ot);
+console.log(text.slice(5000, 7000));
