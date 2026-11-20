@@ -2,7 +2,8 @@
 // data.egov.bg приема автоматизирани заявки само от български IP адреси (писмо от МЕУ, 20.11.2026),
 // затова се пуска на self-hosted runner в България (Mac-ът на Павлин). Не ползва прокси и не заобикаля ограничения.
 // Употреба: node scripts/fetch-sebra.mjs <папка>   → после: python3 scripts/import-sebra.py <папка>
-import { mkdirSync, writeFileSync, existsSync, statSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, statSync, readdirSync, renameSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 const DATASET = "57f1e2e7-b235-45e8-94c4-4d69f0b1a690";
 const OUT = process.argv[2] ?? "/tmp/sebra";
 mkdirSync(OUT, { recursive: true });
@@ -34,7 +35,17 @@ for (const res of resources) {
   if (existsSync(path) && statSync(path).size > 1000) continue;
   const r = await fetch(`https://data.egov.bg/resource/download/${uri}/csv`);
   if (!r.ok) { console.log(`Пропускам ${name}: HTTP ${r.status}`); continue; }
-  writeFileSync(path, Buffer.from(await r.arrayBuffer()));
+  const buf = Buffer.from(await r.arrayBuffer());
+  if (buf.slice(0, 2).toString() === "PK") {
+    // По-старите периоди са качени като ZIP с CSV вътре: разархивираме и пазим CSV файловете с името на периода.
+    const tmp = `${OUT}/_zip_${uri}`;
+    mkdirSync(tmp, { recursive: true });
+    writeFileSync(`${tmp}/a.zip`, buf);
+    execFileSync("unzip", ["-o", "-q", `${tmp}/a.zip`, "-d", tmp]);
+    const csvs = readdirSync(tmp, { recursive: true }).filter((f) => /\.csv$/i.test(String(f)));
+    csvs.forEach((f, i) => renameSync(`${tmp}/${f}`, i === 0 ? path : path.replace(/\.csv$/, `-${i}.csv`)));
+    console.log("ZIP:", csvs.length, "CSV файла");
+  } else writeFileSync(path, buf);
   got++; console.log("изтеглен", file, name);
   await new Promise((s) => setTimeout(s, 1500));
 }
