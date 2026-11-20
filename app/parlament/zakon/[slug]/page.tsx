@@ -13,6 +13,7 @@ import { AutoLawView } from "@/components/AutoLawView";
 import { lawSignals, type LawSignal } from "@/lib/lawSignals";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Term } from "@/components/Term";
+import { CitizenVote } from "@/components/CitizenVote";
 
 function lawVotes(slug: string) {
   return VOTES.filter((v) => lawFromTitle(v.title)?.slug === slug).sort((a, b) => (a.date === b.date ? a.item - b.item : a.date < b.date ? -1 : 1));
@@ -75,7 +76,7 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
   const signals = lawSignals(votes, bills);
   // автоматично извлечените цитати: за законопроектите, по които е гласувано (най-новите първо)
   const autos = bills.filter((b) => !b.withdrawn).map((b) => autoFor(b.id)).filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, 4);
-  const nav: [string, string][] = [["nakratko", "Накратко"], ...(signals.length ? [["signali", `Сигнали (${signals.length})`] as [string, string]] : []), ...(bills.length ? [["zakonoproekti", "Кой внесе и кой се изказа"] as [string, string]] : []), ...(law?.motives || law?.critics || autos.length ? [["argumenti", "Двете страни"] as [string, string]] : []), ["grupi", "Как гласуваха"], ["glasuvaniya", `Гласувания (${votes.length})`]];
+  const nav: [string, string][] = [["nakratko", "Накратко"], ...(signals.length ? [["signali", `Сигнали (${signals.length})`] as [string, string]] : []), ...(bills.length ? [["zakonoproekti", "Кой внесе и кой се изказа"] as [string, string]] : []), ...(law?.motives || law?.critics || autos.length ? [["argumenti", "Двете страни"] as [string, string]] : []), ...(law ? [["mnenie", "Твоето мнение"] as [string, string]] : []), ["grupi", "Как гласуваха"], ["glasuvaniya", `Гласувания (${votes.length})`]];
 
   return (
     <Page>
@@ -123,6 +124,12 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
       {autos.length > 0 && (
         <Anchor id={law ? "dokumenti" : "argumenti"} title={law ? "Още от документите" : "Двете страни: какво казват документите"} lead={law ? "Дословни цитати от докладите, мотивите и стенограмите, извлечени автоматично." : "Обобщение от редактор още няма. По-долу са дословни цитати от докладите на комисиите, мотивите и стенограмите, подредени автоматично по правила: какво се предлага, кой какво каза и какви възражения има."}>
           <div className="space-y-4 max-w-4xl">{autos.map((a, i) => <AutoLawView key={a.id} a={a} open={!law && i === 0} />)}</div>
+        </Anchor>
+      )}
+
+      {law && (
+        <Anchor id="mnenie" title="Твоето мнение" lead={<>Прочети какво променя законът и доводите на двете страни по-горе, после гласувай. Анонимно е; резултатът се вижда след гласуването. <Link href="/mnenie">Всички закони за гласуване</Link>.</>}>
+          <CitizenVote item={slug} question={`Подкрепяш ли последните промени в „${law.name}“?`} />
         </Anchor>
       )}
 
