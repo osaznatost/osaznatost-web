@@ -1,8 +1,8 @@
 const sites = {
-  VRATSA: ["https://obs.vratsa.bg", "https://www.vratsa.bg"],
-  SILISTRA: ["https://obs.silistra.bg", "https://www.silistra.bg"],
-  BLAG: ["https://os.blagoevgrad.bg", "https://www.blagoevgrad.bg"],
-  YAMBOL: ["https://obs.yambol.bg", "https://www.yambol.bg"],
+  VRATSA: ["https://www.vratza.bg", "https://www.vratza.bg/obshtinski-savet"],
+  SILISTRA: ["https://www.silistra.bg"],
+  BLAG: ["https://www.blagoevgrad.bg"],
+  YAMBOL: ["https://yambol.bg", "https://yambol.bg/obshtinski-savet"],
 };
 for (const [k, urls] of Object.entries(sites)) for (const u of urls) {
   try {
