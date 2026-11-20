@@ -423,6 +423,44 @@
           "url": "https://www.bta.bg/en/news/355000-former-sozopol-mayor-fined-bgn-160-000-for-conflict-of-interestza-konflikt-na-in"
         }
       ]
+    },
+    {
+      "person": "Стоян Пасев",
+      "role": "Бивш областен управител на Варна (ГЕРБ)",
+      "party": "ГЕРБ-СДС",
+      "level": "trial",
+      "date": "2025-12",
+      "what": "Същото дело като срещу Иван Портних: неверни данни и документи за 3,4 млн. € евросредства за реконструкция на рибарско пристанище край Варна, което по документите не е съществувало.",
+      "outcome": "Европейската прокуратура внесе обвинителен акт на 1.12.2025 г. При осъдителна присъда грозят от 2 до 8 години затвор. Няма присъда.",
+      "sources": [
+        {
+          "title": "Fakti: обвинени са Портних и Пасев",
+          "url": "https://www.fakti.bg/en/krimi/1018261-evroprokuraturata-obvini-bivshia-kmet-na-varna-ivan-portnih-i-bivshia-oblasten-upravitel-stoan-pasev"
+        },
+        {
+          "title": "Европейска прокуратура (1.12.2025)",
+          "url": "https://www.eppo.europa.eu/en/media/news/bulgaria-former-mayor-and-ex-governor-varna-indicted-claiming-funds-non-existent-harbour"
+        }
+      ]
+    },
+    {
+      "person": "Кметът на община Петрич",
+      "role": "Кмет на община Петрич (Европейската прокуратура не съобщава името)",
+      "party": null,
+      "level": "trial",
+      "date": "2026-10",
+      "what": "Измама с евросредства по проекта „Културен дипол в трансграничния регион“ (програма Гърция–България): според обвинението е скрито, че се строи изцяло нова сграда, в нарушение на споразумението между партньорите.",
+      "outcome": "Обвинен през март 2025 г.; обвинителният акт е внесен в съда през октомври 2026 г. Няма присъда.",
+      "sources": [
+        {
+          "title": "Европейска прокуратура: обвинението (25.03.2025)",
+          "url": "https://www.eppo.europa.eu/en/media/news/bulgaria-mayor-petrich-accused-fraud-involving-cultural-heritage-museum"
+        },
+        {
+          "title": "EUagenda / Novinite: обвинителният акт (10.2026)",
+          "url": "https://euagenda.eu/news/942478"
+        }
+      ]
     }
   ]
 }
