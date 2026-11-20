@@ -125,10 +125,10 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       {P?.ipop && P.ipop.projects.length > 0 && (
         <section className="mb-12">
           <SectionTitle>Държавни инвестиции в общината</SectionTitle>
-          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Инвестиционна програма за общински проекти ({P.ipop.year}): пари от държавния бюджет през Регионалното министерство (МРРБ), с участие на общината. Договорени {mn(P.ipop.rollup.agreementEur)}, изплатени {mn(P.ipop.rollup.paidEur)} ({fmt(P.ipop.rollup.paidPct, 0)}%).</p>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Инвестиционна програма за общински проекти ({P.ipop.year}): пари от държавния бюджет през Регионалното министерство (МРРБ), с участие на общината. Договорени {mn(P.ipop.rollup.agreementEur)}, изплатени {mn(P.ipop.rollup.paidEur)} ({fmt(P.ipop.rollup.paidPct, 0)}%). Знакът „под 5% изплатени“ е за проекти с договор над 100 000 €, по които почти още няма плащане. Това е повод за въпрос, не доказателство, че проектът е спрян: често работата просто още не е започнала или не е отчетена.</p>
           <ul className="divide-y divide-rule border-y border-rule text-[15px]">{[...P.ipop.projects].sort((a, b) => b.agreement - a.agreement).map((p) => (
             <li key={p.id} className="py-2 grid sm:grid-cols-[1fr_9rem_9rem] gap-x-4">
-              <span>{p.description}{p.stalled && <span className="text-xs font-semibold text-white bg-red rounded-full px-2 py-0.5 ml-2">спрян</span>}<span className="block text-xs text-muted">{p.id}{p.paid > 0 ? ` · платени от държавата ${mn(p.state)}, от общината ${mn(p.muni)}` : ""}</span></span>
+              <span>{p.description}{p.stalled && <span title="Договорени над 100 000 €, изплатени под 5%. Не значи, че проектът е официално спрян." className="text-xs font-semibold text-ink bg-surface ring-1 ring-rule rounded-full px-2 py-0.5 ml-2">под 5% изплатени</span>}<span className="block text-xs text-muted">{p.id}{p.paid > 0 ? ` · платени от държавата ${mn(p.state)}, от общината ${mn(p.muni)}` : ""}</span></span>
               {p.agreement > 0 ? <>
                 <span className="num text-right">{mn(p.agreement)}<span className="block text-xs text-muted">договорени</span></span>
                 <span className="num text-right">{fmt(p.pct, 0)}%<span className="block text-xs text-muted">изплатени</span></span>
