@@ -1,8 +1,9 @@
 import { execFileSync } from "node:child_process";
-const get = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "40", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch { return ""; } };
-for (const u of ["https://yambol.bg/obs-reshenia-i-protokoli", "http://os.lovech.bg/bg/resheniyabg-1bg-1", "https://www.montana.bg/общински-съвет/заседания/решения"]) {
-  const h = get(encodeURI(u));
-  const links = [...new Set([...h.matchAll(/href="([^"]+)"[^>]*>([\s\S]{0,100}?)<\/a>/g)].map(([, a, t]) => a + " | " + t.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).filter((l) => /реш|reshen|\.pdf|\.doc|protokol|протокол|page/i.test(l)))];
-  console.log("PROBE", u, h.length);
-  for (const l of links.slice(0, 25)) console.log("PROBE  ", l.slice(0, 180));
-}
+import { writeFileSync } from "node:fs";
+const get = (u, bin) => { try { const b = execFileSync("curl", ["-sSL", "-m", "60", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 28 }); return bin ? b : b.toString("utf8"); } catch { return null; } };
+writeFileSync("/tmp/m.pdf", get("https://www.montana.bg/os/R720-P36-29.10.26.pdf", true));
+console.log("PROBEM", execFileSync("pdftotext", ["-layout", "/tmp/m.pdf", "-"]).toString().slice(0, 2200));
+const h = get("http://os.lovech.bg/bg/resheniyabg-1bg-1") ?? "";
+const i = h.indexOf("content-text"); console.log("PROBEL", h.slice(i, i + 2500).replace(/\s+/g, " "));
+const m = get(encodeURI("https://www.montana.bg/общински-съвет/заседания/решения")) ?? "";
+console.log("PROBEMC", [...m.matchAll(/os\/R(\d+)-P(\d+)-([\d.]+)\.pdf/g)].length, [...m.matchAll(/os\/R(\d+)-P(\d+)-([\d.]+)\.pdf/g)].slice(-3).map((x) => x[0]).join(" "));
