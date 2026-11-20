@@ -1,0 +1,34 @@
+name: Обновяване на плащанията (СЕБРА)
+# data.egov.bg приема автоматизирани заявки само от български IP адреси, затова тази задача
+# върви на self-hosted runner в България (етикет „bg“). Без такъв runner задачата просто чака.
+on:
+  schedule:
+    - cron: "17 6 20 1,4,7,10 *"   # веднъж на тримесечие, след публикуването на новото тримесечие
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-sebra
+  cancel-in-progress: false
+
+jobs:
+  sebra:
+    runs-on: [self-hosted, bg]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Изтегляне от data.egov.bg
+        run: node scripts/fetch-sebra.mjs "$RUNNER_TEMP/sebra"
+      - name: Обобщение
+        run: python3 scripts/import-sebra.py "$RUNNER_TEMP/sebra"
+      - name: Запис, ако има промяна
+        run: |
+          git add data/payments
+          if git diff --cached --quiet; then echo "Няма нови плащания"; exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Данни: нови плащания от СЕБРА"
+          git pull --rebase
+          git push
