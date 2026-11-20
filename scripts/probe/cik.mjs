@@ -1,4 +1,5 @@
-const H = { "user-agent": "Mozilla/5.0 osaznatost" };
-const t = await (await fetch("https://shop.billa.at/suche/barilla", { headers: H })).text();
-console.log("## scripts", [...t.matchAll(/<script([^>]*)>/g)].map((m) => m[1].slice(0, 80)).slice(0, 30));
-for (const w of ["Spaghetti", "spaghetti", "00-", "perStandardizedQuantity", "regular"]) { const i = t.indexOf(w); console.log("## find", w, i, i > 0 ? t.slice(i - 200, i + 300).replace(/\s+/g, " ") : ""); }
+import { billaAtSearch } from "../lib/billa-at.mjs";
+for (const s of ["barilla spaghetti", "milka alpenmilch", "lurpak", "president butter", "lavazza qualita rossa", "jacobs", "kinder schokolade", "aptamil", "hipp", "colgate", "sensodyne", "monini", "bertolli", "lindt", "ritter sport", "nescafe", "coca cola", "fairy", "zewa", "nivea"]) {
+  const r = await billaAtSearch(s); await new Promise((x) => setTimeout(x, 2000));
+  console.log("## AT", s, r ? r.length : "null"); for (const p of (r || []).slice(0, 8)) console.log("   ", p.name, "|", p.amount, p.unit, "|", p.price, p.promo ? "PROMO" : "", "|", p.sku);
+}
