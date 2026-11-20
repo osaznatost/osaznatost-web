@@ -53,7 +53,8 @@ for (const [rid, name] of ministries) {
   const s = html.indexOf("init(") + 5; let d = 0, e = s;
   for (; e < html.length; e++) { if (html[e] === "{") d++; else if (html[e] === "}") { d--; if (!d) { e++; break; } } }
   let tree; try { tree = JSON.parse(html.slice(s, e)); } catch { console.log("Без органиграма:", name); continue; }
-  const M = { id: rid, name, url: page, leaders: [], units: [], agencies: [] };
+  const root = await info(page, tree.id);
+  const M = { id: rid, name, url: page, eik: root?.eik ?? null, site: root?.site ?? null, leaders: [], units: [], agencies: [] };
   const visit = async (n, parent) => {
     const kind = n.id.split("-")[0];
     if (kind === "batchInfo" && n.id !== tree.id) {
