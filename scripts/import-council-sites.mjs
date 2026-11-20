@@ -360,7 +360,7 @@ async function sessionNodes(code, S, prev) {
     if (timeUp() || blocked) break;
     const list = await get(S.sessionNodes(p));
     if (!list) break;
-    const nodes = [...new Set([...list.matchAll(/href="(\/node\/\d+)"[^>]*>\s*ВЗЕТИ РЕШЕНИЯ НА ЗАСЕДАНИЕ[^<]*?(\d{2})\.(\d{2})\.(\d{4})/g)].filter((m) => `${m[4]}-${m[3]}-${m[2]}` >= S.from).map((m) => S.base + m[1]))];
+    const nodes = [...new Set([...list.matchAll(/href="(\/node\/\d+)"[^>]*>(?:(?!<\/a>)[\s\S]){0,300}?ВЗЕТИ РЕШЕНИЯ НА ЗАСЕДАНИЕ(?:(?!<\/a>)[\s\S]){0,120}?(\d{2})\.(\d{2})\.(\d{4})/g)].filter((m) => `${m[4]}-${m[3]}-${m[2]}` >= S.from).map((m) => S.base + m[1]))];
     if (!nodes.length) break;
     for (const n of nodes) {
       if (timeUp() || blocked) break;
