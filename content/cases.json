@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-18",
+  "updated": "2026-11-20",
   "levels": {
     "conviction": {
       "label": "Влязла в сила присъда",
@@ -463,6 +463,90 @@
         {
           "title": "EUagenda / Novinite: обвинителният акт (10.2026)",
           "url": "https://euagenda.eu/news/942478"
+        }
+      ]
+    },
+    {
+      "person": "Симеон Дянков",
+      "role": "Бивш вицепремиер и министър на финансите (ГЕРБ, 2009–2013)",
+      "party": "ГЕРБ",
+      "level": "acquitted",
+      "date": "2021-05",
+      "what": "Обвинение от 2017 г. за престъпление по служба при продажбата през 2011 г. на остатъчния държавен дял от 33% в ЕВН (според обвинението на занижена цена, с вреда около 20 млн. лв.).",
+      "outcome": "Оправдан от Специализирания наказателен съд (юни 2020 г.); апелативният съд потвърди през април 2021 г., прокуратурата не обжалва и оправдаването влезе в сила през май 2021 г.",
+      "sources": [
+        {
+          "title": "БНТ: оправдани на първа инстанция (28.06.2020)",
+          "url": "https://bnt.bg/bg/a/businessman-prokopiev-former-ministers-djankov-traikov-acquitted-in-evn-case"
+        },
+        {
+          "title": "SeeNews: апелативният съд потвърди оправдаването (04.2021)",
+          "url": "https://seenews.com/news/bulgarias-alfa-finance-says-court-upholds-acquittal-of-owner-ex-ministers-in-evn-unit-sale-case-738498"
+        },
+        {
+          "title": "SeeNews: оправдаването влезе в сила (05.2021)",
+          "url": "https://seenews.com/news/acquittal-of-all-defendants-in-sale-of-33-in-evn-bulgaria-takes-effect-alfa-finance-740701"
+        }
+      ]
+    },
+    {
+      "person": "Трайчо Трайков",
+      "role": "Бивш министър на икономиката, енергетиката и туризма (2009–2012)",
+      "party": null,
+      "level": "acquitted",
+      "date": "2021-05",
+      "what": "Обвинение от 2017 г. за безстопанственост при продажбата през 2011 г. на държавния дял от 33% в ЕВН.",
+      "outcome": "Оправдан на две инстанции; оправдаването влезе в сила през май 2021 г., след като прокуратурата не го обжалва.",
+      "sources": [
+        {
+          "title": "БНТ: оправдани на първа инстанция (28.06.2020)",
+          "url": "https://bnt.bg/bg/a/businessman-prokopiev-former-ministers-djankov-traikov-acquitted-in-evn-case"
+        },
+        {
+          "title": "SeeNews: апелативният съд потвърди оправдаването (04.2021)",
+          "url": "https://seenews.com/news/bulgarias-alfa-finance-says-court-upholds-acquittal-of-owner-ex-ministers-in-evn-unit-sale-case-738498"
+        },
+        {
+          "title": "SeeNews: оправдаването влезе в сила (05.2021)",
+          "url": "https://seenews.com/news/acquittal-of-all-defendants-in-sale-of-33-in-evn-bulgaria-takes-effect-alfa-finance-740701"
+        }
+      ]
+    },
+    {
+      "person": "Иван Тотев",
+      "role": "Бивш кмет на Пловдив (ГЕРБ)",
+      "party": "ГЕРБ",
+      "level": "dropped",
+      "date": "2021",
+      "what": "Обвинение от януари 2017 г. за престъпление по служба при възлагането на строежа на зоокъта в Пловдив (според прокуратурата вреда около 1 млн. лв.).",
+      "outcome": "Съдът два пъти върна делото на прокуратурата заради неясно обвинение (окончателно от апелативния съд, юли 2018 г.). В началото на 2021 г. прокуратурата прекрати производството. Няма присъда.",
+      "sources": [
+        {
+          "title": "Капитал: делото окончателно върнато на прокуратурата (2018)",
+          "url": "https://www.capital.bg/kakvo_stava/2018/07/24/3286565_deloto_sreshtu_kmeta_na_plovdiv_ivan_totev_okochatelno/"
+        },
+        {
+          "title": "Капитал: прокуратурата прекрати делото (2021)",
+          "url": "https://www.capital.bg/politika_i_ikonomika/pravo/2021/11/01/4272394_prokuraturata_tihomulkom_prekrati_deloto_sreshtu_ivan/"
+        }
+      ]
+    },
+    {
+      "person": "Николай Малинов",
+      "role": "Бивш депутат, лидер на движение „Русофили“",
+      "party": null,
+      "level": "trial",
+      "date": "2026-05",
+      "what": "Обвинение от 2019 г. (повторено през 2021 г.) за шпионаж в полза на руски организации, свързани с Руския институт за стратегически изследвания.",
+      "outcome": "Софийският градски съд го оправда през май 2026 г. Присъдата не е окончателна и може да бъде протестирана от прокуратурата.",
+      "sources": [
+        {
+          "title": "Fakti: оправдан по делото за шпионаж (16.05.2026)",
+          "url": "https://www.fakti.bg/en/bulgaria/1054779-russophile-movement-leader-nikolay-malinov-acquitted-in-espionage-case"
+        },
+        {
+          "title": "Brussels Signal / AFP (05.2026)",
+          "url": "https://brusselssignal.eu/2026/05/bulgarian-court-clears-pro-russian-activist-of-spying/"
         }
       ]
     }
