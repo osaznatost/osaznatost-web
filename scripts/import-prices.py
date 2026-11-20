@@ -37,6 +37,12 @@ for o in json.load(open("data/places.json"))["oblasts"]:
         for s in m["settlements"]:
             PLACES[s[0]] = (o["name"], m["code"], s[1])
 
+# Еднакви продукти за сравнение с чужбина (content/identical-products.json): цена на точното име във веригата.
+IDENT = json.load(open("content/identical-products.json"))["items"] if os.path.exists("content/identical-products.json") else []
+norm = lambda x: re.sub(r"\s+", " ", x).strip().upper()
+WANT = {(i["bg"]["chain"], norm(i["bg"]["name"])): i["id"] for i in IDENT}
+PROD = defaultdict(list)  # id → редовни цени по обекти (последния прочетен ден)
+
 def num(x):
     try:
         v = float(str(x).replace(" ", "").replace(",", "."))
@@ -63,6 +69,7 @@ def day(d):
     cat_chain = defaultdict(lambda: defaultdict(list))   # кат → верига → цени
     cat_place = defaultdict(lambda: defaultdict(list))   # кат → ЕКАТТЕ → цени
     stores = defaultdict(set)                            # верига → обекти
+    PROD.clear()
     with zipfile.ZipFile(f) as z:
         for name in z.namelist():
             if not name.lower().endswith(".csv"):
@@ -78,6 +85,9 @@ def day(d):
                     p = num(r[5])
                     if p is None:
                         continue
+                    pid = WANT.get((ch, norm(r[2])))
+                    if pid:
+                        PROD[pid].append(p)
                     ek = r[0].strip().lstrip("0").zfill(5)
                     cat_chain[c][ch].append(p)
                     cat_place[c][ek].append(p)
@@ -131,6 +141,7 @@ for d in sorted(set(dates)):
         print(d, "няма файл")
         continue
     summ, places = summarize(d, *got)
+    summ_prod = {"date": d, "items": {pid: {"med": med(xs), "min": round(min(xs), 2), "max": round(max(xs), 2), "stores": len(xs)} for pid, xs in PROD.items()}}
     if d not in hist["dates"]:
         hist["dates"].append(d)
         hist["dates"].sort()
@@ -138,7 +149,7 @@ for d in sorted(set(dates)):
         hist["cats"].setdefault(str(c), {})[d] = v["med"]
     print(d, len(summ["cats"]), "категории,", sum(summ["chains"].values()), "обекта,", len(places), "населени места")
     if latest is None or d >= latest[0]["date"]:
-        latest = (summ, places)
+        latest = (summ, places, summ_prod)
     try:
         os.remove(f"/tmp/kolkostruva-{d}.zip")
     except OSError:
@@ -149,3 +160,5 @@ if latest:
     if not prev or latest[0]["date"] >= prev["date"]:
         json.dump(latest[0], open(f"{OUT}/latest.json", "w"), ensure_ascii=False, separators=(",", ":"))
         json.dump(latest[1], open(f"{OUT}/places.json", "w"), ensure_ascii=False, separators=(",", ":"))
+        if IDENT:
+            json.dump(latest[2], open(f"{OUT}/products.json", "w"), ensure_ascii=False, separators=(",", ":"))
