@@ -18,9 +18,10 @@ const normInst = (s) => String(s ?? "").toLowerCase().replace(/["„“”']/g, 
 
 // 1) Изпълнители: име → ЕИК-ове, договори, сума, възложители
 const sup = new Map(); // eik → {names:Set, n, eur, buyers: Map(eik→{name,n,eur})}
+const subs = new Map(); // eik → {names:Set, n, mains: Map(eik→{name,n}), buyers: Map(eik→{name,n})} — като подизпълнител
 const PAGE = 1000;
 for (let off = 0; ; off += PAGE) {
-  const r = await fetch(`${URL_}/rest/v1/proc_contracts?select=supplier_eiks,supplier_names,buyer_eik,buyer_name,contract_value_eur,contract_date&order=id&limit=${PAGE}&offset=${off}`, { headers: H });
+  const r = await fetch(`${URL_}/rest/v1/proc_contracts?select=supplier_eiks,supplier_names,buyer_eik,buyer_name,contract_value_eur,contract_date,subcontractor_eiks,subcontractor_names&order=id&limit=${PAGE}&offset=${off}`, { headers: H });
   if (!r.ok) throw new Error(`Supabase ${r.status}`);
   const rows = await r.json();
   for (const c of rows) {
@@ -34,12 +35,23 @@ for (let off = 0; ; off += PAGE) {
       b.n++; b.eur += c.contract_value_eur ?? 0; s.buyers.set(c.buyer_eik, b);
       sup.set(eik, s);
     });
+    // Подизпълнители: ЕИК-овете и имената са текст, разделен със запетаи или точка и запетая.
+    const se = String(c.subcontractor_eiks ?? "").split(/[,;\s]+/).filter((x) => /^\d{9,13}$/.test(x));
+    const sn = String(c.subcontractor_names ?? "").split(/;|\n/).map((x) => x.trim()).filter(Boolean);
+    se.forEach((eik, i) => {
+      const s = subs.get(eik) ?? { names: new Set(), n: 0, mains: new Map(), buyers: new Map() };
+      if (sn[i] && se.length === sn.length) s.names.add(sn[i]);
+      s.n++;
+      (c.supplier_eiks ?? []).forEach((m, j) => { const x = s.mains.get(m) ?? { name: c.supplier_names?.[j] ?? m, n: 0 }; x.n++; s.mains.set(m, x); });
+      const b = s.buyers.get(c.buyer_eik) ?? { name: c.buyer_name, n: 0 }; b.n++; s.buyers.set(c.buyer_eik, b);
+      subs.set(eik, s);
+    });
   }
   if (rows.length < PAGE) break;
   if (off % 50000 === 0) console.log("договори:", off);
 }
 const byName = new Map(); // нормализирано име → Set(ЕИК)
-for (const [eik, s] of sup) for (const n of s.names) { const k = normCo(n); if (k.replace(/ /g, "").length >= 5) (byName.get(k) ?? byName.set(k, new Set()).get(k)).add(eik); }
+for (const [eik, s] of [...sup, ...subs]) for (const n of s.names) { const k = normCo(n); if (k.replace(/ /g, "").length >= 5) (byName.get(k) ?? byName.set(k, new Set()).get(k)).add(eik); }
 console.log("изпълнители:", sup.size, "имена:", byName.size);
 
 // 2) Декларации
@@ -57,13 +69,14 @@ for (const year of ["2026", "2025"]) {
       const eiks = byName.get(k);
       if (!eiks) continue;
       if (eiks.size > 1) { ambiguous.push({ co: it.co, eiks: [...eiks] }); continue; }
-      const eik = [...eiks][0], s = sup.get(eik);
+      const eik = [...eiks][0], s = sup.get(eik) ?? { n: 0, eur: 0, first: null, last: null, buyers: new Map() }, sb = subs.get(eik);
       const top = [...s.buyers.entries()].sort((a, b) => b[1].eur - a[1].eur);
       const own = top.filter(([, b]) => normInst(b.name) === normInst(p.inst));
       links.push({
         year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, date: p.date, decl: p.file,
         kind: it.kind, co: it.co, extra: it.extra, eik, contracts: s.n, eur: Math.round(s.eur), first: s.first, last: s.last,
         buyers: top.slice(0, 5).map(([be, b]) => ({ eik: be, name: b.name, n: b.n, eur: Math.round(b.eur) })),
+        sub: sb ? { n: sb.n, mains: [...sb.mains.values()].sort((a, b) => b.n - a.n).slice(0, 3), buyers: [...sb.buyers.values()].sort((a, b) => b.n - a.n).slice(0, 3) } : null,
         own: own.length ? { n: own.reduce((a, [, b]) => a + b.n, 0), eur: Math.round(own.reduce((a, [, b]) => a + b.eur, 0)) } : null,
       });
     }
