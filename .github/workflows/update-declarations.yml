@@ -1,0 +1,66 @@
+name: Декларации за интереси (КПК / Сметна палата)
+# register.cacbg.bg отговаря само на български IP адреси: четенето върви на self-hosted runner в България (Mac),
+# свързването с поръчките — в GitHub (нужен е достъп до базата).
+on:
+  schedule:
+    - cron: "37 2 * * 0"   # всяка неделя през нощта
+  workflow_dispatch:
+    inputs:
+      years:
+        description: "Години (напр. 2026,2025)"
+        default: "2026,2025"
+permissions:
+  contents: write
+concurrency:
+  group: declarations
+  cancel-in-progress: false
+jobs:
+  read:
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Четене на декларациите
+        env:
+          YEARS: ${{ inputs.years || '2026,2025' }}
+          MINUTES: "280"
+        run: node scripts/import-declarations.mjs
+      - name: Запис
+        if: always()
+        run: |
+          git add data/declarations
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Декларации за интереси: обновяване"
+          git pull --rebase -X theirs
+          git push
+  link:
+    needs: read
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Свързване с обществените поръчки
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/build-declaration-links.mjs
+      - name: Запис
+        run: |
+          git add data/declarations/links.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Декларации: връзки с поръчките"
+          git pull --rebase -X theirs
+          git push
