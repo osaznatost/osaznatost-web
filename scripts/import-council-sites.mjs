@@ -264,7 +264,8 @@ function parseSingle(text, url) {
   const date = `${dd[3]}-${dd[2].padStart(2, "0")}-${dd[1].padStart(2, "0")}`;
   const after = t.slice(t.indexOf(hm[0]) + hm[0].length);
   const om = after.match(/ОТНОСНО\s*:\s*([\s\S]*?)\n\s*\n/);
-  const title = om ? flat(om[1]).replace(/^./, (c) => c.toUpperCase()) : "";
+  if (!om) return []; // приложение към решение, не самото решение
+  const title = flat(om[1]).replace(/^./, (c) => c.toUpperCase());
   const vm = after.match(/с\s+(\d+|без)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без)\s*(?:глас\S*\s*)?„?въздърж\S*(?:\s+се)?\S*/i);
   const bodyStart = vm ? after.indexOf(vm[0]) + vm[0].length : om ? after.indexOf(om[0]) + om[0].length : 0;
   const body = ws(after.slice(bodyStart).replace(/^[\s/)]+/, "").split(/\n\s*ПРЕДСЕДАТЕЛ|\n\s*Приложени[ея]\s*:/)[0]);
@@ -406,6 +407,7 @@ for (const [code, S] of Object.entries(SITES)) {
   if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes) {
     const added = S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
+    if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
     writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
