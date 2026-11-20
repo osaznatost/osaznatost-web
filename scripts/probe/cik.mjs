@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
-const get = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "40", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch { return ""; } };
-const h = get("http://os.lovech.bg/bg/resheniyabg-1bg-1");
-const hrefs = [...h.matchAll(/href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/g)].map(([, a, t]) => a + " | " + t.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).filter((l) => !/css|\.js|facebook|^#/.test(l));
-for (const l of hrefs.slice(15, 60)) console.log("PROBE", l.slice(0, 200));
-const y = get("https://yambol.bg/obs-reshenia-i-protokoli"); const i = y.search(/content|main/); 
-console.log("PROBEY", [...y.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).filter((a) => /pdf|doc|resh|proto|upload|files/i.test(a)).slice(0, 30).join("\n"));
+import { writeFileSync } from "node:fs";
+const get = (u, bin) => { try { const b = execFileSync("curl", ["-sSL", "-m", "60", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 28 }); return bin ? b : b.toString("utf8"); } catch { return null; } };
+const h = get("http://os.lovech.bg/bg/resheniyabg-1bg-1") ?? "";
+const i = h.indexOf("resheniyabg-1bg-1/"); console.log("PROBEL", h.slice(i - 3000, i + 300).replace(/\s+/g, " "));
+const u = [...h.matchAll(/href="([^"]+\.(?:pdf|docx?))"/gi)].map((m) => m[1]); console.log("PROBEU", u.slice(0, 5).join(" "), u.length);
+if (u[0]) { const b = get((u[0].startsWith("http") ? "" : "http://os.lovech.bg/") + u[0], true); writeFileSync("/tmp/l.pdf", b); try { console.log("PROBEPDF", execFileSync("pdftotext", ["-layout", "/tmp/l.pdf", "-"]).toString().slice(0, 1800)); } catch (e) { console.log("PROBEPDF fail", b?.slice(0, 8).toString()); } }
