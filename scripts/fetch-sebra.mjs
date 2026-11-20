@@ -37,7 +37,7 @@ for (const res of resources) {
   if (ONLY_ZIP) continue;
   if (existsSync(path) && statSync(path).size > 1000) continue;
   const fmt = String(res.format ?? res.file_format ?? "csv").toLowerCase();
-  let r = await fetch(`https://data.egov.bg/resource/download/${uri}/${fmt}`);
+  let r = await fetch(fmt === "csv" ? `https://data.egov.bg/resource/download/${uri}/csv` : `https://data.egov.bg/resource/download/${fmt}/${uri}`);
   if (r.ok && /text\/html/.test(r.headers.get("content-type") ?? "")) { console.log("HTML вместо файл за", name, "— опитвам като CSV"); r = await fetch(`https://data.egov.bg/resource/download/${uri}/csv`); }
   if (r.ok && /text\/html/.test(r.headers.get("content-type") ?? "")) { console.log("Пропускам", name, ": порталът връща страница, не файл. Полета:", JSON.stringify(Object.keys(res))); continue; }
   if (!r.ok) { console.log(`Пропускам ${name}: HTTP ${r.status}`); continue; }
