@@ -2728,6 +2728,179 @@
           ]
         }
       ]
+    },
+    {
+      "party": "CT-GYUROV",
+      "name": "Служебно правителство „Гюров“",
+      "term": "caretaker",
+      "period": "19.02.2026 – 08.05.2026",
+      "role": "Служебен кабинет, назначен от президента Илияна Йотова до предсрочните избори.",
+      "programme": [],
+      "promises": [
+        {
+          "text": "Предсрочни парламентарни избори на 19 април 2026 г.",
+          "area": "Избори",
+          "said": {
+            "who": "Президентът Илияна Йотова и служебният кабинет",
+            "when": "февруари 2026",
+            "url": "https://www.bta.bg/en/news/1067060-president-decrees-appointment-of-caretaker-cabinet-early-elections-on-april-19"
+          },
+          "status": "done",
+          "evidence": "Изборите се проведоха на 19 април 2026 г. След изборите на 8 май 2026 г. беше избрано правителството „Радев“.",
+          "links": [
+            {
+              "title": "БТА: указите за кабинета и изборите",
+              "url": "https://www.bta.bg/en/news/1067060-president-decrees-appointment-of-caretaker-cabinet-early-elections-on-april-19"
+            },
+            {
+              "title": "БТА: решението за подготовката на изборите",
+              "url": "https://www.bta.bg/bg/news/bulgaria/1071454"
+            }
+          ],
+          "timeline": []
+        }
+      ]
+    },
+    {
+      "party": "CT-GLAVCHEV",
+      "name": "Служебни правителства „Главчев“",
+      "term": "caretaker",
+      "period": "09.04.2024 – 16.01.2025",
+      "role": "Два последователни служебни кабинета.",
+      "programme": [],
+      "promises": [
+        {
+          "text": "Избори за Народно събрание и Европейски парламент на 9 юни 2024 г.",
+          "area": "Избори",
+          "said": {
+            "who": "Служебният кабинет",
+            "when": "април 2024",
+            "url": "https://en.wikipedia.org/wiki/June_2024_Bulgarian_parliamentary_election"
+          },
+          "status": "done",
+          "evidence": "Изборите се проведоха на 9 юни 2024 г., заедно с изборите за Европейски парламент.",
+          "links": [
+            {
+              "title": "Уикипедия: изборите през юни 2024 г.",
+              "url": "https://en.wikipedia.org/wiki/June_2024_Bulgarian_parliamentary_election"
+            }
+          ],
+          "timeline": []
+        },
+        {
+          "text": "Предсрочни парламентарни избори на 27 октомври 2024 г.",
+          "area": "Избори",
+          "said": {
+            "who": "Служебният кабинет",
+            "when": "август 2024",
+            "url": "https://en.wikipedia.org/wiki/October_2024_Bulgarian_parliamentary_election"
+          },
+          "status": "done",
+          "evidence": "Изборите се проведоха на 27 октомври 2024 г.",
+          "links": [
+            {
+              "title": "Уикипедия: изборите през октомври 2024 г.",
+              "url": "https://en.wikipedia.org/wiki/October_2024_Bulgarian_parliamentary_election"
+            }
+          ],
+          "timeline": []
+        }
+      ]
+    },
+    {
+      "party": "CT-DONEV",
+      "name": "Служебни правителства „Донев“",
+      "term": "caretaker",
+      "period": "02.08.2022 – 06.06.2023",
+      "role": "Два последователни служебни кабинета, назначени от президента Румен Радев.",
+      "programme": [],
+      "promises": [
+        {
+          "text": "Доставки на газ след спирането на руския газ: споразумение с турската „Боташ“",
+          "area": "Енергетика",
+          "said": {
+            "who": "Министър-председателят Гълъб Донев",
+            "when": "2022",
+            "url": "https://www.bta.bg/bg/videos/15384"
+          },
+          "status": "done",
+          "evidence": "Споразумението между „Булгаргаз“ и „Боташ“ е подписано на 3 януари 2023 г. за 13 години (до 2035 г.). То дава достъп до турските терминали за втечнен газ и до газопреносната мрежа. Договорът предизвика спорове заради цената и задължението за плащане при неизползван капацитет. През април 2024 г. парламентът възложи предоговарянето му, а временна комисия посочи загуби.",
+          "links": [
+            {
+              "title": "БТА: подписването (3.1.2023)",
+              "url": "https://www.bta.bg/bg/videos/15384"
+            },
+            {
+              "title": "БНТ: парламентът възлага предоговаряне",
+              "url": "https://bnt.bg/news/bulgaria-39s-parliament-adopted-a-resolution-assigning-minister-of-energy-to-re-negotiate-bulgargaz-botas-agreement-328208news.html"
+            }
+          ],
+          "timeline": [
+            {
+              "date": "3 януари 2023",
+              "what": "Подписано споразумение за 13 години."
+            },
+            {
+              "date": "април 2024",
+              "what": "Парламентът възлага предоговаряне."
+            }
+          ]
+        },
+        {
+          "text": "Предсрочни парламентарни избори на 2 октомври 2022 г. и на 2 април 2023 г.",
+          "area": "Избори",
+          "said": {
+            "who": "Служебният кабинет",
+            "when": "2022",
+            "url": "https://en.wikipedia.org/wiki/2023_Bulgarian_parliamentary_election"
+          },
+          "status": "done",
+          "evidence": "Изборите се проведоха на 2 октомври 2022 г. и на 2 април 2023 г.",
+          "links": [
+            {
+              "title": "Уикипедия: изборите през октомври 2022 г.",
+              "url": "https://en.wikipedia.org/wiki/2022_Bulgarian_parliamentary_election"
+            },
+            {
+              "title": "Уикипедия: изборите през април 2023 г.",
+              "url": "https://en.wikipedia.org/wiki/2023_Bulgarian_parliamentary_election"
+            }
+          ],
+          "timeline": []
+        }
+      ]
+    },
+    {
+      "party": "CT-YANEV",
+      "name": "Служебни правителства „Янев“",
+      "term": "caretaker",
+      "period": "12.05.2021 – 13.12.2021",
+      "role": "Два последователни служебни кабинета, назначени от президента Румен Радев.",
+      "programme": [],
+      "promises": [
+        {
+          "text": "Предсрочни парламентарни избори на 11 юли 2021 г. и на 14 ноември 2021 г.",
+          "area": "Избори",
+          "said": {
+            "who": "Служебният кабинет",
+            "when": "2021",
+            "url": "https://en.wikipedia.org/wiki/July_2021_Bulgarian_parliamentary_election"
+          },
+          "status": "done",
+          "evidence": "Изборите се проведоха на 11 юли 2021 г. и на 14 ноември 2021 г. (вторите заедно с президентските).",
+          "links": [
+            {
+              "title": "Уикипедия: изборите през юли 2021 г.",
+              "url": "https://en.wikipedia.org/wiki/July_2021_Bulgarian_parliamentary_election"
+            },
+            {
+              "title": "Уикипедия: изборите през ноември 2021 г.",
+              "url": "https://en.wikipedia.org/wiki/November_2021_Bulgarian_general_election"
+            }
+          ],
+          "timeline": []
+        }
+      ]
     }
   ]
 }

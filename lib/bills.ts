@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { lawFromTitle } from "@/lib/voteExplain";
-import { VOTES } from "@/lib/parliament";
+import { MPS, VOTES } from "@/lib/parliament";
 
 export type Bill = {
   id: number; sign: string; date: string; title: string; final: string | null; url: string; withdrawn: boolean;
@@ -47,4 +47,23 @@ export function billsOfMp(fullName: string, pid?: number, ambiguous = false) {
   let conflict = allBills().filter((b) => (b.notes?.conflict ?? []).some((c) => c.includes(fl)));
   if (ambiguous) conflict = conflict.filter((b) => sponsored.includes(b)); // при съвпадащи имена — само ако е и вносител
   return { sponsored, conflict };
+}
+
+/** Законопроектите на депутатите по група: групата е тази на мнозинството от вносителите. Без внесените от Министерския съвет. */
+export function billsByGroup() {
+  const party = new Map(MPS.filter((m) => m.pid).map((m) => [m.pid!, m.party]));
+  const out = new Map<string, { n: number; adopted: number; withdrawn: number }>();
+  for (const b of allBills()) {
+    if (b.byGov || !b.sponsorIds?.length) continue;
+    const cnt = new Map<string, number>();
+    for (const id of b.sponsorIds) { const p = party.get(id); if (p) cnt.set(p, (cnt.get(p) ?? 0) + 1); }
+    const p = [...cnt.entries()].sort((x, y) => y[1] - x[1])[0]?.[0];
+    if (!p) continue;
+    const r = out.get(p) ?? { n: 0, adopted: 0, withdrawn: 0 };
+    r.n++;
+    if (b.final || (b.adopted && b.adopted !== "0001-01-01")) r.adopted++;
+    if (b.withdrawn) r.withdrawn++;
+    out.set(p, r);
+  }
+  return [...out.entries()].map(([party, r]) => ({ party, ...r })).sort((a, b) => b.n - a.n);
 }

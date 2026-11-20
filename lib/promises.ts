@@ -7,7 +7,7 @@ export type Promise_ = {
   timeline?: { date: string; what: string; url?: string }[];
   why?: string[]; whySrc?: string[]; next?: string; note?: string;
 };
-export type Gov = { party: string; name: string; term: "current" | "past"; period: string; role: string; programme: { title: string; url: string }[]; promises: Promise_[] };
+export type Gov = { party: string; name: string; term: "current" | "past" | "caretaker"; period: string; role: string; programme: { title: string; url: string }[]; promises: Promise_[] };
 export const data = raw as { updated: string; parties: Gov[] };
 
 export const STATUS: Record<Status, { label: string; color: string; text: string }> = {
@@ -25,6 +25,6 @@ export const ORDER: Status[] = ["done", "kept", "partly", "in_progress", "at_ris
 export const GOOD: Status[] = ["done", "kept"];
 export const BAD: Status[] = ["not_met", "failed", "broken"];
 
-const SLUG: Record<string, string> = { "ПБ": "radev", "GOV-ZH": "zhelyazkov", "GOV-DK": "denkov", "GOV-PK": "petkov", "GOV-B3": "borisov-3", "GOV-OR": "oresharski", "GOV-B2": "borisov-2", "GOV-B1": "borisov-1" };
+const SLUG: Record<string, string> = { "ПБ": "radev", "GOV-ZH": "zhelyazkov", "GOV-DK": "denkov", "GOV-PK": "petkov", "GOV-B3": "borisov-3", "GOV-OR": "oresharski", "GOV-B2": "borisov-2", "GOV-B1": "borisov-1", "CT-GYUROV": "sluzhebno-gyurov", "CT-GLAVCHEV": "sluzhebno-glavchev", "CT-DONEV": "sluzhebno-donev", "CT-YANEV": "sluzhebno-yanev" };
 export const govSlug = (g: Gov) => SLUG[g.party] ?? g.party.toLowerCase();
 export const findGov = (slug: string) => data.parties.find((g) => govSlug(g) === slug);

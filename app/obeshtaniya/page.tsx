@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Page, SectionTitle, Title } from "@/components/ui";
+import { billsByGroup } from "@/lib/bills";
+import { partyName } from "@/lib/parliament";
 import { BAD, GOOD, ORDER, STATUS, data, govSlug, type Gov } from "@/lib/promises";
 
 export const metadata = { title: "Обещано и изпълнено" };
@@ -15,7 +17,9 @@ function StatusBar({ g }: { g: Gov }) {
 
 export default function Obeshtaniya() {
   const current = data.parties.filter((p) => p.term === "current");
-  const past = data.parties.filter((p) => p.term !== "current");
+  const past = data.parties.filter((p) => p.term === "past");
+  const caretaker = data.parties.filter((p) => p.term === "caretaker");
+  const opp = billsByGroup().filter((r) => r.party !== "ПБ");
   const areas = [...new Set(data.parties.flatMap((p) => p.promises.map((x) => x.area)))].sort();
   return (
     <Page>
@@ -23,7 +27,7 @@ export default function Obeshtaniya() {
         Обещано и изпълнено
       </Title>
 
-      {[["Сега на власт", current], ["Предишни правителства", past]].map(([label, list]) => (
+      {[["Сега на власт", current], ["Предишни правителства", past], ["Служебни правителства", caretaker]].map(([label, list]) => (
         <section key={label as string} className="mb-12">
           <SectionTitle>{label as string}</SectionTitle>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -63,6 +67,20 @@ export default function Obeshtaniya() {
           </table>
         </div>
         <p className="text-sm text-muted mt-2">Правителството „Радев“ е още на власт: част от обещанията му са оценени „досега“, а не в края на мандата.</p>
+      </section>
+
+      <section className="mb-12">
+        <SectionTitle>Опозицията: какво внася</SectionTitle>
+        <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Опозицията не управлява, затова не следим обещанията ѝ, а какво предлага в парламента. Броим законопроектите на депутатите в 52-рото Народно събрание по група (групата на мнозинството от вносителите) и колко от тях са приети. Служебните правителства обикновено поемат само организацията на изборите, затова при тях обещанията са малко.</p>
+        <div className="overflow-x-auto max-w-3xl">
+          <table className="w-full text-[15px] num">
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="py-2 pr-4 font-normal">Група</th><th className="py-2 pr-4 font-normal">Внесени законопроекти</th><th className="py-2 pr-4 font-normal">Приети</th><th className="py-2 font-normal">Оттеглени</th></tr></thead>
+            <tbody>{opp.map((r) => (
+              <tr key={r.party} className="border-b border-rule"><td className="py-2 pr-4">{partyName(r.party)}</td><td className="py-2 pr-4">{r.n}</td><td className="py-2 pr-4">{r.adopted}</td><td className="py-2">{r.withdrawn}</td></tr>
+            ))}</tbody>
+          </table>
+        </div>
+        <p className="text-sm text-muted mt-2">Източник: законопроектите в <a href="https://www.parliament.bg/bg/bills" target="_blank" rel="noreferrer">parliament.bg</a>. Всички внесени законопроекти с вносителите им: <Link href="/parlament/zakoni">Законите</Link>.</p>
       </section>
 
       <section className="mb-12">
