@@ -40,7 +40,7 @@ export default function Parlament() {
         <p className="font-semibold text-lg">Сигнали: текстове, добавени на второ четене →</p>
         <p className="text-[15px] text-muted">Нови параграфи, особено в преходните и заключителните разпоредби, където често се променят други закони в полза на тесен кръг. Кой ги подкрепя.</p>
       </Link>
-      <p className="mb-8 -mt-4 text-[15px]"><Link href="/parlament/zakoni" className="font-semibold">Всички закони: етап, вносители, двете страни и сигнали</Link> · <Link href="/vlast">Властта накратко</Link></p>
+      <p className="mb-8 -mt-4 text-[15px]"><Link href="/parlament/zakoni" className="font-semibold">Всички закони: етап, вносители, двете страни и сигнали</Link> · <Link href="/vlast">Властта накратко</Link> · <Link href="/parlament/predishni">Предишните парламенти (49–51)</Link></p>
       <SectionNav items={[["programa", "Седмицата"], ["zasedaniya", "Заседания"], ["predstoi", "Предстои"], ["grupi", "Групи"], ["vsichki", "Всички гласувания"]]} />
       <WeekProgram />
       <RecentSittings />

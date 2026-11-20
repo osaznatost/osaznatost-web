@@ -10,7 +10,7 @@ const BASE = "https://osaznatost-web.vercel.app";
 // Главните страници + депутати, закони, партии, обещания, области и общини.
 // Договорите, фирмите и отделните гласувания (над 200 000) не са тук: до тях се стига от тези страници.
 export default function sitemap(): MetadataRoute.Sitemap {
-  const top = ["", "/vlast", "/parlament", "/parlament/zakoni", "/obeshtaniya", "/proverki", "/proverki/chisla", "/porachki", "/porachki/risk", "/byudzhet", "/ikonomika", "/ceni", "/statistiki", "/mesta", "/kalkulatori", "/novini", "/rechnik", "/metodologiya", "/sastoyanie"];
+  const top = ["", "/vlast", "/parlament", "/parlament/zakoni", "/parlament/predishni", "/parlament/predishni/51", "/parlament/predishni/50", "/parlament/predishni/49", "/kalkulatori/danaci-razhodi", "/obeshtaniya", "/proverki", "/proverki/chisla", "/porachki", "/porachki/risk", "/byudzhet", "/ikonomika", "/ceni", "/statistiki", "/mesta", "/kalkulatori", "/novini", "/rechnik", "/metodologiya", "/sastoyanie"];
   const u = (p: string, priority = 0.5): MetadataRoute.Sitemap[number] => ({ url: BASE + p, priority });
   return [
     ...top.map((p) => u(p, p === "" ? 1 : 0.8)),

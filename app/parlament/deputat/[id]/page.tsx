@@ -9,6 +9,7 @@ import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { MpMentions } from "@/components/MpMentions";
+import { prevPartiesOf } from "@/lib/parliamentPrev";
 import { billsOfMp, billLawPage } from "@/lib/bills";
 import { VERDICT, autoChecksFor } from "@/lib/autoChecks";
 import { FUNDS } from "@/lib/funds";
@@ -121,7 +122,14 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
             <p className="font-semibold text-sm mb-1">Сега</p>
             <ul className="text-[15px] space-y-1">{current.map((m) => <li key={m.c}><span className="text-muted">{MS_TYPE[m.t] ?? ""}:</span> {m.c}{m.pos && m.pos !== "член" ? <b> — {m.pos}</b> : ""}</li>)}</ul>
           </>)}
-          <p className="text-xs text-muted mt-3">Предишната партийна принадлежност по парламенти още не е в отворените данни като таблица. Показваме в кои парламенти е бил депутатът; партийната история допълваме ръчно с източник.</p>
+          {(() => {
+            const pp = prevPartiesOf(mp.name);
+            return pp.length ? (<>
+              <p className="font-semibold text-sm mb-1 mt-3">Група в предишните парламенти</p>
+              <ul className="text-[15px] space-y-1">{pp.map((x) => <li key={x.ns}><Link href={`/parlament/predishni/${x.ns}`}>{x.ns}-о НС</Link>: {partyName(x.party)}</li>)}</ul>
+              <p className="text-xs text-muted mt-2">Последната известна група в съответния парламент (по стенограмите, обработени от „Наясно“). За парламентите преди 49-ото показваме само в кои е бил.</p>
+            </>) : <p className="text-xs text-muted mt-3">Не е бил депутат в 49-ото, 50-ото и 51-вото Народно събрание.</p>;
+          })()}
         </section>
       </div>
 
