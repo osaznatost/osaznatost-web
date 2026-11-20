@@ -1,14 +1,5 @@
-const r = await fetch("https://yambol.bg/uploads/E4CC01AC0CC9C4733AD7B3E55B21184F", { headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
-const buf = Buffer.from(await r.arrayBuffer());
-const ct = r.headers.get("content-type") || "";
-const m = ct.match(/charset=([\w-]+)/i);
-let html = new TextDecoder(m ? m[1] : "utf-8").decode(buf);
-console.log("## ", r.status, ct, r.headers.get("content-disposition"), html.length);
-const meta = html.match(/charset=["']?([\w-]+)/i); console.log("## meta", meta && meta[1]);
-if (meta && /1251/.test(meta[1])) html = new TextDecoder("windows-1251").decode(buf);
-const text = html.replace(/<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n");
-console.log("## text", text.length);
-console.log(text.slice(0, 2500));
-const idx = [...text.matchAll(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№?\s*\d+/g)].length; console.log("## reshenie count", idx);
-const ot = [...text.matchAll(/ОТНОСНО/gi)].length; console.log("## otnosno", ot);
-console.log(text.slice(5000, 7000));
+const get = async (u) => { try { const r = await fetch(u, { signal: AbortSignal.timeout(25000), headers: { "user-agent": "Mozilla/5.0 osaznatost" } }); return [r.status, await r.text()]; } catch (e) { return ["ERR " + (e.cause?.code || e.message), ""]; } };
+for (const u of ["https://www.dksbt.bg", "http://www.dksbt.bg", "https://dksbt.bg"]) {
+  const [s, t] = await get(u); console.log("## DKSBT", u, s, t.length);
+  for (const m of [...t.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,150}?)<\/a>/g)].slice(0, 120)) console.log("   ", m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 60), "=>", m[1].slice(0, 120));
+}
