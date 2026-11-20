@@ -104,7 +104,7 @@ function councilStats(res: Resolution[]) {
   return [...by.entries()].map(([name, x]) => ({ name, ...x, total: x.for + x.against + x.abstain + x.other })).sort((a, b) => b.dissent - a.dissent || a.name.localeCompare(b.name, "bg"));
 }
 
-function ResolutionItem({ r }: { r: Resolution }) {
+export function ResolutionItem({ r }: { r: Resolution }) {
   return (
 
                   <li key={r.id} className="ring-1 ring-rule rounded-sm p-3 bg-white">
@@ -190,7 +190,7 @@ export function MuniPower({ code }: { code: string }) {
                     </table></div>
                   </details>
                 )}
-                {(() => { const all = [...contested, ...res.filter((r) => !contested.includes(r))]; return (<><ul className="space-y-2">{all.slice(0, 15).map((r) => <ResolutionItem key={r.id} r={r} />)}</ul>{all.length > 15 && <details className="mt-3"><summary className="cursor-pointer font-semibold text-green">Още {all.length - 15} решения</summary><ul className="space-y-2 mt-2">{all.slice(15, 400).map((r) => <ResolutionItem key={r.id} r={r} />)}</ul></details>}</>); })()}
+                {(() => { const all = [...contested, ...res.filter((r) => !contested.includes(r))]; return (<><ul className="space-y-2">{all.slice(0, 15).map((r) => <ResolutionItem key={r.id} r={r} />)}</ul>{all.length > 15 && <p className="mt-3"><Link href={`/mesta/${code.slice(0, 3).toLowerCase()}/${code.toLowerCase()}/resheniya`} className="font-semibold">Всички {all.length} решения</Link></p>}</>); })()}
               </>
             )}
           </section>

@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="bg">
       <body className="min-h-screen flex flex-col">
         <Nav />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 min-h-[100svh]">{children}</main>
         <Suspense fallback={null}><ResponsiveTables /></Suspense>
         <footer className="bg-surface border-t border-rule mt-20">
           <div className="mx-auto max-w-[88rem] px-4 sm:px-6 py-8 text-sm text-muted grid gap-2 sm:grid-cols-2">
