@@ -13,7 +13,8 @@ type L = {
   buyers: Buyer[]; own: { n: number; eur: number } | null;
   sub: { n: number; mains: { name: string; n: number }[]; buyers: { name: string; n: number }[] } | null;
 };
-type Data = { updated: string; people: number; links: L[]; ambiguous: number };
+type T = { year: string; name: string; pos: string; inst: string; cat: string; eik: string; co: string; roles: string[]; contracts: number; eur: number; own: { n: number; eur: number } };
+type Data = { updated: string; people: number; links: L[]; ambiguous: number; trOnly?: T[] };
 
 const dir = path.join(process.cwd(), "data", "declarations");
 const read = (): Data | null => (existsSync(path.join(dir, "links.json")) ? (JSON.parse(readFileSync(path.join(dir, "links.json"), "utf8")) as Data) : null);
@@ -69,6 +70,17 @@ export default function Deklaracii() {
 
           <Anchor id="sobstvena" title="Поръчки от собствената институция" lead="Фирмата, декларирана от лицето, има договори с институцията, в която то заема длъжност. Това е най-силният сигнал, но не доказва, че лицето е участвало в решението.">
             {own.length === 0 ? <p className="text-muted">Няма такива връзки по нашето правило.</p> : <ul className="max-w-4xl">{own.map((l) => <Row key={`${l.name}|${l.eik}`} l={l} />)}</ul>}
+          </Anchor>
+
+          <Anchor id="tr" title="Само по Търговския регистър" lead="Лицето е управител, съдружник или собственик на фирма според Търговския регистър, фирмата има договори със същата институция, в която то заема длъжност, но фирмата не фигурира в декларацията му. Съвпадението е по трите имена (без ЕГН), затова е възможен съименник; възможно е и връзката да е прекратена преди периода на декларацията.">
+            {!(D.trOnly?.length) ? <p className="text-muted">Няма такива случаи по нашето правило{D.trOnly ? "" : " (проверката ще се появи при следващото обновяване)"}.</p> : (
+              <ul className="max-w-4xl">{D.trOnly.map((t) => (
+                <li key={`${t.name}|${t.eik}`} className="py-3 border-b border-rule">
+                  <div className="flex flex-wrap justify-between gap-2"><span><b>{t.name}</b> <span className="text-muted text-sm">{t.pos}, {t.inst}</span></span><span className="num font-semibold">{eur(t.own.eur)}</span></div>
+                  <p className="text-[15px] mt-1">По Търговския регистър: {t.roles.join(", ")} на <Link href={`/porachki/firma/${t.eik}`}>{t.co}</Link>. От институцията на лицето: {t.own.n} договора за {eur(t.own.eur)}. В декларацията за {t.year} г. фирмата не е посочена.</p>
+                </li>))}</ul>
+            )}
+            <p className="text-sm text-muted mt-3 max-w-3xl">Нашият Търговски регистър засега покрива само част от фирмите с поръчки, затова този списък не е пълен.</p>
           </Anchor>
 
           <Anchor id="vsichki" title={`Всички връзки (${L.length})`} lead="Подредени по общата стойност на договорите на фирмата.">

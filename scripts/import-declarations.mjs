@@ -36,6 +36,10 @@ for (const year of YEARS) {
       }
     }
   }
+  // Списък на всички лица (без да четем декларациите): нужен за проверката „връзка само по Търговския регистър“.
+  const ppl = new Map();
+  for (const j of jobs) ppl.set(`${j.name}|${j.inst}|${j.pos}`, { name: j.name, pos: j.pos, inst: j.inst, cat: j.cat });
+  writeFileSync(`data/declarations/people-${year}.json`, JSON.stringify([...ppl.values()]));
   const todo = jobs.filter((j) => !seen.has(j.file));
   console.log(year, "декларации:", jobs.length, "нови:", todo.length);
   let n = 0, withCo = 0;

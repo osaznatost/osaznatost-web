@@ -86,5 +86,35 @@ for (const year of ["2026", "2025"]) {
 const uniq = new Map();
 for (const l of links.sort((a, b) => (a.year < b.year ? 1 : -1))) { const k = `${l.name}|${l.eik}`; if (!uniq.has(k)) uniq.set(k, l); }
 const out = [...uniq.values()].sort((a, b) => b.eur - a.eur);
-writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, links: out, ambiguous: ambiguous.length }));
+
+// 3) „Само по Търговския регистър“: лице от регистъра на декларациите е управител, съдружник или собственик
+// (по Търговския регистър) на фирма, която е печелила поръчки ОТ СЪЩАТА институция, в която лицето заема
+// длъжност, а тази фирма не е свързана с негова декларация. Съвпадението е по трите имена (без ЕГН), затова
+// изискваме и съвпадение на институцията: така рискът от съименник е малък, но не нулев.
+const trPeople = existsSync("data/tr/people.json") ? JSON.parse(readFileSync("data/tr/people.json", "utf8")) : {};
+const declared = new Set(out.map((l) => `${l.name.toUpperCase()}|${l.eik}`));
+const trOnly = new Map();
+for (const year of ["2026", "2025"]) {
+  const f = `data/declarations/people-${year}.json`;
+  if (!existsSync(f)) continue;
+  for (const p of JSON.parse(readFileSync(f, "utf8"))) {
+    const key = p.name.toUpperCase().replace(/\s+/g, " ").trim();
+    if (key.split(" ").length < 3) continue; // само пълни три имена
+    for (const [eik9, role] of trPeople[key] ?? []) {
+      const eik = sup.has(eik9) ? eik9 : null;
+      if (!eik || declared.has(`${key}|${eik}`)) continue;
+      const s = sup.get(eik);
+      const own = [...s.buyers.values()].filter((b) => normInst(b.name) === normInst(p.inst));
+      if (!own.length) continue;
+      const k = `${key}|${eik}`;
+      const prev = trOnly.get(k);
+      const roles = [...new Set([...(prev?.roles ?? []), role])];
+      trOnly.set(k, { year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, eik, co: [...s.names][0] ?? eik, roles, contracts: s.n, eur: Math.round(s.eur),
+        own: { n: own.reduce((a, b) => a + b.n, 0), eur: Math.round(own.reduce((a, b) => a + b.eur, 0)) } });
+    }
+  }
+}
+const trOut = [...trOnly.values()].sort((a, b) => b.own.eur - a.own.eur);
+console.log("само по Търговския регистър (същата институция):", trOut.length);
+writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, links: out, ambiguous: ambiguous.length, trOnly: trOut }));
 console.log("декларации с дружества:", people, "връзки:", out.length, "лица:", new Set(out.map((l) => l.name)).size, "от собствената институция:", out.filter((l) => l.own).length, "неясни имена:", ambiguous.length);
