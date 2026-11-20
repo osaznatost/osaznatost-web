@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MultiLine } from "@/components/Charts";
 import { PollTrend } from "@/components/PollTrend";
+import { TrustPolls } from "@/components/TrustPolls";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import P from "@/data/polls.json";
 import { paidTo } from "@/lib/payments";
@@ -25,6 +26,10 @@ export default function Sotsiologiya() {
       <section className="mb-12">
         <SectionTitle>Подкрепата за партиите във времето</SectionTitle>
         <PollTrend />
+      </section>
+      <section id="doverie" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
+        <SectionTitle>Доверие в лидерите и институциите</SectionTitle>
+        <TrustPolls />
       </section>
       <section className="mb-12">
         <SectionTitle>Агенциите</SectionTitle>

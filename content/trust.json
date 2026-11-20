@@ -1,0 +1,42 @@
+{
+  "about": "Доверие и одобрение от публикуваните резултати на социологическите агенции. Агенциите задават различни въпроси (доверие, одобрение, положителна оценка) и с различни методи, затова числата са за сравнение във времето в рамките на една агенция, не между агенции.",
+  "polls": [
+    { "agency": "Маркет ЛИНКС (с bTV)", "field": "07–13.02.2026", "date": "2026-02-13", "n": 1019, "method": "лично интервю и онлайн анкета",
+      "items": [{ "who": "Народно събрание", "kind": "institution", "trust": 6 }],
+      "source": "https://www.marketlinks.bg/storage/MarketLINKS%20Public%20Opinion%20Poll%20Report%2001.2026.pdf" },
+    { "agency": "Тренд (за „24 часа“)", "field": "16–22.05.2026", "date": "2026-05-22", "n": 1000, "method": "лично интервю с таблет",
+      "items": [
+        { "who": "Правителство", "kind": "institution", "trust": 45, "distrust": 36, "q": "положителна оценка" },
+        { "who": "Президент", "kind": "institution", "trust": 48, "distrust": 33, "q": "положителна оценка" },
+        { "who": "Народно събрание", "kind": "institution", "trust": 31, "q": "положителна оценка" }],
+      "source": "https://www.novinite.com/view_news.php?id=238706" },
+    { "agency": "Маркет ЛИНКС (с bTV)", "field": "16–27.05.2026", "date": "2026-05-27", "n": 1008, "method": "лично интервю и онлайн анкета",
+      "items": [{ "who": "Румен Радев", "kind": "person", "role": "министър-председател", "trust": 56, "distrust": 22 }],
+      "source": "https://www.intellinews.com/bulgarian-pm-radev-s-approval-falls-for-second-straight-month-poll-shows-456629/" },
+    { "agency": "Маркет ЛИНКС (с bTV)", "field": "13–21.06.2026", "date": "2026-06-21", "n": 1005, "method": "лично интервю и онлайн анкета",
+      "items": [
+        { "who": "Румен Радев", "kind": "person", "role": "министър-председател", "trust": 53, "distrust": 28 },
+        { "who": "Народно събрание", "kind": "institution", "trust": 22, "q": "положителна оценка" }],
+      "source": "https://www.novinite.com/articles/239277/Trust+in+Bulgaria%E2%80%99s+Government+Declines" },
+    { "agency": "Маркет ЛИНКС (с bTV)", "field": "11–19.07.2026", "date": "2026-07-19", "n": 1002, "method": "лично интервю и онлайн анкета",
+      "items": [
+        { "who": "Румен Радев", "kind": "person", "role": "министър-председател", "trust": 50, "distrust": 33 },
+        { "who": "Асен Василев", "kind": "person", "role": "„Продължаваме промяната“", "trust": 13 },
+        { "who": "Бойко Борисов", "kind": "person", "role": "ГЕРБ", "trust": 12 },
+        { "who": "Радан Кънев", "kind": "person", "role": "ДСБ", "trust": 11 },
+        { "who": "Костадин Костадинов", "kind": "person", "role": "„Възраждане“", "trust": 11 },
+        { "who": "Ивайло Мирчев", "kind": "person", "role": "„Да, България“", "trust": 9 },
+        { "who": "Божидар Божанов", "kind": "person", "role": "„Да, България“", "trust": 8 },
+        { "who": "Делян Пеевски", "kind": "person", "role": "ДПС", "trust": 5 }],
+      "source": "https://www.bta.bg/en/news/bulgaria/1172185-public-trust-in-radev-government-declining-poll-shows" },
+    { "agency": "Алфа Рисърч", "field": "17–23.07.2026", "date": "2026-07-23", "n": 1000, "method": "лично интервю с таблет",
+      "items": [{ "who": "Правителство", "kind": "institution", "trust": 42, "distrust": 33, "q": "одобрение" }],
+      "source": "https://sofiaglobe.com/?p=128501" },
+    { "agency": "Галъп Интернешънъл Болкан", "field": "24.07–04.08.2026", "date": "2026-08-04", "n": 821, "method": "по телефона",
+      "items": [
+        { "who": "Румен Радев", "kind": "person", "role": "министър-председател", "trust": 48.4 },
+        { "who": "Правителство", "kind": "institution", "trust": 42 },
+        { "who": "Народно събрание", "kind": "institution", "trust": 20.2 }],
+      "source": "https://bnrnews.bg/en/post/512453/gallup-ruling-pb-retains-strong-support-as-foreign-policy-divides-voters" }
+  ]
+}
