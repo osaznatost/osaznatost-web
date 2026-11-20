@@ -1,9 +1,15 @@
-import { execFileSync } from "node:child_process";
-const get = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "40", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch (e) { return ""; } };
-const txt = (h) => h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ").replace(/&#x([0-9a-f]+);/gi, (_, x) => String.fromCodePoint(parseInt(x, 16))).replace(/\s+/g, " ");
-const B = "https://reports.appk.government.bg";
-const c = get(B + "/Public/Public/Companies");
-const links = [...new Set([...c.matchAll(/href="([^"]*(?:Company|Details|Id=)[^"]*)"/gi)].map((m) => m[1]))];
-console.log("PROBEC", c.length, links.length, links.slice(0, 8).join(" "));
-console.log("PROBECT", txt(c).slice(1500, 3500));
-if (links[0]) { const d = get(B + links[0].replace(/&amp;/g, "&")); console.log("PROBED", links[0], d.length, txt(d).slice(0, 4000)); }
+const sites = {
+  VRATSA: ["https://obs.vratsa.bg", "https://www.vratsa.bg"],
+  SILISTRA: ["https://obs.silistra.bg", "https://www.silistra.bg"],
+  BLAG: ["https://os.blagoevgrad.bg", "https://www.blagoevgrad.bg"],
+  YAMBOL: ["https://obs.yambol.bg", "https://www.yambol.bg"],
+};
+for (const [k, urls] of Object.entries(sites)) for (const u of urls) {
+  try {
+    const r = await fetch(u, { signal: AbortSignal.timeout(20000), headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
+    const t = await r.text();
+    const links = [...t.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/g)].map(m => [m[1], m[2].replace(/<[^>]+>/g, "").trim()]).filter(([h, x]) => /решени|заседан|протокол|общински съвет/i.test(x + " " + decodeURIComponent(h)));
+    console.log("##", k, u, r.status, t.length);
+    for (const l of links.slice(0, 25)) console.log("  ", l[1].slice(0, 60), "=>", l[0]);
+  } catch (e) { console.log("##", k, u, "ERR", e.cause?.code || e.message); }
+}
