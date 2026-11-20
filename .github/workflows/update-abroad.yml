@@ -1,0 +1,29 @@
+name: Цени в чужбина (BILLA Австрия, Евростат)
+on:
+  schedule:
+    - cron: "41 5 * * 1"   # всеки понеделник
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: abroad
+  cancel-in-progress: false
+jobs:
+  abroad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/import-abroad.mjs
+      - name: Запис
+        run: |
+          git add data/prices/abroad.json data/prices/eu-levels.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Цени в чужбина: обновяване"
+          git pull --rebase -X theirs
+          git push

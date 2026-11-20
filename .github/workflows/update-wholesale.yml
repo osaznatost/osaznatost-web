@@ -1,0 +1,30 @@
+name: Цени на едро (ДКСБТ)
+# dksbt.bg отговаря само на български IP адреси, затова задачата върви на self-hosted runner в България (Mac).
+on:
+  schedule:
+    - cron: "17 7 * * 6"   # събота сутрин, след петъчния бюлетин
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: wholesale
+  cancel-in-progress: false
+jobs:
+  wholesale:
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/import-wholesale.mjs
+      - name: Запис
+        run: |
+          git add data/prices/wholesale.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Цени на едро (ДКСБТ): обновяване"
+          git pull --rebase -X theirs
+          git push
