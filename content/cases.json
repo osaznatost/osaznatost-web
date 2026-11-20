@@ -264,6 +264,44 @@
           "url": "https://www.fakti.bg/en/bulgaria/1032739-the-court-is-sitting-again-in-the-case-of-former-minister-of-environment-neno-dimov"
         }
       ]
+    },
+    {
+      "person": "Николай Цонев",
+      "role": "Бивш министър на отбраната (правителство „Станишев“)",
+      "party": null,
+      "level": "acquitted",
+      "date": "2015-02",
+      "what": "Обвинение, че чрез посредник е предложил подкуп от 20 000 евро на следовател, за да бъде спряно разследване срещу него за поръчка на МО за 120 млн. лв. Отделно обвинение за поръчката на оптичния кабел „Странджа-2“.",
+      "outcome": "Оправдан окончателно от Върховния касационен съд по делото за подкуп (3.2.2015). По делото за кабела е оправдан през октомври 2012 г.",
+      "sources": [
+        {
+          "title": "БТА: окончателно оправдан по делото за подкуп",
+          "url": "https://www.bta.bg/en/news/180168-Ex-Defence-Minister-Judge-Former-Finance-Ministry-Official-Conclusively-Acquit"
+        },
+        {
+          "title": "OCCRP: оправдан и по делото за кабела",
+          "url": "https://www.occrp.org/en/daily/3637-bulgaria-former-defense-minister-acquitted-in-bribery-case"
+        }
+      ]
+    },
+    {
+      "person": "Христо Бисеров",
+      "role": "Бивш заместник-председател на Народното събрание и на ДПС",
+      "party": "ДПС",
+      "level": "acquitted",
+      "date": "",
+      "what": "Укриване на данъци в особено големи размери, недекларирани валутни преводи и невярна декларация пред Сметната палата (недекларирани влогове в швейцарска банка). Отделно разследване за пране на пари.",
+      "outcome": "Оправдан и от трите инстанции по трите обвинения; Върховният касационен съд потвърждава окончателно. Делото за пране на пари е закрито от съда през февруари 2016 г., след като прокуратурата не го довършва.",
+      "sources": [
+        {
+          "title": "БТА: окончателно оправдан от ВКС",
+          "url": "https://www.bta.bg/en/news/136252-Hristo-Bisserov-Acquitted-by-Final-Court-of-Appeal"
+        },
+        {
+          "title": "OCCRP: закрито делото за пране на пари (2016)",
+          "url": "https://www.occrp.org/ru/novosti/bolgariia-s-byvsego-vice-spikera-parlamenta-sniaty-obvineniia-v-otmyvanii-deneg"
+        }
+      ]
     }
   ]
 }
