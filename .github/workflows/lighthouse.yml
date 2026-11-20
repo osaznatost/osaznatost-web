@@ -1,4 +1,4 @@
-name: Lighthouse (на живия сайт)
+name: Lighthouse (локална сборка с данните)
 on:
   workflow_dispatch:
 permissions:
@@ -6,18 +6,24 @@ permissions:
 jobs:
   lh:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - name: Достъпност на страниците
-        run: |
-          for u in / /porachki/dogovor/n~130020522~49850 /parlament/deputat/5221; do
-            echo "$u -> $(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "https://osaznatost-web.vercel.app$u")"
-          done
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      # Сборката е само в машината на GitHub и не се публикува; ключът остава в GitHub secrets.
+      - run: npx next build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
       - name: Lighthouse (телефон)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         run: |
-          for u in /porachki/dogovor/n~130020522~49850; do
-            npx -y lighthouse@12 "https://osaznatost-web.vercel.app$u" --quiet --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility --output=json --output-path=/tmp/lh.json || true
-            node -e "const r=require('/tmp/lh.json');console.log('$u', 'performance', Math.round(r.categories.performance.score*100), 'accessibility', Math.round(r.categories.accessibility.score*100), 'LCP', r.audits['largest-contentful-paint'].displayValue, 'final URL', r.finalDisplayedUrl)" || true
+          (npx next start -p 3130 > /tmp/srv.log 2>&1 &) ; sleep 8
+          for u in /porachki/dogovor/n~130020522~49850 / /parlament/deputat/5221 /mesta/sfo/sfo07; do
+            npx -y lighthouse@12 "http://localhost:3130$u" --quiet --chrome-flags="--headless=new --no-sandbox" --only-categories=performance,accessibility --output=json --output-path=/tmp/lh.json || true
+            node -e "const r=require('/tmp/lh.json');console.log('RESULT', '$u', 'performance', Math.round(r.categories.performance.score*100), 'accessibility', Math.round(r.categories.accessibility.score*100), 'LCP', r.audits['largest-contentful-paint'].displayValue)" || true
           done
