@@ -1,6 +1,6 @@
 // BILLA Австрия: публичните страници на онлайн магазина (shop.billa.at/suche/<дума>) носят данните за продуктите
 // в сериализиран Nuxt вид (__NUXT_DATA__). Декодираме го и взимаме име, марка, количество, редовна цена.
-const UA = { "user-agent": "Mozilla/5.0 (osaznatost.bg; сравнение на цени)" };
+const UA = { "user-agent": "Mozilla/5.0 (osaznatost.bg; price comparison)" };
 export function nuxtDecode(arr) {
   const memo = new Map();
   const res = (i) => {
