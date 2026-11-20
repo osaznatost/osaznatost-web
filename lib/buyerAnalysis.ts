@@ -9,7 +9,7 @@ const jaccard = (a: Set<string>, b: Set<string>) => { let i = 0; for (const x of
 
 export type Cluster = { key: string; contracts: Contract[]; total: number; months: number; suppliers: string[] };
 
-/** Поръчки със сходен предмет (сходство на думите ≥ 0,55) в рамките на 24 месеца: кандидати за повтаряща се работа. */
+/** Поръчки със сходен предмет (сходство на думите ≥ 0,55) в рамките на 24 месеца, от поне две различни процедури и поне 90 дни една от друга: кандидати за повтаряща се работа. */
 export function repeatedWork(cs: Contract[]): Cluster[] {
   const items = cs.filter((c) => c.tender_name && c.contract_date).map((c) => ({ c, t: tokens(c.tender_name), d: Date.parse(c.contract_date!) }));
   const used = new Set<number>(); const out: Cluster[] = [];
@@ -21,7 +21,11 @@ export function repeatedWork(cs: Contract[]): Cluster[] {
       if (Math.abs(items[j].d - items[i].d) > 730 * 864e5) continue;
       if (jaccard(items[i].t, items[j].t) >= 0.55 && items[i].c.tender_name !== items[j].c.tender_name || (items[i].c.tender_name === items[j].c.tender_name && items[i].c.contract_number !== items[j].c.contract_number && items[i].c.lot === items[j].c.lot)) group.push(j);
     }
-    if (group.length >= 2) {
+    // Обособените позиции на една процедура (един tender_id или един ден) не са повторна работа:
+    // искаме поне две различни процедури и поне 90 дни между първата и последната.
+    const tenders = new Set(group.map((g) => items[g].c.tender_id || items[g].c.contract_date));
+    const span = Math.max(...group.map((g) => items[g].d)) - Math.min(...group.map((g) => items[g].d));
+    if (group.length >= 2 && tenders.size >= 2 && span >= 90 * 864e5) {
       group.forEach((g) => used.add(g));
       const cc = group.map((g) => items[g].c).sort((a, b) => (a.contract_date! < b.contract_date! ? -1 : 1));
       const ds = group.map((g) => items[g].d);

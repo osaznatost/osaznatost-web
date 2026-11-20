@@ -5,7 +5,7 @@ const q = async (p) => { const r = await fetch(`${URL_}/rest/v1/${p}`, { headers
 const buyers = await q(`proc_buyers?select=eik,name&name=ilike.*${encodeURIComponent("Ботевград")}*`);
 console.log("Възложители:", buyers.map((b) => `${b.eik} ${b.name}`).join(" | "));
 const main = buyers.find((b) => /^община ботевград$/i.test(b.name.trim())) ?? buyers.find((b) => /община/i.test(b.name));
-const cs = await q(`proc_contracts?select=id,tender_name,contract_date,contract_number,contract_value_eur,supplier_names&buyer_eik=eq.${main.eik}&order=contract_date.asc&limit=5000`);
+const cs = await q(`proc_contracts?select=id,tender_id,tender_name,contract_date,contract_number,contract_value_eur,supplier_names&buyer_eik=eq.${main.eik}&order=contract_date.asc&limit=5000`);
 console.log("Договори на", main.name, ":", cs.length);
 const STOP = new Set(["на", "за", "и", "в", "във", "от", "по", "с", "със", "към", "до", "при", "град", "гр", "община", "обект", "изпълнение", "строително", "строителни", "дейности", "услуги", "доставка", "доставки", "извършване", "процедура", "обособена", "позиция", "част", "на", "лот", "основен", "текущ"]);
 const tokens = (s) => new Set((s.toLowerCase().replace(/[„“"'()\-–,.;:№\/]/g, " ").match(/[а-яa-z0-9]{3,}/g) ?? []).filter((w) => !STOP.has(w)).map((w) => w.slice(0, 7)));
@@ -19,7 +19,9 @@ for (let i = 0; i < items.length; i++) {
     if (used.has(j) || Math.abs(items[j].d - items[i].d) > 730 * 864e5) continue;
     if ((jac(items[i].t, items[j].t) >= 0.55 && items[i].c.tender_name !== items[j].c.tender_name) || (items[i].c.tender_name === items[j].c.tender_name && items[i].c.contract_number !== items[j].c.contract_number)) g.push(j);
   }
-  if (g.length >= 2) { g.forEach((x) => used.add(x)); out.push(g.map((x) => items[x].c)); }
+  const tenders = new Set(g.map((x) => items[x].c.tender_id || items[x].c.contract_date));
+  const span = Math.max(...g.map((x) => items[x].d)) - Math.min(...g.map((x) => items[x].d));
+  if (g.length >= 2 && tenders.size >= 2 && span >= 90 * 864e5) { g.forEach((x) => used.add(x)); out.push(g.map((x) => items[x].c)); }
 }
 out.sort((a, b) => b.length - a.length);
 console.log("Групи повтарящи се поръчки:", out.length);
