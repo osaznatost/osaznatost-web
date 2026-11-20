@@ -1,9 +1,8 @@
 import { execFileSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
-const get = (u, bin) => { try { const b = execFileSync("curl", ["-sSL", "-m", "90", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 28 }); return bin ? b : b.toString("utf8"); } catch { return null; } };
-const b = get("https://obs.pleven.bg/uploads/posts/protokol-50.docx", true);
-writeFileSync("/tmp/p.docx", b);
-const t = execFileSync("sh", ["-c", "unzip -p /tmp/p.docx word/document.xml | sed -e 's/<\\/w:p>/\\n/g; s/<[^>]*>//g'"], { maxBuffer: 1 << 28 }).toString();
-console.log("PROBE", t.length);
-const j = t.search(/гласува/i); console.log("PROBE1", t.slice(j - 2500, j + 1800)); console.log("PROBEN", [...t.matchAll(/Р\s?Е\s?Ш\s?Е\s?Н\s?И\s?Е/g)].length, [...t.matchAll(/Решение\s*№\s*(\d+)/g)].length);
-const h = get("http://obs.pleven.bg/bg/protokoli-i-resheniya/page/48") ?? ""; console.log("PROBEPG", [...h.matchAll(/protokol-\d+-ot-\d+-g/g)].map((m) => m[0]).join(" "));
+import { readFileSync } from "node:fs";
+execFileSync("node", ["scripts/import-council-sites.mjs"], { env: { ...process.env, ONLY: "JAM26", MINUTES: "4" }, stdio: "inherit" });
+const d = JSON.parse(readFileSync("data/council/JAM26.json", "utf8"));
+console.log("## files", Object.keys(d.files).length, "decisions", d.decisions.length);
+const by = {}; for (const x of d.decisions) by[x.session] = (by[x.session] || 0) + 1; console.log("## by session", JSON.stringify(by));
+for (const x of [d.decisions[0], d.decisions[4], d.decisions.at(-1), d.decisions.find(x => /имената/.test(x.title))]) console.log("## S", JSON.stringify(x).slice(0, 700));
+console.log("## short", d.decisions.filter(x => x.title.length < 15).length, "dates", [...new Set(d.decisions.map(x => x.date))].join(","));
