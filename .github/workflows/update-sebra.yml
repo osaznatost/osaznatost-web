@@ -19,6 +19,9 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Изтегляне от data.egov.bg
         run: node scripts/fetch-sebra.mjs "$RUNNER_TEMP/sebra"
       - name: Обобщение
