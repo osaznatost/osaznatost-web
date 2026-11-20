@@ -1,11 +1,13 @@
-// Проба: решения на ОбС Бургас, Плевен, Велико Търново
+// Проба: формат на решение на ВТОС
 import { execFileSync } from "node:child_process";
-const get = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "60", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch (e) { return ""; } };
-for (const u of ["https://www.burgascouncil.org/node/2513", "https://savet.veliko-tarnovo.bg/bg/resheniya-2025-godina/resheniya-saglasno-protokol-34-ot-30122025-g"]) {
-  const h = get(u);
-  const links = [...new Set([...h.matchAll(/href="([^"]+)"[^>]*>([\s\S]{0,160}?)<\/a>/g)].map(([, a, t]) => a + " | " + t.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).filter((l) => !/css|\.js|facebook|twitter|#|mailto|tel:/.test(l)))];
-  console.log("PROBE", u, h.length, links.length);
-  for (const l of links.filter((l) => /files|upload|node|reshen/i.test(l)).slice(0, 40)) console.log("PROBE  ", l.slice(0, 200));
-  const i = h.search(/Решение\s*№|РЕШЕНИЕ\s*№/);
-  console.log("PROBETXT", i, h.slice(Math.max(0, i - 300), i + 700).replace(/\s+/g, " "));
+import { writeFileSync } from "node:fs";
+const get = (u, bin) => { try { const b = execFileSync("curl", ["-sSL", "-m", "60", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }); return bin ? b : b.toString("utf8"); } catch (e) { return null; } };
+for (const f of ["uploads/posts/2025/2025_12_30_874.pdf"]) {
+  const b = get("https://savet.veliko-tarnovo.bg/" + f, true);
+  writeFileSync("/tmp/s.pdf", b);
+  console.log("PROBEPDF", f, execFileSync("pdftotext", ["-layout", "/tmp/s.pdf", "-"]).toString().slice(0, 3000));
 }
+const b = get("https://www.burgascouncil.org/sites/default/files/2025-09/za-sayta-28_0.pdf", true);
+writeFileSync("/tmp/b.pdf", b);
+const t = execFileSync("pdftotext", ["-layout", "/tmp/b.pdf", "-"]).toString();
+console.log("PROBEBS", t.length, t.slice(0, 3500));
