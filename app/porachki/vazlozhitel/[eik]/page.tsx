@@ -7,11 +7,11 @@ import { AnnexList, ContractList } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { SectionNav } from "@/components/SectionNav";
 import { placeHref } from "@/lib/regions";
-import { sharedPeople } from "@/lib/tr";
+import { sharedPeople, sharedAddress } from "@/lib/tr";
 import { PaidByBuyer } from "@/components/PaidBox";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur } from "@/lib/procurement";
 import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
-import { byCategory, hhi, possibleSplits, repeatedWork, THRESHOLDS } from "@/lib/buyerAnalysis";
+import { byCategory, hhi, possibleSplits, repeatedWork, rotatingWinners, THRESHOLDS } from "@/lib/buyerAnalysis";
 
 export const metadata = { title: "Възложител" };
 
@@ -138,6 +138,30 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
             <ul className="space-y-2 text-[15px]">{sh.slice(0, 30).map((x) => (
               <li key={x.name} className="ring-1 ring-[#e08a2e] rounded-sm p-3 bg-white"><b>{x.name}</b>: {x.firms.map((e, i) => <span key={e}>{i ? ", " : ""}<Link href={firmUrl(e)}>{names.get(e) ?? e}</Link></span>)}</li>
             ))}</ul>
+          </section>
+        );
+      })()}
+      {(() => {
+        const sa = sharedAddress(contracts.flatMap((c) => c.supplier_eiks));
+        const rot = rotatingWinners(contracts);
+        const names = new Map(contracts.flatMap((c) => c.supplier_eiks.map((e, i) => [e.slice(0, 9), c.supplier_names[i] ?? e] as [string, string])));
+        if (!sa.length && !rot.length) return null;
+        return (
+          <section className="mb-10">
+            {rot.length > 0 && (<>
+              <SectionTitle>Редуващи се изпълнители</SectionTitle>
+              <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">В една категория двама изпълнители печелят повечето поръчки и се сменят почти всеки път. Правило: всеки има поне 3 договора, заедно поне 60% от договорите в категорията, а победителят се сменя при поне 60% от поредните им договори. Това може да е случайност или резултат от честа конкуренция. Сигналът е повод за въпрос, не доказателство.</p>
+              <ul className="space-y-2 text-[15px] mb-6">{rot.map((r) => (
+                <li key={r.label} className="ring-1 ring-[#e08a2e] rounded-sm p-3 bg-white"><b>{r.label}</b>: <Link href={firmUrl(r.a.eik)}>{r.a.name}</Link> ({r.a.n}) и <Link href={firmUrl(r.b.eik)}>{r.b.name}</Link> ({r.b.n}) от общо {r.total} договора; смяна на победителя {r.switches} пъти в {r.seq.length} поредни договора.</li>
+              ))}</ul>
+            </>)}
+            {sa.length > 0 && (<>
+              <SectionTitle>Изпълнители с общ адрес</SectionTitle>
+              <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">Различни фирми, които печелят поръчки от този възложител, с един и същ адрес на управление в Търговския регистър (без етаж и офис). Често това е обща сграда или счетоводна кантора; сигналът е повод за въпрос, не доказателство.</p>
+              <ul className="space-y-2 text-[15px]">{sa.slice(0, 20).map((x) => (
+                <li key={x.address} className="ring-1 ring-rule rounded-sm p-3 bg-white"><span className="text-sm text-muted">{x.address}</span><br />{x.firms.map((e, i) => <span key={e}>{i ? ", " : ""}<Link href={firmUrl(e)}>{names.get(e) ?? e}</Link></span>)}</li>
+              ))}</ul>
+            </>)}
           </section>
         );
       })()}

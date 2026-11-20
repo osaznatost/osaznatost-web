@@ -64,3 +64,18 @@ export function relatedFirms(eik: string) {
   }
   return [...out.entries()].map(([e, via]) => ({ eik: e, firm: trFor(e), via }));
 }
+
+const addrKey = (a: string) => a.replace(/^Държава:\s*БЪЛГАРИЯ\s*/i, "").replace(/,?\s*(ет\.|етаж|ап\.|апартамент|офис|оф\.|вх\.)\s*[^,]*/gi, "").replace(/\s+/g, " ").trim().toUpperCase();
+/** Групи фирми (от дадените) с един и същ адрес на управление в Търговския регистър, без етаж, вход и офис. */
+export function sharedAddress(eiks: string[]) {
+  const by = new Map<string, { address: string; firms: Set<string> }>();
+  for (const e of new Set(eiks.map((x) => x.slice(0, 9)))) {
+    const f = trFor(e);
+    if (!f?.address) continue;
+    const k = addrKey(f.address);
+    if (k.length < 25) continue;
+    const x = by.get(k) ?? { address: f.address.replace(/^Държава:\s*БЪЛГАРИЯ\s*/i, ""), firms: new Set<string>() };
+    x.firms.add(e); by.set(k, x);
+  }
+  return [...by.values()].filter((x) => x.firms.size > 1).map((x) => ({ address: x.address, firms: [...x.firms] }));
+}

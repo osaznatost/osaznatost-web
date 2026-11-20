@@ -81,3 +81,24 @@ export function hhi(cs: Contract[]) {
   for (const c of cs) { const v = c.contract_value_eur ?? 0; total += v; c.supplier_eiks.forEach((e) => by.set(e, (by.get(e) ?? 0) + v / c.supplier_eiks.length)); }
   return total ? Math.round([...by.values()].reduce((s, v) => s + ((v / total) * 100) ** 2, 0)) : 0;
 }
+
+export type Rotation = { label: string; a: { eik: string; name: string; n: number }; b: { eik: string; name: string; n: number }; total: number; switches: number; seq: Contract[] };
+/** „Редуващи се победители“: в една категория двама изпълнители печелят повечето поръчки и се сменят почти всеки път.
+ *  Правило: и двамата имат поне 3 договора, заедно поне 60% от договорите в категорията, а при поне 60% от поредните им договори победителят се сменя. */
+export function rotatingWinners(cs: Contract[]): Rotation[] {
+  const out: Rotation[] = [];
+  for (const k of CATEGORIES) {
+    const list = cs.filter((c) => c.contract_date && c.supplier_eiks.length && k.re.test(`${c.tender_name} ${c.cpv_desc ?? ""}`)).sort((x, y) => (x.contract_date! < y.contract_date! ? -1 : 1));
+    if (list.length < 6) continue;
+    const cnt = new Map<string, { name: string; n: number }>();
+    for (const c of list) { const e = c.supplier_eiks[0]; const x = cnt.get(e) ?? { name: c.supplier_names[0] ?? e, n: 0 }; x.n++; cnt.set(e, x); }
+    const [A, B] = [...cnt.entries()].sort((x, y) => y[1].n - x[1].n);
+    if (!A || !B || B[1].n < 3 || (A[1].n + B[1].n) / list.length < 0.6) continue;
+    const seq = list.filter((c) => c.supplier_eiks[0] === A[0] || c.supplier_eiks[0] === B[0]);
+    let sw = 0;
+    for (let i = 1; i < seq.length; i++) if (seq[i].supplier_eiks[0] !== seq[i - 1].supplier_eiks[0]) sw++;
+    if (out.some((o) => [o.a.eik, o.b.eik].sort().join() === [A[0], B[0]].sort().join())) continue;
+    if (sw / (seq.length - 1) >= 0.6) out.push({ label: k.label, a: { eik: A[0], ...A[1] }, b: { eik: B[0], ...B[1] }, total: list.length, switches: sw, seq });
+  }
+  return out;
+}
