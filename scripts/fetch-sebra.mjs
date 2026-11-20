@@ -33,7 +33,10 @@ for (const res of resources) {
   const file = dates.length >= 2 ? `${dates[0][1]}${dates[0][2]}${dates[0][3]}-g-${dates[1][1]}${dates[1][2]}${dates[1][3]}.csv` : `${uri}.csv`;
   const path = `${OUT}/${file}`;
   if (existsSync(path) && statSync(path).size > 1000) continue;
-  const r = await fetch(`https://data.egov.bg/resource/download/${uri}/csv`);
+  const fmt = String(res.format ?? res.file_format ?? "csv").toLowerCase();
+  let r = await fetch(`https://data.egov.bg/resource/download/${uri}/${fmt}`);
+  if (r.ok && /text\/html/.test(r.headers.get("content-type") ?? "")) { console.log("HTML вместо файл за", name, "— опитвам като CSV"); r = await fetch(`https://data.egov.bg/resource/download/${uri}/csv`); }
+  if (r.ok && /text\/html/.test(r.headers.get("content-type") ?? "")) { console.log("Пропускам", name, ": порталът връща страница, не файл. Полета:", JSON.stringify(Object.keys(res))); continue; }
   if (!r.ok) { console.log(`Пропускам ${name}: HTTP ${r.status}`); continue; }
   const buf = Buffer.from(await r.arrayBuffer());
   console.log("файл", file, buf.length, "байта, начало:", JSON.stringify(buf.slice(0, 60).toString("latin1")), r.headers.get("content-type"), JSON.stringify(res.format ?? res.file_format ?? ""));
