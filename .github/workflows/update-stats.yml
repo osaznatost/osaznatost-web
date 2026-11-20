@@ -25,6 +25,9 @@ jobs:
           node-version: 22
       - name: Импорт от Евростат
         run: node scripts/import-stats.mjs
+      - name: Местни данъци (ИПИ през „Наясно“)
+        run: node scripts/import-local-taxes.mjs
+        continue-on-error: true
       - name: Запис, ако има промяна
         run: |
           if git diff --quiet -- data/ && git ls-files --error-unmatch data/stats.json >/dev/null 2>&1; then echo "Няма нови данни"; exit 0; fi
