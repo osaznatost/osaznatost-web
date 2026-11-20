@@ -1,6 +1,6 @@
 name: Обновяване на плащанията (СЕБРА)
 # data.egov.bg приема автоматизирани заявки само от български IP адреси, затова тази задача
-# върви на self-hosted runner в България (етикет „bg“). Без такъв runner задачата просто чака.
+# върви на self-hosted runner в България (твоят Mac: self-hosted, macOS, ARM64). Без такъв runner задачата просто чака.
 on:
   schedule:
     - cron: "17 6 20 1,4,7,10 *"   # веднъж на тримесечие, след публикуването на новото тримесечие
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   sebra:
-    runs-on: [self-hosted, bg]
+    runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
