@@ -1,11 +1,18 @@
-// Проба: къде общинските съвети на Бургас, Пловдив и Плевен публикуват решенията си
+// Проба: формат на решенията на ОбС Шумен
 import { execFileSync } from "node:child_process";
-const get = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "40", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch (e) { return "ERR " + e.message.slice(0, 100); } };
-const pages = ["https://www.burgascouncil.org/taxonomy/term/136", "https://shumen.bg/bg/resheniya/resheniya-na-os-2025-g", "http://obs.pleven.bg/bg/protokoli-i-resheniya", "https://savet.veliko-tarnovo.bg/bg/resheniya"];
-const _old = ["https://www.burgascouncil.org/", "https://www.burgascouncil.org/resheniya", "https://www.plovdiv.bg/", "https://obs.plovdiv.bg/", "https://www.pleven.bg/bg/obshtinski-savet", "https://www.pleven.bg/", "https://www.veliko-tarnovo.bg/bg/obshtinski-savet/", "https://shumen.bg/"];
-for (const u of pages) {
-  const h = get(u);
-  const links = [...new Set([...h.matchAll(/href="([^"]+)"[^>]*>([^<]{0,80})/g)].filter(([, a, t]) => /reshen|решени|\.pdf|\.docx?|protokol|files|upload/i.test(a + t)).map(([, a, t]) => a + " | " + t.trim()))].slice(0, 40);
-  console.log("PROBE", u, h.length, h.slice(0, 80).replace(/\s+/g, " "));
-  for (const l of links) console.log("PROBE  ", l);
+import { writeFileSync } from "node:fs";
+const get = (u, bin) => { try { const b = execFileSync("curl", ["-sSL", "-m", "60", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }); return bin ? b : b.toString("utf8"); } catch (e) { return null; } };
+for (const y of ["2026-g", "2025-g", "2024-g", "2023-g"]) {
+  const h = get(`https://shumen.bg/bg/resheniya/resheniya-na-os-${y}`) ?? "";
+  const nums = [...h.matchAll(/РЕШЕНИЕ\s*№\s*(\d+)/g)].map((m) => +m[1]);
+  const pdfs = new Set([...h.matchAll(/uploads\/posts\/\d{4}\/\d+\.pdf/g)].map((m) => m[0]));
+  console.log("PROBE", y, h.length, "решения:", nums.length, "мин", Math.min(...nums), "макс", Math.max(...nums), "pdf:", pdfs.size, "страници:", [...h.matchAll(/resheniya-na-os-[^"]*page\/\d+/g)].map((m) => m[0]).slice(0, 5).join(" "));
+}
+const h = get("https://shumen.bg/bg/resheniya/resheniya-na-os-2025-g");
+const i = h.indexOf("25641.pdf");
+console.log("PROBEHTML", h.slice(i - 900, i + 400).replace(/\s+/g, " "));
+for (const f of ["2025/25641.pdf", "2025/25630.pdf"]) {
+  const b = get("https://shumen.bg/uploads/posts/" + f, true);
+  writeFileSync("/tmp/s.pdf", b);
+  console.log("PROBEPDF", f, execFileSync("pdftotext", ["-layout", "/tmp/s.pdf", "-"]).toString().slice(0, 2500));
 }
