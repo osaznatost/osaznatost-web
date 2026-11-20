@@ -27,11 +27,14 @@ if (!resources.length) {
 }
 if (!resources.length) { console.error("Наборът няма ресурси или форматът на отговора е друг:", JSON.stringify(d).slice(0, 500)); process.exit(1); }
 let got = 0;
+const ONLY_ZIP = process.env.ONLY_ZIP === "1"; // проба: само ZIP ресурсите, без обобщение
+if (ONLY_ZIP) for (const res of resources.filter((x) => /zip/i.test(String(x.file_format ?? x.format ?? x.name)))) console.log("ZIP ресурс:", JSON.stringify(res).slice(0, 1500));
 for (const res of resources) {
   const uri = res.uri ?? res.resource_uri, name = res.name ?? "";
   const dates = [...name.matchAll(/(\d{2})\.(\d{2})\.(\d{4})/g)];
   const file = dates.length >= 2 ? `${dates[0][1]}${dates[0][2]}${dates[0][3]}-g-${dates[1][1]}${dates[1][2]}${dates[1][3]}.csv` : `${uri}.csv`;
   const path = `${OUT}/${file}`;
+  if (ONLY_ZIP) continue;
   if (existsSync(path) && statSync(path).size > 1000) continue;
   const fmt = String(res.format ?? res.file_format ?? "csv").toLowerCase();
   let r = await fetch(`https://data.egov.bg/resource/download/${uri}/${fmt}`);

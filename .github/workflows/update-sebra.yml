@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: "17 6 20 1,4,7,10 *"   # веднъж на тримесечие, след публикуването на новото тримесечие
   workflow_dispatch:
+    inputs:
+      only_zip:
+        description: "Проба: само описанието на ZIP ресурсите, без запис"
+        default: "0"
 
 permissions:
   contents: write
@@ -23,10 +27,14 @@ jobs:
         with:
           node-version: 22
       - name: Изтегляне от data.egov.bg
+        env:
+          ONLY_ZIP: ${{ inputs.only_zip || '0' }}
         run: node scripts/fetch-sebra.mjs "$RUNNER_TEMP/sebra"
       - name: Обобщение
+        if: ${{ inputs.only_zip != '1' }}
         run: python3 scripts/import-sebra.py "$RUNNER_TEMP/sebra"
       - name: Запис, ако има промяна
+        if: ${{ inputs.only_zip != '1' }}
         run: |
           git add data/payments
           if git diff --cached --quiet; then echo "Няма нови плащания"; exit 0; fi
