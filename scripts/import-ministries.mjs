@@ -36,7 +36,7 @@ async function info(page, id) {
   const person = since ? lines[1] : null;
   return {
     title: lines[0] ?? null,
-    person: person && !/^(Дата|Електронна|Численост|Функции|Правомощия)/.test(person) ? person : null,
+    person: person && /\s/.test(person) && !/^(Дата|Електронна|Численост|Функции|Правомощия|Състав)/.test(person) ? person : null,
     since,
     staff: num(t.match(/Щатна численост\s*Общо:\s*([\d.,]+)/)?.[1]),
     vacant: num(t.match(/Незаети длъжности\s*Общо:\s*([\d.,]+)/)?.[1]),

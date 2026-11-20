@@ -67,6 +67,7 @@ export default function Vlast() {
               <li><Link href="/parlament">Как гласува всяка група и всеки депутат</Link></li>
               <li><Link href="/parlament/partii">Сравнение на партиите: присъствие, единство, съюзници</Link></li>
               {gov && <li><Link href={`/obeshtaniya/${govSlug(gov)}`}>Обещанията на управляващите и докъде са</Link></li>}
+              <li><Link href="/vlast/ministerstva">Министерствата: кой ги ръководи, колко хора работят, какви поръчки възлагат</Link></li>
               <li><Link href="/byudzhet">Бюджетът: какво харчи държавата</Link></li>
               <li><Link href="/porachki">Обществените поръчки: кой взема парите</Link></li>
             </ul>
