@@ -1,3 +1,6 @@
 const H = { "user-agent": "Mozilla/5.0 (osaznatost.bg; open data)" };
 const t = await (await fetch("https://www.bulnao.government.bg/bg/", { headers: H })).text();
-for (const m of [...t.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,150}?)<\/a>/g)].filter((m) => /регист|деклар|register|ПУБЛИЧЕН/i.test(m[1] + m[2]))) console.log("##", m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 80), "=>", m[1]);
+const all = [...new Set([...t.matchAll(/href="([^"#]+)"/g)].map((m) => m[1]))];
+console.log("## n", all.length);
+for (const u of all.filter((u) => !/kontrol-|oditna|novini\/|za-nas\/|documents|rss|\.(css|js|png|ico)/.test(u))) console.log("##", u);
+for (const u of ["https://www.bulnao.government.bg/bg/publichen-registr/", "https://www.bulnao.government.bg/bg/publichen-registyr/", "https://www.bulnao.government.bg/bg/registyr/"]) { const r = await fetch(u, { headers: H }); console.log("## TRY", u, r.status); }
