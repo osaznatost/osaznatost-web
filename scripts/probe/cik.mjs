@@ -1,8 +1,8 @@
-import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-execFileSync("node", ["scripts/import-abroad.mjs"], { stdio: "inherit" });
-const d = new Date(Date.now() - 2 * 864e5).toISOString().slice(0, 10);
-execFileSync("python3", ["scripts/import-prices.py", d], { stdio: "inherit" });
-const P = JSON.parse(readFileSync("data/prices/products.json", "utf8")), A = JSON.parse(readFileSync("data/prices/abroad.json", "utf8"));
-for (const i of JSON.parse(readFileSync("content/identical-products.json", "utf8")).items) console.log("## CMP", i.id, P.items[i.id]?.med, P.items[i.id]?.stores, "| AT", A.items[i.id]?.price, A.items[i.id]?.promo ? "PROMO" : "");
-const E = JSON.parse(readFileSync("data/prices/eu-levels.json", "utf8")); console.log("## EU", E.year, E.cat, JSON.stringify(E.food), "AIC", E.aicYear, JSON.stringify(E.aic));
+const H = { "user-agent": "Mozilla/5.0 (osaznatost.bg; open data)" };
+for (const u of ["https://register.bulnao.government.bg/", "https://register.bulnao.government.bg/Public/Declarations", "https://www.bulnao.government.bg/bg/registar/", "https://register.cacbg.bg/"]) {
+  try { const r = await fetch(u, { headers: H, signal: AbortSignal.timeout(25000), redirect: "follow" }); const t = await r.text();
+    console.log("## ", u, r.status, r.url, t.length, (t.match(/<title>([^<]*)/) || [])[1]);
+    for (const m of [...t.matchAll(/<a[^>]+href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/g)].slice(0, 60)) console.log("    ", m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 70), "=>", m[1].slice(0, 140));
+    console.log("    FORMS", [...t.matchAll(/<form[^>]*>/g)].map((m) => m[0].slice(0, 200)).slice(0, 5));
+  } catch (e) { console.log("## ", u, "ERR", e.cause?.code || e.message); }
+}
