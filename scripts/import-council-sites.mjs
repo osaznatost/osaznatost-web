@@ -22,6 +22,17 @@ const SITES = {
   SLV20: { name: "Сливен", sessionList: "https://obs.sliven.bg/decisions", from: "2023-11-01" },
   // Общински съвет Плевен: списък на протоколите (по 12 на страница) → протокол в Word с всички решения и гласуването.
   PVN24: { name: "Плевен", protocolDocx: (p) => `https://obs.pleven.bg/bg/protokoli-i-resheniya${p ? `/page/${p * 12}` : ""}`, base: "https://obs.pleven.bg/", from: "2023-11-01" },
+  // Общински съвет Кърджали: Word файл с решенията от всяко заседание („П Р О Т О К О Л № P … проведено на ДД.ММ.ГГГГ“, после „Р Е Ш Е Н И Е № N“).
+  KRZ16: { name: "Кърджали", docList: "https://kardjali.bg/?pid=4,obs_6", docLink: /href="(https:\/\/kardjali\.bg\/obs_re6enia\/[^"]+?\.docx)"/gi, from: "2023-11-01" },
+  // Общински съвет Монтана: всички решения на една страница, по един PDF „R<номер>-P<протокол>-ДД.ММ.ГГ.pdf“.
+  MON29: { name: "Монтана", montana: "https://www.montana.bg/общински-съвет/заседания/решения", from: "2023-11-01" },
+  // Общински съвет Ловеч (NK Software): списък по 12 решения на страница с номер, дата и предмет.
+  LOV18: { name: "Ловеч", nkList: (p) => `http://os.lovech.bg/bg/resheniyabg-1bg-1${p ? `/page/${p * 12}` : ""}`, base: "http://os.lovech.bg/", from: "2023-11-01" },
+  // Общински съвет Пазарджик: всяко решение е отделна страница („Р Е Ш Е Н И Е №N от ДД месец ГГГГ година, взето с Протокол № P / ОТНОСНО: …“).
+  PAZ19: { name: "Пазарджик", pzStart: ["http://www.obspazardzhik.com/p/2185", "http://www.obspazardzhik.com/p/1383"], base: "http://www.obspazardzhik.com", from: "2023-11-01" },
+  // Общински съвет Ямбол: страница на мандата с „Решение N“ за всяко заседание → един HTML файл с всички решения
+  // („ПО ТОЧКА … - Предложение относно … ВНОСИТЕЛ: … ОБЩИНСКИ СЪВЕТ РЕШИ: …“). Без номера на решенията и без гласуване в текста.
+  JAM26: { name: "Ямбол", yambol: "https://yambol.bg/mandat-2023-2027", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -404,6 +415,181 @@ async function protocolDocx(code, S, prev) {
   }
   return added;
 }
+// Кърджали: без отделно заглавие — показваме първото изречение от решението.
+function parseKardzhali(text, url) {
+  const dm = text.match(/проведено на\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/), pm = text.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*\n?\s*№\s*(\d+)/);
+  if (!dm) return [];
+  const date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  const parts = text.split(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*\n\s*№\s*(\d+)/);
+  const out = [];
+  for (let i = 1; i + 1 < parts.length; i += 2) {
+    const chunk = parts[i + 1];
+    const osn = chunk.slice(Math.max(0, chunk.search(/На основание/)));
+    const op = osn.split(/реши\s*:/i)[1] ?? osn.slice(osn.indexOf("\n") + 1);
+    const body = ws(op.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на)/)[0]);
+    const first = flat(body.split("\n").find((l) => l.trim().length > 15) ?? "").replace(/^\d+\.\s*/, "").replace(/^./, (c) => c.toUpperCase());
+    if (!first) continue;
+    const title = first.length > 240 ? first.slice(0, 240).replace(/\s+\S*$/, "") + " …" : first;
+    out.push({ number: parts[i], date, url, title, session: pm ? pm[1] : "", rapporteur: null, tally: null,
+      result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+      tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+      text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body });
+  }
+  return out;
+}
+async function docList(code, S, prev) {
+  const page = await get(S.docList);
+  if (!page) return 0;
+  let added = 0;
+  for (const m of page.matchAll(S.docLink)) {
+    if (timeUp() || blocked) break;
+    const u = m[1];
+    if (u in prev.files) continue;
+    const buf = await get(encodeURI(decodeURI(u)), true);
+    if (!buf) continue;
+    const ds = parseKardzhali(docxText(buf), u).filter((d) => d.date >= S.from);
+    prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+  }
+  return added;
+}
+// Монтана: „Препис-извлечение … <вх. №> Докладна записка от <кой> – <длъжност>, относно <въпрос> … Решение № N … Реши: …“.
+function parseMontana(text, url, number, session, date) {
+  const t = flat(text.replace(/\f/g, "\n").split(/\n\s*Решение\s*\n\s*№/)[0]);
+  const wm = t.match(/(?:Докладна записка|Доклад|Предложение|Проект на решение)\s+от\s+(.+?)\s*[–—-]\s*([^,]+?),\s*относно\s*:?\s*(.+)$/i);
+  const title = (wm ? wm[3] : t.replace(/^.*?Монтана\s*/, "")).replace(/^./, (c) => c.toUpperCase());
+  const role = wm ? wm[2].toLowerCase() : "";
+  const rest = text.split(/\n\s*Реши\s*:/i)[1] ?? "";
+  if (!rest) return [];
+  const body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на|Гласували|Протоколист)/i)[0]);
+  const vm = text.match(/(\d+)\s*„?\s*за\s*“?[,;]?\s*(\d+|без)\s*„?\s*против\s*“?[,;]?\s*(?:и\s*)?(\d+|без)\s*„?\s*въздърж/i);
+  return [{ number, date, url, title: title.slice(0, 400), session, tally: vm ? { for: num(vm[1]), against: num(vm[2]), abstain: num(vm[3]), method: "open" } : null,
+    rapporteur: wm ? { name: wm[1].replace(/^(д-р|инж\.?|арх\.?)\s*/i, "").trim(), role: /председател/.test(role) ? "председател на общинския съвет" : /^кмет на общ/.test(role) ? "кмет на общината" : /зам/.test(role) ? "заместник-кмет" : /съветни/.test(role) ? "общински съветник" : role.slice(0, 80) } : null,
+    result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body }];
+}
+async function montana(code, S, prev) {
+  const page = await get(encodeURI(S.montana));
+  if (!page) return 0;
+  let added = 0;
+  const items = [...new Set([...page.matchAll(/href="(https:\/\/www\.montana\.bg\/os\/R(\d+)-P(\d+)-(\d{2})\.(\d{2})\.(\d{2})\.pdf)"/g)].map((m) => JSON.stringify([m[1], m[2], m[3], `20${m[6]}-${m[5]}-${m[4]}`])))].map((x) => JSON.parse(x));
+  for (const [u, n, p, date] of items) {
+    if (timeUp() || blocked) break;
+    if (date < S.from || u in prev.files) continue;
+    const buf = await get(u, true);
+    if (!buf) continue;
+    const ds = parseMontana(pdfText(buf), u, n, p, date);
+    prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+  }
+  return added;
+}
+// Ямбол: решенията за еднократна помощ от общинския здравен фонд назовават хора и здравословни причини — не ги показваме по име.
+const PRIVATE_AID = /еднократна\s+(финансова\s+)?помощ|здравен\s+фонд/i;
+function parseYambol(html, url, session) {
+  const t = ws(htmlText(html));
+  const dm = t.match(/ПРОВЕДЕНО\s+НА\s+(\d{1,2})\s+([А-Яа-я]+)\s+(\d{4})/i);
+  const mon = dm && Object.entries(MONTHS).find(([k]) => dm[2].toLowerCase().slice(0, 3) === k.slice(0, 3));
+  if (!mon) return [];
+  const date = `${dm[3]}-${String(mon[1]).padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  const parts = t.split(/\n\s*ПО\s+ТОЧКА\s+/i).slice(1);
+  return parts.map((part, i) => {
+    const [head, ...restParts] = part.split(/ОБЩИНСКИ\s+СЪВЕТ\s*\n?\s*РЕШИ\s*:/i);
+    const rest = restParts.join(" ");
+    const hm = flat(head).match(/^.*?[-–]\s*(?:Предложение|Докладна записка|Доклад)?\s*(?:относно)?\s*(.+?)\s*ВНОСИТЕЛ\s*:\s*([^_]+?)\s*_*\s*$/i);
+    let title = (hm ? hm[1] : flat(head).slice(0, 300)).replace(/^./, (c) => c.toUpperCase());
+    const who = hm ? flat(hm[2]).replace(/\s+(\S)\s+(\S)$/, " $1$2") : "";
+    let body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на ОбС)/i)[0]);
+    const priv = PRIVATE_AID.test(title);
+    if (priv) { title = title.replace(/\s+на\s+[А-Я][а-я]+(\s+[А-Я][а-я]+){1,2}\.?$/, "").replace(/\s*\d{2}\.\d{2}\.\d{2}г?\..*$/, "") + " (имената не се показват)"; body = ""; }
+    return { number: `${session}.${i + 1}`, date, url, title: title.slice(0, 400), session: String(session), tally: null,
+      rapporteur: who && !/^ПК\b|комиси/i.test(who) ? { name: who.replace(/\s*Реванск\s+и$/, " Ревански"), role: "" } : who ? { name: who, role: "постоянна комисия" } : null,
+      result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+      tags: priv ? [] : TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+      text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body };
+  }).filter((d) => d.date >= "2023-11-01");
+}
+async function yambol(code, S, prev) {
+  const page = await get(S.yambol);
+  if (!page) return 0;
+  let added = 0;
+  const items = [...page.matchAll(/href="(https:\/\/yambol\.bg\/uploads\/[0-9A-F]+)"[^>]*>\s*Решение\s+(\d+)\s*</g)];
+  for (const [, u, n] of items) {
+    if (timeUp() || blocked) break;
+    if (u in prev.files) continue;
+    const html = await get(u);
+    if (!html) continue;
+    const ds = parseYambol(html, u, n);
+    prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+  }
+  return added;
+}
+async function nkList(code, S, prev) {
+  let added = 0;
+  const have = new Set(prev.decisions.map((d) => d.page));
+  for (let p = 0; p < 200; p++) {
+    if (timeUp() || blocked) break;
+    if (prev.files[S.nkList(p)] === 12) continue; // пълна страница, вече прочетена
+    const list = await get(S.nkList(p));
+    if (!list) break;
+    const items = [...list.matchAll(/<a href="(bg\/resheniya\/[^"]+)">\s*<h2[^>]*>\s*Решение\s*№\s*(\d+)\s*<\/h2>\s*<time datetime="(\d{4}-\d{2}-\d{2})"[^>]*>[^<]*<\/time>\s*<p>([\s\S]*?)<\/p>/g)];
+    if (!items.length) break;
+    for (const [, href, number, date, desc] of items) {
+      const u = S.base + href;
+      if (have.has(u) || date < S.from) continue;
+      const title = flat(htmlText(desc)).replace(/^./, (c) => c.toUpperCase());
+      prev.decisions.push({ number, date, url: u, page: u, title: title.slice(0, 400), session: "", rapporteur: null, tally: null, result: "adopted",
+        tags: TAGS.filter(([, re]) => re.test(title)).map(([k]) => k).slice(0, 2) });
+      have.add(u); added++;
+    }
+    prev.files[S.nkList(p)] = items.length;
+  }
+  return added;
+}
+function parsePazardzhik(html, url) {
+  const t = htmlText(html);
+  const h = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№\s*(\d+)\s*от\s*(\d{1,2})\s+([а-я]+)\s+(\d{4})[^\n]{0,40}?Протокол\s*№\s*(\d+)/i);
+  if (!h || !MONTHS[h[3].toLowerCase()]) return [];
+  const date = `${h[4]}-${String(MONTHS[h[3].toLowerCase()]).padStart(2, "0")}-${h[2].padStart(2, "0")}`;
+  const after = t.slice(t.indexOf(h[0]) + h[0].length);
+  const om = after.match(/ОТНОСНО\s*:\s*([\s\S]*?)(?:\n|Предложението|На основание|$)/);
+  const title = om ? flat(om[1]).replace(/^./, (c) => c.toUpperCase()) : "";
+  if (!title) return [];
+  const rest = after.split(/Р\s*Е\s*Ш\s*И\s*:?/)[1] ?? "";
+  const body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на)/)[0]);
+  const vm = after.match(/(\d+)\s*гласа?\s*„?за“?[,;]?\s*(\d+|без|няма)\s*(?:гласа?\s*)?„?против“?[,;]?\s*(?:и\s*)?(\d+|без|няма)\s*(?:гласа?\s*)?„?въздърж/i);
+  const n = (w) => (/^(без|няма)$/i.test(w) ? 0 : +w);
+  return [{ number: h[1], date, url, title: title.slice(0, 400), session: h[5], rapporteur: null,
+    tally: vm ? { for: n(vm[1]), against: n(vm[2]), abstain: n(vm[3]), method: "open" } : null,
+    result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body }];
+}
+async function pazardzhik(code, S, prev) {
+  let added = 0;
+  const cats = new Set();
+  for (const st of S.pzStart) { const h = await get(st); for (const m of (h ?? "").matchAll(/href="(\/c\/\d+)[^"]*"[^>]*>\s*РЕШЕНИЯ/gi)) cats.add(S.base + m[1]); }
+  cats.add(S.base + "/c/88");
+  for (const c of cats) {
+    for (let page = 1; page <= 80; page++) {
+      if (timeUp() || blocked) return added;
+      const h = await get(page === 1 ? c : `${c}?page=${page}`);
+      const links = [...new Set([...(h ?? "").matchAll(/href="(\/p\/\d+\/reshenie-[^"]+)"/g)].map((m) => S.base + m[1]))];
+      if (!links.length) break;
+      let fresh = 0;
+      for (const u of links) {
+        if (u in prev.files) continue;
+        fresh++;
+        if (timeUp() || blocked) return added;
+        const ph = await get(u);
+        if (!ph) continue;
+        const ds = parsePazardzhik(ph, u).filter((d) => d.date >= S.from);
+        prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+      }
+      if (!fresh && page > 1) break;
+    }
+  }
+  return added;
+}
 async function sessionNodes(code, S, prev) {
   let added = 0;
   for (let p = 0; p < 10; p++) {
@@ -492,13 +678,13 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx) {
-    const added = S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
+  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart || S.yambol) {
+    const added = S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }

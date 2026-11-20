@@ -1,7 +1,9 @@
-const r = await fetch("https://yambol.bg/uploads/E4CC01AC0CC9C4733AD7B3E55B21184F", { headers: { "user-agent": "Mozilla/5.0 osaznatost" } });
-const html = await r.text();
-const text = html.replace(/<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&[a-z]+;/g, " ").replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n");
-const i = text.search(/\n\s*ОТНОСНО/i);
-console.log(text.slice(i - 1500, i + 3500));
-console.log("#### LAST"); console.log(text.slice(-2500));
-const nums = [...text.matchAll(/№\s*(\d{3,4})/g)].map(m => m[1]); console.log("#### nums", nums.length, nums.slice(0, 20).join(","));
+import { execFileSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
+const get = (u, bin) => { try { const b = execFileSync("curl", ["-sSL", "-m", "90", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 28 }); return bin ? b : b.toString("utf8"); } catch { return null; } };
+const b = get("https://obs.pleven.bg/uploads/posts/protokol-50.docx", true);
+writeFileSync("/tmp/p.docx", b);
+const t = execFileSync("sh", ["-c", "unzip -p /tmp/p.docx word/document.xml | sed -e 's/<\\/w:p>/\\n/g; s/<[^>]*>//g'"], { maxBuffer: 1 << 28 }).toString();
+console.log("PROBE", t.length);
+const j = t.search(/гласува/i); console.log("PROBE1", t.slice(j - 2500, j + 1800)); console.log("PROBEN", [...t.matchAll(/Р\s?Е\s?Ш\s?Е\s?Н\s?И\s?Е/g)].length, [...t.matchAll(/Решение\s*№\s*(\d+)/g)].length);
+const h = get("http://obs.pleven.bg/bg/protokoli-i-resheniya/page/48") ?? ""; console.log("PROBEPG", [...h.matchAll(/protokol-\d+-ot-\d+-g/g)].map((m) => m[0]).join(" "));
