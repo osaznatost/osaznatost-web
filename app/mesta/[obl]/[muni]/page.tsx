@@ -1,4 +1,5 @@
 import { MuniTaxes } from "@/components/MuniTaxes";
+import { MuniElections } from "@/components/MuniElections";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MultiLine } from "@/components/Charts";
@@ -46,7 +47,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     <Page>
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
-      <SectionNav items={[["pari", "Пари"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ["porachki", "Поръчки"], ["izbori", "Избори"]]} />
+      <SectionNav items={[["pari", "Пари"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
       <div id="pari" className="scroll-mt-32 lg:scroll-mt-20" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
@@ -170,6 +171,8 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
           <p className="text-xs text-muted mt-2">Показани са листите, влезли в парламента. Процентите са от гласовете за партии.</p>
         </section>
       )}
+
+      <MuniElections code={m.code} />
 
       <Anchor id="porachki" title="Обществени поръчки">
         <Suspense fallback={<p className="text-muted">Зареждане на поръчките…</p>}><PlaceProcurement f={{ oblast: o.name, obshtina: m.code }} /></Suspense>

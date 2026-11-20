@@ -10,14 +10,23 @@ const clean = (s) => (s ?? "").replace(/\s+/g, " ").replace(/^(ПП|КП|КОА�
 const cand = (c) => c && { name: c.candidateName, party: clean(c.localPartyName), votes: c.votes, pct: c.pctOfValid, ind: !!c.isIndependent };
 const out = {};
 let fails = 0;
+const nameOf = Object.fromEntries(places.oblasts.flatMap((o) => o.municipalities.map((m) => [m.code, m.name])));
 for (const [cycle, year] of CYCLES) {
+  // кодът на общината при „Наясно“ може да се различава (напр. Столична); търсим по име
+  const remote = {};
+  try {
+    const idx = await (await fetch(`${B}/${cycle}/index.json`)).json();
+    const byName = Object.fromEntries((idx.municipalities ?? []).map((m) => [m.name, m.obshtinaCode]));
+    const have = new Set((idx.municipalities ?? []).map((m) => m.obshtinaCode));
+    for (const c of codes) if (!have.has(c)) { const n = nameOf[c]; const hit = byName[n] ?? byName[n?.replace(/^Столична$/, "София")] ?? Object.entries(byName).find(([k]) => /столична|софия/i.test(k) && /столична|софия/i.test(n ?? ""))?.[1]; if (hit) remote[c] = hit; else console.log(year, "няма в индекса:", c, n); }
+  } catch {}
   let i = 0;
   await Promise.all(Array.from({ length: 8 }, async () => {
     while (i < codes.length) {
       const code = codes[i++];
       for (let a = 0; a < 3; a++) {
         try {
-          const r = await fetch(`${B}/${cycle}/municipalities/${code}.json`);
+          const r = await fetch(`${B}/${cycle}/municipalities/${remote[code] ?? code}.json`);
           if (r.status === 404) break;
           if (!r.ok) throw new Error(String(r.status));
           const d = await r.json();
