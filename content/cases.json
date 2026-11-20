@@ -381,6 +381,48 @@
           "url": "https://www.bta.bg/bg/news/bulgaria/992267-sadat-v-haskovo-otstrani-kmeta-na-mineralni-bani-myumyun-iskender-ot-dlazhnost-z"
         }
       ]
+    },
+    {
+      "person": "Иван Портних",
+      "role": "Бивш кмет на Варна (ГЕРБ)",
+      "party": "ГЕРБ-СДС",
+      "level": "trial",
+      "date": "2025-12",
+      "what": "Измама с евросредства: според Европейската прокуратура заедно с бивш областен управител и двама служители на Морска администрация са подали неверни данни, за да получат 3,4 млн. € за реконструкция на рибарско пристанище край Варна, което по документите не е съществувало.",
+      "outcome": "Европейската прокуратура внесе обвинителен акт в съда на 1 декември 2025 г. Щетата се оценява на около 2,8 млн. € за бюджета на ЕС и 675 475 € за националния бюджет. Няма присъда.",
+      "sources": [
+        {
+          "title": "Европейска прокуратура: обвинителен акт (1.12.2025)",
+          "url": "https://www.eppo.europa.eu/en/media/news/bulgaria-former-mayor-and-ex-governor-varna-indicted-claiming-funds-non-existent-harbour"
+        },
+        {
+          "title": "БНТ: Портних на съд",
+          "url": "https://bntnews.bg/news/european-prosecutor’s-office-brings-former-varna-mayor-ivan-portnih-to-court-1367629news.html"
+        }
+      ]
+    },
+    {
+      "person": "Панайот Рейзи",
+      "role": "Бивш кмет на Созопол (избран от ГЕРБ; напуска партията през 2019 г.)",
+      "party": "ГЕРБ-СДС",
+      "level": "trial",
+      "date": "2020-07",
+      "what": "Присвояване на 1 989 474 лв. от бюджета на общината в периода 2014–2017 г. чрез договори и фактури за неизвършени ремонти.",
+      "outcome": "Съдът го отстрани от длъжност през април 2019 г. Обвинителният акт е внесен през юли 2020 г. Не открихме публикувана присъда по наказателното дело. По отделно дело административният съд в Бургас го глоби 160 000 лв. за конфликт на интереси.",
+      "sources": [
+        {
+          "title": "БНТ: обвинението",
+          "url": "https://bntnews.bg/news/mayor-of-sozopol-accused-of-misappropriation-of-nearly-bgn-2-million-1311928news.html"
+        },
+        {
+          "title": "Капитал: делото отива в съда (2020)",
+          "url": "https://www.capital.bg/politika_i_ikonomika/imena/2020/07/10/4088948_stroitel_na_kapitalizma_panaiot_reizi/"
+        },
+        {
+          "title": "БТА: глоба за конфликт на интереси",
+          "url": "https://www.bta.bg/en/news/355000-former-sozopol-mayor-fined-bgn-160-000-for-conflict-of-interestza-konflikt-na-in"
+        }
+      ]
     }
   ]
 }
