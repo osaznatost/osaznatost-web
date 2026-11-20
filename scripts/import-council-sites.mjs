@@ -306,7 +306,7 @@ function parseBurgas(text, url) {
     const [head, rest] = chunk.split(/\n\s*Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*:?\s*\n/);
     if (rest === undefined) continue;
     const h = flat(head);
-    const wm = h.match(/(?:Докладна записка|Проект на решение|Предложение)\s+от\s+(.+?)\s*[–—-]\s*([^,]+?),\s*относно\s*:?\s*(.*)$/i);
+    const wm = h.match(/(?:Докладна записка|Доклад|Проект на решение|Предложение)\s+от\s+(.+?)\s*[–—-]\s*([^,]+?),\s*относно\s*:?\s*(.*)$/i);
     const title = (wm ? wm[3] : h.replace(/^ОбС\s*[\d-]+\s*/, "")).replace(/^./, (c) => c.toUpperCase());
     const role = wm ? wm[2].toLowerCase() : "";
     const rapporteur = wm ? { name: wm[1].replace(/^(д-р|инж\.?|арх\.?)\s*/i, "").trim(), role: /председател/.test(role) ? "председател на общинския съвет" : /^кмет на общ/.test(role) ? "кмет на общината" : /зам/.test(role) ? "заместник-кмет" : /съветник/.test(role) ? "общински съветник" : role.slice(0, 80) } : null;
@@ -446,7 +446,7 @@ for (const [code, S] of Object.entries(SITES)) {
     const added = S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
-    for (const d of prev.decisions) { d.title = d.title.replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
+    for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
     writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
