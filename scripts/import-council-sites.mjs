@@ -24,6 +24,8 @@ const SITES = {
   PVN24: { name: "Плевен", protocolDocx: (p) => `https://obs.pleven.bg/bg/protokoli-i-resheniya${p ? `/page/${p * 12}` : ""}`, base: "https://obs.pleven.bg/", from: "2023-11-01" },
   // Общински съвет Кърджали: Word файл с решенията от всяко заседание („П Р О Т О К О Л № P … проведено на ДД.ММ.ГГГГ“, после „Р Е Ш Е Н И Е № N“).
   KRZ16: { name: "Кърджали", docList: "https://kardjali.bg/?pid=4,obs_6", docLink: /href="(https:\/\/kardjali\.bg\/obs_re6enia\/[^"]+?\.docx)"/gi, from: "2023-11-01" },
+  // Общински съвет Монтана: всички решения на една страница, по един PDF „R<номер>-P<протокол>-ДД.ММ.ГГ.pdf“.
+  MON29: { name: "Монтана", montana: "https://www.montana.bg/общински-съвет/заседания/решения", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -443,6 +445,37 @@ async function docList(code, S, prev) {
   }
   return added;
 }
+// Монтана: „Препис-извлечение … <вх. №> Докладна записка от <кой> – <длъжност>, относно <въпрос> … Решение № N … Реши: …“.
+function parseMontana(text, url, number, session, date) {
+  const t = flat(text.replace(/\f/g, "\n").split(/\n\s*Решение\s*\n\s*№/)[0]);
+  const wm = t.match(/(?:Докладна записка|Доклад|Предложение|Проект на решение)\s+от\s+(.+?)\s*[–—-]\s*([^,]+?),\s*относно\s*:?\s*(.+)$/i);
+  const title = (wm ? wm[3] : t.replace(/^.*?Монтана\s*/, "")).replace(/^./, (c) => c.toUpperCase());
+  const role = wm ? wm[2].toLowerCase() : "";
+  const rest = text.split(/\n\s*Реши\s*:/i)[1] ?? "";
+  if (!rest) return [];
+  const body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на|Гласували|Протоколист)/i)[0]);
+  const vm = text.match(/(\d+)\s*„?\s*за\s*“?[,;]?\s*(\d+|без)\s*„?\s*против\s*“?[,;]?\s*(?:и\s*)?(\d+|без)\s*„?\s*въздърж/i);
+  return [{ number, date, url, title: title.slice(0, 400), session, tally: vm ? { for: num(vm[1]), against: num(vm[2]), abstain: num(vm[3]), method: "open" } : null,
+    rapporteur: wm ? { name: wm[1].replace(/^(д-р|инж\.?|арх\.?)\s*/i, "").trim(), role: /председател/.test(role) ? "председател на общинския съвет" : /^кмет на общ/.test(role) ? "кмет на общината" : /зам/.test(role) ? "заместник-кмет" : /съветни/.test(role) ? "общински съветник" : role.slice(0, 80) } : null,
+    result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body }];
+}
+async function montana(code, S, prev) {
+  const page = await get(encodeURI(S.montana));
+  if (!page) return 0;
+  let added = 0;
+  const items = [...new Set([...page.matchAll(/href="(https:\/\/www\.montana\.bg\/os\/R(\d+)-P(\d+)-(\d{2})\.(\d{2})\.(\d{2})\.pdf)"/g)].map((m) => JSON.stringify([m[1], m[2], m[3], `20${m[6]}-${m[5]}-${m[4]}`])))].map((x) => JSON.parse(x));
+  for (const [u, n, p, date] of items) {
+    if (timeUp() || blocked) break;
+    if (date < S.from || u in prev.files) continue;
+    const buf = await get(u, true);
+    if (!buf) continue;
+    const ds = parseMontana(pdfText(buf), u, n, p, date);
+    prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+  }
+  return added;
+}
 async function sessionNodes(code, S, prev) {
   let added = 0;
   for (let p = 0; p < 10; p++) {
@@ -531,13 +564,13 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList) {
-    const added = S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
+  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana) {
+    const added = S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
