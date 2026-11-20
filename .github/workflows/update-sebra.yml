@@ -36,6 +36,10 @@ jobs:
       - name: Запис, ако има промяна
         if: ${{ inputs.only_zip != '1' }}
         run: |
+          # Защита: не записваме, ако редовете намаляват с повече от 5% (знак, че файл не се е прочел).
+          old=$(git show HEAD:data/payments/index.json | python3 -c 'import json,sys;print(json.load(sys.stdin)["rows"])')
+          new=$(python3 -c 'import json;print(json.load(open("data/payments/index.json"))["rows"])')
+          if [ "$new" -lt $((old * 95 / 100)) ]; then echo "Редовете паднаха от $old на $new — не записвам"; exit 1; fi
           git add data/payments
           if git diff --cached --quiet; then echo "Няма нови плащания"; exit 0; fi
           git config user.name "osaznatost-bot"
