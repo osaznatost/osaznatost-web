@@ -36,6 +36,7 @@ for (const res of resources) {
   const r = await fetch(`https://data.egov.bg/resource/download/${uri}/csv`);
   if (!r.ok) { console.log(`Пропускам ${name}: HTTP ${r.status}`); continue; }
   const buf = Buffer.from(await r.arrayBuffer());
+  console.log("файл", file, buf.length, "байта, начало:", JSON.stringify(buf.slice(0, 60).toString("latin1")), r.headers.get("content-type"), JSON.stringify(res.format ?? res.file_format ?? ""));
   if (buf.slice(0, 2).toString() === "PK") {
     // По-старите периоди са качени като ZIP с CSV вътре: разархивираме и пазим CSV файловете с името на периода.
     const tmp = `${OUT}/_zip_${uri}`;
