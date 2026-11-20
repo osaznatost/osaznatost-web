@@ -1,9 +1,8 @@
 import { execFileSync } from "node:child_process";
 const get = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "60", "-A", "Mozilla/5.0 (osaznatost)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch { return ""; } };
-for (const y of ["2024-g", "2023-g", "2025-g"]) {
-  const h = get(`https://shumen.bg/bg/resheniya/resheniya-na-os-${y}`);
-  const hrefs = [...h.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).filter((a) => !/\.css|\.js|^#|facebook|mailto|^bg\/[a-z-]+$/.test(a));
-  const kinds = {}; for (const a of hrefs) { const k = a.replace(/\d+/g, "N").slice(0, 60); kinds[k] = (kinds[k] ?? 0) + 1; }
-  console.log("PROBE", y, JSON.stringify(Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 12)));
-  const i = h.search(/РЕШЕНИЕ\s*№\s*\d+/); console.log("PROBEH", h.slice(i - 500, i + 200).replace(/\s+/g, " "));
+for (const u of ["https://www.plovdiv.bg/%D0%BE%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8-%D1%81%D1%8A%D0%B2%D0%B5%D1%82/", "https://www.blagoevgrad.bg/", "https://obs.blgmun.bg/", "https://www.pazardjik.bg/", "https://www.haskovo.bg/", "https://www.sliven.bg/"]) {
+  const h = get(u);
+  const links = [...new Set([...h.matchAll(/href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/g)].map(([, a, t]) => a + " | " + t.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()).filter((l) => /реш|reshen|resolution|протокол|protokol|съвет|savet|council|obs\./i.test(l)))];
+  console.log("PROBE", u, h.length);
+  for (const l of links.slice(0, 20)) console.log("PROBE  ", l.slice(0, 180));
 }
