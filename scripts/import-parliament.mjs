@@ -2,6 +2,7 @@
 // Източник на обработените данни: проектът „Наясно“ (github.com/atanasster/electionsbg, MIT),
 // който ги извлича от стенограмите на parliament.bg. Ние ги свиваме до един файл.
 import { writeFile, mkdir } from "node:fs/promises";
+import { fixOutcome } from "./majority.mjs";
 
 const NS = process.env.NS ?? "52";
 const RAW = "https://raw.githubusercontent.com/atanasster/electionsbg/main/data/parliament/votes";
@@ -47,7 +48,7 @@ for (const t of topic) {
     item: t.item,
     title: t.title || `Гласуване без заглавие в източника (точка ${t.item})`,
     topic: t.topic,
-    outcome: t.outcome,
+    outcome: sess.tallies ? fixOutcome(t.title ?? "", sess.tallies, t.outcome) : t.outcome,
     tally: sess.tallies,
     contest: t.contestScore ?? null,
     v: arr.join(""),

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [scripts/import-rollcall.mjs, scripts/import-parliament.mjs, scripts/import-mps.mjs, scripts/fix-groups.mjs]
+    paths: [scripts/import-rollcall.mjs, scripts/import-parliament.mjs, scripts/majority.mjs, scripts/import-mps.mjs, scripts/fix-groups.mjs]
 
 permissions:
   contents: write

@@ -4,6 +4,9 @@
 //   „Гласуване по парламентарни групи“: заглавието на всяка точка („Номер (N) ГЛАСУВАНЕ … по тема <заглавие>“).
 // Сурово прочетеното се пази в data/rollcall/<дата>.json, а после се слива в data/parliament-ns52.json.
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { needed } from "./majority.mjs";
+
+
 
 const NS = process.env.NS ?? "52";
 const API = "https://www.parliament.bg/api/v1";
@@ -174,7 +177,7 @@ for (const f of cached) {
       tally[{ y: "yes", n: "no", a: "abstain", x: "absent" }[c]]++;
     }
     const voting = tally.yes + tally.no + tally.abstain;
-    const passed = tally.yes > voting / 2;
+    const passed = tally.yes >= needed(title, voting);
     main.votes.push({
       id: `${day.date}-${item}`, date: day.date, item, title, topic: topicOf(title),
       outcome: passed ? (tally.no === 0 && tally.abstain === 0 ? "passed_unanimous" : "passed") : "rejected",
