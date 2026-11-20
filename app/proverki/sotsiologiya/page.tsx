@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { MultiLine } from "@/components/Charts";
+import { PollTrend } from "@/components/PollTrend";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import P from "@/data/polls.json";
 import { paidTo } from "@/lib/payments";
@@ -21,6 +22,10 @@ export default function Sotsiologiya() {
         lead="Колко точно социологическите агенции са предсказали изборите: последното им проучване преди всеки вот срещу резултата на ЦИК. Не оценяваме намерения, само числата.">
         Кой колко точно предсказва
       </Title>
+      <section className="mb-12">
+        <SectionTitle>Подкрепата за партиите във времето</SectionTitle>
+        <PollTrend />
+      </section>
       <section className="mb-12">
         <SectionTitle>Агенциите</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Средна грешка: с колко процентни пункта средно се разминава прогнозата за всяка партия с резултата. По-малко е по-точно. „Системно“: партии, при които агенцията многократно надценява (+) или подценява (−).</p>
