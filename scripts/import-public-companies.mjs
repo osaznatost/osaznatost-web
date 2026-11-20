@@ -13,10 +13,10 @@ let miss = 0;
 for (let id = 1; id <= 1200 && miss < 120; id++) {
   const h = get(B + id);
   await sleep(250);
-  if (!h || !/ЕИК\/Булстат/.test(h)) { miss++; continue; }
+  const t = h ? txt(h) : "";
+  if (!/ЕИК\/Булстат/.test(t)) { miss++; continue; }
   miss = 0;
-  const t = txt(h);
-  const name = dec(h.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? "").replace(/<[^>]+>/g, "").trim() || t.split("\n").find((x) => x.trim().length > 2)?.trim();
+  const name = dec((h.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)?.[1] ?? "").replace(/<[^>]+>/g, "")).trim() || (between(t, "Предприятия", "За предприятието") ?? "").split("\n").pop()?.trim();
   const eik = t.match(/ЕИК\/Булстат\s*(\d{9,13})/)?.[1] ?? null;
   const principal = between(t, "Орган, упражняващ правата на държавата", "Членове на органите")?.replace(/\s+/g, " ") ?? null;
   const boardRaw = between(t, "Членове на органите на управление и контрол", "КИД") ?? "";

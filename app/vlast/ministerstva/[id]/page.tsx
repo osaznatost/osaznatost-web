@@ -7,6 +7,7 @@ import { Page, SectionTitle, Title } from "@/components/ui";
 import { MIN, buyerEiks, ministry, shortName, type Ministry } from "@/lib/ministries";
 import { buyerContracts, buyerUrl, firmUrl, fmtEur, politicalLinks, supplierContracts } from "@/lib/procurement";
 import { firmsOfPerson } from "@/lib/tr";
+import { PC, companiesOf, type PublicCompany } from "@/lib/publicCompanies";
 
 export function generateStaticParams() { return MIN.ministries.map((m) => ({ id: m.id })); }
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -62,6 +63,21 @@ async function Procurement({ m }: { m: Ministry }) {
   </>);
 }
 
+/** Членове на бордовете, чиито фирми (по трите имена) имат договори със същото дружество. */
+async function BoardFirms({ cs }: { cs: PublicCompany[] }) {
+  await connection();
+  const rows: { co: PublicCompany; person: string; eik: string; firm: string; n: number; sum: number }[] = [];
+  for (const co of cs.filter((c) => c.eik)) for (const p of co.board.filter((x) => x.split(" ").length >= 3)) for (const f of firmsOfPerson(p)) {
+    if (f.eik === co.eik) continue;
+    const cts = (await supplierContracts(f.eik, 500)).filter((c) => c.buyer_eik === co.eik);
+    if (cts.length) rows.push({ co, person: p, eik: f.eik, firm: f.firm?.name ?? f.eik, n: cts.length, sum: cts.reduce((a, c) => a + (c.contract_value_eur ?? 0), 0) });
+  }
+  if (!rows.length) return <p className="text-sm text-muted mt-2">Не намерихме член на борд, чиято фирма (по трите имена) да има договори със същото дружество.</p>;
+  return (<div className="mt-3"><p className="font-semibold text-[15px]">Членове на бордовете с фирми, които имат договори със същото дружество:</p>
+    <ul className="text-[15px] list-disc pl-5">{rows.map((r) => <li key={r.co.id + r.person + r.eik}><b>{r.person.toLowerCase().replace(/(^|\s|-)\S/g, (x) => x.toUpperCase())}</b> ({r.co.name}) — <Link href={firmUrl(r.eik)}>{r.firm}</Link>: {r.n} {r.n === 1 ? "договор" : "договора"} за {fmtEur(r.sum)}.</li>)}</ul>
+    <p className="text-xs text-muted">Съвпадение по трите имена, не по ЕГН; договорът може да е отпреди назначението в борда.</p></div>);
+}
+
 export default async function Ministerstvo({ params }: { params: Promise<{ id: string }> }) {
   const m = ministry((await params).id);
   if (!m) notFound();
@@ -69,6 +85,7 @@ export default async function Ministerstvo({ params }: { params: Promise<{ id: s
   const groups = new Map<string, typeof m.units>();
   for (const u of m.units) groups.set(u.group ?? "Други звена", [...(groups.get(u.group ?? "Други звена") ?? []), u]);
   const single = (role: string) => m.leaders.filter((l) => l.role === role).length === 1; // при няколко заместник-министри не личи кой кого е сменил
+  const companies = companiesOf(m);
   const changes = Object.entries(MIN.history).filter(([k, h]) => k.startsWith(`${m.id}|`) && h.length > 1 && single(k.split("|")[1]));
   return (
     <Page>
@@ -107,6 +124,16 @@ export default async function Ministerstvo({ params }: { params: Promise<{ id: s
               <li key={u.name} className="py-1 flex justify-between gap-3"><span>{u.name}</span><span className="num text-muted whitespace-nowrap">{u.staff ?? "–"}{u.vacant ? ` (${u.vacant} незаети)` : ""}</span></li>))}</ul>
           </div>))}
       </section>
+
+      {companies.length > 0 && <section className="mb-10">
+        <SectionTitle>Държавни дружества</SectionTitle>
+        <p className="text-[15px] -mt-2 mb-3 max-w-3xl">{companies.length} дружества, в които правата на държавата упражнява министърът. Дъщерните дружества на холдингите (напр. БЕХ, ДКК) не са тук.</p>
+        <ul className="text-[15px] divide-y divide-rule border-y border-rule">{companies.map((c) => (
+          <li key={c.id} className="py-2">{c.eik ? <Link href={buyerUrl(c.eik)}>{c.name}</Link> : c.name}{c.board.length > 0 && <span className="block text-xs text-muted">Борд: {c.board.map((b) => b.toLowerCase().replace(/(^|\s|-)\S/g, (x) => x.toUpperCase())).join(", ")}</span>}</li>))}</ul>
+        <SignalNote className="mt-2" />
+        <Suspense fallback={<p className="text-muted text-sm">Проверка на бордовете…</p>}><BoardFirms cs={companies} /></Suspense>
+        <p className="text-xs text-muted mt-1">Източник: <a href={PC.url}>{PC.source}</a>.</p>
+      </section>}
 
       {m.agencies.length > 0 && <section className="mb-10">
         <SectionTitle>Към министерството</SectionTitle>
