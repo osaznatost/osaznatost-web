@@ -21,7 +21,7 @@ export function MuniTaxes({ code }: { code: string }) {
       <h2 className="text-xl font-bold mb-1">Местни данъци</h2>
       <p className="text-[15px] text-muted mb-3 max-w-3xl">Общинският съвет определя ставките всяка година в границите на закона. Мястото е сред всички общини, като 1 е най-ниският данък.</p>
       <div className="overflow-x-auto">
-        <table className="w-full text-[15px] border-collapse">
+        <table data-nostack className="w-full text-[15px] border-collapse">
           <thead><tr className="text-left border-b border-rule"><th className="py-1 pr-3">Данък</th>{years.map((y) => <th key={y} className="py-1 px-2 num">{y}</th>)}<th className="py-1 pl-2 num">Място</th></tr></thead>
           <tbody>{ROWS.filter(([k]) => d[k]).map(([k, label, unit]) => {
             const x = d[k];
