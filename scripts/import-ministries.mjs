@@ -2,12 +2,20 @@
 // Източник: Административен регистър (iisda.government.bg) — официалният регистър на държавната администрация.
 // Пуска се в GitHub Actions всяка седмица. Пише data/ministries.json.
 import { writeFileSync, readFileSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 const B = "https://iisda.government.bg";
 const UA = { "user-agent": "Mozilla/5.0 (osaznatost.bg; отворени данни)" };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// curl, а не fetch: сървърът на регистъра не връща пълната верига от сертификати и Node я отказва,
+// докато curl я довършва от системните сертификати. Проверката на сертификата остава включена.
 async function req(url, init = {}, tries = 3) {
   for (let a = 0; a < tries; a++) {
-    try { const r = await fetch(url, { ...init, headers: { ...UA, ...(init.headers ?? {}) } }); if (r.ok) return await r.text(); } catch {}
+    try {
+      const args = ["-sS", "-L", "-m", "60", "-A", UA["user-agent"], "--fail"];
+      for (const [k, v] of Object.entries(init.headers ?? {})) args.push("-H", `${k}: ${v}`);
+      if (init.method === "POST") args.push("--data-binary", String(init.body));
+      return execFileSync("curl", [...args, url], { maxBuffer: 1 << 27 }).toString("utf8");
+    } catch {}
     await sleep(2000 * (a + 1));
   }
   return null;
