@@ -18,7 +18,7 @@ function ProjectCard({ c, code, L, annexBy }: { c: Contract; code: string; L: Re
             );
           }
 
-export async function MuniProjects({ code }: { code: string }) {
+export async function MuniProjects({ code, full = false }: { code: string; full?: boolean }) {
   await connection(); // при отваряне, не при сглобяване: иначе сборката тегли хиляди заявки към базата
   const [cs, an] = await Promise.all([muniContracts(code, SINCE), muniAnnexes(code, SINCE)]);
   if (!cs.length) return <p className="text-[15px] bg-surface rounded-sm p-4">Няма договори в базата за тази община от началото на мандата.</p>;
@@ -61,7 +61,9 @@ export async function MuniProjects({ code }: { code: string }) {
       {order.map((g) => (
         <section key={g} id={`p-${encodeURIComponent(g)}`} className="mb-10 scroll-mt-28">
           <h3 className="font-semibold text-xl mb-3">{g} <span className="text-muted text-base font-normal">({groups.get(g)!.length})</span></h3>
-          <ul className="space-y-3">{groups.get(g)!.slice(0, 8).map((c) => <ProjectCard key={c.id} c={c} code={code} L={L} annexBy={annexBy} />)}</ul>{groups.get(g)!.length > 8 && <details className="mt-3"><summary className="cursor-pointer font-semibold text-green">Още {groups.get(g)!.length - 8} в „{g}“</summary><ul className="space-y-3 mt-3">{groups.get(g)!.slice(8, 40).map((c) => <ProjectCard key={c.id} c={c} code={code} L={L} annexBy={annexBy} />)}</ul></details>}{groups.get(g)!.length > 40 && <p className="text-sm text-muted mt-2">Показани са първите 40 от {groups.get(g)!.length}. Всички договори са в раздел „Поръчки“ по-долу и на страницата на възложителя.</p>}
+          <ul className="space-y-3">{groups.get(g)!.slice(0, 8).map((c) => <ProjectCard key={c.id} c={c} code={code} L={L} annexBy={annexBy} />)}</ul>{groups.get(g)!.length > 8 && (full
+            ? <ul className="space-y-3 mt-3">{groups.get(g)!.slice(8).map((c) => <ProjectCard key={c.id} c={c} code={code} L={L} annexBy={annexBy} />)}</ul>
+            : <p className="mt-3"><Link href={`/mesta/${code.slice(0, 3).toLowerCase()}/${code.toLowerCase()}/proekti#p-${encodeURIComponent(g)}`} className="font-semibold">Още {groups.get(g)!.length - 8} в „{g}“</Link></p>)}
         </section>
       ))}
       <p className="text-xs text-muted">Договорите и анексите са от ЦАИС ЕОП. Лицата за контакт и представителите на фирмите са от обявленията по OCDS{PEOPLE_RANGE.first ? ` (обходени от ${fmtDate(PEOPLE_RANGE.first)} до ${fmtDate(PEOPLE_RANGE.last)})` : ""}. Кой е подписал договора и приемането, се вижда в страницата на всеки договор, заедно с готово заявление по ЗДОИ за документите, които не се публикуват.</p>
