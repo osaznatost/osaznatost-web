@@ -14,6 +14,10 @@ const SITES = {
   RSE27: { name: "Русе", wpList: (p) => `https://obs.ruse-bg.eu/category/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f/${p > 1 ? `page/${p}/` : ""}`, wpPost: /href="(https:\/\/obs\.ruse-bg\.eu\/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%e2%84%96-\d+[^"]*)"/gi, from: "2023-11-01", council: "Общински съвет – Русе" },
   // Общински съвет Шумен: страница на година със списък; всяко решение е отделен файл (PDF или Word) с „РЕШЕНИЕ № N по протокол № P от дата“.
   SHU30: { name: "Шумен", yearFiles: (y) => `https://shumen.bg/bg/resheniya/resheniya-na-os-${y}-g`, base: "https://shumen.bg/", from: "2023-11-01" },
+  // Великотърновски общински съвет: страница на година → страница на протокол → PDF на всяко решение („Препис-извлечение … РЕШЕНИЕ № N“).
+  VTR04: { name: "Велико Търново", yearFiles: (y) => `https://savet.veliko-tarnovo.bg/bg/${y === 2026 ? "reshniya" : "resheniya"}-${y}-godina`, subLink: /href="(bg\/res?h?e?niya-\d{4}-godina\/[^"?#]+)"/g, base: "https://savet.veliko-tarnovo.bg/", from: "2023-11-01", parse: "vt" },
+  // Общински съвет Бургас: страници със заседания → PDF „Препис-извлечение от протокол“ с всички решения (номерирани по точки от дневния ред).
+  BGS04: { name: "Бургас", sessionNodes: (p) => `https://www.burgascouncil.org/reshenia${p ? `?page=${p}` : ""}`, base: "https://www.burgascouncil.org", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -272,6 +276,67 @@ function parseSingle(text, url) {
     text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body,
   }];
 }
+// Велико Търново: „Препис-извлечение от Протокол №P … проведено на ДД.ММ.ГГГГ … ОТНОСНО: … РЕШЕНИЕ № N … текст“.
+function parseVT(text, url) {
+  const t = text.replace(/\f/g, "\n");
+  const pm = t.match(/Протокол\s*№\s*(\d+)/), dm = t.match(/проведено на\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/), nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№\s*(\d+)/);
+  if (!dm || !nm) return [];
+  const date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  const om = t.match(/ОТНОСНО\s*:\s*([\s\S]*?)\n\s*\n/);
+  const title = om ? flat(om[1]).replace(/^./, (c) => c.toUpperCase()) : "";
+  const body = ws(t.slice(t.indexOf(nm[0]) + nm[0].length).split(/\n\s*ПРЕДСЕДАТЕЛ|\n\s*Приложени[ея]\s*:/)[0]);
+  return [{ number: nm[1], date, url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, tally: null,
+    result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body }];
+}
+// Бургас: една точка от дневния ред = едно решение; „N. ОбС … Докладна записка от <кой> – <длъжност>, относно: <въпрос> РЕШЕНИЕ: <текст>“.
+function parseBurgas(text, url) {
+  const t = text.replace(/\f/g, "\n");
+  const pm = t.match(/от\s+Протокол\s*№\s*(\d+)/), dm = t.match(/проведеното на\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if (!pm || !dm) return [];
+  const date = `${dm[3]}-${dm[2].padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  const parts = t.split(/\n\s{0,8}(\d{1,3})\.\s+(?=ОбС\s*\d|Вх\.?\s*№|Докладна|Проект на решение|Предложение|Питане|Отчет)/);
+  const out = [];
+  for (let i = 1; i + 1 < parts.length; i += 2) {
+    const point = parts[i], chunk = parts[i + 1];
+    const [head, rest] = chunk.split(/\n\s*Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*:?\s*\n/);
+    if (rest === undefined) continue;
+    const h = flat(head);
+    const wm = h.match(/(?:Докладна записка|Проект на решение|Предложение)\s+от\s+(.+?)\s*[–—-]\s*([^,]+?),\s*относно\s*:?\s*(.*)$/i);
+    const title = (wm ? wm[3] : h.replace(/^ОбС\s*[\d-]+\s*/, "")).replace(/^./, (c) => c.toUpperCase());
+    const role = wm ? wm[2].toLowerCase() : "";
+    const rapporteur = wm ? { name: wm[1].replace(/^(д-р|инж\.?|арх\.?)\s*/i, "").trim(), role: /председател/.test(role) ? "председател на общинския съвет" : /^кмет на общ/.test(role) ? "кмет на общината" : /зам/.test(role) ? "заместник-кмет" : /съветник/.test(role) ? "общински съветник" : role.slice(0, 80) } : null;
+    const body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Протоколист|Вярно с оригинала)/i)[0]);
+    out.push({ number: `${pm[1]}-${point}`, date, url, title: title.slice(0, 400), session: pm[1], rapporteur, tally: null,
+      result: /^\s*(I\.\s*|1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+      tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+      text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body });
+  }
+  return out;
+}
+async function sessionNodes(code, S, prev) {
+  let added = 0;
+  for (let p = 0; p < 10; p++) {
+    if (timeUp() || blocked) break;
+    const list = await get(S.sessionNodes(p));
+    if (!list) break;
+    const nodes = [...new Set([...list.matchAll(/href="(\/node\/\d+)"[^>]*>\s*ВЗЕТИ РЕШЕНИЯ НА ЗАСЕДАНИЕ[^<]*?(\d{2})\.(\d{2})\.(\d{4})/g)].filter((m) => `${m[4]}-${m[3]}-${m[2]}` >= S.from).map((m) => S.base + m[1]))];
+    if (!nodes.length) break;
+    for (const n of nodes) {
+      if (timeUp() || blocked) break;
+      if (n in prev.files && prev.files[n] > 0) continue;
+      const page = await get(n);
+      const pdf = page?.match(/href="(\/sites\/default\/files\/[^"]+\.pdf)"/)?.[1];
+      if (!pdf) { prev.files[n] = 0; continue; }
+      const buf = await get(encodeURI(decodeURI(S.base + pdf)), true);
+      if (!buf) continue;
+      const ds = parseBurgas(pdfText(buf), S.base + pdf);
+      prev.files[n] = ds.length; prev.decisions.push(...ds); added += ds.length;
+    }
+  }
+  return added;
+}
 const docxText = (buf) => { writeFileSync("/tmp/c.docx", buf); try { return execFileSync("unzip", ["-p", "/tmp/c.docx", "word/document.xml"], { maxBuffer: 1 << 28 }).toString().replace(/<\/w:p>/g, "\n").replace(/<w:tab\/>/g, " ").replace(/<[^>]+>/g, ""); } catch { return ""; } };
 async function yearFiles(code, S, prev) {
   let added = 0;
@@ -281,14 +346,25 @@ async function yearFiles(code, S, prev) {
     if (y < thisYear - 1 && prev.done?.[y]) continue;
     const page = await get(S.yearFiles(y));
     if (!page) continue;
-    const files = [...new Set([...page.matchAll(/href="\/?(uploads\/[^"]+?\.(?:pdf|docx))"/gi)].map((m) => S.base + m[1]))];
+    let pages = [page];
+    if (S.subLink) {
+      pages = [];
+      for (const sub of [...new Set([...page.matchAll(S.subLink)].map((m) => S.base + m[1]))]) {
+        if (timeUp() || blocked) break;
+        if (prev.files[sub] === -1 && y < thisYear) continue; // протоколът вече е прочетен изцяло
+        const sp = await get(sub);
+        if (sp) { pages.push(sp); prev.files[sub] = -1; }
+      }
+    }
+    const files = [...new Set(pages.flatMap((pg) => [...pg.matchAll(/href="\/?(uploads\/[^"]+?\.(?:pdf|docx))"/gi)].map((m) => S.base + m[1])))];
     let all = true;
     for (const u of files) {
       if (u in prev.files) continue;
       if (timeUp() || blocked) { all = false; break; }
       const buf = await get(encodeURI(decodeURI(u)), true, 2);
       if (!buf) { all = false; continue; }
-      const ds = parseSingle(/\.docx$/i.test(u) ? docxText(buf) : pdfText(buf), u).filter((d) => d.date >= S.from);
+      const tx = /\.docx$/i.test(u) ? docxText(buf) : pdfText(buf);
+      const ds = (S.parse === "vt" ? parseVT(tx, u) : parseSingle(tx, u)).filter((d) => d.date >= S.from);
       prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
     }
     if (all && y < thisYear) (prev.done ??= {})[y] = true;
@@ -327,12 +403,12 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles) {
-    const added = S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
+  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes) {
+    const added = S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     for (const d of prev.decisions) { d.title = d.title.replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
