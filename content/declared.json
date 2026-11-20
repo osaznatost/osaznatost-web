@@ -1,0 +1,161 @@
+{
+  "about": "Заявена позиция на групата преди гласуването (от изказване или съобщение, със източник) и как групата е гласувала (мнозинството от гласувалите в нея). Правило за всички: обявено намерение („ще подкрепим“, „против сме“) се сравнява директно; критика без обявено намерение се брои като очакване за „против“.",
+  "cases": [
+    {
+      "id": "zzk-2026",
+      "title": "Мерките срещу цените: Закон за защита на конкуренцията, първо четене",
+      "vote": "2026-05-13-3",
+      "date": "2026-05-13",
+      "positions": [
+        {
+          "group": "ПБ",
+          "declared": "Вносител на законопроекта.",
+          "expect": "y",
+          "sources": [
+            {
+              "title": "Investor.bg",
+              "url": "https://www.investor.bg/a/516-politika/430502-parlamentat-prie-na-parvo-chetene-merkite-sreshtu-rasta-na-tsenite"
+            }
+          ]
+        },
+        {
+          "group": "ГЕРБ - СДС",
+          "declared": "В бюджетната комисия ГЕРБ подкрепя законопроекта и заявява, че ще го подкрепи на първо четене.",
+          "expect": "y",
+          "sources": [
+            {
+              "title": "OFFNews: комисията (12.05.2026)",
+              "url": "https://offnews.bg/politika/gerb-dps-i-vazrazhdane-podkrepiha-zakonoproektite-na-pb-za-ovladi-866677.html"
+            },
+            {
+              "title": "Mediapool: ГЕРБ и „Възраждане“ се отметнаха",
+              "url": "https://www.mediapool.bg/gerb-i-vazrazhdane-se-otmetnaha-za-merkite-na-radev-za-kontrol-na-tsenite-news383302.html"
+            }
+          ]
+        },
+        {
+          "group": "ВЪЗРАЖДАНЕ",
+          "declared": "Цончо Ганев: проектът няма да реши проблема с цените, но групата ще го подкрепи на първо четене.",
+          "expect": "y",
+          "sources": [
+            {
+              "title": "Синор: дебатът (12.05.2026)",
+              "url": "https://sinor.bg/77471-ste-ovladee-li-inflaciyata-deputatite-sporiha-za-noviya-zakon-za-cenite"
+            }
+          ]
+        },
+        {
+          "group": "ДПС",
+          "declared": "Критикува законопроекта, но заявява подкрепа на първо четене.",
+          "expect": "y",
+          "sources": [
+            {
+              "title": "Синор: дебатът (12.05.2026)",
+              "url": "https://sinor.bg/77471-ste-ovladee-li-inflaciyata-deputatite-sporiha-za-noviya-zakon-za-cenite"
+            }
+          ]
+        },
+        {
+          "group": "ПП",
+          "declared": "Асен Василев: промените няма да намалят цените и може да имат обратен ефект.",
+          "expect": "n",
+          "sources": [
+            {
+              "title": "Клуб Z (12.05.2026)",
+              "url": "https://clubz.bg/174589"
+            }
+          ]
+        },
+        {
+          "group": "ДБ",
+          "declared": "Заявява, че ще подкрепи поправките на първо четене и ще предложи промени на второ. В комисията се въздържа.",
+          "expect": "y",
+          "sources": [
+            {
+              "title": "Клуб Z (12.05.2026)",
+              "url": "https://clubz.bg/174589"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "budget-2026",
+      "title": "Бюджет 2026, първо четене",
+      "vote": "2026-07-15-13",
+      "date": "2026-07-15",
+      "positions": [
+        {
+          "group": "ПБ",
+          "declared": "Внесен от правителството „Радев“; групата го защитава като „бюджет на наследството“.",
+          "expect": "y",
+          "sources": [
+            {
+              "title": "Dnes.bg (15.07.2026)",
+              "url": "https://www.dnes.bg/a/1-bulgaria/728567-narodnoto-sabranie-prie-na-parvo-chetene-byudzheta-za-2026-godina"
+            }
+          ]
+        },
+        {
+          "group": "ДПС",
+          "declared": "Атидже Вели: проектът не съответства напълно на законодателството за публичните финанси, а дефицитът е твърде висок.",
+          "expect": "n",
+          "sources": [
+            {
+              "title": "Town.bg: дебатът (15.07.2026)",
+              "url": "https://town.bg/sled-burni-sporove-parlamentat-dade-zelena-svetlina-na-byudzhet-2026-na-parvo-chetene/"
+            },
+            {
+              "title": "Дарик: ДПС не подкрепя дефицит 5,7% (21.07.2026)",
+              "url": "https://darik.bg/dps-napravi-predlozenia-mezdu-parvo-i-vtoro-chetene-na-budzet-2026~536851.html"
+            }
+          ]
+        },
+        {
+          "group": "ГЕРБ - СДС",
+          "declared": "Опозицията критикува дефицита и липсата на реформи.",
+          "expect": "n",
+          "sources": [
+            {
+              "title": "Dnes.bg (15.07.2026)",
+              "url": "https://www.dnes.bg/a/1-bulgaria/728567-narodnoto-sabranie-prie-na-parvo-chetene-byudzheta-za-2026-godina"
+            }
+          ]
+        },
+        {
+          "group": "ПП",
+          "declared": "Опозицията критикува дефицита и липсата на реформи.",
+          "expect": "n",
+          "sources": [
+            {
+              "title": "Dnes.bg (15.07.2026)",
+              "url": "https://www.dnes.bg/a/1-bulgaria/728567-narodnoto-sabranie-prie-na-parvo-chetene-byudzheta-za-2026-godina"
+            }
+          ]
+        },
+        {
+          "group": "ДБ",
+          "declared": "Опозицията критикува дефицита и липсата на реформи.",
+          "expect": "n",
+          "sources": [
+            {
+              "title": "Dnes.bg (15.07.2026)",
+              "url": "https://www.dnes.bg/a/1-bulgaria/728567-narodnoto-sabranie-prie-na-parvo-chetene-byudzheta-za-2026-godina"
+            }
+          ]
+        },
+        {
+          "group": "ВЪЗРАЖДАНЕ",
+          "declared": "Опозицията критикува дефицита и липсата на реформи.",
+          "expect": "n",
+          "sources": [
+            {
+              "title": "Dnes.bg (15.07.2026)",
+              "url": "https://www.dnes.bg/a/1-bulgaria/728567-narodnoto-sabranie-prie-na-parvo-chetene-byudzheta-za-2026-godina"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
