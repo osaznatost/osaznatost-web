@@ -28,6 +28,8 @@ const SITES = {
   MON29: { name: "Монтана", montana: "https://www.montana.bg/общински-съвет/заседания/решения", from: "2023-11-01" },
   // Общински съвет Ловеч (NK Software): списък по 12 решения на страница с номер, дата и предмет.
   LOV18: { name: "Ловеч", nkList: (p) => `http://os.lovech.bg/bg/resheniyabg-1bg-1${p ? `/page/${p * 12}` : ""}`, base: "http://os.lovech.bg/", from: "2023-11-01" },
+  // Общински съвет Пазарджик: всяко решение е отделна страница („Р Е Ш Е Н И Е №N от ДД месец ГГГГ година, взето с Протокол № P / ОТНОСНО: …“).
+  PAZ19: { name: "Пазарджик", pzStart: ["http://www.obspazardzhik.com/p/2185", "http://www.obspazardzhik.com/p/1383"], base: "http://www.obspazardzhik.com", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -500,6 +502,51 @@ async function nkList(code, S, prev) {
   }
   return added;
 }
+function parsePazardzhik(html, url) {
+  const t = htmlText(html);
+  const h = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*№\s*(\d+)\s*от\s*(\d{1,2})\s+([а-я]+)\s+(\d{4})[^\n]{0,40}?Протокол\s*№\s*(\d+)/i);
+  if (!h || !MONTHS[h[3].toLowerCase()]) return [];
+  const date = `${h[4]}-${String(MONTHS[h[3].toLowerCase()]).padStart(2, "0")}-${h[2].padStart(2, "0")}`;
+  const after = t.slice(t.indexOf(h[0]) + h[0].length);
+  const om = after.match(/ОТНОСНО\s*:\s*([\s\S]*?)(?:\n|Предложението|На основание|$)/);
+  const title = om ? flat(om[1]).replace(/^./, (c) => c.toUpperCase()) : "";
+  if (!title) return [];
+  const rest = after.split(/Р\s*Е\s*Ш\s*И\s*:?/)[1] ?? "";
+  const body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на)/)[0]);
+  const vm = after.match(/(\d+)\s*гласа?\s*„?за“?[,;]?\s*(\d+|без|няма)\s*(?:гласа?\s*)?„?против“?[,;]?\s*(?:и\s*)?(\d+|без|няма)\s*(?:гласа?\s*)?„?въздърж/i);
+  const n = (w) => (/^(без|няма)$/i.test(w) ? 0 : +w);
+  return [{ number: h[1], date, url, title: title.slice(0, 400), session: h[5], rapporteur: null,
+    tally: vm ? { for: n(vm[1]), against: n(vm[2]), abstain: n(vm[3]), method: "open" } : null,
+    result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+    tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+    text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body }];
+}
+async function pazardzhik(code, S, prev) {
+  let added = 0;
+  const cats = new Set();
+  for (const st of S.pzStart) { const h = await get(st); for (const m of (h ?? "").matchAll(/href="(\/c\/\d+)[^"]*"[^>]*>\s*РЕШЕНИЯ/gi)) cats.add(S.base + m[1]); }
+  cats.add(S.base + "/c/88");
+  for (const c of cats) {
+    for (let page = 1; page <= 80; page++) {
+      if (timeUp() || blocked) return added;
+      const h = await get(page === 1 ? c : `${c}?page=${page}`);
+      const links = [...new Set([...(h ?? "").matchAll(/href="(\/p\/\d+\/reshenie-[^"]+)"/g)].map((m) => S.base + m[1]))];
+      if (!links.length) break;
+      let fresh = 0;
+      for (const u of links) {
+        if (u in prev.files) continue;
+        fresh++;
+        if (timeUp() || blocked) return added;
+        const ph = await get(u);
+        if (!ph) continue;
+        const ds = parsePazardzhik(ph, u).filter((d) => d.date >= S.from);
+        prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
+      }
+      if (!fresh && page > 1) break;
+    }
+  }
+  return added;
+}
 async function sessionNodes(code, S, prev) {
   let added = 0;
   for (let p = 0; p < 10; p++) {
@@ -588,13 +635,13 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList) {
-    const added = S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
+  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart) {
+    const added = S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
