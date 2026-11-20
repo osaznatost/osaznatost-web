@@ -1,0 +1,23 @@
+name: Еднократно — държавните дружества
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/import-public-companies.mjs
+      - run: |
+          git add data/public-companies.json
+          git diff --cached --quiet && exit 0
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Данни: държавните дружества (АППК)"
+          git pull --rebase
+          git push

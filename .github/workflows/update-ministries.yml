@@ -18,9 +18,12 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/import-ministries.mjs
+      - name: Държавните дружества (АППК)
+        run: node scripts/import-public-companies.mjs
+        continue-on-error: true
       - name: Запис, ако има промяна
         run: |
-          git add data/ministries.json
+          git add data/ministries.json data/public-companies.json 2>/dev/null || git add data/ministries.json
           if git diff --cached --quiet; then echo "Няма промяна"; exit 0; fi
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"
