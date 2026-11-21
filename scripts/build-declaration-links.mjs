@@ -196,5 +196,28 @@ console.log("само по Търговския регистър (същата �
 // Кои фирми Търговският регистър да провери първи: кандидатите от неясните имена и свързаните фирми без ТР данни.
 const prio = new Set([...ambiguous.flatMap((a) => a.eiks), ...out.filter((l) => l.confirmed == null).map((l) => l.eik)].map((e) => String(e).slice(0, 9)).filter((e) => !trFor(e)));
 writeFileSync("data/tr/priority.json", JSON.stringify([...prio]));
-writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, stats, links: out, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
+// Втори източник: връзки „лице ↔ фирма с поръчки“ по Търговския регистър, изчислени от „Наясно“ (data/political-links.json, MIT).
+// Без държавни и общински дружества (там ръководството е назначено). Съвпадение по три имена — може да има съименници.
+const trLinks = [];
+if (existsSync("data/political-links.json")) {
+  const { isPublicFirm } = await import("../lib/politicalFlag.mjs");
+  const by9 = new Map([...sup].map(([e, v]) => [String(e).slice(0, 9), v]));
+  for (const [eik, arr] of Object.entries(JSON.parse(readFileSync("data/political-links.json", "utf8")).byEik)) {
+    if (isPublicFirm(arr)) continue;
+    const sp = by9.get(String(eik).slice(0, 9));
+    if (!sp) continue;
+    for (const x of arr) trLinks.push({ who: x.who, kind: x.kind, party: x.party ?? null, mpId: x.mpId ?? null, position: x.position ?? null, roles: x.roles ?? [], eik, co: [...sp.names][0] ?? eik, n: sp.n, eur: Math.round(sp.eur) });
+  }
+  trLinks.sort((a, b) => b.eur - a.eur);
+}
+const keyOf = (n) => n.toUpperCase().replace(/\s+/g, " ").trim();
+const declPeople = new Set(links.map((l) => keyOf(l.name)));
+const trPeopleSet = new Set(trLinks.map((l) => keyOf(l.who)));
+const mpSet = new Set([...links.filter((l) => l.mp).map((l) => keyOf(l.name)), ...trLinks.filter((l) => l.kind === "mp" || MPS[keyOf(l.who)]).map((l) => keyOf(l.who))]);
+stats.trPeople = trPeopleSet.size;
+stats.trMps = new Set(trLinks.filter((l) => l.kind === "mp" || MPS[keyOf(l.who)]).map((l) => keyOf(l.who))).size;
+stats.allPeople = new Set([...declPeople, ...trPeopleSet]).size;
+stats.allMps = mpSet.size;
+console.log("по ТР (Наясно):", trLinks.length, "връзки,", stats.trPeople, "лица,", stats.trMps, "депутати; общо", stats.allPeople, "лица,", stats.allMps, "депутати");
+writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, stats, links: out, trLinks, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
 console.log("декларации с дружества:", people, "връзки:", out.length, "лица:", new Set(out.map((l) => l.name)).size, "от собствената институция:", out.filter((l) => l.own).length, "неясни имена:", ambiguous.length);

@@ -14,7 +14,8 @@ type L = {
   sub: { n: number; mains: { name: string; n: number }[]; buyers: { name: string; n: number }[] } | null;
 };
 type T = { year: string; name: string; pos: string; inst: string; cat: string; eik: string; co: string; roles: string[]; contracts: number; eur: number; own: { n: number; eur: number } };
-type Data = { updated: string; people: number; stats?: { declarations: number; people: number; mps: number; years: string[] }; links: L[]; ambiguous: number; publicRoles?: number; trOnly?: T[] };
+type TL = { who: string; kind: string; party: string | null; mpId: number | null; position: string | null; roles: string[]; eik: string; co: string; n: number; eur: number };
+type Data = { updated: string; people: number; stats?: { declarations: number; people: number; mps: number; years: string[]; trPeople?: number; trMps?: number; allPeople?: number; allMps?: number }; links: L[]; trLinks?: TL[]; ambiguous: number; publicRoles?: number; trOnly?: T[] };
 
 const dir = path.join(process.cwd(), "data", "declarations");
 const read = (): Data | null => (existsSync(path.join(dir, "links.json")) ? (JSON.parse(readFileSync(path.join(dir, "links.json"), "utf8")) as Data) : null);
@@ -52,14 +53,15 @@ export default function Deklaracii() {
       <Title back={{ href: "/vlast", label: "Властта" }} lead="Лицата на публични длъжности всяка година декларират в кои фирми имат дялове или участват в управлението. Тук свързваме тези декларации с обществените поръчки по едно и също правило за всички.">
         Декларирани фирми и обществени поръчки
       </Title>
-      <SectionNav items={[["nakratko", "Накратко"], ["sobstvena", "Поръчки от собствената институция"], ["vsichki", "Всички връзки"], ["kak", "Как свързваме"]]} />
+      <SectionNav items={[["nakratko", "Накратко"], ["sobstvena", "Поръчки от собствената институция"], ["vsichki", "Всички връзки"], ["poTR", "По Търговския регистър"], ["kak", "Как свързваме"]]} />
 
       {!D ? (
         <p className="text-muted">Декларациите се четат от регистъра. Страницата ще се попълни автоматично, когато свърши първото четене.</p>
       ) : (
         <>
           <Anchor id="nakratko" title="Накратко">
-            {D.stats && <p className="text-[15px] max-w-3xl mb-4"><b>{D.stats.declarations.toLocaleString("bg-BG")}</b> декларации за {D.stats.years[0]}–{D.stats.years.at(-1)} г. показват участие във фирма, печелила обществени поръчки като изпълнител или подизпълнител. Те са на <b>{D.stats.people.toLocaleString("bg-BG")}</b> лица, от които <b>{D.stats.mps}</b> настоящи или бивши народни представители.</p>}
+            {D.stats?.allPeople != null && <p className="text-[15px] max-w-3xl mb-3">Общо по двата източника: <b>{D.stats.allPeople.toLocaleString("bg-BG")}</b> лица на публична длъжност с участие във фирма, печелила обществени поръчки, от които <b>{D.stats.allMps}</b> настоящи или бивши народни представители.</p>}
+            {D.stats && <p className="text-[15px] max-w-3xl mb-4"><b>{D.stats.declarations.toLocaleString("bg-BG")}</b> декларации за {D.stats.years[0]}–{D.stats.years.at(-1)} г. показват участие във фирма, печелила обществени поръчки като изпълнител или подизпълнител. Те са на <b>{D.stats.people.toLocaleString("bg-BG")}</b> лица, от които <b>{D.stats.mps}</b> настоящи или бивши народни представители.{D.stats.trPeople != null && <> Отделно по Търговския регистър: <b>{D.stats.trPeople.toLocaleString("bg-BG")}</b> лица, от които <b>{D.stats.trMps}</b> депутати (<a href="#poTR">виж по-долу</a>).</>}</p>}
             <div className="grid gap-3 sm:grid-cols-3 mb-5">
               <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Лица с декларирана фирма, печелила поръчки</p><p className="display text-[2.4rem] leading-none mt-1">{people.toLocaleString("bg-BG")}</p><p className="text-xs text-muted mt-1">от {D.people.toLocaleString("bg-BG")} декларации с дружества</p></div>
               <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Поръчки от собствената институция</p><p className="display text-[2.4rem] leading-none mt-1">{own.length.toLocaleString("bg-BG")}</p><p className="text-xs text-muted mt-1">връзки лице – фирма</p></div>
@@ -91,6 +93,16 @@ export default function Deklaracii() {
                 <ul>{L.slice(100).map((l) => <Row key={`${l.name}|${l.eik}`} l={l} />)}</ul></details>
             )}
           </Anchor>
+
+          {(D.trLinks?.length ?? 0) > 0 && (
+            <Anchor id="poTR" title={`По Търговския регистър (${D.trLinks!.length})`} lead="Лицето е управител, съдружник или собственик на частна фирма, печелила обществени поръчки, според Търговския регистър. Връзките са изчислени от „Наясно“ (naiasno.bg, отворен код) по трите имена, без ЕГН, затова е възможен съименник. Държавните и общинските дружества не са включени.">
+              <ul className="max-w-4xl text-[15px]">{D.trLinks!.slice(0, 100).map((t) => <TRow key={`${t.who}|${t.eik}`} t={t} />)}</ul>
+              {D.trLinks!.length > 100 && (
+                <details className="mt-3 max-w-4xl"><summary className="cursor-pointer font-semibold text-green py-2">Още {D.trLinks!.length - 100}</summary>
+                  <ul className="text-[15px]">{D.trLinks!.slice(100).map((t) => <TRow key={`${t.who}|${t.eik}`} t={t} />)}</ul></details>
+              )}
+            </Anchor>
+          )}
         </>
       )}
 
@@ -107,5 +119,15 @@ export default function Deklaracii() {
         </ul>
       </Anchor>
     </Page>
+  );
+}
+
+function TRow({ t }: { t: TL }) {
+  const who = t.kind === "mp" && t.mpId ? <Link href={`/parlament/deputat/${t.mpId}`}><b>{t.who}</b></Link> : <b>{t.who}</b>;
+  return (
+    <li className="py-2 border-b border-rule">
+      {who} <span className="text-muted text-sm">{t.kind === "mp" ? `народен представител${t.party ? `, ${t.party}` : ""}` : t.position ?? "длъжностно лице"}</span>
+      <span className="block">{t.roles.join(", ")} в <Link href={`/porachki/firma/${t.eik}`}>{t.co}</Link> · {t.n} договора за {Math.round(t.eur).toLocaleString("bg-BG")} €</span>
+    </li>
   );
 }
