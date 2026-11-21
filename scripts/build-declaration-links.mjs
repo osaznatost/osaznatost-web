@@ -17,6 +17,11 @@ export const normCo = (s) => String(s ?? "").toUpperCase()
   .replace(/[ABCEHKMOPTXY]/g, (c) => LAT[c])               // латински букви, които изглеждат като кирилски
   .replace(/[^0-9A-ZА-ЯЁ]+/g, " ").trim().split(" ").filter((w) => w && !FORMS.has(w)).join(" ");
 const normInst = (s) => normCo(s);
+// Фонетична транслитерация латиница → кирилица (за имена като „GEOTEHNIKA“ / „ГЕОТЕХНИКА“). Ползва се само като втори ключ.
+const TR2 = [["SHT", "Щ"], ["SH", "Ш"], ["CH", "Ч"], ["ZH", "Ж"], ["TS", "Ц"], ["YU", "Ю"], ["YA", "Я"], ["IA", "ИЯ"], ["IU", "ИЮ"]];
+const TR1 = { A: "А", B: "Б", C: "К", D: "Д", E: "Е", F: "Ф", G: "Г", H: "Х", I: "И", J: "Й", K: "К", L: "Л", M: "М", N: "Н", O: "О", P: "П", Q: "К", R: "Р", S: "С", T: "Т", U: "У", V: "В", W: "В", X: "КС", Y: "Й", Z: "З" };
+const translit = (s) => { let t = String(s ?? "").toUpperCase(); for (const [a, b] of TR2) t = t.replaceAll(a, b); return t.replace(/[A-Z]/g, (c) => TR1[c]); };
+const normCo2 = (s) => normCo(translit(s));
 // Институцията на лицето може да е записана кратко („Благоевград“ за община): сравняваме и с „Община <име>“.
 const instKeys = (inst, cat) => { const k = normInst(inst); return /общин|кмет/i.test(cat ?? "") && !/^ОБЩИНА /.test(k) ? [k, `ОБЩИНА ${k}`] : [k]; };
 const isOwn = (buyer, inst, cat) => instKeys(inst, cat).includes(normInst(buyer));
@@ -70,7 +75,7 @@ for (;;) {
   if (done % 50000 < PAGE) console.log("договори:", done);
 }
 const byName = new Map(); // нормализирано име → Set(ЕИК)
-for (const [eik, s] of [...sup, ...subs]) for (const n of s.names) { const k = normCo(n); if (k.replace(/ /g, "").length >= 5) (byName.get(k) ?? byName.set(k, new Set()).get(k)).add(eik); }
+for (const [eik, s] of [...sup, ...subs]) for (const n of s.names) for (const k of new Set([normCo(n), normCo2(n)])) { if (k.replace(/ /g, "").length >= 5) (byName.get(k) ?? byName.set(k, new Set()).get(k)).add(eik); }
 console.log("изпълнители:", sup.size, "имена:", byName.size);
 
 // 2) Декларации
@@ -85,7 +90,9 @@ for (const year of YEARS_ALL) {
     people++;
     for (const it of p.items) {
       const k = normCo(it.co);
-      const eiks = byName.get(k);
+      // 1) ЕИК, ако е посочен в декларацията — най-сигурното съвпадение; 2) име; 3) име след транслитерация.
+      const eikIn = [...String(`${it.co} ${it.extra ?? ""}`).matchAll(/\b(\d{9})(?:\d{4})?\b/g)].map((m) => m[1]).find((e) => sup.has(e) || subs.has(e));
+      const eiks = eikIn ? new Set([eikIn]) : byName.get(k) ?? byName.get(normCo2(it.co));
       if (!eiks) continue;
       const me = p.name.toUpperCase().replace(/\s+/g, " ").trim();
       let pick = [...eiks];
