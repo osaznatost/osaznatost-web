@@ -1,3 +1,5 @@
 const H={"user-agent":"Mozilla/5.0 (osaznatost.bg; civic data)"};
-const U=["https://obs.silistra.bg/","https://www.silistra.bg/","https://www.blgmun.com/","https://blagoevgrad.bg/","https://obs.blagoevgrad.bg/","https://www.targovishte.bg/","https://os.targovishte.bg/","https://www.vidin.bg/","https://obs.vidin.bg/","https://www.smolyan.bg/","https://os.smolyan.bg/","https://www.kustendil.bg/","https://www.plovdiv.bg/","https://www.plovdivmc.bg/","https://kustendil.bg/"];
-for (const u of U){ try{ const c=new AbortController(); setTimeout(()=>c.abort(),15000); const r=await fetch(u,{headers:H,signal:c.signal}); const t=await r.text(); const links=[...new Set([...t.matchAll(/href="([^"]*(?:reshen|решени|%d1%80%d0%b5%d1%88)[^"]*)"/gi)].map(m=>m[1]))].slice(0,6); console.log("## ",u,r.status,t.length,JSON.stringify(links)); }catch(e){console.log("## ",u,"ERR",e.name,e.cause?.code||"")}}
+const t=await (await fetch("https://blagoevgrad.bg/",{headers:H})).text();
+const L=[...new Set([...t.matchAll(/href="([^"]+)"[^>]*>([^<]{0,60})/g)].filter(m=>/съвет|council|obs|reshen|решен|протокол/i.test(m[1]+m[2])).map(m=>m[1]+" | "+m[2].trim()))];
+console.log("## L",JSON.stringify(L.slice(0,30)));
+for (const u of ["https://blagoevgrad.bg/municipal_council","https://blagoevgrad.bg/obshtinski-suvet","https://blagoevgrad.bg/council"]) { const r=await fetch(u,{headers:H}); console.log("## ",u,r.status); }
