@@ -84,12 +84,24 @@ for (const year of YEARS_ALL) {
   for (const p of D.people) {
     people++;
     for (const it of p.items) {
-      if (/^ЕТ/.test(it.kind)) continue; // едноличните търговци се водят на името на лицето; без ЕИК съвпадението е несигурно
       const k = normCo(it.co);
       const eiks = byName.get(k);
       if (!eiks) continue;
-      if (eiks.size > 1) { ambiguous.push({ co: it.co, eiks: [...eiks] }); continue; }
-      const eik = [...eiks][0], s = sup.get(eik) ?? { n: 0, eur: 0, first: null, last: null, buyers: new Map() }, sb = subs.get(eik);
+      const me = p.name.toUpperCase().replace(/\s+/g, " ").trim();
+      let pick = [...eiks];
+      // Едно име → няколко фирми: избираме фирмата само ако Търговският регистър показва лицето в точно една от тях.
+      if (pick.length > 1) {
+        const inTr = pick.filter((e) => { const t = trFor(e); return t && trNames(t).has(me); });
+        if (inTr.length !== 1) { ambiguous.push({ co: it.co, eiks: pick }); continue; }
+        pick = inTr;
+      }
+      // ЕТ: търговецът е самото лице — приемаме само ако фамилията на декларатора е в името на ЕТ-то или ТР го потвърждава.
+      if (/^ЕТ/.test(it.kind)) {
+        const fam = me.split(" ").at(-1);
+        const t = trFor(pick[0]);
+        if (!(normCo(it.co).toUpperCase().includes(fam) || (t && trNames(t).has(me)))) continue;
+      }
+      const eik = pick[0], s = sup.get(eik) ?? { n: 0, eur: 0, first: null, last: null, buyers: new Map() }, sb = subs.get(eik);
       const top = [...s.buyers.entries()].sort((a, b) => b[1].eur - a[1].eur);
       const own = top.filter(([, b]) => isOwn(b.name, p.inst, p.cat));
       const tr = trFor(eik);
@@ -110,6 +122,16 @@ for (const year of YEARS_ALL) {
     }
   }
 }
+// Настоящи и бивши депутати (39–52 НС) по пълно име.
+const MPS = existsSync("data/mp-history.json") ? JSON.parse(readFileSync("data/mp-history.json", "utf8")).byName ?? {} : {};
+for (const l of links) { const ns = MPS[l.name.toUpperCase().replace(/\s+/g, " ").trim()]?.ns; if (ns?.length) l.mp = ns; }
+// Брой като в други системи: всяка декларация (година) с поне една връзка, преди обединяването по лице + фирма.
+const stats = {
+  declarations: new Set(links.map((l) => l.decl)).size,
+  people: new Set(links.map((l) => l.name.toUpperCase().replace(/\s+/g, " ").trim())).size,
+  mps: new Set(links.filter((l) => l.mp).map((l) => l.name.toUpperCase().replace(/\s+/g, " ").trim())).size,
+  years: YEARS_ALL.slice().sort(),
+};
 // по една връзка на лице + фирма (най-новата декларация)
 const uniq = new Map();
 for (const l of links.sort((a, b) => (a.year < b.year ? 1 : -1))) { const k = `${l.name.toUpperCase().replace(/\s+/g, " ").trim()}|${l.eik}`; if (!uniq.has(k)) uniq.set(k, l); }
@@ -164,5 +186,5 @@ for (const year of YEARS_ALL) {
 }
 const trOut = [...trOnly.values()].sort((a, b) => b.own.eur - a.own.eur);
 console.log("само по Търговския регистър (същата институция):", trOut.length, "пропуснати заради възможни съименници:", namesakeSkipped);
-writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, links: out, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
+writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, stats, links: out, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
 console.log("декларации с дружества:", people, "връзки:", out.length, "лица:", new Set(out.map((l) => l.name)).size, "от собствената институция:", out.filter((l) => l.own).length, "неясни имена:", ambiguous.length);

@@ -10,11 +10,11 @@ type Buyer = { eik: string; name: string; n: number; eur: number };
 type L = {
   year: string; name: string; pos: string; inst: string; cat: string; date: string | null; decl: string;
   kind: string; co: string; extra: string | null; eik: string; confirmed?: boolean | null; contracts: number; eur: number; first: string | null; last: string | null;
-  buyers: Buyer[]; own: { n: number; eur: number } | null;
+  buyers: Buyer[]; own: { n: number; eur: number } | null; mp?: string[];
   sub: { n: number; mains: { name: string; n: number }[]; buyers: { name: string; n: number }[] } | null;
 };
 type T = { year: string; name: string; pos: string; inst: string; cat: string; eik: string; co: string; roles: string[]; contracts: number; eur: number; own: { n: number; eur: number } };
-type Data = { updated: string; people: number; links: L[]; ambiguous: number; publicRoles?: number; trOnly?: T[] };
+type Data = { updated: string; people: number; stats?: { declarations: number; people: number; mps: number; years: string[] }; links: L[]; ambiguous: number; publicRoles?: number; trOnly?: T[] };
 
 const dir = path.join(process.cwd(), "data", "declarations");
 const read = (): Data | null => (existsSync(path.join(dir, "links.json")) ? (JSON.parse(readFileSync(path.join(dir, "links.json"), "utf8")) as Data) : null);
@@ -25,7 +25,7 @@ function Row({ l }: { l: L }) {
   return (
     <li className="py-3 border-b border-rule">
       <div className="flex flex-wrap justify-between gap-2">
-        <span><b>{l.name}</b> <span className="text-muted text-sm">{l.pos}, {l.inst}</span></span>
+        <span><b>{l.name}</b> <span className="text-muted text-sm">{l.pos}, {l.inst}{l.mp?.length ? ` · народен представител в ${l.mp.join(", ")} НС` : ""}</span></span>
         <span className="num font-semibold">{l.contracts ? eur(l.eur) : "само подизпълнител"}</span>
       </div>
       <p className="text-[15px] mt-1">
@@ -59,6 +59,7 @@ export default function Deklaracii() {
       ) : (
         <>
           <Anchor id="nakratko" title="Накратко">
+            {D.stats && <p className="text-[15px] max-w-3xl mb-4"><b>{D.stats.declarations.toLocaleString("bg-BG")}</b> декларации за {D.stats.years[0]}–{D.stats.years.at(-1)} г. показват участие във фирма, печелила обществени поръчки като изпълнител или подизпълнител. Те са на <b>{D.stats.people.toLocaleString("bg-BG")}</b> лица, от които <b>{D.stats.mps}</b> настоящи или бивши народни представители.</p>}
             <div className="grid gap-3 sm:grid-cols-3 mb-5">
               <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Лица с декларирана фирма, печелила поръчки</p><p className="display text-[2.4rem] leading-none mt-1">{people.toLocaleString("bg-BG")}</p><p className="text-xs text-muted mt-1">от {D.people.toLocaleString("bg-BG")} декларации с дружества</p></div>
               <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Поръчки от собствената институция</p><p className="display text-[2.4rem] leading-none mt-1">{own.length.toLocaleString("bg-BG")}</p><p className="text-xs text-muted mt-1">връзки лице – фирма</p></div>
