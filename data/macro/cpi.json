@@ -2,7 +2,7 @@
  "updated": "2026-11-21",
  "source": {
   "title": "НСИ, Инфлация и индекси на потребителските цени, октомври 2026",
-  "url": "https://www.nsi.bg/press-release/inflaciya-i-indeksi-na-potrebitelskite-ceni-9216"
+  "url": "https://www.nsi.bg/press-release/inflaciya-i-indeksi-na-potrebitelskite-ceni-oktomvri-2026-godina-9216"
  },
  "monthly": [
   {
@@ -65,6 +65,10 @@
  "groups": {
   "period": "2026-10",
   "rates": {
+   "education": 9.2,
+   "restaurants": 9.8,
+   "insurance": 1.9,
+   "personal": 5.3,
    "food": 2,
    "alc": 7.5,
    "clothing": 0.3,
@@ -73,11 +77,7 @@
    "health": 3.2,
    "transport": 26.2,
    "communication": 1.9,
-   "recreation": 9.1,
-   "education": 9.2,
-   "restaurants": 9.8,
-   "insurance": 1.9,
-   "personal": 5.3
+   "recreation": 9.1
   }
  }
 }
