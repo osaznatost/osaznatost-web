@@ -27,6 +27,13 @@ type Agg = { key: string; name: string; n: number; value: number; risky: number;
 const card = "ring-1 ring-rule rounded-lg p-5 bg-white";
 const dmy = (d: string) => d.split("-").reverse().join(".");
 
+function tidyTitle(t: string) {
+  const m = t.match(/^(.*?)\s+-\s+вносител\s+(.+?)(?:\s+на\s+(\d{2}\.\d{2}\.\d{4})\s*г?\.?)?$/i);
+  let out = m ? `${m[1]} (вносител: ${m[2].replace(/\s+и група н\.?\s*п\.?$/i, " и група народни представители")}${m[3] ? `, ${m[3]} г.` : ""})` : t;
+  out = out.replace(/\s+-\s+наимен[\s\S]*$/i, "");
+  return out.length > 140 ? out.slice(0, 140) + "…" : out;
+}
+
 export function HomeFeed() {
   const R = RISK as unknown as { updated: string; total: number; byScore: Record<string, number>; top: Top[]; suppliers: Agg[] };
   const laws = [...VOTES].filter((v) => /закон/i.test(v.title) && !/процедур/i.test(v.title)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 5);
@@ -56,7 +63,7 @@ export function HomeFeed() {
             <ul className="space-y-3 text-[15px]">{laws.map((v) => (
               <li key={v.id}>
                 <span className="text-sm text-muted">{formatDate(v.date)} · <span className={v.outcome === "rejected" ? "text-red" : "text-green"}>{v.outcome === "rejected" ? "отхвърлено" : "прието"}</span> <span className="num">{v.tally.yes} за, {v.tally.no} против</span></span>
-                <Link href={`/parlament/glasuvane/${v.id}`} className="block leading-snug">{v.title.length > 140 ? v.title.slice(0, 140) + "…" : v.title}</Link>
+                <Link href={`/parlament/glasuvane/${v.id}`} className="block leading-snug">{tidyTitle(v.title)}</Link>
               </li>
             ))}</ul>
             <p className="text-sm mt-3"><Link href="/parlament">Всички гласувания</Link></p>
@@ -82,7 +89,7 @@ export function HomeFeed() {
       </section>
 
       <section className="mb-16">
-        <SectionTitle right={<Link href="/porachki/risk">Цялата класация</Link>}>Най-съмнителното</SectionTitle>
+        <SectionTitle right={<Link href="/porachki/risk">Цялата класация</Link>}>Договори с най-много рискови признаци</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-5 max-w-3xl">Сигнали, не обвинения. Всеки ред води до източника, от който може да се провери. Съмнението идва от признаци като една оферта, липса на конкурс, оскъпяване с анекси или връзка с политик.</p>
         <div className="grid gap-5 lg:grid-cols-2">
           <div className={card}>
@@ -99,7 +106,7 @@ export function HomeFeed() {
             <div className={card}>
               <p className="font-semibold mb-3">Фирми, свързани с политици, с най-много рискови договори</p>
               <ul className="space-y-1.5 text-[15px]">{polSup.map((s) => (
-                <li key={s.key} className="flex justify-between gap-3"><Link href={firmUrl(s.key)}>{s.name}</Link><span className="num text-sm whitespace-nowrap">{fmtEur(s.riskyValue)} <span className="text-muted">в {s.risky} договора</span></span></li>
+                <li key={s.key} className="flex justify-between gap-3"><Link href={firmUrl(s.key)}>{s.name}</Link><span className="num text-sm whitespace-nowrap">{fmtEur(s.riskyValue)} <span className="text-muted">в {s.risky} {s.risky === 1 ? "договор" : "договора"}</span></span></li>
               ))}</ul>
             </div>
             <div className={card}>
@@ -120,7 +127,7 @@ export function HomeFeed() {
       </section>
 
       <section className="mb-16">
-        <SectionTitle>Най-интересното</SectionTitle>
+        <SectionTitle>Разгледайте още</SectionTitle>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[
           ["/byudzhet", `Бюджет ${B.year}`, `Откъде идват ${bn(B.revenue.total)} приходи на централния бюджет и къде отиват, ред по ред спрямо предишните години.`],
           ["/ikonomika/evrosredstva", "Евросредства", `Договорени ${bn(contracted)}, изплатени ${Math.round((paid / contracted) * 100)}%. Кои фирми печелят най-много и кои са свързани с депутати.`],
