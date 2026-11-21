@@ -110,7 +110,7 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
 }
 // по една връзка на лице + фирма (най-новата декларация)
 const uniq = new Map();
-for (const l of links.sort((a, b) => (a.year < b.year ? 1 : -1))) { const k = `${l.name}|${l.eik}`; if (!uniq.has(k)) uniq.set(k, l); }
+for (const l of links.sort((a, b) => (a.year < b.year ? 1 : -1))) { const k = `${l.name.toUpperCase().replace(/\s+/g, " ").trim()}|${l.eik}`; if (!uniq.has(k)) uniq.set(k, l); }
 const out = [...uniq.values()].sort((a, b) => b.eur - a.eur);
 
 // 3) „Само по Търговския регистър“: лице от регистъра на декларациите е управител, съдружник или собственик
