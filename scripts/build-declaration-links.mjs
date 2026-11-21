@@ -25,7 +25,7 @@ const trNames = (f) => new Set(["managers", "board", "partners", "owner", "ubo",
 const STATE_OWNER = /държав|министерств|народна банка|общин|агенция|република българия/i;
 // Публични предприятия (регистър на АППК) и дружества с държавен или общински собственик по ТР.
 const PUBLIC = new Set((existsSync("data/public-companies.json") ? [].concat(JSON.parse(readFileSync("data/public-companies.json", "utf8")).companies ?? []) : []).map((c) => String(c.eik).slice(0, 9)));
-const isPublicCo = (eik, name) => PUBLIC.has(String(eik).slice(0, 9)) || (trFor(eik)?.owner ?? []).some((o) => STATE_OWNER.test(o.name)) || /ДЪРЖАВН|НАЦИОНАЛНА КОМПАНИЯ| ДП$|ЧЕРВЕН КРЪСТ/i.test(name);
+const isPublicCo = (eik, name) => PUBLIC.has(String(eik).slice(0, 9)) || (trFor(eik)?.owner ?? []).some((o) => STATE_OWNER.test(o.name)) || /ДЪРЖАВН|НАЦИОНАЛНА КОМПАНИЯ| ДП$|ЧЕРВЕН КРЪСТ|ОБЕРТЮР ФИДЮСИЕР|ПЕЧАТНИЦА НА (БЪЛГАРСКА НАРОДНА БАНКА|БНБ)/i.test(name);
 
 // 1) Изпълнители: име → ЕИК-ове, договори, сума, възложители
 const sup = new Map(); // eik → {names:Set, n, eur, buyers: Map(eik→{name,n,eur})}
@@ -133,6 +133,7 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
   }
 }
 let namesakeSkipped = 0;
+const COMMON_SURNAME = /^(ИВАНОВ|ГЕОРГИЕВ|ДИМИТРОВ|ПЕТРОВ|НИКОЛОВ|ХРИСТОВ|СТОЯНОВ|ТОДОРОВ|ИЛИЕВ|ВАСИЛЕВ|АТАНАСОВ|ПЕТКОВ|АНГЕЛОВ|ЙОРДАНОВ|КОЛЕВ|МАРИНОВ|ПОПОВ|СТЕФАНОВ|КОСТОВ|МИХАЙЛОВ)А?$/;
 for (const year of ["2026", "2025", "2024", "2023"]) {
   const f = `data/declarations/people-${year}.json`;
   if (!existsSync(f)) continue;
@@ -140,6 +141,8 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
     const key = p.name.toUpperCase().replace(/\s+/g, " ").trim();
     if (key.split(" ").length < 3) continue; // само пълни три имена
     const firms = new Set((trPeople[key] ?? []).map(([e]) => e));
+    // Най-честите фамилии дават твърде много съименници — за тях сигнал само по името не показваме.
+    if (COMMON_SURNAME.test(key.split(" ").at(-1))) { if (firms.size) namesakeSkipped++; continue; }
     if ((declInst.get(key)?.size ?? 0) > 1 || firms.size > 3) { if (firms.size) namesakeSkipped++; continue; }
     for (const [eik9, role] of trPeople[key] ?? []) {
       const eik = sup.has(eik9) ? eik9 : null;
