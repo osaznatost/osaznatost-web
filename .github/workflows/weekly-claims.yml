@@ -17,3 +17,7 @@ jobs:
       - run: node scripts/weekly-claims.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: node scripts/check-stale-params.mjs
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
