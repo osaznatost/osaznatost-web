@@ -32,6 +32,9 @@ const SITES = {
   PAZ19: { name: "Пазарджик", pzStart: ["http://www.obspazardzhik.com/p/2185", "http://www.obspazardzhik.com/p/1383"], base: "http://www.obspazardzhik.com", from: "2023-11-01" },
   // Общински съвет Ямбол: страница на мандата с „Решение N“ за всяко заседание → един HTML файл с всички решения
   // („ПО ТОЧКА … - Предложение относно … ВНОСИТЕЛ: … ОБЩИНСКИ СЪВЕТ РЕШИ: …“). Без номера на решенията и без гласуване в текста.
+  // Общински съвет Враца: списък с всички решения (WordPress/Elementor, по 10 на страница), всяко като .doc файл
+  // с номер и дата в името („878-04_11_2026-p.doc“) и заглавие в текста на връзката. Само списъкът.
+  VRC10: { name: "Враца", vratza: (p) => `https://vratza.bg/%d0%b8%d0%b7%d0%b1%d0%be%d1%80%d0%b8-2/${p > 1 ? `?e-page-08b6494=${p}` : ""}`, from: "2023-11-01" },
   JAM26: { name: "Ямбол", yambol: "https://yambol.bg/mandat-2023-2027", from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
@@ -496,13 +499,13 @@ function parseYambol(html, url, session) {
     const [head, ...restParts] = part.split(/ОБЩИНСКИ\s+СЪВЕТ\s*\n?\s*РЕШИ\s*:/i);
     const rest = restParts.join(" ");
     const hm = flat(head).match(/^.*?[-–]\s*(?:Предложение|Докладна записка|Доклад)?\s*(?:относно)?\s*(.+?)\s*ВНОСИТЕЛ\s*:\s*([^_]+?)\s*_*\s*$/i);
-    let title = (hm ? hm[1] : flat(head).slice(0, 300)).replace(/^./, (c) => c.toUpperCase());
+    let title = (hm ? hm[1] : flat(head).slice(0, 300)).replace(/_{3,}.*$/, "").replace(/^[А-Яа-я ]+?\s+[-–]\s+/, "").trim().replace(/^./, (c) => c.toUpperCase());
     const who = hm ? flat(hm[2]).replace(/\s+(\S)\s+(\S)$/, " $1$2") : "";
     let body = ws(rest.split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател на ОбС)/i)[0]);
     const priv = PRIVATE_AID.test(title);
     if (priv) { title = title.replace(/\s+на\s+[А-Я][а-я]+(\s+[А-Я][а-я]+){1,2}\.?$/, "").replace(/\s*\d{2}\.\d{2}\.\d{2}г?\..*$/, "") + " (имената не се показват)"; body = ""; }
     return { number: `${session}.${i + 1}`, date, url, title: title.slice(0, 400), session: String(session), tally: null,
-      rapporteur: who && !/^ПК\b|комиси/i.test(who) ? { name: who.replace(/\s*Реванск\s+и$/, " Ревански"), role: "" } : who ? { name: who, role: "постоянна комисия" } : null,
+      rapporteur: who && !/^ПК(\s|$)|комиси/i.test(who) ? { name: who.replace(/\s*Реванск\s+и$/, " Ревански"), role: "" } : who ? { name: who, role: "постоянна комисия" } : null,
       result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
       tags: priv ? [] : TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
       text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body };
@@ -521,6 +524,32 @@ async function yambol(code, S, prev) {
     const ds = parseYambol(html, u, n);
     prev.files[u] = ds.length; prev.decisions.push(...ds); added += ds.length;
   }
+  return added;
+}
+async function vratza(code, S, prev) {
+  let added = 0;
+  const have = new Set(prev.decisions.map((d) => d.url));
+  for (let p = 1; p < 400; p++) {
+    if (timeUp() || blocked) break;
+    const list = await get(S.vratza(p));
+    if (!list) break;
+    const items = [...list.matchAll(/<a[^>]+href="(https:\/\/vratza\.bg\/wp-content\/uploads\/\d{4}\/\d{2}\/(\d+)-(\d{2})_(\d{2})_(\d{4})[^"]*\.(?:docx?|pdf))"[^>]*>([\s\S]*?)<\/a>/g)];
+    if (!items.length) break;
+    let old = 0, fresh = 0;
+    for (const [, u, number, dd, mm, yyyy, txt] of items) {
+      const date = `${yyyy}-${mm}-${dd}`;
+      if (date < S.from) { old++; continue; }
+      if (have.has(u)) continue;
+      const title = flat(htmlText(txt)).replace(/^Решени[еe]\s+(за|относно)\s+/i, "").replace(/^./, (c) => c.toUpperCase());
+      if (!title) continue;
+      prev.decisions.push({ number, date, url: u, title: title.slice(0, 400), session: "", rapporteur: null, tally: null, result: "adopted",
+        tags: TAGS.filter(([, re]) => re.test(title)).map(([k]) => k).slice(0, 2) });
+      have.add(u); added++; fresh++;
+    }
+    if (old === items.length) break;      // стигнахме до решения отпреди мандата
+    if (!fresh && p > 3 && prev.complete) break; // всичко на тази страница вече е прочетено
+  }
+  prev.complete = true;
   return added;
 }
 async function nkList(code, S, prev) {
@@ -678,13 +707,13 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
-  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart || S.yambol) {
-    const added = S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
+  if (S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart || S.yambol || S.vratza) {
+    const added = S.vratza ? await vratza(code, S, prev) : S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : S.vratza ? S.vratza(1) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
