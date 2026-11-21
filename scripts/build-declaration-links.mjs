@@ -14,7 +14,15 @@ const FORMS = new Set(["ЕООД", "ООД", "ЕАД", "АД", "ЕТ", "КД", "
 export const normCo = (s) => String(s ?? "").toUpperCase()
   .replace(/[ABCEHKMOPTXY]/g, (c) => LAT[c])               // латински букви, които изглеждат като кирилски
   .replace(/[^0-9A-ZА-ЯЁ]+/g, " ").trim().split(" ").filter((w) => w && !FORMS.has(w)).join(" ");
-const normInst = (s) => String(s ?? "").toLowerCase().replace(/["„“”']/g, "").replace(/\s+/g, " ").trim();
+const normInst = (s) => normCo(s);
+// Институцията на лицето може да е записана кратко („Благоевград“ за община): сравняваме и с „Община <име>“.
+const instKeys = (inst, cat) => { const k = normInst(inst); return /общин|кмет/i.test(cat ?? "") && !/^ОБЩИНА /.test(k) ? [k, `ОБЩИНА ${k}`] : [k]; };
+const isOwn = (buyer, inst, cat) => instKeys(inst, cat).includes(normInst(buyer));
+// Търговски регистър (частичен): потвърждава, че лицето наистина е в тази фирма.
+const trShards = new Map();
+const trFor = (eik) => { const k = String(eik).slice(0, 2); if (!trShards.has(k)) { const f = `data/tr/${k}.json`; trShards.set(k, existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {}); } return trShards.get(k)[String(eik).slice(0, 9)] ?? null; };
+const trNames = (f) => new Set(["managers", "board", "partners", "owner", "ubo", "procurator"].flatMap((r) => (f?.[r] ?? []).map((p) => String(p.name).toUpperCase().replace(/\s+/g, " ").trim())));
+const STATE_OWNER = /държав|министерств|народна банка|общин|агенция|република българия/i;
 
 // 1) Изпълнители: име → ЕИК-ове, договори, сума, възложители
 const sup = new Map(); // eik → {names:Set, n, eur, buyers: Map(eik→{name,n,eur})}
@@ -77,10 +85,15 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
       if (eiks.size > 1) { ambiguous.push({ co: it.co, eiks: [...eiks] }); continue; }
       const eik = [...eiks][0], s = sup.get(eik) ?? { n: 0, eur: 0, first: null, last: null, buyers: new Map() }, sb = subs.get(eik);
       const top = [...s.buyers.entries()].sort((a, b) => b[1].eur - a[1].eur);
-      const own = top.filter(([, b]) => normInst(b.name) === normInst(p.inst));
+      const own = top.filter(([, b]) => isOwn(b.name, p.inst, p.cat));
+      const tr = trFor(eik);
+      const confirmed = tr ? trNames(tr).has(p.name.toUpperCase().replace(/\s+/g, " ").trim()) : null;
+      // Име от една дума („Екоенерджи“) може да е друга фирма със същото име, която не е печелила поръчки:
+      // показваме го само ако Търговският регистър потвърждава, че лицето е в тази фирма.
+      if (k.split(" ").length < 2 && confirmed !== true) { ambiguous.push({ co: it.co, eiks: [eik], why: "една дума" }); continue; }
       links.push({
         year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, date: p.date, decl: p.file,
-        kind: it.kind, co: it.co, extra: it.extra, eik, contracts: s.n, eur: Math.round(s.eur), first: s.first, last: s.last,
+        kind: it.kind, co: it.co, extra: it.extra, eik, confirmed, contracts: s.n, eur: Math.round(s.eur), first: s.first, last: s.last,
         buyers: top.slice(0, 5).map(([be, b]) => ({ eik: be, name: b.name, n: b.n, eur: Math.round(b.eur) })),
         sub: sb ? { n: sb.n, mains: [...sb.mains.values()].sort((a, b) => b.n - a.n).slice(0, 3), buyers: [...sb.buyers.values()].sort((a, b) => b.n - a.n).slice(0, 3) } : null,
         own: own.length ? { n: own.reduce((a, [, b]) => a + b.n, 0), eur: Math.round(own.reduce((a, [, b]) => a + b.eur, 0)) } : null,
@@ -110,8 +123,10 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
       const eik = sup.has(eik9) ? eik9 : null;
       if (!eik || declared.has(`${key}|${eik}`)) continue;
       const s = sup.get(eik);
-      const own = [...s.buyers.values()].filter((b) => normInst(b.name) === normInst(p.inst));
+      const own = [...s.buyers.values()].filter((b) => isOwn(b.name, p.inst, p.cat));
       if (!own.length) continue;
+      // Държавни и общински дружества: членството в съвета им обикновено идва по служба, не е личен интерес.
+      if ((trFor(eik)?.owner ?? []).some((o) => STATE_OWNER.test(o.name))) continue;
       const k = `${key}|${eik}`;
       const prev = trOnly.get(k);
       const roles = [...new Set([...(prev?.roles ?? []), role])];
