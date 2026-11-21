@@ -85,11 +85,11 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         </section>
       )}
       <section className="grid gap-4 lg:grid-cols-2 mb-10">
-        <div className="ring-1 ring-rule rounded-sm p-5"><h3 className="font-semibold mb-2">Връзки с политици</h3><LinksBox eik={eik} /></div>
-        <div className="ring-1 ring-rule rounded-sm p-5">
+        <div className="ring-1 ring-rule rounded-sm p-5 min-w-0"><h3 className="font-semibold mb-2">Връзки с политици</h3><LinksBox eik={eik} /></div>
+        <div className="ring-1 ring-rule rounded-sm p-5 min-w-0">
           <h3 className="font-semibold mb-2">При кои възложители печели най-много</h3>
           <ul className="text-[15px] space-y-1">
-            {buyers.map(([e, b]) => <li key={e} className="flex justify-between gap-3"><Link href={buyerUrl(e)} className="truncate">{b.name}</Link><span className="num whitespace-nowrap">{b.n} · {fmtEur(b.sum)}</span></li>)}
+            {buyers.map(([e, b]) => <li key={e} className="flex justify-between gap-3"><Link href={buyerUrl(e)} className="truncate min-w-0">{b.name}</Link><span className="num whitespace-nowrap">{b.n} · {fmtEur(b.sum)}</span></li>)}
           </ul>
         </div>
       </section>
