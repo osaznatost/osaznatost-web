@@ -13,6 +13,8 @@ import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { TrBox } from "@/components/TrBox";
 import { PaidToFirm } from "@/components/PaidBox";
+import { declLinksForEik } from "@/lib/declLinks";
+import { DeclLinks } from "@/components/DeclLinks";
 import { contractUrl } from "@/lib/procurement";
 
 export const metadata = { title: "Фирма" };
@@ -85,7 +87,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         </section>
       )}
       <section className="grid gap-4 lg:grid-cols-2 mb-10">
-        <div className="ring-1 ring-rule rounded-sm p-5 min-w-0"><h3 className="font-semibold mb-2">Връзки с политици</h3><LinksBox eik={eik} /></div>
+        <div className="ring-1 ring-rule rounded-sm p-5 min-w-0"><h3 className="font-semibold mb-2">Връзки с политици</h3><LinksBox eik={eik} />{declLinksForEik(eik).length > 0 && <div className="mt-4"><h4 className="font-semibold mb-1 text-[15px]">Декларирана от лица на публична длъжност</h4><DeclLinks items={declLinksForEik(eik)} mode="company" /></div>}</div>
         <div className="ring-1 ring-rule rounded-sm p-5 min-w-0">
           <h3 className="font-semibold mb-2">При кои възложители печели най-много</h3>
           <ul className="text-[15px] space-y-1">

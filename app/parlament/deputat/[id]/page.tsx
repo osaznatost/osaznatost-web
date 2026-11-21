@@ -19,6 +19,8 @@ import { firmsOfPerson } from "@/lib/tr";
 import { firmUrl, fmtEur, supplierStats } from "@/lib/procurement";
 import { DS_CHECK, MS_TYPE, NS_YEARS, claimsFor, dsFor, historyFor, prefsFor, profileFor } from "@/lib/mpProfile";
 import { ELECTIONS, partyByGroup } from "@/lib/partyMeta";
+import { declLinksFor } from "@/lib/declLinks";
+import { DeclLinks } from "@/components/DeclLinks";
 import { MPS, PARLIAMENT_SOURCE, VOTES, VOTE_LABEL, type VoteCode, formatDate, getMp, mpStats, mpVote, partyName } from "@/lib/parliament";
 
 export function generateStaticParams() {
@@ -181,6 +183,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
       <Anchor id="pari" title="Фирми, поръчки и евросредства" lead="Фирмите, в които е съдружник, собственик, управител или представител (по Търговския регистър, обработен от „Наясно“), и колко пари са получили от обществени поръчки и европейски програми.">
         <Suspense fallback={<p className="text-muted">Проверка на фирмите…</p>}><MpMoney id={mp.id} name={mp.name} /></Suspense>
         {firmsOfPerson(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
+        {declLinksFor(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Декларирани фирми с обществени поръчки</h3><DeclLinks items={declLinksFor(mp.name)} mode="person" /></div>}
       </Anchor>
 
       {(mb.sponsored.length > 0 || mb.conflict.length > 0) && (

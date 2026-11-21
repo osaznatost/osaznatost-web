@@ -12,6 +12,8 @@ import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { MPS } from "@/lib/parliament";
 import { tendersByContact } from "@/lib/projects";
 import { PersonFirms } from "@/components/TrBox";
+import { declLinksFor } from "@/lib/declLinks";
+import { DeclLinks } from "@/components/DeclLinks";
 import { firmsOfPerson, peopleOf, trFor } from "@/lib/tr";
 
 // Предварително само кметовете; останалите ~6000 профила се правят при първо отваряне и се кешират.
@@ -117,6 +119,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
       <section className="mb-10">
         <SectionTitle>Дялове във фирми и поръчките на общината</SectionTitle>
         <Suspense fallback={<p className="text-muted">Проверка…</p>}><StakeCheck code={code} o={o} /></Suspense>
+        {declLinksFor(o.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">По декларациите за интереси: фирми с обществени поръчки в цялата страна</h3><DeclLinks items={declLinksFor(o.name)} mode="person" /></div>}
       </section>
 
       {proposed.length > 0 && (
