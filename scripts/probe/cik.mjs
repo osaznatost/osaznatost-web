@@ -1,6 +1,11 @@
-import { execSync } from "node:child_process";
+import { execSync } from "node:child_process"; import { writeFileSync } from "node:fs";
 const H={"user-agent":"Mozilla/5.0 (osaznatost.bg; open data)"};
-const get=async u=>{try{const c=new AbortController();setTimeout(()=>c.abort(),20000);const r=await fetch(u,{headers:H,signal:c.signal,redirect:"follow"});const b=Buffer.from(await r.arrayBuffer());return [r.status,b,r.url]}catch(e){return ["ERR "+(e.cause?.code||e.name),Buffer.alloc(0)]}};
-for (const u of ["https://www.nsi.bg/statistical-data/113","https://www.nsi.bg/bg/statistical-data/113","https://www.nsi.bg/press-release/inflaciya-i-indeksi-na-potrebitelskite-ceni-9216"]) { const [s,b]=await get(u); const t=b.toString(); console.log("## NSI",u,s,t.length, [...new Set(t.match(/press-release\/[a-z0-9-]+/g)||[])].slice(0,12).join(" ")); }
-{ const [s,b,url]=await get("https://www.bnb.bg/AboutUs/PressOffice/POStatisticalPressReleases/POPRSInterestRate/202609_S_IRS_PRESS_BG"); console.log("## BNBhtml",s,url,JSON.stringify(b.toString().slice(0,700))); }
-for (const u of ["https://bnb.bg/bnbweb/groups/public/documents/bnb_download/202609_s_irs_press_a1_bg.pdf","https://www.bnb.bg/bnbweb/groups/public/documents/bnb_download/202609_s_irs_press_bg.pdf"]) { const [s,b]=await get(u); console.log("## BNBpdf",u,s,b.length,b.slice(0,5).toString()); if (b.slice(0,4).toString()==="%PDF") { require; } }
+const t=await (await fetch("https://www.nsi.bg/press-release/inflaciya-i-indeksi-na-potrebitelskite-ceni-oktomvri-2026-godina-9216",{headers:H})).text();
+const i=t.indexOf("Общ ИПЦ"); console.log("## NSIROW", JSON.stringify(t.slice(i-300,i+900).replace(/\s+/g," ")));
+console.log("## TABLES", (t.match(/<table/g)||[]).length);
+const b=Buffer.from(await (await fetch("https://bnb.bg/bnbweb/groups/public/documents/bnb_download/202609_s_irs_press_a1_bg.pdf",{headers:H})).arrayBuffer());
+writeFileSync("/tmp/a1.pdf",b);
+try{ console.log("## which", execSync("which pdftotext").toString()); }catch{ execSync("sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1"); }
+const txt=execSync("pdftotext -layout /tmp/a1.pdf -").toString();
+console.log("## PDFLEN", txt.length);
+for (const line of txt.split("\n").filter(l=>/жилищ|потребление|договорен матуритет|Домакинства/i.test(l)).slice(0,20)) console.log("## L", JSON.stringify(line));
