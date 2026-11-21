@@ -47,7 +47,7 @@ export function Inflation() {
           <p className="text-sm text-muted">Вашата инфлация</p>
           <p className="display num text-[4.2rem] mt-1">{num(r.rate)}%</p>
           <p className="mt-2">
-            Официалната (НСИ, юли 2026) е <span className="num font-semibold">{num(official)}%</span>.{" "}
+            Официалната (НСИ, октомври 2026) е <span className="num font-semibold">{num(official)}%</span>.{" "}
             {Math.abs(r.rate - official) < 0.3
               ? "Вашата е почти същата."
               : r.rate > official

@@ -21,9 +21,9 @@ const BNB_MACRO = {
   title: "БНБ, изисквания към жилищните кредити (11.09.2024)",
   url: "https://www.bnb.bg/bnbweb/groups/public/documents/bnb_pressrelease/pr_20240911_1_bg.doc",
 };
-const NSI_JULY = {
-  title: "НСИ, Инфлация и индекси на потребителските цени, юли 2026",
-  url: "https://www.nsi.bg/file/37341/inflaciya_i_indeksi_na_potrebitelskite_ceni.pdf",
+const NSI_OCT = {
+  title: "НСИ, Инфлация и индекси на потребителските цени, октомври 2026",
+  url: "https://www.nsi.bg/press-release/inflaciya-i-indeksi-na-potrebitelskite-ceni-9216",
 };
 
 export const P = {
@@ -42,26 +42,26 @@ export const P = {
   maxDsti: { value: 0.5, unit: "", validFrom: "2024-10-01", source: BNB_MACRO },
   maxLtv: { value: 0.85, unit: "", validFrom: "2024-10-01", source: BNB_MACRO },
   maxTermYears: { value: 30, unit: "години", validFrom: "2024-10-01", source: BNB_MACRO },
-  cpiYoY: { value: 0.045, unit: "", validFrom: "2026-07-31", source: NSI_JULY, note: "ИПЦ, юли 2026 спрямо юли 2025" },
+  cpiYoY: { value: 0.06, unit: "", validFrom: "2026-10-31", source: NSI_OCT, note: "ИПЦ, октомври 2026 спрямо октомври 2025" },
 } satisfies Record<string, Param>;
 
-// Годишна инфлация по групи на ИПЦ (НСИ, юли 2026 спрямо юли 2025), в %
+// Годишна инфлация по групи на ИПЦ (НСИ, октомври 2026 спрямо октомври 2025), в %
 export const CPI_GROUPS = [
-  { id: "food", label: "Храна и безалкохолни напитки", rate: 1.2 },
-  { id: "alc", label: "Алкохол и тютюн", rate: 5.7 },
-  { id: "clothing", label: "Облекло и обувки", rate: -0.4 },
-  { id: "housing", label: "Жилище, вода, ток, отопление", rate: 5.1 },
-  { id: "furnishing", label: "Обзавеждане и домакинство", rate: 0.3 },
-  { id: "health", label: "Здраве и лекарства", rate: 4.0 },
-  { id: "transport", label: "Транспорт и горива", rate: 14.5 },
-  { id: "communication", label: "Телефон и интернет", rate: 1.8 },
-  { id: "recreation", label: "Развлечения, спорт и култура", rate: 7.5 },
+  { id: "food", label: "Храна и безалкохолни напитки", rate: 2.0 },
+  { id: "alc", label: "Алкохол и тютюн", rate: 7.5 },
+  { id: "clothing", label: "Облекло и обувки", rate: 0.3 },
+  { id: "housing", label: "Жилище, вода, ток, отопление", rate: 5.6 },
+  { id: "furnishing", label: "Обзавеждане и домакинство", rate: 0.1 },
+  { id: "health", label: "Здраве и лекарства", rate: 3.2 },
+  { id: "transport", label: "Транспорт и горива", rate: 26.2 },
+  { id: "communication", label: "Телефон и интернет", rate: 1.9 },
+  { id: "recreation", label: "Развлечения, спорт и култура", rate: 9.1 },
   { id: "education", label: "Образование", rate: 9.2 },
-  { id: "restaurants", label: "Ресторанти и хотели", rate: 9.3 },
-  { id: "insurance", label: "Застраховки и банкови такси", rate: 1.1 },
+  { id: "restaurants", label: "Ресторанти и хотели", rate: 9.8 },
+  { id: "insurance", label: "Застраховки и банкови такси", rate: 1.9 },
   { id: "personal", label: "Лични грижи и други", rate: 5.3 },
 ] as const;
-export const CPI_GROUPS_SOURCE = NSI_JULY;
+export const CPI_GROUPS_SOURCE = NSI_OCT;
 
 // Брутен дълг на сектор „Държавно управление“, % от БВП (Евростат, gov_10dd_edpt1)
 export const DEBT_GDP: { year: number; value: number }[] = [
@@ -80,4 +80,5 @@ export const DEBT_GDP_SOURCE = {
 export const CPI_MONTHLY: { period: string; value: number }[] = [
   ["2025-09", 5.6], ["2025-10", 5.3], ["2025-11", 5.2], ["2025-12", 5.0], ["2026-01", 3.5],
   ["2026-02", 3.3], ["2026-03", 4.1], ["2026-04", 6.8], ["2026-05", 6.9], ["2026-06", 5.4], ["2026-07", 4.5],
+  ["2026-08", 5.1], ["2026-09", 5.7], ["2026-10", 6.0],
 ].map(([period, value]) => ({ period: period as string, value: value as number }));
