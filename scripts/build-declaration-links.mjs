@@ -4,7 +4,9 @@
 // връзката НЕ се показва: не можем да кажем коя е. Сигнал „от собствената институция“: възложителят е
 // институцията, в която лицето заема длъжност (същото нормализирано име).
 // Пуска се от GitHub Actions. Нужни тайни: SUPABASE_URL, SUPABASE_SECRET_KEY. Пише data/declarations/links.json.
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
+// Всички години, за които има прочетени декларации (data/declarations/<година>.json), от най-новата.
+const YEARS_ALL = readdirSync("data/declarations").map((f) => f.match(/^(\d{4})\.json$/)?.[1]).filter(Boolean).sort().reverse();
 
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
@@ -75,7 +77,7 @@ console.log("изпълнители:", sup.size, "имена:", byName.size);
 const links = [], ambiguous = [];
 let publicRoles = 0;
 let people = 0;
-for (const year of ["2026", "2025", "2024", "2023"]) {
+for (const year of YEARS_ALL) {
   const f = `data/declarations/${year}.json`;
   if (!existsSync(f)) continue;
   const D = JSON.parse(readFileSync(f, "utf8"));
@@ -123,7 +125,7 @@ const trOnly = new Map();
 // Защита от съименници: името трябва да е рядко — едно лице сред декларантите (една институция)
 // и в Търговския регистър да се среща в най-много 3 различни фирми.
 const declInst = new Map();
-for (const year of ["2026", "2025", "2024", "2023"]) {
+for (const year of YEARS_ALL) {
   const f = `data/declarations/people-${year}.json`;
   if (!existsSync(f)) continue;
   for (const p of JSON.parse(readFileSync(f, "utf8"))) {
@@ -134,7 +136,7 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
 }
 let namesakeSkipped = 0;
 const COMMON_SURNAME = /^(ИВАНОВ|ГЕОРГИЕВ|ДИМИТРОВ|ПЕТРОВ|НИКОЛОВ|ХРИСТОВ|СТОЯНОВ|ТОДОРОВ|ИЛИЕВ|ВАСИЛЕВ|АТАНАСОВ|ПЕТКОВ|АНГЕЛОВ|ЙОРДАНОВ|КОЛЕВ|МАРИНОВ|ПОПОВ|СТЕФАНОВ|КОСТОВ|МИХАЙЛОВ)А?$/;
-for (const year of ["2026", "2025", "2024", "2023"]) {
+for (const year of YEARS_ALL) {
   const f = `data/declarations/people-${year}.json`;
   if (!existsSync(f)) continue;
   for (const p of JSON.parse(readFileSync(f, "utf8"))) {
