@@ -120,12 +120,27 @@ const out = [...uniq.values()].sort((a, b) => b.eur - a.eur);
 const trPeople = existsSync("data/tr/people.json") ? JSON.parse(readFileSync("data/tr/people.json", "utf8")) : {};
 const declared = new Set(out.map((l) => `${l.name.toUpperCase()}|${l.eik}`));
 const trOnly = new Map();
+// Защита от съименници: името трябва да е рядко — едно лице сред декларантите (една институция)
+// и в Търговския регистър да се среща в най-много 3 различни фирми.
+const declInst = new Map();
+for (const year of ["2026", "2025", "2024", "2023"]) {
+  const f = `data/declarations/people-${year}.json`;
+  if (!existsSync(f)) continue;
+  for (const p of JSON.parse(readFileSync(f, "utf8"))) {
+    const key = p.name.toUpperCase().replace(/\s+/g, " ").trim();
+    if (!declInst.has(key)) declInst.set(key, new Set());
+    declInst.get(key).add(p.inst);
+  }
+}
+let namesakeSkipped = 0;
 for (const year of ["2026", "2025", "2024", "2023"]) {
   const f = `data/declarations/people-${year}.json`;
   if (!existsSync(f)) continue;
   for (const p of JSON.parse(readFileSync(f, "utf8"))) {
     const key = p.name.toUpperCase().replace(/\s+/g, " ").trim();
     if (key.split(" ").length < 3) continue; // само пълни три имена
+    const firms = new Set((trPeople[key] ?? []).map(([e]) => e));
+    if ((declInst.get(key)?.size ?? 0) > 1 || firms.size > 3) { if (firms.size) namesakeSkipped++; continue; }
     for (const [eik9, role] of trPeople[key] ?? []) {
       const eik = sup.has(eik9) ? eik9 : null;
       if (!eik || declared.has(`${key}|${eik}`)) continue;
@@ -143,6 +158,6 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
   }
 }
 const trOut = [...trOnly.values()].sort((a, b) => b.own.eur - a.own.eur);
-console.log("само по Търговския регистър (същата институция):", trOut.length);
+console.log("само по Търговския регистър (същата институция):", trOut.length, "пропуснати заради възможни съименници:", namesakeSkipped);
 writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, links: out, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
 console.log("декларации с дружества:", people, "връзки:", out.length, "лица:", new Set(out.map((l) => l.name)).size, "от собствената институция:", out.filter((l) => l.own).length, "неясни имена:", ambiguous.length);
