@@ -10,3 +10,6 @@ jobs:
         with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null
       - run: node scripts/probe/cik.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
