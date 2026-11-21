@@ -20,10 +20,16 @@ const normInst = (s) => String(s ?? "").toLowerCase().replace(/["„“”']/g, 
 const sup = new Map(); // eik → {names:Set, n, eur, buyers: Map(eik→{name,n,eur})}
 const subs = new Map(); // eik → {names:Set, n, mains: Map(eik→{name,n}), buyers: Map(eik→{name,n})} — като подизпълнител
 const PAGE = 1000;
-for (let off = 0; ; off += PAGE) {
-  const r = await fetch(`${URL_}/rest/v1/proc_contracts?select=supplier_eiks,supplier_names,buyer_eik,buyer_name,contract_value_eur,contract_date,subcontractor_eiks,subcontractor_names&order=id&limit=${PAGE}&offset=${off}`, { headers: H });
+let lastId = null, done = 0;
+for (;;) {
+  // Страниране по ключ (id > последния), не по отместване: отместването над ~150 хил. реда изтича.
+  const flt = lastId ? `&id=gt.${encodeURIComponent(lastId)}` : "";
+  let r = null;
+  for (let a = 0; a < 4 && !r?.ok; a++) { r = await fetch(`${URL_}/rest/v1/proc_contracts?select=id,supplier_eiks,supplier_names,buyer_eik,buyer_name,contract_value_eur,contract_date,subcontractor_eiks,subcontractor_names&order=id&limit=${PAGE}${flt}`, { headers: H }); if (!r.ok) await new Promise((s) => setTimeout(s, 3000 * (a + 1))); }
   if (!r.ok) throw new Error(`Supabase ${r.status}`);
   const rows = await r.json();
+  if (rows.length) lastId = rows.at(-1).id;
+  done += rows.length;
   for (const c of rows) {
     (c.supplier_eiks ?? []).forEach((eik, i) => {
       if (!eik) return;
@@ -48,7 +54,7 @@ for (let off = 0; ; off += PAGE) {
     });
   }
   if (rows.length < PAGE) break;
-  if (off % 50000 === 0) console.log("договори:", off);
+  if (done % 50000 < PAGE) console.log("договори:", done);
 }
 const byName = new Map(); // нормализирано име → Set(ЕИК)
 for (const [eik, s] of [...sup, ...subs]) for (const n of s.names) { const k = normCo(n); if (k.replace(/ /g, "").length >= 5) (byName.get(k) ?? byName.set(k, new Set()).get(k)).add(eik); }
@@ -57,7 +63,7 @@ console.log("изпълнители:", sup.size, "имена:", byName.size);
 // 2) Декларации
 const links = [], ambiguous = [];
 let people = 0;
-for (const year of ["2026", "2025"]) {
+for (const year of ["2026", "2025", "2024", "2023"]) {
   const f = `data/declarations/${year}.json`;
   if (!existsSync(f)) continue;
   const D = JSON.parse(readFileSync(f, "utf8"));
@@ -94,7 +100,7 @@ const out = [...uniq.values()].sort((a, b) => b.eur - a.eur);
 const trPeople = existsSync("data/tr/people.json") ? JSON.parse(readFileSync("data/tr/people.json", "utf8")) : {};
 const declared = new Set(out.map((l) => `${l.name.toUpperCase()}|${l.eik}`));
 const trOnly = new Map();
-for (const year of ["2026", "2025"]) {
+for (const year of ["2026", "2025", "2024", "2023"]) {
   const f = `data/declarations/people-${year}.json`;
   if (!existsSync(f)) continue;
   for (const p of JSON.parse(readFileSync(f, "utf8"))) {

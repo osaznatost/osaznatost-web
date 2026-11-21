@@ -8,7 +8,8 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
-const YEARS = (process.env.YEARS ?? "2026,2025").split(",");
+const YEARS = (process.env.YEARS ?? "2026,2025,2024,2023").split(",");
+const VERSION = 2; // 2: + таблица 10 от имуществената декларация (дялове в ООД и КД), всяка година за всички лица
 const MINUTES = Number(process.env.MINUTES ?? 150);
 const T0 = Date.now();
 const UA = "Mozilla/5.0 (osaznatost.bg; open data)";
@@ -23,8 +24,9 @@ for (const year of YEARS) {
   const list = get(base + "list.xml");
   if (!list) { console.log(year, "няма list.xml"); continue; }
   const fOut = `data/declarations/${year}.json`, fSeen = `data/declarations/seen-${year}.json`;
-  const out = existsSync(fOut) ? JSON.parse(readFileSync(fOut, "utf8")) : { year, people: [] };
-  const seen = new Set(existsSync(fSeen) ? JSON.parse(readFileSync(fSeen, "utf8")) : []);
+  let out = existsSync(fOut) ? JSON.parse(readFileSync(fOut, "utf8")) : null;
+  let seen = new Set(existsSync(fSeen) ? JSON.parse(readFileSync(fSeen, "utf8")) : []);
+  if (!out || out.version !== VERSION) { out = { year, version: VERSION, people: [] }; seen = new Set(); } // нова версия на правилата: четем отначало
   // Обхождаме структурата по ред: категория → институция → лице → длъжност → декларация.
   const jobs = [];
   for (const c of list.matchAll(/<Category Name="([^"]*)">([\s\S]*?)<\/Category>/g)) {
@@ -55,6 +57,15 @@ for (const year of YEARS) {
         const cells = Object.fromEntries([...r[1].matchAll(/<Cell Num="(\d+)"[^>]*>([^<]*)<\/Cell>/g)].map((c) => [c[1], unesc(c[2])]));
         if (cells["2"]) items.push({ kind: KIND[t[1]], co: cells["2"], extra: cells["3"] || null });
       }
+    }
+    // Имуществена декларация, таблица 10: дялове в ООД и КД. Клетка 4 = дружество, 3 = дял, 7 = собственик.
+    // Собственикът може да е съпруг или дете: тогава пишем само „член на семейството“, без име.
+    const t10 = x.match(/<Table Num="10"[^>]*Declared="True">([\s\S]*?)<\/Table>/);
+    if (t10) for (const r of t10[1].matchAll(/<Row Num="\d+">([\s\S]*?)<\/Row>/g)) {
+      const cells = Object.fromEntries([...r[1].matchAll(/<Cell Num="(\d+)"[^>]*>([^<]*)<\/Cell>/g)].map((c) => [c[1], unesc(c[2])]));
+      if (!cells["4"]) continue;
+      const self = !cells["7"] || cells["7"].toUpperCase().replace(/\s+/g, " ") === j.name.toUpperCase().replace(/\s+/g, " ");
+      items.push({ kind: self ? "дял (имуществена декларация)" : "дял на член на семейството", co: cells["4"], extra: cells["3"] || null });
     }
     const date = (x.match(/<DeclarationDate>([^<]+)</) || [])[1] ?? null;
     if (items.length) {
