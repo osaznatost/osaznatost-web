@@ -1,6 +1,3 @@
-import { execFileSync } from "node:child_process"; import { readFileSync } from "node:fs";
-execFileSync("node", ["scripts/import-council-sites.mjs"], { env: { ...process.env, ONLY: "VRC10", MINUTES: "12" }, stdio: "inherit" });
-const d = JSON.parse(readFileSync("data/council/VRC10.json", "utf8"));
-const n=d.decisions.map(x=>+x.number);
-console.log("## decisions", d.decisions.length, "dates", d.decisions.map(x=>x.date).sort()[0], "..", d.decisions.map(x=>x.date).sort().at(-1), "min/max", Math.min(...n), Math.max(...n), "complete", d.complete);
-for (const x of d.decisions.slice(-3)) console.log("## S", JSON.stringify(x).slice(0,300));
+const H={"user-agent":"Mozilla/5.0 (osaznatost.bg; civic data)"};
+const U=["https://obs.silistra.bg/","https://www.silistra.bg/","https://www.blgmun.com/","https://blagoevgrad.bg/","https://obs.blagoevgrad.bg/","https://www.targovishte.bg/","https://os.targovishte.bg/","https://www.vidin.bg/","https://obs.vidin.bg/","https://www.smolyan.bg/","https://os.smolyan.bg/","https://www.kustendil.bg/","https://www.plovdiv.bg/","https://www.plovdivmc.bg/","https://kustendil.bg/"];
+for (const u of U){ try{ const c=new AbortController(); setTimeout(()=>c.abort(),15000); const r=await fetch(u,{headers:H,signal:c.signal}); const t=await r.text(); const links=[...new Set([...t.matchAll(/href="([^"]*(?:reshen|решени|%d1%80%d0%b5%d1%88)[^"]*)"/gi)].map(m=>m[1]))].slice(0,6); console.log("## ",u,r.status,t.length,JSON.stringify(links)); }catch(e){console.log("## ",u,"ERR",e.name,e.cause?.code||"")}}
