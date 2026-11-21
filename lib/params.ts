@@ -13,9 +13,9 @@ const KIK_OSIG = {
   title: "Осигуровки, МОД, ТЗПБ от 01.08.2026 (ДВ бр. 68/2026), kik-info.com",
   url: "https://kik-info.com/novini/novini-i-akcenti/Ot-01082026-Osigurovki-MOD-TZPB-bolnichni.208156.php",
 };
-const BNB_JUNE = {
-  title: "БНБ, лихвена статистика, юни 2026",
-  url: "https://bnb.bg/bnbweb/groups/public/documents/bnb_download/202606_s_irs_press_a1_bg.pdf",
+const BNB_SEP = {
+  title: "БНБ, лихвена статистика, септември 2026 (публикувана 27.10.2026)",
+  url: "https://www.bnb.bg/AboutUs/PressOffice/POStatisticalPressReleases/POPRSInterestRate/202609_S_IRS_PRESS_BG",
 };
 const BNB_MACRO = {
   title: "БНБ, изисквания към жилищните кредити (11.09.2024)",
@@ -27,7 +27,7 @@ const NSI_OCT = {
 };
 
 export const P = {
-  minWage: { value: 620.2, unit: "€/месец", validFrom: "2026-01-01", source: { title: "Минимална работна заплата 2026", url: "https://www.innovires.com/blog/minimalna-rabotna-zaplata-2026.html" } },
+  minWage: { value: 620.2, unit: "€/месец", validFrom: "2026-01-01", source: { title: "ПМС № 243 от 13.11.2025 г. (ДВ, бр. 98/2025), съобщение на НАП", url: "https://nra.bg/wps/portal/nra/actualno/vpisvane_v_registura_na_zaetostta_vuv_vruzka_s_opredelenata_mrz_ot_01.01.2026" } },
   maxInsurable: { value: 2300, unit: "€/месец", validFrom: "2026-08-01", source: KIK_OSIG },
   employeeRate: { value: 0.1378, unit: "", validFrom: "2026-08-01", source: KIK_OSIG, note: "пенсии 6,58 + ДЗПО 2,2 + ОЗМ 1,4 + безработица 0,4 + здравно 3,2" },
   employerRate: { value: 0.1892, unit: "", validFrom: "2026-08-01", source: KIK_OSIG, note: "пенсии 8,22 + ДЗПО 2,8 + ОЗМ 2,1 + безработица 0,6 + здравно 4,8 + ТЗПБ 0,4 (най-ниската ставка; до 1,1 според дейността)" },
@@ -36,9 +36,9 @@ export const P = {
   vatReduced: { value: 0.09, unit: "", validFrom: "2007-01-01", source: { title: "ЗДДС (хотели, бебешки храни, книги)", url: "https://nra.bg" } },
   excisePetrol: { value: 0.363, unit: "€/л", validFrom: "2026-01-01", source: { title: "Акцизи върху горивата в Европа 2026, prix-carburant.eu", url: "https://prix-carburant.eu/bg/statiya/sravnenie-na-danatsite-vurhu-gorivata-v-evropa" }, note: "За проверка в ЗАДС" },
   exciseDiesel: { value: 0.33, unit: "€/л", validFrom: "2026-01-01", source: { title: "Акцизи върху горивата в Европа 2026, prix-carburant.eu", url: "https://prix-carburant.eu/bg/statiya/sravnenie-na-danatsite-vurhu-gorivata-v-evropa" }, note: "За проверка в ЗАДС" },
-  mortgageRate: { value: 0.0241, unit: "", validFrom: "2026-06-30", source: BNB_JUNE, note: "среден лихвен процент, нов бизнес, жилищни кредити" },
-  consumerRate: { value: 0.0876, unit: "", validFrom: "2026-06-30", source: BNB_JUNE, note: "среден лихвен процент, нов бизнес, кредити за потребление" },
-  depositRate: { value: 0.0157, unit: "", validFrom: "2026-06-30", source: BNB_JUNE, note: "срочни депозити, нов бизнес" },
+  mortgageRate: { value: 0.0241, unit: "", validFrom: "2026-09-30", source: BNB_SEP, note: "среден лихвен процент, нов бизнес, жилищни кредити" },
+  consumerRate: { value: 0.0883, unit: "", validFrom: "2026-09-30", source: BNB_SEP, note: "среден лихвен процент, нов бизнес, кредити за потребление" },
+  depositRate: { value: 0.0142, unit: "", validFrom: "2026-09-30", source: BNB_SEP, note: "депозити на домакинствата с договорен матуритет, нов бизнес" },
   maxDsti: { value: 0.5, unit: "", validFrom: "2024-10-01", source: BNB_MACRO },
   maxLtv: { value: 0.85, unit: "", validFrom: "2024-10-01", source: BNB_MACRO },
   maxTermYears: { value: 30, unit: "години", validFrom: "2024-10-01", source: BNB_MACRO },
