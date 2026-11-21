@@ -24,7 +24,7 @@ const trFor = (eik) => { const k = String(eik).slice(0, 2); if (!trShards.has(k)
 const trNames = (f) => new Set(["managers", "board", "partners", "owner", "ubo", "procurator"].flatMap((r) => (f?.[r] ?? []).map((p) => String(p.name).toUpperCase().replace(/\s+/g, " ").trim())));
 const STATE_OWNER = /държав|министерств|народна банка|общин|агенция|република българия/i;
 // Публични предприятия (регистър на АППК) и дружества с държавен или общински собственик по ТР.
-const PUBLIC = new Set((existsSync("data/public-companies.json") ? JSON.parse(readFileSync("data/public-companies.json", "utf8")) : []).map((c) => String(c.eik).slice(0, 9)));
+const PUBLIC = new Set((existsSync("data/public-companies.json") ? [].concat(JSON.parse(readFileSync("data/public-companies.json", "utf8")).companies ?? []) : []).map((c) => String(c.eik).slice(0, 9)));
 const isPublicCo = (eik, name) => PUBLIC.has(String(eik).slice(0, 9)) || (trFor(eik)?.owner ?? []).some((o) => STATE_OWNER.test(o.name)) || /ДЪРЖАВН|НАЦИОНАЛНА КОМПАНИЯ| ДП$|ЧЕРВЕН КРЪСТ/i.test(name);
 
 // 1) Изпълнители: име → ЕИК-ове, договори, сума, възложители

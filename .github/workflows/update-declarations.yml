@@ -9,6 +9,10 @@ on:
       years:
         description: "Години (напр. 2026,2025)"
         default: "2026,2025,2024,2023"
+      link_only:
+        description: "Само свързване с поръчките (без четене от Mac-а)"
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -16,6 +20,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   read:
+    if: ${{ !inputs.link_only }}
     runs-on: [self-hosted, macOS, ARM64]
     timeout-minutes: 300
     steps:
