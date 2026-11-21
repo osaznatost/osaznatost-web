@@ -113,6 +113,8 @@ for e in todo:
         d = json.loads(body)
         if not isinstance(d, dict) or "sections" not in d: continue
         load(e)[e] = parse(d); done += 1
+        if done % 100 == 0:  # записваме по пътя, за да не се загуби работата при прекъсване
+            for f, data in cache.items(): json.dump(data, open(f, "w"), ensure_ascii=False, separators=(",", ":"))
     except json.JSONDecodeError:
         continue
 for f, data in cache.items():

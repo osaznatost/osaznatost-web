@@ -2,11 +2,11 @@ name: Търговски регистър (фирмите с поръчки)
 
 on:
   schedule:
-    - cron: "11 */2 * * *"   # на всеки 2 часа, докато мине през всички фирми; после само обновява
+    - cron: "11 */6 * * *"   # на всеки 6 часа по ~5,5 часа (агенцията допуска ~1 заявка на 5 с), докато мине през всички фирми
   workflow_dispatch:
     inputs:
       minutes:
-        default: "50"
+        default: "330"
 
 permissions:
   contents: write
@@ -18,16 +18,17 @@ concurrency:
 jobs:
   tr:
     runs-on: ubuntu-latest
-    timeout-minutes: 70
+    timeout-minutes: 350
     steps:
       - uses: actions/checkout@v4
       - name: Четене от Агенция по вписванията
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          MINUTES: ${{ inputs.minutes || '50' }}
+          MINUTES: ${{ inputs.minutes || '330' }}
         run: python3 scripts/import-tr.py
       - name: Запис (в scripts/, без публикуване на сайта)
+        if: always()
         run: |
           git add scripts/tr-cache
           if git diff --cached --quiet; then exit 0; fi
