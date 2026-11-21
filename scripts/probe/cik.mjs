@@ -1,5 +1,7 @@
-const H={"user-agent":"Mozilla/5.0 (osaznatost.bg; civic data)"};
-const t=await (await fetch("https://blagoevgrad.bg/",{headers:H})).text();
-const L=[...new Set([...t.matchAll(/href="([^"]+)"[^>]*>([^<]{0,60})/g)].filter(m=>/съвет|council|obs|reshen|решен|протокол/i.test(m[1]+m[2])).map(m=>m[1]+" | "+m[2].trim()))];
-console.log("## L",JSON.stringify(L.slice(0,30)));
-for (const u of ["https://blagoevgrad.bg/municipal_council","https://blagoevgrad.bg/obshtinski-suvet","https://blagoevgrad.bg/council"]) { const r=await fetch(u,{headers:H}); console.log("## ",u,r.status); }
+for (const ds of ["prc_hicp_manr"]) {
+  const u=`https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/${ds}?geo=BG&coicop=CP00&sinceTimePeriod=2025-09`;
+  const j=await (await fetch(u)).json(); const idx=j.dimension.time.category.index;
+  console.log("## "+ds, JSON.stringify(Object.entries(idx).sort((a,b)=>a[1]-b[1]).map(([t,i])=>[t,j.value[i]])));
+}
+const g=await (await fetch("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=BG&coicop=CP07&coicop=CP01&coicop=CP04&sinceTimePeriod=2026-06")).json();
+console.log("## groups", JSON.stringify(g.value).slice(0,300), JSON.stringify(g.dimension.coicop.category.index));
