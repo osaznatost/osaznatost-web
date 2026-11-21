@@ -29,7 +29,7 @@ jobs:
       - name: Изтегляне от data.egov.bg
         env:
           ONLY_ZIP: ${{ inputs.only_zip || '0' }}
-        run: node scripts/fetch-sebra.mjs "$RUNNER_TEMP/sebra"
+        run: caffeinate -i -s node scripts/fetch-sebra.mjs "$RUNNER_TEMP/sebra"
       - name: Обобщение
         if: ${{ inputs.only_zip != '1' }}
         run: python3 scripts/import-sebra.py "$RUNNER_TEMP/sebra"

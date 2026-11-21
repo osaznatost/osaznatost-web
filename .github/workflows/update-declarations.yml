@@ -32,7 +32,7 @@ jobs:
         env:
           YEARS: ${{ inputs.years || '2026,2025,2024,2023' }}
           MINUTES: "280"
-        run: node scripts/import-declarations.mjs
+        run: caffeinate -i -s node scripts/import-declarations.mjs   # Mac-ът да не заспи по време на четенето
       - name: Запис
         if: always()
         run: |
