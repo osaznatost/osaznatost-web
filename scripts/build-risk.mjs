@@ -9,6 +9,14 @@ const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
 const HEAD = { apikey: KEY };
 const pol = JSON.parse(readFileSync("data/political-links.json", "utf8")).byEik;
+// Плюс нашите връзки от декларациите за интереси (data/declarations/links.json): фирма, посочена в декларация.
+if (existsSync("data/declarations/links.json")) {
+  for (const l of JSON.parse(readFileSync("data/declarations/links.json", "utf8")).links ?? []) {
+    const e = String(l.eik).slice(0, 9);
+    if ((pol[e] ??= []).some((x) => x.who.toUpperCase() === l.name.toUpperCase())) continue;
+    pol[e].push({ who: l.name, kind: l.mp ? "mp" : "official", position: l.pos, roles: ["посочено в декларация"] });
+  }
+}
 // Личен интерес на политик: виж lib/politicalFlag.mjs (силна, възможна по имена, няма при държавни и общински дружества).
 const personal = (e) => politicalStrength(pol[e] ?? []);
 // Дата на създаване на фирмата от Търговския регистър (data/tr): за флага „нова фирма“.
