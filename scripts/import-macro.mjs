@@ -86,11 +86,10 @@ async function bnb() {
     const f = path.join(tmp, `${ym}.pdf`); writeFileSync(f, pdf);
     const t = execFileSync("pdftotext", ["-layout", f, "-"]).toString().replace(/\s+/g, " ");
     const num = (re) => { const x = t.match(re); return x ? Number(x[1]) : null; };
-    const V = "(?:намалява|нараства|се повишава|се понижава|се увеличава|остава(?: без промяна)?)";
-    const consumer = num(new RegExp(`по кредитите за потребление ${V}[^%]{0,60}?(?:до|на) (\\d+\\.\\d+)%`));
-    const mortgage = num(new RegExp(`жилищните кредити средният лихвен процент ${V}[^%]{0,60}?(?:до|на) (\\d+\\.\\d+)%`));
-    const dep = t.slice(t.lastIndexOf("Сектор Домакинства"));
-    const depH = dep.match(new RegExp(`депозитите с договорен матуритет ${V}[^%]{0,60}?(?:до|на) (\\d+\\.\\d+)%`));
+    const V = "(?:намалява|нараства|се повишава|се понижава|се увеличава|се намалява|остава(?: без промяна)?)";
+    const consumer = num(new RegExp(`по кредитите за потребление ${V}[^%]{0,60}?(?:до |на )?(\\d+\\.\\d+)%`));
+    const mortgage = num(new RegExp(`жилищните кредити средният лихвен процент ${V}[^%]{0,60}?(?:до |на )?(\\d+\\.\\d+)%`));
+    const depH = t.match(new RegExp(`депозитите с договорен матуритет ${V}[^%]{0,60}?(?:до |на )?(\\d+\\.\\d+)%`));
     const deposit2 = depH ? Number(depH[1]) : null;
     const ok = (v, lo, hi) => v != null && v >= lo && v <= hi;
     if (!ok(consumer, 2, 20) || !ok(mortgage, 0.5, 10) || !ok(deposit2, 0, 8)) { console.log("БНБ: неразпознат текст", url, consumer, mortgage, deposit2); continue; }
