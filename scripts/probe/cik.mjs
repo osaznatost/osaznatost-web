@@ -1,5 +1,6 @@
-const H={"user-agent":"Mozilla/5.0 (osaznatost.bg; civic data)"};
-const t=await (await fetch("https://vratza.bg/%d0%b8%d0%b7%d0%b1%d0%be%d1%80%d0%b8-2/?e-page-08b6494=10",{headers:H})).text();
-const i=t.indexOf("824 / 28.07.2026"); const j=t.indexOf("823 / 28.07.2026");
-console.log("## gap",j-i);
-console.log("## ROW", JSON.stringify(t.slice(i-1500,j+50).replace(/\s+/g," ")));
+import { execFileSync } from "node:child_process"; import { readFileSync } from "node:fs";
+execFileSync("node", ["scripts/import-council-sites.mjs"], { env: { ...process.env, ONLY: "VRC10", MINUTES: "12" }, stdio: "inherit" });
+const d = JSON.parse(readFileSync("data/council/VRC10.json", "utf8"));
+const n=d.decisions.map(x=>+x.number);
+console.log("## decisions", d.decisions.length, "dates", d.decisions.map(x=>x.date).sort()[0], "..", d.decisions.map(x=>x.date).sort().at(-1), "min/max", Math.min(...n), Math.max(...n), "complete", d.complete);
+for (const x of d.decisions.slice(-3)) console.log("## S", JSON.stringify(x).slice(0,300));

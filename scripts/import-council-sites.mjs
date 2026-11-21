@@ -533,7 +533,12 @@ async function vratza(code, S, prev) {
     if (timeUp() || blocked) break;
     const list = await get(S.vratza(p));
     if (!list) break;
-    const items = [...list.matchAll(/<a[^>]+href="(https:\/\/vratza\.bg\/wp-content\/uploads\/\d{4}\/\d{2}\/(\d+)-(\d{2})_(\d{2})_(\d{4})[^"]*\.(?:docx?|pdf))"[^>]*>([\s\S]*?)<\/a>/g)];
+    const items = [];
+    for (const chunk of list.split(/e-loop-item-\d+/).slice(1)) {
+      const nd = chunk.match(/>\s*(\d{1,4})\s*\/\s*(\d{2})\.(\d{2})\.(\d{4})\s*</);
+      const a = chunk.match(/elementor-shortcode"><a href="(https:\/\/vratza\.bg\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/);
+      if (nd && a) items.push([null, a[1], nd[1], nd[2], nd[3], nd[4], a[2]]);
+    }
     if (!items.length) break;
     let old = 0, fresh = 0;
     for (const [, u, number, dd, mm, yyyy, txt] of items) {
