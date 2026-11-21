@@ -186,5 +186,8 @@ for (const year of YEARS_ALL) {
 }
 const trOut = [...trOnly.values()].sort((a, b) => b.own.eur - a.own.eur);
 console.log("само по Търговския регистър (същата институция):", trOut.length, "пропуснати заради възможни съименници:", namesakeSkipped);
+// Кои фирми Търговският регистър да провери първи: кандидатите от неясните имена и свързаните фирми без ТР данни.
+const prio = new Set([...ambiguous.flatMap((a) => a.eiks), ...out.filter((l) => l.confirmed == null).map((l) => l.eik)].map((e) => String(e).slice(0, 9)).filter((e) => !trFor(e)));
+writeFileSync("data/tr/priority.json", JSON.stringify([...prio]));
 writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, stats, links: out, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
 console.log("декларации с дружества:", people, "връзки:", out.length, "лица:", new Set(out.map((l) => l.name)).size, "от собствената институция:", out.filter((l) => l.own).length, "неясни имена:", ambiguous.length);

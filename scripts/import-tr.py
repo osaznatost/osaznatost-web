@@ -91,7 +91,9 @@ while True:  # по id, на порции (агрегиращият изглед
             if re.fullmatch(r"\d{9}|\d{13}", e or ""): tot[e[:9]] = tot.get(e[:9], 0) + (r.get("contract_value_eur") or 0) / max(1, len(r["supplier_eiks"]))
     if len(rows) < 1000: break
     last = rows[-1]["id"].replace("&", "%26").replace("#", "%23").replace(" ", "%20")
-eiks = sorted(tot, key=lambda e: -tot[e])
+# Първо фирмите, които трябват за декларациите (data/tr/priority.json от build-declaration-links.mjs), после по стойност.
+prio = set(json.load(open("data/tr/priority.json"))) if os.path.exists("data/tr/priority.json") else set()
+eiks = sorted(set(tot) | prio, key=lambda e: (e not in prio, -tot.get(e, 0)))
 print("Изпълнители в базата:", len(eiks))
 cutoff = (date.today() - timedelta(days=REFRESH)).isoformat()
 todo = [e for e in eiks if (load(e).get(e) or {}).get("fetched", "") < cutoff]
