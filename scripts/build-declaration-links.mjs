@@ -23,6 +23,9 @@ const trShards = new Map();
 const trFor = (eik) => { const k = String(eik).slice(0, 2); if (!trShards.has(k)) { const f = `data/tr/${k}.json`; trShards.set(k, existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {}); } return trShards.get(k)[String(eik).slice(0, 9)] ?? null; };
 const trNames = (f) => new Set(["managers", "board", "partners", "owner", "ubo", "procurator"].flatMap((r) => (f?.[r] ?? []).map((p) => String(p.name).toUpperCase().replace(/\s+/g, " ").trim())));
 const STATE_OWNER = /държав|министерств|народна банка|общин|агенция|република българия/i;
+// Публични предприятия (регистър на АППК) и дружества с държавен или общински собственик по ТР.
+const PUBLIC = new Set((existsSync("data/public-companies.json") ? JSON.parse(readFileSync("data/public-companies.json", "utf8")) : []).map((c) => String(c.eik).slice(0, 9)));
+const isPublicCo = (eik, name) => PUBLIC.has(String(eik).slice(0, 9)) || (trFor(eik)?.owner ?? []).some((o) => STATE_OWNER.test(o.name)) || /ДЪРЖАВН|НАЦИОНАЛНА КОМПАНИЯ| ДП$|ЧЕРВЕН КРЪСТ/i.test(name);
 
 // 1) Изпълнители: име → ЕИК-ове, договори, сума, възложители
 const sup = new Map(); // eik → {names:Set, n, eur, buyers: Map(eik→{name,n,eur})}
@@ -70,6 +73,7 @@ console.log("изпълнители:", sup.size, "имена:", byName.size);
 
 // 2) Декларации
 const links = [], ambiguous = [];
+let publicRoles = 0;
 let people = 0;
 for (const year of ["2026", "2025", "2024", "2023"]) {
   const f = `data/declarations/${year}.json`;
@@ -90,6 +94,9 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
       const confirmed = tr ? trNames(tr).has(p.name.toUpperCase().replace(/\s+/g, " ").trim()) : null;
       // Име от една дума („Екоенерджи“) може да е друга фирма със същото име, която не е печелила поръчки:
       // показваме го само ако Търговският регистър потвърждава, че лицето е в тази фирма.
+      // Управление на държавно или общинско дружество (съвет на директорите и т.н.) обикновено е по служба,
+      // не личен интерес: такива връзки броим отделно и не ги показваме като сигнал.
+      if (/управление/.test(it.kind) && isPublicCo(eik, it.co)) { publicRoles++; continue; }
       if (k.split(" ").length < 2 && confirmed !== true) { ambiguous.push({ co: it.co, eiks: [eik], why: "една дума" }); continue; }
       links.push({
         year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, date: p.date, decl: p.file,
@@ -126,7 +133,7 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
       const own = [...s.buyers.values()].filter((b) => isOwn(b.name, p.inst, p.cat));
       if (!own.length) continue;
       // Държавни и общински дружества: членството в съвета им обикновено идва по служба, не е личен интерес.
-      if ((trFor(eik)?.owner ?? []).some((o) => STATE_OWNER.test(o.name))) continue;
+      if (isPublicCo(eik, [...s.names][0] ?? "")) continue;
       const k = `${key}|${eik}`;
       const prev = trOnly.get(k);
       const roles = [...new Set([...(prev?.roles ?? []), role])];
@@ -137,5 +144,5 @@ for (const year of ["2026", "2025", "2024", "2023"]) {
 }
 const trOut = [...trOnly.values()].sort((a, b) => b.own.eur - a.own.eur);
 console.log("само по Търговския регистър (същата институция):", trOut.length);
-writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, links: out, ambiguous: ambiguous.length, trOnly: trOut }));
+writeFileSync("data/declarations/links.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), people, links: out, ambiguous: ambiguous.length, publicRoles, trOnly: trOut }));
 console.log("декларации с дружества:", people, "връзки:", out.length, "лица:", new Set(out.map((l) => l.name)).size, "от собствената институция:", out.filter((l) => l.own).length, "неясни имена:", ambiguous.length);

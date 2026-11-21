@@ -14,7 +14,7 @@ type L = {
   sub: { n: number; mains: { name: string; n: number }[]; buyers: { name: string; n: number }[] } | null;
 };
 type T = { year: string; name: string; pos: string; inst: string; cat: string; eik: string; co: string; roles: string[]; contracts: number; eur: number; own: { n: number; eur: number } };
-type Data = { updated: string; people: number; links: L[]; ambiguous: number; trOnly?: T[] };
+type Data = { updated: string; people: number; links: L[]; ambiguous: number; publicRoles?: number; trOnly?: T[] };
 
 const dir = path.join(process.cwd(), "data", "declarations");
 const read = (): Data | null => (existsSync(path.join(dir, "links.json")) ? (JSON.parse(readFileSync(path.join(dir, "links.json"), "utf8")) as Data) : null);
@@ -100,6 +100,7 @@ export default function Deklaracii() {
           <li><b>Правило за съвпадение:</b> името на дружеството в декларацията съвпада с името на изпълнител или подизпълнител на обществена поръчка, след като махнем кавичките, правната форма (ЕООД, ООД, АД и др.) и препинателните знаци. Имена под 5 букви не свързваме. Име от една дума свързваме само ако Търговският регистър потвърждава, че лицето е в тази фирма.</li>
           <li><b>Неясни имена не показваме:</b> ако едно име отговаря на повече от една фирма (различни ЕИК){D ? ` — такива са ${D.ambiguous.toLocaleString("bg-BG")} случая` : ""}, не можем да кажем коя е, и връзката не се показва. Едноличните търговци също не свързваме, защото в декларацията няма ЕИК.</li>
           <li><b>Собствена институция:</b> името на възложителя съвпада с институцията, посочена в регистъра за длъжността на лицето (за общинските длъжности — с общината).</li>
+          <li><b>Управление на държавни и общински дружества</b> (членство в съвет на директорите, надзорен съвет и т.н.) обикновено е по служба, затова не го показваме като връзка{D?.publicRoles ? ` (${D.publicRoles} такива случая)` : ""}. Дяловете на лицата в такива дружества се показват.</li>
           <li><b>„Само по Търговския регистър“</b> не показваме за държавни и общински дружества: там членството в съвета обикновено идва по служба.</li>
           <li><b>Грешка?</b> Ако видиш неправилно свързване, пиши ни: ще го проверим и поправим, и ще го отбележим в <Link href="/metodologiya">поправките</Link>.</li>
         </ul>
