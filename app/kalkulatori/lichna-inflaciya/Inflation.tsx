@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CalcLayout, NumInput } from "@/components/CalcLayout";
 import { Disclaimer, Row, eur, num } from "@/components/ui";
 import { personalInflation } from "@/lib/calc";
-import { CPI_GROUPS, CPI_GROUPS_SOURCE, P } from "@/lib/params";
+import { CPI_GROUPS, CPI_GROUPS_SOURCE, CPI_GROUPS_PERIOD, P, monthLabel } from "@/lib/params";
 
 const defaults: Record<string, number> = {
   food: 400, alc: 0, clothing: 60, housing: 200, furnishing: 40, health: 50, transport: 200,
@@ -47,7 +47,7 @@ export function Inflation() {
           <p className="text-sm text-muted">Вашата инфлация</p>
           <p className="display num text-[4.2rem] mt-1">{num(r.rate)}%</p>
           <p className="mt-2">
-            Официалната (НСИ, октомври 2026) е <span className="num font-semibold">{num(official)}%</span>.{" "}
+            Официалната (НСИ, {monthLabel(CPI_GROUPS_PERIOD)}) е <span className="num font-semibold">{num(official)}%</span>.{" "}
             {Math.abs(r.rate - official) < 0.3
               ? "Вашата е почти същата."
               : r.rate > official

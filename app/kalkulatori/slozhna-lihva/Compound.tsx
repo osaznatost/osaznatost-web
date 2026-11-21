@@ -5,7 +5,7 @@ import { CalcLayout, NumInput } from "@/components/CalcLayout";
 import { GrowthChart } from "@/components/Charts";
 import { Disclaimer, Field, Sources, eur, num } from "@/components/ui";
 import { futureValue, realValue } from "@/lib/calc";
-import { P } from "@/lib/params";
+import { BNB_PERIOD, P, monthLabel } from "@/lib/params";
 
 export function Compound() {
   const [start, setStart] = useState(1000);
@@ -38,7 +38,7 @@ export function Compound() {
           <Field label="Месечна вноска"><NumInput value={monthly} onChange={setMonthly} step={10} suffix="€" /></Field>
           <Field label="Години"><NumInput value={years} onChange={setYears} min={1} max={60} suffix="години" /></Field>
           <p className="text-sm font-semibold pt-2">Годишна доходност (допускания)</p>
-          <Field label="Депозит" hint="Средно за нови срочни депозити на домакинствата, септември 2026 (БНБ)."><NumInput value={deposit} onChange={setDeposit} step={0.1} suffix="%" /></Field>
+          <Field label="Депозит" hint={`Средно за нови срочни депозити на домакинствата, ${monthLabel(BNB_PERIOD)} (БНБ).`}><NumInput value={deposit} onChange={setDeposit} step={0.1} suffix="%" /></Field>
           <Field label="Облигации"><NumInput value={bond} onChange={setBond} step={0.5} suffix="%" /></Field>
           <Field label="Акции (широк индекс)" hint="Историческа средна стойност в дълъг период, не обещание. Има години с −30% и повече."><NumInput value={stocks} onChange={setStocks} step={0.5} suffix="%" /></Field>
           <Field label="Годишна такса на фонда"><NumInput value={fee} onChange={setFee} step={0.1} suffix="%" /></Field>

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CalcLayout, NumInput, Segmented, Verdict } from "@/components/CalcLayout";
 import { Disclaimer, Field, Row, Sources, eur, pct } from "@/components/ui";
 import { loanSummary } from "@/lib/calc";
-import { P } from "@/lib/params";
+import { BNB_PERIOD, P, monthLabel } from "@/lib/params";
 
 type Kind = "home" | "car" | "consumer";
 
@@ -51,7 +51,7 @@ export function Kredit() {
             <Field label="Цена на имота"><NumInput value={price} onChange={setPrice} step={1000} suffix="€" /></Field>
           )}
           <Field label="Сума на кредита"><NumInput value={amount} onChange={setAmount} step={1000} suffix="€" /></Field>
-          <Field label="Годишна лихва" hint={`Средно за България през септември 2026: ${pct(kind === "home" ? P.mortgageRate.value : P.consumerRate.value, 2)} (БНБ). Вашата оферта може да е различна.`}>
+          <Field label="Годишна лихва" hint={`Средно за България през ${monthLabel(BNB_PERIOD)}: ${pct(kind === "home" ? P.mortgageRate.value : P.consumerRate.value, 2)} (БНБ). Вашата оферта може да е различна.`}>
             <NumInput value={rate} onChange={setRate} step={0.05} suffix="%" />
           </Field>
           <Field label="Срок"><NumInput value={years} onChange={setYears} step={1} min={1} max={40} suffix="години" /></Field>

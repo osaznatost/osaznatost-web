@@ -8,14 +8,12 @@ const now = Date.now();
 const days = (iso) => Math.floor((now - new Date(iso).getTime()) / 864e5);
 const stale = [];
 
-// Месечни поредици: НСИ публикува около 15-о число на следващия месец, БНБ — около 27-о.
-const MONTHLY = { cpiYoY: ["Инфлация (НСИ)", 50], mortgageRate: ["Лихва по жилищни кредити (БНБ)", 62], consumerRate: ["Лихва по потребителски кредити (БНБ)", 62], depositRate: ["Лихва по депозити (БНБ)", 62] };
-for (const [key, [label, max]] of Object.entries(MONTHLY)) {
-  const m = src.match(new RegExp(`${key}: \\{[^}]*validFrom: "(\\d{4}-\\d{2}-\\d{2})"`));
-  if (m && days(m[1]) > max) stale.push(`- ${label}: данни към ${m[1]} (${days(m[1])} дни)`);
-}
-const lastCpi = [...src.matchAll(/\["(\d{4}-\d{2})", -?[\d.]+\]/g)].map((m) => m[1]).filter((p) => p >= "2025").sort().at(-1);
-if (lastCpi && days(`${lastCpi}-28`) > 50) stale.push(`- Месечна инфлация (CPI_MONTHLY): последен месец ${lastCpi}`);
+// Месечни поредици (data/macro, обновяват се сами от import-macro): НСИ ~15-о число на следващия месец, БНБ ~27-о.
+const cpi = JSON.parse(readFileSync("data/macro/cpi.json", "utf8"));
+const bnb = JSON.parse(readFileSync("data/macro/bnb-rates.json", "utf8"));
+const lastCpi = cpi.monthly.at(-1).period;
+if (days(`${lastCpi}-28`) > 50) stale.push(`- Инфлация (НСИ): последен месец ${lastCpi} — автоматичното обновяване не е намерило нов месец`);
+if (days(`${bnb.period}-28`) > 62) stale.push(`- Лихви (БНБ): последен месец ${bnb.period} — автоматичното обновяване не е намерило нов месец`);
 // Годишни стойности: минималната заплата и осигурителните прагове се сменят от 1 януари.
 for (const key of ["minWage", "maxInsurable"]) {
   const m = src.match(new RegExp(`${key}: \\{[^}]*validFrom: "(\\d{4})-`));

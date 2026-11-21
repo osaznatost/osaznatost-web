@@ -1,0 +1,30 @@
+name: Инфлация, лихви и дълг (НСИ, БНБ, Евростат)
+on:
+  schedule:
+    - cron: "37 9 * * *"   # всеки ден; записва само при нов месец или поправка
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: macro
+  cancel-in-progress: false
+jobs:
+  macro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: which pdftotext || (sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils)
+      - run: node scripts/import-macro.mjs
+      - name: Запис
+        run: |
+          git add data/macro
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Инфлация, лихви и дълг: обновяване"
+          git pull --rebase -X theirs
+          git push
