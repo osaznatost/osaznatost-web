@@ -1,7 +1,6 @@
-for (const ds of ["prc_hicp_manr"]) {
-  const u=`https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/${ds}?geo=BG&coicop=CP00&sinceTimePeriod=2025-09`;
-  const j=await (await fetch(u)).json(); const idx=j.dimension.time.category.index;
-  console.log("## "+ds, JSON.stringify(Object.entries(idx).sort((a,b)=>a[1]-b[1]).map(([t,i])=>[t,j.value[i]])));
-}
-const g=await (await fetch("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_manr?geo=BG&coicop=CP07&coicop=CP01&coicop=CP04&sinceTimePeriod=2026-06")).json();
-console.log("## groups", JSON.stringify(g.value).slice(0,300), JSON.stringify(g.dimension.coicop.category.index));
+const H={"user-agent":"Mozilla/5.0 (osaznatost.bg; open data)"};
+const get=async u=>{try{const c=new AbortController();setTimeout(()=>c.abort(),20000);const r=await fetch(u,{headers:H,signal:c.signal});const t=await r.text();return [r.status,t]}catch(e){return ["ERR "+(e.cause?.code||e.name),""]}};
+for (const u of ["https://www.nsi.bg/press-release/inflaciya-i-indeksi-na-potrebitelskite-ceni-9216","https://www.nsi.bg/press-releases","https://www.nsi.bg/rss.xml","https://www.nsi.bg/bg/rss"]) { const [s,t]=await get(u); console.log("## NSI",u,s,t.length, (t.match(/inflaciya-i-indeksi-na-potrebitelskite-ceni-\d+/g)||[]).slice(0,5).join(","), /106\.0/.test(t)); }
+{ const [s,t]=await get("https://www.bnb.bg/AboutUs/PressOffice/POStatisticalPressReleases/POPRSInterestRate/202609_S_IRS_PRESS_BG"); console.log("## BNB",s,t.length, (t.replace(/<[^>]+>/g," ").replace(/\s+/g," ").match(/жилищните кредити[^%]{0,200}%/)||[""])[0]); }
+{ const [s,t]=await get("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10dd_edpt1?geo=BG&unit=PC_GDP&sector=S13&na_item=GD&sinceTimePeriod=2023"); console.log("## DEBT",s,t.slice(0,80), (t.match(/"value":\{[^}]*\}/)||[""])[0]); }
+{ const [s,t]=await get("https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/prc_hicp_minr?geo=BG&sinceTimePeriod=2026-06"); console.log("## HICP2",s,t.slice(0,200)); }
