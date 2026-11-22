@@ -744,15 +744,18 @@ function parseBlg(text, url) {
   }
   return out;
 }
+// Сканиран PDF без текстов слой: страниците → изображения → tesseract (български). Бавно, затова само при нужда.
+const ocrPdf = (file) => { try { execFileSync("pdftoppm", ["-r", "200", "-gray", "-png", file, "/tmp/ocr"]); return execFileSync("sh", ["-c", "for f in /tmp/ocr*.png; do tesseract \"$f\" - -l bul --psm 6 2>/dev/null; rm -f \"$f\"; done"], { maxBuffer: 1 << 28 }).toString(); } catch { return ""; } };
 const docText = (buf) => { writeFileSync("/tmp/c.doc", buf); try { return execFileSync("antiword", ["-w", "0", "/tmp/c.doc"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
 async function blgDir(code, S, prev) {
   const dir = `${process.env.BLG_DIR}/${code}`;
   if (!existsSync(`${dir}/index.json`)) return 0;
   let added = 0;
   for (const e of JSON.parse(readFileSync(`${dir}/index.json`, "utf8"))) {
-    if (e.url in prev.files || !e.file || !existsSync(`${dir}/${e.file}`)) continue;
+    if (prev.files[e.url] || !e.file || !existsSync(`${dir}/${e.file}`)) continue;
     const buf = readFileSync(`${dir}/${e.file}`);
-    const text = /\.pdf$/.test(e.file) ? pdfText(buf) : /\.docx$/.test(e.file) ? docxText(buf) : docText(buf);
+    let text = /\.pdf$/.test(e.file) ? pdfText(buf) : /\.docx$/.test(e.file) ? docxText(buf) : docText(buf);
+    if (/\.pdf$/.test(e.file) && text.replace(/\s/g, "").length < 500) text = ocrPdf(`${dir}/${e.file}`); // сканиран PDF
     const ds = parseBlg(text, e.url).filter((d) => d.date >= S.from);
     prev.files[e.url] = ds.length; prev.decisions.push(...ds); added += ds.length;
   }

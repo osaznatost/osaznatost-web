@@ -32,7 +32,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { name: council-files, path: out }
         continue-on-error: true
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr tesseract-ocr-bul >/dev/null
       - name: Разчитане
         env: { BLG_DIR: out, ONLY: BLG03 }
         run: node scripts/import-council-sites.mjs

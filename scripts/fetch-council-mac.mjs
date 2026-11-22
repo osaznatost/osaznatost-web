@@ -9,22 +9,25 @@ const dir = "out/BLG03"; mkdirSync(dir, { recursive: true });
 const known = existsSync("data/council/BLG03.json") ? JSON.parse(readFileSync("data/council/BLG03.json", "utf8")).files ?? {} : {};
 const menu = nd(curl("https://blagoevgrad.bg/header-menu/resheniia-na-obshtinski-suvet"));
 if (!menu) { console.log("Благоевград: менюто не се зареди"); process.exit(0); }
-const leaves = []; const walk = (xs) => xs.forEach((x) => { if (/resheni.*20(2[3-9])/.test(x.slug) && !(x.children ?? []).length) leaves.push(x); walk(x.children ?? []); });
+// Годишните страници от 2023 г. насам и всичко под тях (2023 е разделена на две подстраници).
+const leaves = []; const walk = (xs, inYear) => xs.forEach((x) => { const y = inYear || /resheni.*20(2[3-9])/.test(x.slug); if (y && !(x.children ?? []).length) leaves.push(x); walk(x.children ?? [], y); });
 walk(menu.props.headerItems);
 const index = [];
 for (const c of leaves) {
   const p = nd(curl(`https://blagoevgrad.bg/category/${c.id}/${c.slug}`))?.props?.pageProps;
   const html = p?.item?.content ?? "";
+  console.log(c.slug, html.length);
   for (const m of html.matchAll(/<p>([\s\S]*?)<\/p>/g)) {
-    const link = m[1].match(/href="(https:\/\/admin\.blagoevgrad\.bg\/ckeditor_assets\/attachments\/\d+\/[^"]+)"/);
+    const link = m[1].match(/href="((?:https?:\/\/(?:admin\.)?blagoevgrad\.bg)?\/ckeditor_assets\/attachments\/\d+\/[^"]+)"/);
     if (!link) continue;
+    if (link[1].startsWith("/")) link[1] = "https://admin.blagoevgrad.bg" + link[1];
     const label = m[1].replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/\s+/g, " ").trim();
     index.push({ url: link[1], label, page: `https://blagoevgrad.bg/category/${c.id}/${c.slug}` });
   }
 }
 let got = 0;
 for (const [i, e] of index.entries()) {
-  if (e.url in known) continue;
+  if (known[e.url]) continue; // 0 = файлът не се разчете (напр. сканиран) — опитваме пак
   const ext = (e.url.match(/\.(pdf|docx|doc)$/i)?.[1] ?? "bin").toLowerCase();
   e.file = `${i}.${ext}`;
   if (curl(e.url, `${dir}/${e.file}`)) got++; else delete e.file;
