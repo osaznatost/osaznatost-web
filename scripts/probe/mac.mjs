@@ -1,5 +1,9 @@
-import { execFileSync } from "node:child_process"; import { mkdirSync } from "node:fs";
-const UA = "osaznatost-bot/1.0 (+https://osaznatost-web.vercel.app)"; mkdirSync("out", { recursive: true });
-for (const [u, n] of [["https://admin.blagoevgrad.bg/ckeditor_assets/attachments/56755/R-426-30.10.2026_g..pdf", "a.pdf"], ["https://admin.blagoevgrad.bg/ckeditor_assets/attachments/52841/R-350-29.08.2025_g..docx", "b.docx"], ["https://admin.blagoevgrad.bg/ckeditor_assets/attachments/51654/R_135_25.04.2025%D0%B3_30.04.2025.doc", "c.doc"]]) {
-  try { execFileSync("curl", ["-sSLf", "-m", "90", "-A", UA, "-o", "out/" + n, u]); console.log("ok", n); } catch { console.log("ERR", u); }
+import { execFileSync } from "node:child_process";
+const UA = "osaznatost-bot/1.0 (+https://osaznatost-web.vercel.app)";
+const urls = ["https://www.plovdiv.bg/", "https://www.smolyan.bg/", "https://www.vidin.bg/", "https://targovishte.bg/", "https://silistra.egov.bg/", "https://www.silistra.bg/", "https://www.kustendil.bg/", "https://obs.kustendil.bg/", "https://kyustendil.bg/", "https://www.kyustendil.bg/"];
+for (const u of urls) {
+  let b = ""; try { b = execFileSync("curl", ["-sSL", "-m", "40", "-A", UA, "-w", "\n##CODE %{http_code} %{url_effective}", u], { maxBuffer: 1 << 27 }).toString("utf8"); } catch (e) { console.log("## ERR", u, String(e.message).slice(0, 80)); continue; }
+  const code = b.match(/##CODE (.*)$/)?.[1]; console.log("##", u, code, b.length);
+  const links = [...new Set([...b.matchAll(/href="([^"]+)"[^>]*>([\s\S]{0,120}?)<\/a>/g)].map((m) => [m[1], m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()]).filter(([h, t]) => /решени|общински съвет|обс\b|obs|council|savet|suvet|reshen/i.test(h + " " + t)).map(([h, t]) => `${h} | ${t.slice(0, 60)}`))].slice(0, 25);
+  links.forEach((l) => console.log("##   ", l));
 }

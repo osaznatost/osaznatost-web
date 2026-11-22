@@ -14,18 +14,3 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/probe/mac.mjs
-      - uses: actions/upload-artifact@v4
-        with: { name: files, path: out/, retention-days: 1 }
-  read:
-    needs: probe
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with: { name: files, path: out }
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null
-      - run: |
-          for f in out/*; do echo "## FILE $f"; case "$f" in
-            *.pdf) pdftotext -layout "$f" - | head -c 6000 | sed 's/^/## | /';;
-            *.docx) unzip -p "$f" word/document.xml | sed 's#</w:p>#\n#g; s#<[^>]*>##g' | head -c 6000 | sed 's/^/## | /';;
-            *.doc) antiword "$f" | head -c 6000 | sed 's/^/## | /';;
-          esac; done
