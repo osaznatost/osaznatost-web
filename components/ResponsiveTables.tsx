@@ -18,8 +18,10 @@ function headers(t: HTMLTableElement): string[] {
 function apply() {
   const small = window.innerWidth < MOBILE;
   for (const t of Array.from(document.querySelectorAll<HTMLTableElement>("main table:not([data-nostack])"))) {
-    t.classList.remove("stacked");
-    if (!small) continue;
+    // Решението за всяка таблица се взима веднъж: класът не се маха и слага наново, защото това мени височината
+    // на страницата за миг и на iPhone браузърът „дърпа“ скрола нагоре.
+    if (!small) { t.classList.remove("stacked"); continue; }
+    if (t.classList.contains("stacked")) continue;
     const box = t.parentElement?.clientWidth ?? window.innerWidth;
     if (t.scrollWidth <= box + 4) continue;
     const h = headers(t);
@@ -39,12 +41,15 @@ export function ResponsiveTables() {
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const later = () => { clearTimeout(timer); timer = setTimeout(apply, 80); };
+    // На телефона лентата на браузъра се свива при скрол и пуска „resize“ само по височина — тогава нищо не правим.
+    let lastW = window.innerWidth;
+    const onResize = () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; later(); };
     apply();
     const main = document.querySelector("main");
     const mo = new MutationObserver(later);
     if (main) mo.observe(main, { childList: true, subtree: true });
-    window.addEventListener("resize", later);
-    return () => { mo.disconnect(); window.removeEventListener("resize", later); clearTimeout(timer); };
+    window.addEventListener("resize", onResize);
+    return () => { mo.disconnect(); window.removeEventListener("resize", onResize); clearTimeout(timer); };
   }, [path]);
   return null;
 }
