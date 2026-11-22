@@ -6,7 +6,8 @@
 // Пуска се от GitHub Actions. Нужни тайни: SUPABASE_URL, SUPABASE_SECRET_KEY. Пише data/declarations/links.json.
 import { readdirSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 // Всички години, за които има прочетени декларации (data/declarations/<година>.json), от най-новата.
-const YEARS_ALL = readdirSync("data/declarations").map((f) => f.match(/^(\d{4})\.json$/)?.[1]).filter(Boolean).sort().reverse();
+// Наборът може да е „2023“ (при встъпване), „2023y“ (ежегодни), „2023f1“ (при напускане), „2021_nc“ и т.н. — годината са първите 4 цифри.
+const YEARS_ALL = readdirSync("data/declarations").map((f) => f.match(/^(\d{4}[a-z0-9_]*)\.json$/)?.[1]).filter((y) => y && !/^seen|^people/.test(y)).sort().reverse();
 
 const URL_ = process.env.SUPABASE_URL, KEY = process.env.SUPABASE_SECRET_KEY;
 if (!URL_ || !KEY) throw new Error("Липсват SUPABASE_URL или SUPABASE_SECRET_KEY");
@@ -120,7 +121,7 @@ for (const year of YEARS_ALL) {
       if (/управление/.test(it.kind) && isPublicCo(eik, it.co)) { publicRoles++; continue; }
       if (k.split(" ").length < 2 && confirmed !== true) { ambiguous.push({ co: it.co, eiks: [eik], why: "една дума" }); continue; }
       links.push({
-        year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, date: p.date, decl: p.file,
+        year: year.slice(0, 4), set: year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, date: p.date, decl: p.file,
         kind: it.kind, co: it.co, extra: it.extra, eik, confirmed, contracts: s.n, eur: Math.round(s.eur), first: s.first, last: s.last,
         buyers: top.slice(0, 5).map(([be, b]) => ({ eik: be, name: b.name, n: b.n, eur: Math.round(b.eur) })),
         sub: sb ? { n: sb.n, mains: [...sb.mains.values()].sort((a, b) => b.n - a.n).slice(0, 3), buyers: [...sb.buyers.values()].sort((a, b) => b.n - a.n).slice(0, 3) } : null,
@@ -137,7 +138,7 @@ const stats = {
   declarations: new Set(links.map((l) => l.decl)).size,
   people: new Set(links.map((l) => l.name.toUpperCase().replace(/\s+/g, " ").trim())).size,
   mps: new Set(links.filter((l) => l.mp).map((l) => l.name.toUpperCase().replace(/\s+/g, " ").trim())).size,
-  years: YEARS_ALL.slice().sort(),
+  years: [...new Set(YEARS_ALL.map((y) => y.slice(0, 4)))].sort(),
 };
 // по една връзка на лице + фирма (най-новата декларация)
 const uniq = new Map();
@@ -186,7 +187,7 @@ for (const year of YEARS_ALL) {
       const k = `${key}|${eik}`;
       const prev = trOnly.get(k);
       const roles = [...new Set([...(prev?.roles ?? []), role])];
-      trOnly.set(k, { year, name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, eik, co: [...s.names][0] ?? eik, roles, contracts: s.n, eur: Math.round(s.eur),
+      trOnly.set(k, { year: year.slice(0, 4), name: p.name, pos: p.pos, inst: p.inst, cat: p.cat, eik, co: [...s.names][0] ?? eik, roles, contracts: s.n, eur: Math.round(s.eur),
         own: { n: own.reduce((a, b) => a + b.n, 0), eur: Math.round(own.reduce((a, b) => a + b.eur, 0)) } });
     }
   }
@@ -199,6 +200,7 @@ writeFileSync("data/tr/priority.json", JSON.stringify([...prio]));
 // Втори източник: връзки „лице ↔ фирма с поръчки“ по Търговския регистър, изчислени от „Наясно“ (data/political-links.json, MIT).
 // Без държавни и общински дружества (там ръководството е назначено). Съвпадение по три имена — може да има съименници.
 const trLinks = [];
+const keyOf = (n) => n.toUpperCase().replace(/\s+/g, " ").trim();
 if (existsSync("data/political-links.json")) {
   const { isPublicFirm } = await import("../lib/politicalFlag.mjs");
   const by9 = new Map([...sup].map(([e, v]) => [String(e).slice(0, 9), v]));
@@ -206,11 +208,17 @@ if (existsSync("data/political-links.json")) {
     if (isPublicFirm(arr)) continue;
     const sp = by9.get(String(eik).slice(0, 9));
     if (!sp) continue;
-    for (const x of arr) trLinks.push({ who: x.who, kind: x.kind, party: x.party ?? null, mpId: x.mpId ?? null, position: x.position ?? null, roles: x.roles ?? [], eik, co: [...sp.names][0] ?? eik, n: sp.n, eur: Math.round(sp.eur) });
+    if (isPublicCo(eik, [...sp.names][0] ?? "")) continue;
+    for (const x of arr) {
+      const roles = x.roles ?? [];
+      // Защита от съименници: само „действителен собственик“ (често чуждестранни групи) и най-честите фамилии без потвърждение не показваме.
+      if (roles.length && roles.every((r) => r.startsWith("действителен собственик"))) continue;
+      if (x.kind !== "mp" && COMMON_SURNAME.test(keyOf(x.who).split(" ").at(-1))) continue;
+      trLinks.push({ who: x.who, kind: x.kind, party: x.party ?? null, mpId: x.mpId ?? null, position: x.position ?? null, roles: x.roles ?? [], eik, co: [...sp.names][0] ?? eik, n: sp.n, eur: Math.round(sp.eur) });
+    }
   }
   trLinks.sort((a, b) => b.eur - a.eur);
 }
-const keyOf = (n) => n.toUpperCase().replace(/\s+/g, " ").trim();
 const declPeople = new Set(links.map((l) => keyOf(l.name)));
 const trPeopleSet = new Set(trLinks.map((l) => keyOf(l.who)));
 const mpSet = new Set([...links.filter((l) => l.mp).map((l) => keyOf(l.name)), ...trLinks.filter((l) => l.kind === "mp" || MPS[keyOf(l.who)]).map((l) => keyOf(l.who))]);
