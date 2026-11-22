@@ -9,7 +9,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null
-      - run: node scripts/probe/cik.mjs
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+      - run: ONLY=KNL29 MINUTES=35 node scripts/import-council-sites.mjs
+      - run: |
+          node -e '
+          const d=require("./data/council/KNL29.json"),D=d.decisions;
+          console.log("## N",D.length,"files",Object.keys(d.files).length);
+          const by={};D.forEach(x=>by[x.date.slice(0,7)]=(by[x.date.slice(0,7)]||0)+1);console.log("## months",JSON.stringify(by));
+          console.log("## tally",D.filter(x=>x.tally).length,"prop",D.filter(x=>x.proposedBy).length,"rej",D.filter(x=>x.result==="rejected").length);
+          Object.entries(d.files).forEach(([k,v])=>console.log("## F",v,decodeURI(k).slice(-60)));
+          for(const x of [...D.slice(0,4),...D.slice(-3),...D.filter((_,i)=>i%97===5)]) console.log("## D",JSON.stringify({...x,text:x.text.slice(0,300)}));'
