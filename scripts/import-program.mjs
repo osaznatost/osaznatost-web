@@ -27,7 +27,8 @@ const program = {
   points, fetched: new Date().toISOString(),
   source: "https://www.parliament.bg/bg/plenaryprogram",
 };
-if (!points.length) throw new Error("празна програма");
+// Празна програма идва между седмиците или във ваканция — старите данни остават, без грешка
+if (!points.length) { console.warn("Програмата още е празна (", program.from, ") — пропускам"); process.exit(0); }
 writeFileSync("data/program.json", JSON.stringify(program, null, 1));
 
 const histPath = "data/program-history.json";
