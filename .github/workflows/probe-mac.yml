@@ -14,3 +14,20 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/probe/mac.mjs
+      - uses: actions/upload-artifact@v4
+        with: { name: files, path: out/, retention-days: 1, if-no-files-found: ignore }
+  read:
+    needs: probe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: files, path: out }
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr tesseract-ocr-bul >/dev/null
+      - run: |
+          for f in out/*; do echo "## FILE $f $(file -b "$f" | cut -c1-80)"; case "$f" in
+            *.pdf) echo "## textlen $(pdftotext "$f" - | wc -c)"; pdftotext -layout "$f" - | head -c 2500 | sed 's/^/## | /'; pdftoppm -r 200 -gray -png -f 1 -l 1 "$f" /tmp/p; tesseract /tmp/p-*1.png - -l bul --psm 6 2>/dev/null | head -c 2500 | sed 's/^/## O| /';;
+            *.docx) unzip -p "$f" word/document.xml | sed 's#</w:p>#\n#g; s#<[^>]*>##g' | head -c 2500 | sed 's/^/## | /';;
+            *.doc) antiword -w 0 "$f" | head -c 2500 | sed 's/^/## | /';;
+            *.html) sed 's/^/## H| /' "$f" | head -c 6000;;
+            *) head -c 300 "$f" | sed 's/^/## ?| /';;
+          esac; done
