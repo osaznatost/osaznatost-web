@@ -17,7 +17,7 @@ for (const c of leaves) {
   const p = nd(curl(`https://blagoevgrad.bg/category/${c.id}/${c.slug}`))?.props?.pageProps;
   const html = p?.item?.content ?? "";
   console.log(c.slug, html.length);
-  for (const m of html.matchAll(/<p>([\s\S]*?)<\/p>/g)) {
+  for (const m of html.matchAll(/<(?:p|li)>([\s\S]*?)<\/(?:p|li)>/g)) {
     const link = m[1].match(/href="((?:https?:\/\/(?:admin\.)?blagoevgrad\.bg)?\/ckeditor_assets\/attachments\/\d+\/[^"]+)"/);
     if (!link) continue;
     if (link[1].startsWith("/")) link[1] = "https://admin.blagoevgrad.bg" + link[1];

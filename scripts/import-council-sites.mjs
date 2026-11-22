@@ -714,7 +714,7 @@ async function numbered(code, S, prev) {
 const cnt = (w) => (/^(без|няма)$/i.test(w) ? 0 : +w);
 function parseBlg(text, url) {
   const out = [];
-  for (const blk of text.replace(/\f/g, "\n").split(/ОБЩИНСКИ\s+СЪВЕТ\s+БЛАГОЕВГРАД\s+ДО\s/).slice(1)) {
+  for (const blk of text.replace(/\f/g, "\n").split(/ОБЩИНСКИ\s+СЪВЕТ\s+БЛАГОЕВГРАД\s+ДО(?=[\s….])/).slice(1)) {
     const nm = blk.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*[ЕЯ]\s*№\s*(\d+)/);
     if (!nm) continue;
     let dm = blk.match(/№\s*\d+\s+от\s+(\d{1,2})\.(\d{1,2})\.(\d{4})/), date;
@@ -724,7 +724,7 @@ function parseBlg(text, url) {
     const sm = head.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*\n?\s*№\s*(\d+)/);
     const tm = head.match(/Т\.\s*\d+[а-я]?\.\s*([\s\S]*?)(?:\n\s*Докл\.|\n\s*Присъстваха|$)/);
     let title = flat(tm ? tm[1] : ""), proposedBy = null;
-    const pr = title.match(/^(?:Предложение|Докладна записка|Проект)[^,]*?\s+от\s+(.+?),\s*относно\s*:?\s*/i);
+    const pr = title.match(/^(?:Предложение|Докладна записка|Проект)[^,]*?\s+(?:от|на)\s+(.+?),\s*относно\s*:?\s*/i);
     if (pr) { proposedBy = /^кмета на община/i.test(pr[1]) ? "кмета на общината" : pr[1].replace(/^./, (c) => c.toLowerCase()).slice(0, 120); title = title.slice(pr[0].length); }
     title = title.replace(/^./, (c) => c.toUpperCase());
     if (!title) continue;
