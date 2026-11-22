@@ -1,12 +1,8 @@
 import { execFileSync } from "node:child_process"; import { mkdirSync } from "node:fs";
 const UA = "osaznatost-bot/1.0 (+https://osaznatost-web.vercel.app)"; mkdirSync("out", { recursive: true });
-const curl = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "60", "-A", UA, u], { maxBuffer: 1 << 27 }).toString("utf8"); } catch (e) { console.log("## ERR", u); return ""; } };
-const dec = (s) => s.replace(/&#x([0-9A-F]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)));
-for (const u of ["https://obs.kyustendil.bg/reshenia-obs", "https://obs.kyustendil.bg/protokoli-obs"]) {
-  const o = curl(u); const t = dec(o.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " | ").replace(/(\s*\|\s*)+/g, " | ").replace(/\s+/g, " "));
-  console.log("## PAGE", u, o.length); console.log("## TXT", t.slice(0, 3500));
-  [...new Set([...o.matchAll(/(?:href|src)="([^"]{3,200})"/g)].map((m) => m[1]))].filter((x) => /\.pdf|\.doc|files|upload|document/i.test(x)).slice(0, 30).forEach((x) => console.log("## L", x));
+for (const [u, f] of [["https://obs.kyustendil.bg/uploads/mandat2023-2027/protokoli/40_Prototkol_40_29.10.2026 .pdf".replace(/ /g, "%20"), "p40.pdf"], ["https://obs.kyustendil.bg/Documents/protokoli/Protokol15_26.09.2024.pdf", "p15.pdf"]]) {
+  try { execFileSync("curl", ["-sSLf", "-m", "120", "-A", UA, "-o", "out/" + f, u]); } catch { console.log("## ERR", u); continue; }
+  const t = execFileSync("pdftotext", ["-layout", "out/" + f, "-"], { maxBuffer: 1 << 28 }).toString();
+  console.log("## FILE", f, t.length, "решения:", (t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*\n?\s*№\s*\d+/g) ?? []).length, "гласували:", (t.match(/гласувал/gi) ?? []).length);
+  const i = t.search(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*\n?\s*№\s*\d+/); t.slice(Math.max(0, i - 2500), i + 1500).split("\n").forEach((l) => console.log("## |", l));
 }
-execFileSync("curl", ["-sSL", "-m", "90", "-A", UA, "-o", "out/k14.pdf", "https://kyustendil.bg/index.php?option=com_jdownloads&task=download.send&id=5403&catid=9&m=0&lang=bg"]);
-const t = execFileSync("pdftotext", ["-layout", "out/k14.pdf", "-"], { maxBuffer: 1 << 27 }).toString(); console.log("## K14 len", t.length);
-t.slice(0, 5000).split("\n").forEach((l) => console.log("## |", l));
