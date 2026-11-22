@@ -1,10 +1,10 @@
-import { execFileSync } from "node:child_process"; import { writeFileSync } from "node:fs";
-const UA = "osaznatost-bot/1.0 (+https://osaznatost-web.vercel.app)";
-for (const [u,kind] of [["https://admin.blagoevgrad.bg/ckeditor_assets/attachments/56755/R-426-30.10.2026_g..pdf","pdf"],["https://admin.blagoevgrad.bg/ckeditor_assets/attachments/52841/R-350-29.08.2025_g..docx","docx"],["https://admin.blagoevgrad.bg/ckeditor_assets/attachments/51654/R_135_25.04.2025%D0%B3_30.04.2025.doc","doc"]]) {
-  let b; try { b = execFileSync("curl", ["-sSLf", "-m", "120", "--retry", "3", "-A", UA, u], { maxBuffer: 1 << 28 }); } catch (e) { console.log("## ERR", u); continue; }
-  writeFileSync("/tmp/x."+kind, b); let t = "";
-  try { t = kind==="pdf" ? execFileSync("pdftotext", ["-layout", "/tmp/x.pdf", "-"]).toString() : kind==="docx" ? execFileSync("unzip", ["-p", "/tmp/x.docx", "word/document.xml"]).toString().replace(/<\/w:p>/g, "\n").replace(/<[^>]+>/g, "") : "(doc binary "+b.length+")"; } catch (e) { t = "parse err "+e.message; }
-  console.log("##", u, b.length, t.length);
-  t.slice(0, 5000).split("\n").forEach((l) => console.log("## |", l));
-  const ms=[...t.matchAll(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е[^\n]{0,60}/g)].slice(0,8); ms.forEach(m=>console.log("## HDR",JSON.stringify(m[0])));
+import { execFileSync } from "node:child_process"; import { mkdirSync } from "node:fs";
+const UA = "osaznatost-bot/1.0 (+https://osaznatost-web.vercel.app)"; mkdirSync("out", { recursive: true });
+const curl = (u) => { try { return execFileSync("curl", ["-sSL", "-m", "60", "-A", UA, u], { maxBuffer: 1 << 27 }).toString("utf8"); } catch (e) { console.log("## ERR", u); return ""; } };
+for (const u of ["https://obs.kyustendil.bg/zasedaniaobs", "https://obs.kyustendil.bg/resheniya", "https://obs.kyustendil.bg/reshenia"]) {
+  const o = curl(u); const t = o.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, "").replace(/<[^>]+>/g, " | ").replace(/(\s*\|\s*)+/g, " | ").replace(/\s+/g, " ");
+  console.log("## PAGE", u, o.length); console.log("## TXT", t.slice(0, 4000));
+  [...new Set([...o.matchAll(/(?:href|src|data-[a-z]+)="([^"]{3,200})"/g)].map((m) => m[1]))].filter((x) => !/\.(css|woff2?|png|svg|ico)/.test(x)).slice(0, 60).forEach((x) => console.log("## L", x));
 }
+const j = curl("https://kyustendil.bg/index.php?option=com_content&view=article&id=354&Itemid=751&lang=bg"); console.log("## KNL main", j.length);
+try { execFileSync("curl", ["-sSL", "-m", "90", "-A", UA, "-o", "out/k14", "https://kyustendil.bg/index.php?option=com_jdownloads&task=download.send&id=5403&catid=9&m=0&lang=bg"]); console.log("## k14", execFileSync("file", ["-b", "out/k14"]).toString(), execFileSync("wc", ["-c", "out/k14"]).toString()); } catch (e) { console.log("## k14 ERR"); }
