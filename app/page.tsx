@@ -23,6 +23,10 @@ const calcs = [
   { href: "/kalkulatori/slozhna-lihva", t: "Спестяване или инвестиране", d: "Какво става с парите след 10, 20, 30 години." },
   { href: "/kalkulatori/danaci", t: "Данъци по пътя", d: "От цената на труда ви колко стига до вас." },
   { href: "/kalkulatori/nuzhen-dohod", t: "Нужен доход", d: "Каква заплата ви трябва за живота, който искате." },
+  { href: "/kalkulatori/pensiya", t: "Пенсия", d: "Каква пенсия ще получите при вашата заплата и стаж." },
+  { href: "/kalkulatori/obezshteteniya", t: "Майчинство и болничен", d: "Колко ще получавате и колко губите." },
+  { href: "/kalkulatori/naem-ili-kupuvane", t: "Наем или покупка", d: "Кое излиза по-изгодно след години." },
+  { href: "/kalkulatori/chasove-trud", t: "Часове работа", d: "Колко време работите за хляб, гориво или телефон." },
 ];
 
 export default async function Home() {
@@ -114,7 +118,7 @@ export default async function Home() {
 
       <section className="mb-14">
         <SectionTitle right={<Link href="/kalkulatori">Всички</Link>}>Калкулатори</SectionTitle>
-        <ul className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {calcs.map((c) => (
             <li key={c.href}>
               <Link href={c.href} className="group block h-full no-underline rounded-lg p-4 sm:p-5 bg-white ring-1 ring-rule hover:ring-green hover:bg-surface">

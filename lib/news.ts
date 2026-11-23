@@ -48,6 +48,8 @@ export const CONTEXT: { re: RegExp; label: string; href: string }[] = [
   { re: /Магнитски|санкци/i, label: "Санкциите за корупция", href: "/proverki/sankcii" },
   { re: /парламент|депутат|Народното събрание|гласува/i, label: "Гласуванията", href: "/parlament" },
   { re: /данък|ДДС|осигуров/i, label: "Данъците по пътя", href: "/kalkulatori/danaci" },
+  { re: /пенси/i, label: "Каква пенсия ще получа", href: "/kalkulatori/pensiya" },
+  { re: /майчинств|болнич/i, label: "Майчинство и болничен", href: "/kalkulatori/obezshteteniya" },
   { re: /безработ/i, label: "Безработицата", href: "/statistiki/unemployment" },
   { re: /имот|жилищ|наем/i, label: "Жилища срещу наеми", href: "/statistiki/analiz#zhilishta" },
 ];
