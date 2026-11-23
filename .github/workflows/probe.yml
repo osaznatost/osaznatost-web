@@ -5,10 +5,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: |
-          for id in 167606 167651 166934; do
-            curl -s -m 60 -H "Origin: https://www.parliament.bg" -H "Referer: https://www.parliament.bg/bg/bills" -H "Accept: application/json" "https://www.parliament.bg/api/v1/bill/$id" > b.json
-            node -e 'const b=require("./b.json");console.log("## '$id'",JSON.stringify(b.file_list),Object.keys(b).filter(k=>/file|list/.test(k)).join(","))' | cut -c1-900
-          done
-          F=$(node -e 'const b=require("./b.json");console.log(b.file_list?.[0]?.FILENAME??"")')
-          echo "## F $F"
+          curl -s -m 120 -o b.rtf "https://www.parliament.bg/bills/52/52-602-01-71.rtf"; ls -la b.rtf
+          node -e 'import("./scripts/lib/rtf.mjs").then(m=>{const t=m.rtfToText(require("fs").readFileSync("b.rtf","latin1"));console.log("## LEN",t.length);for(const l of t.slice(0,9000).split("\n"))console.log("## "+l)})'
