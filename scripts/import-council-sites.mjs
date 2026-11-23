@@ -767,11 +767,12 @@ async function blgDir(code, S, prev) {
 
 // Кюстендил
 const knlTail = (s) => s.split(/\n\s*(?:РАЗГЛАСЯВАНЕ|Край на дебатите|Гласуване по |На основание чл\.\s*22,?\s*ал\.\s*1 от ЗМСМА|Общински съвет\s*-\s*Кюстендил\s*\n\s*\d+-[а-я]+ заседание)|\n\s*(?:[А-Я][а-я]+\.?\s+)?[А-Я][а-я]+ [А-Я][а-я]+(?:-[А-Я][а-я]+)?[:.]\s/)[0];
-const knlBody = (chunk) => { const r = chunk.split(/Р\s*Е\s*Ш\s*И\s*:/); return ws(knlTail(r.length > 1 ? r[1] : r[0])).replace(/\n\s*\d+\s*\n/g, "\n"); };
+const knlBody = (chunk) => { const r = chunk.split(/Р\s*Е\s*Ш\s*И\s*:|\sреши\s*:/i); return ws(knlTail(r.length > 1 ? r.slice(1).join(" ") : r[0])).replace(/(^|\n)\s*\d+\s*(?=\n|$)/g, "$1").trim(); };
 const knlBy = (m) => (/Кметът на Община Кюстендил/.test(m) ? "кмета на общината" : (m.match(/([^.]{3,90}?)\s+е\s+внес(?:ъл|ла|ли)/)?.[1] ?? null));
 function knlOne(number, date, session, title, chunk, url, tally, rejected) {
   const body = knlBody(chunk);
-  const mot = flat(chunk.match(/Мотиви:\s*([\s\S]{0,400})/)?.[1] ?? "");
+  const mot = flat(chunk.match(/Мотиви:\s*([\s\S]{0,600})/)?.[1] ?? "");
+  if (!title) title = mot.match(/относно\s*:?\s*[„"]?([^„"“]{8,240}?)[“"]?\s*(?:[.,;]\s|$)/i)?.[1] ?? "";
   if (!title) { const f = flat(body.split("\n").find((l) => l.trim().length > 15) ?? "").replace(/^\d+\.\s*/, ""); title = f.length > 240 ? f.slice(0, 240).replace(/\s+\S*$/, "") + " …" : f; }
   title = flat(title).replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
@@ -818,13 +819,15 @@ async function knl(code, S, prev) {
   const pl = await get("https://obs.kyustendil.bg/protokoli-obs");
   const html = dehtml(pl ?? "");
   // Карта „N-то заседание в ДД.ММ.ГГГГ“ → дата; файлът носи номера на заседанието в името.
+  const jdMax = Math.max(0, ...prev.decisions.filter((d) => /jdownloads/.test(d.url)).map((d) => +d.session || 0));
   const dates = Object.fromEntries([...html.matchAll(/(\d+)-[а-я]+ заседание в (\d{2})\.(\d{2})\.(\d{4})/g)].map((m) => [m[1], `${m[4]}-${m[3]}-${m[2]}`]));
   for (const m of html.matchAll(/href="((?:\/uploads|\/?Documents)\/[^"]*?protok?c?ol[^"]*?\.pdf)"/gi)) {
     if (timeUp() || blocked) break;
-    const u = encodeURI(new URL(m[1].replace(/^Documents/, "/Documents"), "https://obs.kyustendil.bg/").href.replace(/%20/g, " "));
+    const u = new URL(m[1].replace(/^Documents/, "/Documents"), "https://obs.kyustendil.bg/").href;
     if (prev.files[u]) continue;
-    const sn = decodeURI(u).match(/(?:Protokol|Protocol|protocol|Prototkol|Протокол)[ _№]*(\d+)/i)?.[1] ?? decodeURI(u).match(/\/(\d+)_/)?.[1];
-    if (!sn || !dates[sn]) continue;
+    const name = decodeURI(u);
+    const sn = name.match(/\/(\d{1,3})_[^/]*$/)?.[1] ?? name.match(/(?:Protokol|Protocol|Prototkol|Протокол)[ _№]*(\d{1,3})(?!\d)/i)?.[1];
+    if (!sn || !dates[sn] || +sn <= jdMax) continue; // заседанията до 08.2024 вече са от отделните файлове с решения
     const buf = await get(u, true);
     if (!buf || buf.subarray(0, 4).toString() !== "%PDF") continue;
     const ds = parseKnlProtocol(pdfText(buf), u, dates[sn], sn).filter((d) => d.date >= S.from);
