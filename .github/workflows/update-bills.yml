@@ -26,9 +26,10 @@ jobs:
           REFRESH: ${{ inputs.refresh }}
       - run: node scripts/build-bills.mjs
       - run: node scripts/build-law-auto.mjs
+      - run: node scripts/import-budget-draft.mjs || true
       - name: Запис
         run: |
-          git add data/bills-src data/bills.json data/laws-auto.json
+          git add -A data/bills-src data/bills.json data/laws-auto.json data/budget-draft.json 2>/dev/null || git add data/bills-src data/bills.json data/laws-auto.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"

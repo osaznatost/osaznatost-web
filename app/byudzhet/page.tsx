@@ -5,6 +5,7 @@ import { TallyBar } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import raw from "@/data/budget.json";
 import { allBills, type Bill } from "@/lib/bills";
+import { data } from "@/lib/data";
 import { getLaw } from "@/lib/laws";
 import { PARTIES, VOTES, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
@@ -87,6 +88,56 @@ const NEXT_KINDS: [RegExp, string][] = [
   [/Държавното обществено осигуряване/i, "Бюджетът на НОИ (пенсии, обезщетения)"],
   [/Националната здравноосигурителна каса/i, "Бюджетът на Здравната каса"],
 ];
+type Draft = { year: number; url: string; file: string; date: string; variant: string; revenue: { total: number; lines: { code: string; label: string; eur: number }[] }; expenditure: { total: number; lines: { code: string; label: string; eur: number }[] }; transfers: { total: number; lines: { code: string; label: string; eur: number }[] } | null; euContribution: number | null; balance: number | null };
+/** Числата от проекта (чл. 1 на законопроекта) до приемането му, редом с приетия бюджет за текущата година. */
+async function DraftNumbers({ year }: { year: number }) {
+  const D = await data<Draft>("budget-draft.json");
+  if (!D || D.year !== year) return null;
+  const tr = (code: string) => B.transfers.lines.find((l) => l.code === code)?.plannedEur ?? null;
+  const dtr = (code: string) => D.transfers?.lines.find((l) => l.code === code)?.eur ?? null;
+  const line = (sec: "revenue" | "expenditure", code: string) => [B[sec].lines.find((l) => l.code === code)?.eur ?? null, D[sec].lines.find((l) => l.code === code)?.eur ?? null] as const;
+  const rows: [string, number | null, number | null][] = [
+    ["Приходи общо", B.revenue.total, D.revenue.total],
+    ["  ДДС", ...line("revenue", "1.4")],
+    ["  Данък върху доходите", ...line("revenue", "1.3")],
+    ["  Корпоративен данък", ...line("revenue", "1.1")],
+    ["  Акцизи", ...line("revenue", "1.5")],
+    ["Разходи на централния бюджет", B.expenditure.total, D.expenditure.total],
+    ["  Заплати и осигуровки (персонал)", ...line("expenditure", "1.1")],
+    ["  Лихви по дълга", ...line("expenditure", "1.3")],
+    ["  Капиталови разходи", ...line("expenditure", "2")],
+    ["Трансфер за НОИ (пенсии)", tr("1.2"), dtr("1.2")],
+    ["Трансфер за общините", tr("1.1"), dtr("1.1")],
+    ["Трансфер за Здравната каса", tr("1.3"), dtr("1.3")],
+    ["Вноска в бюджета на ЕС", B.euContribution, D.euContribution],
+    ["Дефицит (салдо)", B.balance, D.balance],
+  ];
+  const pct = (a: number | null, b: number | null) => (a && b ? ((b - a) / Math.abs(a)) * 100 : null);
+  return (
+    <div className="mt-6 max-w-3xl">
+      <p className="font-semibold text-[17px]">Проектът в числа: {year} срещу приетия {B.year}</p>
+      <p className="text-sm text-muted mb-2">От чл. 1 на законопроекта (вариантът на {D.variant}). Това е проект: числата може да се променят при второ четене.</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[15px] num">
+          <thead><tr className="border-b border-rule text-left text-sm text-muted"><th className="py-1 pr-3 font-normal">Ред</th><th className="px-2 text-right font-normal">{B.year} (закон)</th><th className="px-2 text-right font-normal">{year} (проект)</th><th className="px-2 text-right font-normal">Промяна</th></tr></thead>
+          <tbody>{rows.map(([l, a, b]) => {
+            const p = pct(a, b);
+            return (
+              <tr key={l} className={`border-b border-rule ${l.startsWith("  ") ? "text-muted" : "font-semibold"}`}>
+                <td className="py-1 pr-3">{l.trim()}</td>
+                <td className="px-2 text-right">{a === null ? "—" : bn(a)}</td>
+                <td className="px-2 text-right">{b === null ? "—" : bn(b)}</td>
+                <td className="px-2 text-right">{p === null ? "—" : `${p > 0 ? "+" : ""}${p.toFixed(1)}%`}</td>
+              </tr>
+            );
+          })}</tbody>
+        </table>
+      </div>
+      <p className="text-xs text-muted mt-2">Дефицитът е отрицателно число: колкото по-голям е по абсолютна стойност, толкова повече нов дълг. „Промяна“ при дефицита е спрямо размера му. Източник: <a href={D.file}>законопроектът в parliament.bg</a>.</p>
+    </div>
+  );
+}
+
 const orgName = (t: string) => t.split(/\s+по\s+(?=Законопроект|ЗД|ЗБ)|\s*-\s*Вх\.|\s+по\s+ЗД|\s+по\s+ЗБ/)[0].replace(/''/g, "“").trim();
 async function NextBudget({ year }: { year: number }) {
   const all = await allBills();
@@ -119,6 +170,7 @@ async function NextBudget({ year }: { year: number }) {
           );
         })}
       </div>
+      <DraftNumbers year={year} />
       {votes.length > 0 && <div className="grid gap-4 lg:grid-cols-2 mt-4">{votes.map((v) => <VoteCard key={v.id} id={v.id} label={v.title.slice(0, 120)} />)}</div>}
       <p className="text-xs text-muted mt-3">Източник: parliament.bg. Становищата са на външни организации; показваме ги, без да ги оценяваме.</p>
     </section>
