@@ -127,7 +127,7 @@ async function DraftNumbers({ year }: { year: number }) {
                 <td className="py-1 pr-3">{l.trim()}</td>
                 <td className="px-2 text-right">{a === null ? "—" : bn(a)}</td>
                 <td className="px-2 text-right">{b === null ? "—" : bn(b)}</td>
-                <td className="px-2 text-right">{p === null ? "—" : `${p > 0 ? "+" : ""}${p.toFixed(1)}%`}</td>
+                <td className="px-2 text-right">{p === null ? "—" : `${p > 0 ? "+" : ""}${p.toLocaleString("bg-BG", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`}</td>
               </tr>
             );
           })}</tbody>
