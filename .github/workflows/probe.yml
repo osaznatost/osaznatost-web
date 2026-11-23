@@ -9,5 +9,5 @@ jobs:
           U: ${{ secrets.SUPABASE_URL }}
           K: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          for p in "proc_contracts?order=published_at.desc&limit=3&select=tender_id,published_at" "proc_contracts?select=tender_id,published_at&limit=1"; do
+          for p in "proc_contracts?contract_date=not.is.null&order=contract_date.desc&limit=3&select=tender_id,contract_date" "proc_contracts?select=tender_id,published_at&limit=1"; do
             curl -s -m 60 -w ' ## %{http_code} %{time_total}\n' -H "apikey: $K" "$U/rest/v1/$p" | cut -c1-400; done
