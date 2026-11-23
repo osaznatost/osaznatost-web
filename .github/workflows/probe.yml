@@ -5,8 +5,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          curl -s -m 120 -o b.docx "https://www.parliament.bg/bills/52/52-602-01-71.docx"
-          unzip -p b.docx word/document.xml | sed -e 's/<\/w:p>/\n/g; s/<[^>]*>//g' | sed 's/^ *//' | grep -v '^\s*$' > d.txt; wc -l d.txt
-          awk '/Приема  *държавния бюджет/{f=1} f' d.txt | head -400 | sed 's/^/## /'
-          grep -n "Чл\. [0-9]*\." d.txt | head -60 | sed 's/^/## C /' | cut -c1-200
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/import-budget-draft.mjs && sed 's/^/## /' data/budget-draft.json | head -120
