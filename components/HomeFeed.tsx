@@ -24,7 +24,7 @@ const MONTHS = ["", "януари", "февруари", "март", "април"
 type Top = { id: string; buyer: string; buyerEik: string; number: string; suppliers: string[]; supplierEiks: string[]; title: string; date: string; value: number; flags: string[]; score: number };
 type Agg = { key: string; name: string; n: number; value: number; risky: number; riskyValue: number; political: number };
 
-const card = "ring-1 ring-rule rounded-lg p-5 bg-white";
+const card = "ring-1 ring-rule rounded-lg p-5 bg-white min-w-0 break-words";
 const dmy = (d: string) => d.split("-").reverse().join(".");
 
 function tidyTitle(t: string) {
@@ -102,7 +102,7 @@ export async function HomeFeed() {
               </li>
             ))}</ul>
           </div>
-          <div className="grid gap-5">
+          <div className="grid gap-5 min-w-0">
             <div className={card}>
               <p className="font-semibold mb-3">Фирми, свързани с политици, с най-много рискови договори</p>
               <ul className="space-y-1.5 text-[15px]">{polSup.map((s) => (

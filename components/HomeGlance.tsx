@@ -9,7 +9,7 @@ import { latestNews, OUTLETS } from "@/lib/news";
 import { formatDate } from "@/lib/parliament";
 import { PROGRAM, parsePoint, programIsPast } from "@/lib/program";
 
-const card = "ring-1 ring-rule rounded-lg p-5 bg-white";
+const card = "ring-1 ring-rule rounded-lg p-5 bg-white min-w-0 break-words";
 const bn = (n: number, d = 1) => `${(n / 1e9).toLocaleString("bg-BG", { maximumFractionDigits: d, minimumFractionDigits: d })} млрд. €`;
 const pct = (n: number) => `${n > 0 ? "+" : ""}${n.toLocaleString("bg-BG", { maximumFractionDigits: 1, minimumFractionDigits: 1 })}%`;
 const MONTHS = ["", "януари", "февруари", "март", "април", "май", "юни", "юли", "август", "септември", "октомври", "ноември", "декември"];
@@ -64,7 +64,7 @@ export async function HomeGlance() {
           <p className="font-semibold">Последно проучване</p>
           <p className="text-sm text-muted mb-3">{lastPoll.agency}, {formatDate(lastPoll.date)} · дял от решилите да гласуват</p>
           <ul className="space-y-1.5 text-[15px]">{pollRows.map(([party, v]) => (
-            <li key={party} className="grid grid-cols-[8.5rem_1fr_3rem] items-center gap-2">
+            <li key={party} className="grid grid-cols-[minmax(0,8.5rem)_1fr_3rem] items-center gap-2">
               <span className="truncate">{party}</span>
               <span className="h-2.5 bg-surface rounded-full overflow-hidden"><span className="block h-full bg-green" style={{ width: `${(v / maxP) * 100}%` }} /></span>
               <span className="num text-right">{v.toLocaleString("bg-BG")}%</span>
