@@ -42,7 +42,7 @@ const SITES = {
   BLG03: { name: "Благоевград", blgDir: true, from: "2023-11-01" },
   // Общински съвет Кюстендил: до 08.2024 г. — PDF на заседание с всички решения (jDownloads на kyustendil.bg: „РЕШЕНИЕ № N … Относно: … Р Е Ш И:“);
   // от 09.2024 г. — пълните протоколи на obs.kyustendil.bg (поименно гласуване, „… прие РЕШЕНИЕ № N … Р Е Ш И:“).
-  KNL29: { name: "Кюстендил", knl: false, knlTesting: true, from: "2023-11-01" },
+  KNL29: { name: "Кюстендил", knl: true, from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -766,13 +766,22 @@ async function blgDir(code, S, prev) {
 }
 
 // Кюстендил
-const knlTail = (s) => s.split(/\n\s*(?:РАЗГЛАСЯВАНЕ|Край на дебатите|Гласуване по |На основание чл\.\s*22,?\s*ал\.\s*1 от ЗМСМА|Общински съвет\s*-\s*Кюстендил\s*\n\s*\d+-[а-я]+ заседание)|\n\s*(?:[А-Я][а-я]+\.?\s+)?[А-Я][а-я]+ [А-Я][а-я]+(?:-[А-Я][а-я]+)?[:.]\s/)[0];
-const knlBody = (chunk) => { const r = chunk.split(/Р\s*Е\s*Ш\s*И\s*:/); return ws(knlTail(r.length > 1 ? r[1] : r[0])).replace(/\n\s*\d+\s*\n/g, "\n"); };
-const knlBy = (m) => (/Кметът на Община Кюстендил/.test(m) ? "кмета на общината" : (m.match(/([^.]{3,90}?)\s+е\s+внес(?:ъл|ла|ли)/)?.[1] ?? null));
+const knlTail = (s) => s.split(/\n\s*\*{3}|\n\s*(?:РАЗГЛАСЯВАНЕ|Край на дебатите|Гласуване по |На основание чл\.\s*22,?\s*ал\.\s*1 от ЗМСМА|Общински съвет\s*-\s*Кюстендил\s*\n\s*\d+-[а-я]+ заседание)|\n\s*(?:[А-Я][а-я]+\.?\s+)?[А-Я][а-я]+ [А-Я][а-я]+(?:-[А-Я][а-я]+)?[:.]\s/)[0];
+// Диспозитивът: след „Р Е Ш И:“, а в протоколите — след последното „На основание … Общински съвет – Кюстендил“ (без „реши“).
+const KNL_OP = /(?:^|\n)[ \t]*(?:[IVX]+\.|\d+\.)?[ \t]*(?:Одобрява|Приема|Дава|Утвърждава|Възлага|Избира|Определя|Разрешава|Изменя|Допълва|Отменя|Упълномощава|Не[ \t]+(?:приема|дава|одобрява)|Предоставя|Учредява|Включва|Изключва|Отпуска|Освобождава|Задължава|Променя|Открива|Закрива|Допуска|Съгласува|Обявява|Продава|Отдава|Приватизира|Финансира|Насочва|Кандидатства|Поема|Опрощава|Създава|Прекратява|Овластява|Потвърждава|Удължава)(?=[\s,])/;
+const knlBody = (chunk) => {
+  const r = chunk.split(/Р\s*Е\s*Ш\s*И\s*:|\n\s*Р\s*Е\s*Ш\s*И\s*\n|\sреши\s*:/i);
+  let op = r.length > 1 ? r.slice(1).join(" ") : null;
+  if (!op) { const i = chunk.search(KNL_OP); op = i >= 0 ? chunk.slice(i) : null; }
+  if (!op) { const m = [...chunk.matchAll(/\n\s*На основание[\s\S]{0,1500}?(?:Общински(?:ят)? съвет(?:\s*[–-]\s*Кюстендил)?)[,:\s]*\n/g)].at(-1); op = m ? chunk.slice(m.index + m[0].length) : chunk; }
+  return ws(knlTail("\n" + op)).replace(/(^|\n)\s*\d+\s*(?=\n|$)/g, "$1").trim();
+};
+const knlBy = (m) => (/Кмет(?:ът|а) на Община Кюстендил/.test(m) ? "кмета на общината" : /Председател(?:ят)? на Общински/.test(m) ? "председателя на общинския съвет" : /общински съветни/i.test(m) ? "общински съветници" : null);
 function knlOne(number, date, session, title, chunk, url, tally, rejected) {
   const body = knlBody(chunk);
-  const mot = flat(chunk.match(/Мотиви:\s*([\s\S]{0,400})/)?.[1] ?? "");
-  if (!title) { const f = flat(body.split("\n").find((l) => l.trim().length > 15) ?? "").replace(/^\d+\.\s*/, ""); title = f.length > 240 ? f.slice(0, 240).replace(/\s+\S*$/, "") + " …" : f; }
+  const mot = flat(chunk.match(/Мотиви:\s*([\s\S]{0,600})/)?.[1] ?? "");
+  if (!title) title = mot.match(/относно\s*:?\s*[„"]?([^„"“]{8,240}?)[“"]?\s*(?:[.,;]\s|$)/i)?.[1] ?? "";
+  if (!title) { const f = flat(body).replace(/^(?:[IVX]+\.|\d+\.)\s*/, "").split(/(?<=[.;:])\s/)[0]; title = f.length > 240 ? f.slice(0, 240).replace(/\s+\S*$/, "") + " …" : f; }
   title = flat(title).replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
   return { number, date, url, title: title.slice(0, 400), session, rapporteur: null, proposedBy: knlBy(mot), tally,
@@ -796,7 +805,7 @@ function parseKnlProtocol(text, url, date, session) {
     const before = flat(parts[i - 1].slice(-4000)), c = parts[i + 1];
     const tm = [...before.matchAll(/[„'"]за[“'"]\s*-\s*(\d+)[^\d]{0,40}?[„'"]против[“'"]\s*-\s*(\d+)[^\d]{0,40}?[„'"]въздърж[^“'"]{0,12}[“'"]\s*-\s*(\d+)/g)].at(-1);
     const tally = tm ? { for: +tm[1], against: +tm[2], abstain: +tm[3], method: /поименно/.test(before) || /\n\s*1\.\s+[А-Я][а-я]+ [А-Я][а-я]+:\s*(?:За|Против)/.test(parts[i - 1].slice(-4000)) ? "named" : "open" } : null;
-    const tt = [...before.matchAll(/(?:Докладна записка|ДЗ)\s*(?:№\s*)?[\d-]+\/[\d.]+\s*г?\.?\s*(?:относно\s*)?[„"]([^“"]{5,300})[“"]/gi)].at(-1)?.[1] ?? c.match(/Относно:\s*([\s\S]*?)\n\s*Мотиви:/)?.[1] ?? "";
+    const tt = [...before.slice(-1500).matchAll(/относно\s*:?\s*[„"]([^“”"]{5,400})[“”"]/gi)].at(-1)?.[1] ?? c.match(/Относно:\s*([\s\S]*?)\n\s*Мотиви:/)?.[1] ?? "";
     const d = knlOne(parts[i], date, session, tt, c, url, tally, /не прие/.test(before.slice(-200)));
     if (d) out.push(d);
   }
@@ -818,13 +827,15 @@ async function knl(code, S, prev) {
   const pl = await get("https://obs.kyustendil.bg/protokoli-obs");
   const html = dehtml(pl ?? "");
   // Карта „N-то заседание в ДД.ММ.ГГГГ“ → дата; файлът носи номера на заседанието в името.
+  const jdMax = Math.max(0, ...prev.decisions.filter((d) => /jdownloads/.test(d.url)).map((d) => +d.session || 0));
   const dates = Object.fromEntries([...html.matchAll(/(\d+)-[а-я]+ заседание в (\d{2})\.(\d{2})\.(\d{4})/g)].map((m) => [m[1], `${m[4]}-${m[3]}-${m[2]}`]));
   for (const m of html.matchAll(/href="((?:\/uploads|\/?Documents)\/[^"]*?protok?c?ol[^"]*?\.pdf)"/gi)) {
     if (timeUp() || blocked) break;
-    const u = encodeURI(new URL(m[1].replace(/^Documents/, "/Documents"), "https://obs.kyustendil.bg/").href.replace(/%20/g, " "));
+    const u = new URL(m[1].replace(/^Documents/, "/Documents"), "https://obs.kyustendil.bg/").href;
     if (prev.files[u]) continue;
-    const sn = decodeURI(u).match(/(?:Protokol|Protocol|protocol|Prototkol|Протокол)[ _№]*(\d+)/i)?.[1] ?? decodeURI(u).match(/\/(\d+)_/)?.[1];
-    if (!sn || !dates[sn]) continue;
+    const name = decodeURI(u);
+    const sn = name.match(/\/(\d{1,3})_[^/]*$/)?.[1] ?? name.match(/(?:Protokol|Protocol|Prototkol|Протокол)[ _№]*(\d{1,3})(?!\d)/i)?.[1];
+    if (!sn || !dates[sn] || +sn <= jdMax) continue; // заседанията до 08.2024 вече са от отделните файлове с решения
     const buf = await get(u, true);
     if (!buf || buf.subarray(0, 4).toString() !== "%PDF") continue;
     const ds = parseKnlProtocol(pdfText(buf), u, dates[sn], sn).filter((d) => d.date >= S.from);
