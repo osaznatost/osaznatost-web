@@ -5,9 +5,8 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - run: |
-          for u in "https://www.parliament.bg/bills/52/52-602-01-53.rtf" "https://www.parliament.bg/bills/52/52-602-01-71.docx"; do curl -s -m 120 -o "$(basename $u)" -w "## %{http_code} %{content_type} %{size_download} $u\n" "$u"; done
-          node -e 'import("./scripts/lib/rtf.mjs").then(m=>{const t=m.rtfToText(require("fs").readFileSync("52-602-01-53.rtf","latin1"));const i=t.search(/М\s*О\s*Т\s*И\s*В\s*И/);console.log("## LEN",t.length,i);for(const l of t.slice(i,i+2500).split("\n"))console.log("## R "+l)})'
-          unzip -p 52-602-01-71.docx word/document.xml | sed -e 's/<\/w:p>/\n/g; s/<[^>]*>//g' > d.txt; wc -c d.txt
-          head -c 7000 d.txt | sed 's/^/## D /'
+          curl -s -m 120 -o b.docx "https://www.parliament.bg/bills/52/52-602-01-71.docx"
+          unzip -p b.docx word/document.xml | sed -e 's/<\/w:p>/\n/g; s/<[^>]*>//g' | sed 's/^ *//' | grep -v '^\s*$' > d.txt; wc -l d.txt
+          awk '/Приема  *държавния бюджет/{f=1} f' d.txt | head -400 | sed 's/^/## /'
+          grep -n "Чл\. [0-9]*\." d.txt | head -60 | sed 's/^/## C /' | cut -c1-200
