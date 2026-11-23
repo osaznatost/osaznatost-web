@@ -118,6 +118,8 @@ async function fetchDay(kind, day) {
     try {
       const res = await fetch(url);
       if (res.status === 404) return [];
+      // Файлът за вчерашния ден още не е качен: хранилището връща 403 за липсващ файл. Опитваме пак при следващото пускане.
+      if (res.status === 403 && day >= yesterday) return null;
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const js = JSON.parse((await res.text()).replace(/^﻿/, ""));
       return Array.isArray(js) ? js : [];
@@ -189,6 +191,7 @@ to = to ?? yesterday;
 let day = from, done = 0, nC = 0, nA = 0;
 while (day <= to && done < MAX_DAYS) {
   const [c, a] = await Promise.all([fetchDay("договори", day), fetchDay("анекси", day)]);
+  if (c === null || a === null) { console.log(`${day}: данните още не са публикувани — ще опитам при следващото пускане`); break; }
   nC += await upsert("proc_contracts", c.map(contractRow));
   nA += await upsert("proc_annexes", a.map(annexRow));
   if (!manual) await setState(day);
