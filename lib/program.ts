@@ -42,3 +42,8 @@ export function parsePoint(p: ProgramPoint): ParsedPoint {
 }
 
 export const billUrl = (id: number) => `https://www.parliament.bg/bg/bills/ID/${id}`;
+
+/** Дали показаната програма е от минала седмица (датата е по българско време). */
+export function programIsPast(p: { to: string } = PROGRAM): boolean {
+  return p.to < new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
+}

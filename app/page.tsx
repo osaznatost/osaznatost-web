@@ -3,6 +3,7 @@ import { KeyNumber, Page, num, SectionTitle } from "@/components/ui";
 import { VOTES, formatDate } from "@/lib/parliament";
 import { VoteBoard } from "@/components/parliament";
 import { HomeFeed } from "@/components/HomeFeed";
+import { HomeGlance } from "@/components/HomeGlance";
 import { CPI_GROUPS, CPI_MONTHLY, DEBT_GDP, DEBT_GDP_SOURCE, P } from "@/lib/params";
 import { data } from "@/lib/data";
 
@@ -108,6 +109,8 @@ export default async function Home() {
           />
         )}
       </section>
+
+      <HomeGlance />
 
       <section className="mb-14">
         <SectionTitle right={<Link href="/kalkulatori">Всички</Link>}>Калкулатори</SectionTitle>

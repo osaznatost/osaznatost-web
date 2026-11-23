@@ -3,7 +3,7 @@ import { OutcomeTag, TallyBar } from "@/components/parliament";
 import { SectionTitle } from "@/components/ui";
 import { FAILED_SITTINGS, PARTIES, VOTES, type Vote, formatDate, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 import { explain, lawFromTitle } from "@/lib/voteExplain";
-import { PROGRAM, PROGRAM_HISTORY, billUrl, parsePoint } from "@/lib/program";
+import { PROGRAM, PROGRAM_HISTORY, billUrl, parsePoint, programIsPast } from "@/lib/program";
 import { Term } from "@/components/Term";
 
 const POS: Record<string, string> = { y: "за", n: "против", a: "въздържал се", split: "разделени", absent: "отсъства" };
@@ -119,7 +119,7 @@ export function WeekProgram() {
   const pts = p.points.map(parsePoint);
   const range = `${formatDate(p.from)} – ${formatDate(p.to)}`;
   // новата програма се публикува едва след гласуването ѝ в сряда; дотогава показваме миналата с ясен надпис
-  const past = p.to < new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
+  const past = programIsPast(p);
   const point = (x: ReturnType<typeof parsePoint>) => (
           <li key={x.n} className="px-4 py-3 grid grid-cols-[2rem_1fr] gap-x-2">
             <span className="text-muted font-semibold tabular-nums">{x.n}.</span>
