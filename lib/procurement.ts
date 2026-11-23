@@ -69,7 +69,8 @@ const hasGeo = (f: PlaceFilter) => Boolean(f.oblast || f.obshtina || f.mesto || 
 const ct = (f: PlaceFilter) => (hasGeo(f) ? "proc_contracts_geo" : "proc_contracts");
 const at = (f: PlaceFilter) => (hasGeo(f) ? "proc_annexes_geo" : "proc_annexes");
 
-export const latestContracts = (f: PlaceFilter = {}) => q<Contract>(`${ct(f)}?order=published_at.desc&limit=30${geoQ(f)}`);
+// по contract_date (има индекс); по published_at няма и заявката изтича за цялата страна
+export const latestContracts = (f: PlaceFilter = {}) => q<Contract>(`${ct(f)}?contract_date=not.is.null&order=contract_date.desc&limit=30${geoQ(f)}`);
 export const biggestContracts = (since: string, f: PlaceFilter = {}) =>
   q<Contract>(`${ct(f)}?contract_date=gte.${since}&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
 export const singleOfferBig = (since: string, f: PlaceFilter = {}) =>

@@ -113,7 +113,7 @@ export async function PlaceProcurement({ f, showBreakdown = true }: { f: PlaceFi
         <ContractList items={single} />
       </More>
       <More title={`Най-големите договори, последните 90 дни (${big.length})`}><ContractList items={big} /></More>
-      <More title={`Последно публикувани договори (${latest.length})`}><ContractList items={latest} /></More>
+      <More title={`Последно сключени договори (${latest.length})`}><ContractList items={latest} /></More>
     </>
   );
 }
