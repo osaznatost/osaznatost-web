@@ -23,6 +23,13 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        id: co1
+        continue-on-error: true
+      # Mac-ът понякога е без мрежа за минута след събуждане — втори опит след пауза.
+      - if: steps.co1.outcome == 'failure'
+        run: sleep 90
+      - if: steps.co1.outcome == 'failure'
+        uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
