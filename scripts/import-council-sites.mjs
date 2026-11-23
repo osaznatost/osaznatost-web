@@ -42,7 +42,7 @@ const SITES = {
   BLG03: { name: "Благоевград", blgDir: true, from: "2023-11-01" },
   // Общински съвет Кюстендил: до 08.2024 г. — PDF на заседание с всички решения (jDownloads на kyustendil.bg: „РЕШЕНИЕ № N … Относно: … Р Е Ш И:“);
   // от 09.2024 г. — пълните протоколи на obs.kyustendil.bg (поименно гласуване, „… прие РЕШЕНИЕ № N … Р Е Ш И:“).
-  KNL29: { name: "Кюстендил", knl: true, from: "2023-11-01" },
+  KNL29: { name: "Кюстендил", knl: false, knlTesting: true, from: "2023-11-01" },
   SFO07: { name: "Ботевград", index: "https://botevgrad.bg/obs/reshenia", from: "2023-11-01", yearLink: /href="(https:\/\/botevgrad\.bg\/obs\/reshenie\/[^"]*?(\d{4})g-\d+)"/g },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
