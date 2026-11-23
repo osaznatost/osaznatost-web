@@ -9,12 +9,20 @@ export const metadata = { title: "Корупция: санкции, обвине
 
 const SHORT: Record<string, string> = { GLOMAG: "„Магнитски“ (САЩ)", "7031c": "Забрана за влизане в САЩ", UKGAC: "Санкции на Великобритания" };
 
-export default async function Sankcii() {
+const NOPARTY_S = "Без партия (служители, бизнес)", NOPARTY_C = "без партия / неизвестна";
+const pq = (k: string) => `?p=${encodeURIComponent(k)}`;
+
+export default async function Sankcii({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const { personPage } = await peopleLinks();
   const P = SANCTIONS.people;
+  const sel = (await searchParams).p;
+  // филтър по партия: едни и същи правила за санкции и за съдебни случаи
+  const inS = (p: (typeof P)[number]) => !sel || (p.party ?? NOPARTY_S) === sel || (sel === NOPARTY_C && !p.party);
+  const inC = (c: (typeof CASES.cases)[number]) => !sel || (c.party || NOPARTY_C) === sel || (sel === NOPARTY_S && !c.party);
+  const PS = P.filter(inS), CS = CASES.cases.filter(inC);
   const active = P.filter((p) => p.measures.some((m) => !m.status.startsWith("отмен")));
   const byParty = new Map<string, number>();
-  for (const p of active) byParty.set(p.party ?? "Без партия (служители, бизнес)", (byParty.get(p.party ?? "Без партия (служители, бизнес)") ?? 0) + 1);
+  for (const p of active) byParty.set(p.party ?? NOPARTY_S, (byParty.get(p.party ?? NOPARTY_S) ?? 0) + 1);
   return (
     <Page>
       <Title back={{ href: "/proverki", label: "Проверки" }} kicker="Корупция: само официални източници"
@@ -43,20 +51,20 @@ export default async function Sankcii() {
         <SectionTitle>По партийна принадлежност</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-3">Принадлежността е към момента на санкцията или сегашната, ако е известна. Броят сам по себе си не показва коя партия е „по-корумпирана“: санкциите засягат малко хора и зависят от приоритетите на чуждите правителства.</p>
         <p className="font-semibold mt-2">Санкции</p>
-        <ul className="text-[15px] space-y-1">{[...byParty.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="flex justify-between border-b border-rule py-1"><span>{k}</span><b className="num">{n}</b></li>)}</ul>
+        <ul className="text-[15px] space-y-1">{[...byParty.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => <li key={k} className="border-b border-rule"><Link href={`${pq(k)}#sankcii`} className="flex justify-between py-1 no-underline text-ink hover:text-green"><span className="underline decoration-rule underline-offset-4">{k}</span><b className="num">{n}</b></Link></li>)}</ul>
         {(() => {
           // съдебните случаи по партия и по ниво, по един и същи начин за всички
           const LV = ["conviction", "nonfinal", "trial", "charged", "dropped", "acquitted"] as const;
           const LBL = CASES.levels as Record<string, { label: string }>;
           const rows = new Map<string, Record<string, number>>();
-          for (const c of CASES.cases) { const k = c.party || "без партия / неизвестна"; const r = rows.get(k) ?? {}; r[c.level] = (r[c.level] ?? 0) + 1; rows.set(k, r); }
+          for (const c of CASES.cases) { const k = c.party || NOPARTY_C; const r = rows.get(k) ?? {}; r[c.level] = (r[c.level] ?? 0) + 1; rows.set(k, r); }
           return (
             <div className="mt-6 overflow-x-auto">
               <p className="font-semibold">Обвинения и присъди</p>
               <table className="w-full text-[15px] num mt-1">
                 <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="py-1 pr-3 font-normal">Партия</th>{LV.map((l) => <th key={l} className="py-1 pr-3 font-normal">{LBL[l]?.label}</th>)}</tr></thead>
                 <tbody>{[...rows.entries()].sort((a, b) => Object.values(b[1]).reduce((x, y) => x + y, 0) - Object.values(a[1]).reduce((x, y) => x + y, 0)).map(([k, r]) => (
-                  <tr key={k} className="border-b border-rule"><td className="py-1 pr-3">{k}</td>{LV.map((l) => <td key={l} className="py-1 pr-3">{r[l] ?? "—"}</td>)}</tr>
+                  <tr key={k} className="border-b border-rule"><td className="py-1 pr-3"><Link href={`${pq(k)}#dela`}>{k}</Link></td>{LV.map((l) => <td key={l} className="py-1 pr-3">{r[l] ?? "—"}</td>)}</tr>
                 ))}</tbody>
               </table>
               <p className="text-sm text-muted mt-2">Включваме само случаи с обвинение или съдебен акт и официален източник, по едни и същи правила за всички партии. Сравнително малкият брой случаи не позволява изводи коя партия е „по-корумпирана“.</p>
@@ -67,7 +75,8 @@ export default async function Sankcii() {
 
       <section id="sankcii" className="mb-12 scroll-mt-32 lg:scroll-mt-24">
         <SectionTitle>Санкционираните</SectionTitle>
-        <ul className="grid gap-4 lg:grid-cols-2">{P.map((p) => (
+        {sel && <Filter sel={sel} n={PS.length} />}
+        <ul className="grid gap-4 lg:grid-cols-2">{PS.map((p) => (
           <li key={p.name} className="ring-1 ring-rule rounded-sm p-5 bg-white">
             <p className="font-semibold text-lg">{personPage(p.name) ? <Link href={personPage(p.name)!}>{p.name}</Link> : p.name}</p>
             <p className="text-sm text-muted">{p.role}</p>
@@ -85,7 +94,8 @@ export default async function Sankcii() {
         <SectionTitle>Обвинения и присъди в България</SectionTitle>
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Политици и високопоставени лица с обвинения или присъди, само по съобщения на прокуратурата и съдилищата или медии, които ги цитират. Нивото е най-важното: обвинението не е доказателство за вина.</p>
         <ul className="flex flex-wrap gap-3 mb-5 text-sm">{Object.entries(CASES.levels).map(([k, l]) => <li key={k} className="bg-surface rounded-sm px-3 py-2 max-w-xs"><b>{l.label}</b>: {l.about}</li>)}</ul>
-        <ul className="grid gap-4 lg:grid-cols-2">{[...CASES.cases].sort((a, b) => ["conviction", "nonfinal", "trial", "charged", "dropped", "acquitted"].indexOf(a.level) - ["conviction", "nonfinal", "trial", "charged", "dropped", "acquitted"].indexOf(b.level)).map((c) => (
+        {sel && <Filter sel={sel} n={CS.length} />}
+        <ul className="grid gap-4 lg:grid-cols-2">{[...CS].sort((a, b) => ["conviction", "nonfinal", "trial", "charged", "dropped", "acquitted"].indexOf(a.level) - ["conviction", "nonfinal", "trial", "charged", "dropped", "acquitted"].indexOf(b.level)).map((c) => (
           <li key={c.person + c.what} className="ring-1 ring-rule rounded-sm p-5 bg-white">
             <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${c.level === "conviction" ? "bg-red text-white" : c.level === "nonfinal" ? "bg-[#e08a2e] text-white" : c.level === "acquitted" ? "bg-[#2f9e6a] text-white" : "bg-surface"}`}>{CASES.levels[c.level as keyof typeof CASES.levels].label}</span>
             <p className="font-semibold text-lg mt-2">{personPage(c.person) ? <Link href={personPage(c.person)!}>{c.person}</Link> : c.person}</p>
@@ -106,5 +116,13 @@ export default async function Sankcii() {
       </section>
       <p className="text-xs text-muted">Проверено: {formatDate(SANCTIONS.updated)}.</p>
     </Page>
+  );
+}
+
+function Filter({ sel, n }: { sel: string; n: number }) {
+  return (
+    <p className="text-[15px] bg-surface rounded-sm px-3 py-2 mb-4 -mt-2">
+      Показани са само: <b>{sel}</b> ({n}). <Link href="/proverki/sankcii">Покажи всички</Link>
+    </p>
   );
 }

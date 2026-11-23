@@ -118,6 +118,8 @@ export function WeekProgram() {
   const p = PROGRAM;
   const pts = p.points.map(parsePoint);
   const range = `${formatDate(p.from)} – ${formatDate(p.to)}`;
+  // новата програма се публикува едва след гласуването ѝ в сряда; дотогава показваме миналата с ясен надпис
+  const past = p.to < new Date(Date.now() + 2 * 3600_000).toISOString().slice(0, 10);
   const point = (x: ReturnType<typeof parsePoint>) => (
           <li key={x.n} className="px-4 py-3 grid grid-cols-[2rem_1fr] gap-x-2">
             <span className="text-muted font-semibold tabular-nums">{x.n}.</span>
@@ -137,13 +139,14 @@ export function WeekProgram() {
   );
   return (
     <section id="programa" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
-      <SectionTitle right={<a href={p.source} target="_blank" rel="noreferrer">parliament.bg</a>}>Програмата за седмицата</SectionTitle>
+      <SectionTitle right={<a href={p.source} target="_blank" rel="noreferrer">parliament.bg</a>}>{past ? "Програмата от миналата седмица" : "Програмата за седмицата"}</SectionTitle>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 -mt-3 mb-4 text-[15px]">
         <span className="font-semibold">{range}</span>
         {p.time.length === 2 && <span className="text-muted">заседания от {p.time[0]} до {p.time[1]} ч.</span>}
         <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${p.approved ? "bg-[#d7ecd9] text-[#1f5c2a]" : "bg-[#fbecc4] text-ink"}`}>{p.approved ? "приета програма" : "проект, предстои гласуване"}</span>
       </div>
       {!p.approved && <p className="text-sm text-muted -mt-2 mb-4 max-w-3xl">В сряда сутрин депутатите гласуват програмата. Редът може да се промени и да се добавят точки.</p>}
+      {past && <p className="text-sm -mt-2 mb-4 max-w-3xl bg-surface px-3 py-2">Програмата за тази седмица още не е публикувана. Парламентът я пуска след като депутатите я гласуват, обикновено в сряда сутрин. Тук ще се появи до няколко часа след това.</p>}
       <ol className="ring-1 ring-rule rounded-sm bg-white divide-y divide-rule">{pts.slice(0, 5).map(point)}</ol>
       {pts.length > 5 && (
         <details className="mt-3">
