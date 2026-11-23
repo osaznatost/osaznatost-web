@@ -9,4 +9,10 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null
-      - run: node scripts/probe/cik.mjs
+      - run: ONLY=KNL29 MINUTES=35 node scripts/import-council-sites.mjs
+      - run: |
+          node -e '
+          const d=require("./data/council/KNL29.json"),D=d.decisions;
+          console.log("## N",D.length,"files",Object.keys(d.files).length);
+          console.log("## tally",D.filter(x=>x.tally).length,"prop",D.filter(x=>x.proposedBy).length,"rej",D.filter(x=>x.result==="rejected").length,"motivTitle",D.filter(x=>/^Мотиви/.test(x.title)).length,"motivText",D.filter(x=>/^Мотиви/.test(x.text)).length);
+          for(const x of [...D.slice(0,3),...D.filter((_,i)=>i%120===7)]) console.log("## D",JSON.stringify({...x,url:x.url.slice(-30),text:x.text.slice(0,350)}));'
