@@ -4,8 +4,9 @@ import { MoneyFlow, type FlowLink, type FlowNode } from "@/components/MoneyFlow"
 import { TallyBar } from "@/components/parliament";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import raw from "@/data/budget.json";
+import { allBills, type Bill } from "@/lib/bills";
 import { getLaw } from "@/lib/laws";
-import { PARTIES, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
+import { PARTIES, VOTES, formatDate, getVote, partyBreakdown, partyName, partyPosition } from "@/lib/parliament";
 
 export const metadata = { title: `Държавният бюджет ${(raw as { year: number }).year}` };
 
@@ -79,6 +80,50 @@ function VoteCard({ id, label }: { id: string; label: string }) {
 /** Редовете са плосък списък: децата на „1“ са „1.1“, „1.2“ и т.н. */
 const kids = (all: Line[], code: string) => all.filter((l) => new RegExp(`^${code.replace(".", "\\.")}\\.\\d+$`).test(l.code));
 
+// Бюджетът за следващата година, докато е в Народното събрание: законопроектите (държавен бюджет, ДОО, Здравна каса),
+// докладите и гласуванията в комисиите, становищата и гласуванията в зала. Всичко идва от parliament.bg, без ръчна намеса.
+const NEXT_KINDS: [RegExp, string][] = [
+  [/държавния бюджет на Република България/i, "Държавният бюджет"],
+  [/Държавното обществено осигуряване/i, "Бюджетът на НОИ (пенсии, обезщетения)"],
+  [/Националната здравноосигурителна каса/i, "Бюджетът на Здравната каса"],
+];
+const orgName = (t: string) => t.split(/\s+по\s+(?=Законопроект|ЗД|ЗБ)|\s*-\s*Вх\.|\s+по\s+ЗД|\s+по\s+ЗБ/)[0].replace(/''/g, "“").trim();
+function NextBudget({ year }: { year: number }) {
+  const bills = NEXT_KINDS.map(([re, label]) => ({ label, b: allBills().find((x) => !x.withdrawn && re.test(x.title) && x.title.includes(`за ${year} г`)) }))
+    .filter((x): x is { label: string; b: Bill } => !!x.b);
+  if (!bills.length) return null;
+  const votes = VOTES.filter((v) => /бюджет/i.test(v.title) && v.title.includes(`за ${year} г`)).sort((a, b) => a.date.localeCompare(b.date) || a.item - b.item).slice(-4);
+  return (
+    <section className="mb-14">
+      <SectionTitle>Бюджет {year} в Народното събрание</SectionTitle>
+      <p className="text-[15px] max-w-3xl mb-4">Правителството е внесло проектите за {year} г. Докато траят обсъжданията, тук се появяват сами докладите и гласуванията в комисиите, становищата на организациите и гласуванията в пленарна зала.</p>
+      <div className="grid gap-4 lg:grid-cols-3">
+        {bills.map(({ label, b }) => {
+          const cv = b.notes?.votes ?? [];
+          const orgs = [...new Set(b.opinions.map((o) => orgName(o.title)))].filter(Boolean);
+          const stage = b.hall.at(-1)?.stage ?? (b.reports.length ? `доклади на комисии (${b.reports.length})` : "внесен, в комисиите");
+          return (
+            <div key={b.id} className="ring-1 ring-rule rounded-sm p-4 text-sm">
+              <p className="font-semibold text-[15px]"><a href={b.url}>{label} {year}</a></p>
+              <p className="text-muted mb-2">Внесен на {formatDate(b.date)} от {b.byGov ? "Министерския съвет" : "народни представители"} · сега: {stage}</p>
+              {cv.length > 0 && <>
+                <p className="font-semibold mt-2">Гласувания в комисиите</p>
+                <ul className="space-y-0.5">{cv.map((v, i) => <li key={i}>{v.committee.replace(/^Комисия /, "")}: за {v.yes}, против {v.no}, въздържал се {v.abst}</li>)}</ul>
+              </>}
+              {orgs.length > 0 && <>
+                <p className="font-semibold mt-2">Становища ({orgs.length})</p>
+                <p>{orgs.slice(0, 8).join(", ")}{orgs.length > 8 ? ` и още ${orgs.length - 8}` : ""}</p>
+              </>}
+            </div>
+          );
+        })}
+      </div>
+      {votes.length > 0 && <div className="grid gap-4 lg:grid-cols-2 mt-4">{votes.map((v) => <VoteCard key={v.id} id={v.id} label={v.title.slice(0, 120)} />)}</div>}
+      <p className="text-xs text-muted mt-3">Източник: parliament.bg. Становищата са на външни организации; показваме ги, без да ги оценяваме.</p>
+    </section>
+  );
+}
+
 export default function Byudzhet() {
   const taxes = B.revenue.lines.find((l) => l.code === "1")!;
   const nonTax = B.revenue.lines.find((l) => l.code === "2")!;
@@ -140,6 +185,8 @@ export default function Byudzhet() {
       <Title lead={`Откъде идват парите на държавата, къде отиват, кой ги гласува и какво се очаква. Числата са от закона${is2026 ? ", приет на 24 юли 2026 г.," : ` за ${B.year} г.`} и от отчетите за изпълнението му. Годините от ${B.history[0]?.year} насам са за сравнение по-долу.`}>
         Държавният бюджет {B.year}
       </Title>
+
+      <NextBudget year={B.year + 1} />
 
       {is2026 && <><section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-6">
         {[
