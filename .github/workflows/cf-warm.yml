@@ -1,0 +1,24 @@
+# Загряване на кеша след всяко успешно качване (отделно, за да не забавя следващото качване).
+name: cf-warm
+on:
+  workflow_run:
+    workflows: [deploy-cloudflare]
+    types: [completed]
+  workflow_dispatch:
+concurrency:
+  group: cf-warm
+  cancel-in-progress: true
+jobs:
+  warm:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: scripts }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/cf-warm.mjs
+        env:
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          MINUTES: "20"
