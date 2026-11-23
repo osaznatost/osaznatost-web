@@ -33,7 +33,7 @@ async function priceMoves() {
 }
 
 export async function HomeGlance() {
-  const B = BUDGET as unknown as { year: number; revenue: { total: number }; expenditure: { total: number }; balance: number; execution: { throughMonth: number | null; revenue: { ytdEur: number; annualisedEur: number } | null; expenditure: { ytdEur: number; annualisedEur: number } | null } };
+  const B = BUDGET as unknown as { year: number; revenue: { total: number }; expenditure: { total: number }; transfers: { totalEur: number }; euContribution: number; balance: number; execution: { throughMonth: number | null; revenue: { ytdEur: number; annualisedEur: number } | null; expenditure: { ytdEur: number; annualisedEur: number } | null } };
   const [prices, draft, news] = await Promise.all([priceMoves(), data<Draft>("budget-draft.json"), latestNews().catch(() => [])]);
   const past = programIsPast();
   const points = PROGRAM.points.map(parsePoint).filter((p) => p.stage !== "контрол").slice(0, 4);
@@ -50,7 +50,7 @@ export async function HomeGlance() {
       <div className="grid gap-5 lg:grid-cols-3">
         <div className={card}>
           <p className="font-semibold">{past ? "Парламентът: програмата от миналата седмица" : "Парламентът тази седмица"}</p>
-          <p className="text-sm text-muted mb-3">{formatDate(PROGRAM.from)} – {formatDate(PROGRAM.to)}{past && ". Новата програма излиза след гласуването ѝ в сряда"}</p>
+          <p className="text-sm text-muted mb-3">{formatDate(PROGRAM.from)} – {formatDate(PROGRAM.to)}{past && " · новата програма излиза след гласуването ѝ в сряда"}</p>
           <ol className="space-y-2.5 text-[15px]">{points.map((p) => (
             <li key={p.n} className="leading-snug">
               {STAGE[p.stage] && <span className="text-xs font-semibold bg-surface rounded-full px-2 py-0.5 mr-1.5">{STAGE[p.stage]}</span>}
@@ -78,7 +78,7 @@ export async function HomeGlance() {
           {E.throughMonth && E.revenue && E.expenditure ? (
             <>
               <p className="text-sm text-muted mb-3">Бюджет {B.year}, изпълнение до {MONTHS[E.throughMonth]}</p>
-              {([["Приходи", E.revenue, B.revenue.total], ["Разходи", E.expenditure, B.expenditure.total]] as const).map(([l, x, plan]) => (
+              {([["Приходи", E.revenue, B.revenue.total], ["Разходи с трансферите", E.expenditure, B.expenditure.total + B.transfers.totalEur]] as const).map(([l, x, plan]) => (
                 <div key={l} className="mb-3">
                   <div className="flex justify-between text-[15px]"><span>{l}</span><span className="num">{bn(x.ytdEur)} от {bn(plan)}</span></div>
                   <div className="h-2.5 bg-surface rounded-full overflow-hidden mt-1"><div className="h-full bg-green" style={{ width: `${Math.min(100, (x.ytdEur / plan) * 100)}%` }} /></div>
