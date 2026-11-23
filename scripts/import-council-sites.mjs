@@ -768,11 +768,13 @@ async function blgDir(code, S, prev) {
 // Кюстендил
 const knlTail = (s) => s.split(/\n\s*\*{3}|\n\s*(?:РАЗГЛАСЯВАНЕ|Край на дебатите|Гласуване по |На основание чл\.\s*22,?\s*ал\.\s*1 от ЗМСМА|Общински съвет\s*-\s*Кюстендил\s*\n\s*\d+-[а-я]+ заседание)|\n\s*(?:[А-Я][а-я]+\.?\s+)?[А-Я][а-я]+ [А-Я][а-я]+(?:-[А-Я][а-я]+)?[:.]\s/)[0];
 // Диспозитивът: след „Р Е Ш И:“, а в протоколите — след последното „На основание … Общински съвет – Кюстендил“ (без „реши“).
+const KNL_OP = /(?:^|\n)[ \t]*(?:[IVX]+\.|\d+\.)?[ \t]*(?:Одобрява|Приема|Дава|Утвърждава|Възлага|Избира|Определя|Разрешава|Изменя|Допълва|Отменя|Упълномощава|Не[ \t]+(?:приема|дава|одобрява)|Предоставя|Учредява|Включва|Изключва|Отпуска|Освобождава|Задължава|Променя|Открива|Закрива|Допуска|Съгласува|Обявява|Продава|Отдава|Приватизира|Финансира|Насочва|Кандидатства|Поема|Опрощава|Създава|Прекратява|Овластява|Потвърждава|Удължава)(?=[\s,])/;
 const knlBody = (chunk) => {
-  const r = chunk.split(/Р\s*Е\s*Ш\s*И\s*:|\sреши\s*:/i);
+  const r = chunk.split(/Р\s*Е\s*Ш\s*И\s*:|\n\s*Р\s*Е\s*Ш\s*И\s*\n|\sреши\s*:/i);
   let op = r.length > 1 ? r.slice(1).join(" ") : null;
+  if (!op) { const i = chunk.search(KNL_OP); op = i >= 0 ? chunk.slice(i) : null; }
   if (!op) { const m = [...chunk.matchAll(/\n\s*На основание[\s\S]{0,1500}?(?:Общински(?:ят)? съвет(?:\s*[–-]\s*Кюстендил)?)[,:\s]*\n/g)].at(-1); op = m ? chunk.slice(m.index + m[0].length) : chunk; }
-  return ws(knlTail(op)).replace(/(^|\n)\s*\d+\s*(?=\n|$)/g, "$1").trim();
+  return ws(knlTail("\n" + op)).replace(/(^|\n)\s*\d+\s*(?=\n|$)/g, "$1").trim();
 };
 const knlBy = (m) => (/Кметът на Община Кюстендил/.test(m) ? "кмета на общината" : (m.match(/([^.]{3,90}?)\s+е\s+внес(?:ъл|ла|ли)/)?.[1] ?? null));
 function knlOne(number, date, session, title, chunk, url, tally, rejected) {
@@ -803,7 +805,7 @@ function parseKnlProtocol(text, url, date, session) {
     const before = flat(parts[i - 1].slice(-4000)), c = parts[i + 1];
     const tm = [...before.matchAll(/[„'"]за[“'"]\s*-\s*(\d+)[^\d]{0,40}?[„'"]против[“'"]\s*-\s*(\d+)[^\d]{0,40}?[„'"]въздърж[^“'"]{0,12}[“'"]\s*-\s*(\d+)/g)].at(-1);
     const tally = tm ? { for: +tm[1], against: +tm[2], abstain: +tm[3], method: /поименно/.test(before) || /\n\s*1\.\s+[А-Я][а-я]+ [А-Я][а-я]+:\s*(?:За|Против)/.test(parts[i - 1].slice(-4000)) ? "named" : "open" } : null;
-    const tt = [...before.matchAll(/относно\s*:?\s*[„"]([^“"]{5,400})[“"]/gi)].at(-1)?.[1] ?? c.match(/Относно:\s*([\s\S]*?)\n\s*Мотиви:/)?.[1] ?? "";
+    const tt = [...before.slice(-1500).matchAll(/относно\s*:?\s*[„"]([^“”"]{5,400})[“”"]/gi)].at(-1)?.[1] ?? c.match(/Относно:\s*([\s\S]*?)\n\s*Мотиви:/)?.[1] ?? "";
     const d = knlOne(parts[i], date, session, tt, c, url, tally, /не прие/.test(before.slice(-200)));
     if (d) out.push(d);
   }
