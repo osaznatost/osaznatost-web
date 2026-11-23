@@ -1,0 +1,839 @@
+{
+  "pages": {
+    "/_app": []
+  },
+  "devFiles": [],
+  "polyfillFiles": [
+    "static/chunks/0cz1d0mv5g_q7.js"
+  ],
+  "lowPriorityFiles": [
+    "static/BnpfSvxUfiSkNOlqobTmv/_buildManifest.js",
+    "static/BnpfSvxUfiSkNOlqobTmv/_ssgManifest.js",
+    "static/BnpfSvxUfiSkNOlqobTmv/_clientMiddlewareManifest.js"
+  ],
+  "rootMainFiles": [
+    "static/chunks/310vm2bl3xxpt.js",
+    "static/chunks/2vy51v46dlsq-.js",
+    "static/chunks/2bx7ggprk0oi5.js",
+    "static/chunks/0c1ad7rcpjghx.js",
+    "static/chunks/turbopack-2u1d16houkiyo.js"
+  ],
+  "rootMainFilesTree": {},
+  "pagesChunkGroupBootstrapParams": {
+    "/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/_not-found/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/_global-error/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/byudzhet/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ceni/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ceni/nadcenki/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/evrosredstva/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/evrosredstva/politika/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/evrosredstva/programa/[code]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/investicii/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/pokupatelna-sila/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/potoci/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/sabitie/[slug]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/ikonomika/struktura/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/danaci/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/danaci-razhodi/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/kredit/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/lichna-inflaciya/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/nuzhen-dohod/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/kalkulatori/slozhna-lihva/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/lica/[slug]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/[muni]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/[muni]/[mesto]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/[muni]/investicii/[id]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/[muni]/proekti/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/[muni]/resheniya/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mesta/[obl]/[muni]/vlast/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/metodologiya/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/mnenie/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/novini/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/obeshtaniya/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/obeshtaniya/[gov]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/pari/dalg/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/deputat/[id]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/glasuvane/[id]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/partii/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/partiya/[slug]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/predishni/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/predishni/[ns]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/predishni/[ns]/[mesec]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/signali/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/zakon/[slug]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/zakoni/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/parlament/zayaveno/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/porachki/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/porachki/dogovor/[id]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/porachki/firma/[eik]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/porachki/metodologiya/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/porachki/risk/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/porachki/vazlozhitel/[eik]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/[slug]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/chisla/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/dalg-2026/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/dokladi/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/sankcii/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/proverki/sotsiologiya/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/rechnik/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/sastoyanie/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/statistiki/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/statistiki/[id]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/statistiki/analiz/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/tarsene/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/vhod/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/vlast/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/vlast/deklaracii/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/vlast/ministerstva/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/vlast/ministerstva/[id]/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    },
+    "/vlast/sadebna-vlast/page": {
+      "otherChunks": [
+        "static/chunks/310vm2bl3xxpt.js",
+        "static/chunks/2vy51v46dlsq-.js",
+        "static/chunks/2bx7ggprk0oi5.js",
+        "static/chunks/0c1ad7rcpjghx.js"
+      ],
+      "runtimeModuleIds": [
+        94553
+      ]
+    }
+  },
+  "chunkLoadingGlobal": "TURBOPACK"
+}

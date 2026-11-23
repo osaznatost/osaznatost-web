@@ -1,0 +1,603 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/ikonomika/evrosredstva/programa/[code]",
+      "regex": "^/ikonomika/evrosredstva/programa/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcode": "nxtPcode"
+      },
+      "namedRegex": "^/ikonomika/evrosredstva/programa/(?<nxtPcode>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/sabitie/[slug]",
+      "regex": "^/ikonomika/sabitie/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/ikonomika/sabitie/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/lica/[slug]",
+      "regex": "^/lica/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/lica/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]",
+      "regex": "^/mesta/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]/[muni]",
+      "regex": "^/mesta/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl",
+        "nxtPmuni": "nxtPmuni"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)/(?<nxtPmuni>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]/[muni]/investicii/[id]",
+      "regex": "^/mesta/([^/]+?)/([^/]+?)/investicii/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl",
+        "nxtPmuni": "nxtPmuni",
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)/(?<nxtPmuni>[^/]+?)/investicii/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]/[muni]/proekti",
+      "regex": "^/mesta/([^/]+?)/([^/]+?)/proekti(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl",
+        "nxtPmuni": "nxtPmuni"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)/(?<nxtPmuni>[^/]+?)/proekti(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]/[muni]/resheniya",
+      "regex": "^/mesta/([^/]+?)/([^/]+?)/resheniya(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl",
+        "nxtPmuni": "nxtPmuni"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)/(?<nxtPmuni>[^/]+?)/resheniya(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]/[muni]/vlast",
+      "regex": "^/mesta/([^/]+?)/([^/]+?)/vlast(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl",
+        "nxtPmuni": "nxtPmuni"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)/(?<nxtPmuni>[^/]+?)/vlast(?:/)?$"
+    },
+    {
+      "page": "/mesta/[obl]/[muni]/[mesto]",
+      "regex": "^/mesta/([^/]+?)/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPobl": "nxtPobl",
+        "nxtPmuni": "nxtPmuni",
+        "nxtPmesto": "nxtPmesto"
+      },
+      "namedRegex": "^/mesta/(?<nxtPobl>[^/]+?)/(?<nxtPmuni>[^/]+?)/(?<nxtPmesto>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/obeshtaniya/[gov]",
+      "regex": "^/obeshtaniya/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPgov": "nxtPgov"
+      },
+      "namedRegex": "^/obeshtaniya/(?<nxtPgov>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/parlament/deputat/[id]",
+      "regex": "^/parlament/deputat/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/parlament/deputat/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/parlament/glasuvane/[id]",
+      "regex": "^/parlament/glasuvane/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/parlament/glasuvane/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/parlament/partiya/[slug]",
+      "regex": "^/parlament/partiya/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/parlament/partiya/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/parlament/predishni/[ns]",
+      "regex": "^/parlament/predishni/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPns": "nxtPns"
+      },
+      "namedRegex": "^/parlament/predishni/(?<nxtPns>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/parlament/predishni/[ns]/[mesec]",
+      "regex": "^/parlament/predishni/([^/]+?)/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPns": "nxtPns",
+        "nxtPmesec": "nxtPmesec"
+      },
+      "namedRegex": "^/parlament/predishni/(?<nxtPns>[^/]+?)/(?<nxtPmesec>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/parlament/zakon/[slug]",
+      "regex": "^/parlament/zakon/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/parlament/zakon/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/porachki/dogovor/[id]",
+      "regex": "^/porachki/dogovor/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/porachki/dogovor/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/porachki/firma/[eik]",
+      "regex": "^/porachki/firma/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPeik": "nxtPeik"
+      },
+      "namedRegex": "^/porachki/firma/(?<nxtPeik>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/porachki/vazlozhitel/[eik]",
+      "regex": "^/porachki/vazlozhitel/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPeik": "nxtPeik"
+      },
+      "namedRegex": "^/porachki/vazlozhitel/(?<nxtPeik>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/proverki/[slug]",
+      "regex": "^/proverki/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPslug": "nxtPslug"
+      },
+      "namedRegex": "^/proverki/(?<nxtPslug>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/rss/firma/[eik]",
+      "regex": "^/rss/firma/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPeik": "nxtPeik"
+      },
+      "namedRegex": "^/rss/firma/(?<nxtPeik>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/rss/obshtina/[code]",
+      "regex": "^/rss/obshtina/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPcode": "nxtPcode"
+      },
+      "namedRegex": "^/rss/obshtina/(?<nxtPcode>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/statistiki/[id]",
+      "regex": "^/statistiki/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/statistiki/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/vlast/ministerstva/[id]",
+      "regex": "^/vlast/ministerstva/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/vlast/ministerstva/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/mnenie/glas",
+      "regex": "^/api/mnenie/glas(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/mnenie/glas(?:/)?$"
+    },
+    {
+      "page": "/api/mnenie/kod",
+      "regex": "^/api/mnenie/kod(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/mnenie/kod(?:/)?$"
+    },
+    {
+      "page": "/api/mnenie/potvardi",
+      "regex": "^/api/mnenie/potvardi(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/mnenie/potvardi(?:/)?$"
+    },
+    {
+      "page": "/api/vhod",
+      "regex": "^/api/vhod(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/vhod(?:/)?$"
+    },
+    {
+      "page": "/byudzhet",
+      "regex": "^/byudzhet(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/byudzhet(?:/)?$"
+    },
+    {
+      "page": "/ceni",
+      "regex": "^/ceni(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ceni(?:/)?$"
+    },
+    {
+      "page": "/ceni/nadcenki",
+      "regex": "^/ceni/nadcenki(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ceni/nadcenki(?:/)?$"
+    },
+    {
+      "page": "/favicon.ico",
+      "regex": "^/favicon\\.ico(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/ikonomika",
+      "regex": "^/ikonomika(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/evrosredstva",
+      "regex": "^/ikonomika/evrosredstva(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika/evrosredstva(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/evrosredstva/politika",
+      "regex": "^/ikonomika/evrosredstva/politika(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika/evrosredstva/politika(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/investicii",
+      "regex": "^/ikonomika/investicii(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika/investicii(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/pokupatelna-sila",
+      "regex": "^/ikonomika/pokupatelna\\-sila(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika/pokupatelna\\-sila(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/potoci",
+      "regex": "^/ikonomika/potoci(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika/potoci(?:/)?$"
+    },
+    {
+      "page": "/ikonomika/struktura",
+      "regex": "^/ikonomika/struktura(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/ikonomika/struktura(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori",
+      "regex": "^/kalkulatori(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori/danaci",
+      "regex": "^/kalkulatori/danaci(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori/danaci(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori/danaci-razhodi",
+      "regex": "^/kalkulatori/danaci\\-razhodi(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori/danaci\\-razhodi(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori/kredit",
+      "regex": "^/kalkulatori/kredit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori/kredit(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori/lichna-inflaciya",
+      "regex": "^/kalkulatori/lichna\\-inflaciya(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori/lichna\\-inflaciya(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori/nuzhen-dohod",
+      "regex": "^/kalkulatori/nuzhen\\-dohod(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori/nuzhen\\-dohod(?:/)?$"
+    },
+    {
+      "page": "/kalkulatori/slozhna-lihva",
+      "regex": "^/kalkulatori/slozhna\\-lihva(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/kalkulatori/slozhna\\-lihva(?:/)?$"
+    },
+    {
+      "page": "/mesta",
+      "regex": "^/mesta(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mesta(?:/)?$"
+    },
+    {
+      "page": "/metodologiya",
+      "regex": "^/metodologiya(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/metodologiya(?:/)?$"
+    },
+    {
+      "page": "/mnenie",
+      "regex": "^/mnenie(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/mnenie(?:/)?$"
+    },
+    {
+      "page": "/novini",
+      "regex": "^/novini(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/novini(?:/)?$"
+    },
+    {
+      "page": "/obeshtaniya",
+      "regex": "^/obeshtaniya(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/obeshtaniya(?:/)?$"
+    },
+    {
+      "page": "/pari/dalg",
+      "regex": "^/pari/dalg(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pari/dalg(?:/)?$"
+    },
+    {
+      "page": "/parlament",
+      "regex": "^/parlament(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/parlament(?:/)?$"
+    },
+    {
+      "page": "/parlament/partii",
+      "regex": "^/parlament/partii(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/parlament/partii(?:/)?$"
+    },
+    {
+      "page": "/parlament/predishni",
+      "regex": "^/parlament/predishni(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/parlament/predishni(?:/)?$"
+    },
+    {
+      "page": "/parlament/signali",
+      "regex": "^/parlament/signali(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/parlament/signali(?:/)?$"
+    },
+    {
+      "page": "/parlament/zakoni",
+      "regex": "^/parlament/zakoni(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/parlament/zakoni(?:/)?$"
+    },
+    {
+      "page": "/parlament/zayaveno",
+      "regex": "^/parlament/zayaveno(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/parlament/zayaveno(?:/)?$"
+    },
+    {
+      "page": "/porachki",
+      "regex": "^/porachki(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/porachki(?:/)?$"
+    },
+    {
+      "page": "/porachki/metodologiya",
+      "regex": "^/porachki/metodologiya(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/porachki/metodologiya(?:/)?$"
+    },
+    {
+      "page": "/porachki/risk",
+      "regex": "^/porachki/risk(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/porachki/risk(?:/)?$"
+    },
+    {
+      "page": "/proverki",
+      "regex": "^/proverki(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proverki(?:/)?$"
+    },
+    {
+      "page": "/proverki/chisla",
+      "regex": "^/proverki/chisla(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proverki/chisla(?:/)?$"
+    },
+    {
+      "page": "/proverki/dalg-2026",
+      "regex": "^/proverki/dalg\\-2026(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proverki/dalg\\-2026(?:/)?$"
+    },
+    {
+      "page": "/proverki/dokladi",
+      "regex": "^/proverki/dokladi(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proverki/dokladi(?:/)?$"
+    },
+    {
+      "page": "/proverki/sankcii",
+      "regex": "^/proverki/sankcii(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proverki/sankcii(?:/)?$"
+    },
+    {
+      "page": "/proverki/sotsiologiya",
+      "regex": "^/proverki/sotsiologiya(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/proverki/sotsiologiya(?:/)?$"
+    },
+    {
+      "page": "/rechnik",
+      "regex": "^/rechnik(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/rechnik(?:/)?$"
+    },
+    {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
+      "page": "/sastoyanie",
+      "regex": "^/sastoyanie(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sastoyanie(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    },
+    {
+      "page": "/statistiki",
+      "regex": "^/statistiki(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/statistiki(?:/)?$"
+    },
+    {
+      "page": "/statistiki/analiz",
+      "regex": "^/statistiki/analiz(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/statistiki/analiz(?:/)?$"
+    },
+    {
+      "page": "/tarsene",
+      "regex": "^/tarsene(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/tarsene(?:/)?$"
+    },
+    {
+      "page": "/vhod",
+      "regex": "^/vhod(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vhod(?:/)?$"
+    },
+    {
+      "page": "/vlast",
+      "regex": "^/vlast(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vlast(?:/)?$"
+    },
+    {
+      "page": "/vlast/deklaracii",
+      "regex": "^/vlast/deklaracii(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vlast/deklaracii(?:/)?$"
+    },
+    {
+      "page": "/vlast/ministerstva",
+      "regex": "^/vlast/ministerstva(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vlast/ministerstva(?:/)?$"
+    },
+    {
+      "page": "/vlast/sadebna-vlast",
+      "regex": "^/vlast/sadebna\\-vlast(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/vlast/sadebna\\-vlast(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}
