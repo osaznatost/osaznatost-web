@@ -4,6 +4,7 @@
 // Пише data/bills-src/index.json (списък) и data/bills-src/{id}.json (текстове, съкратени).
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { rtfToText } from "./lib/rtf.mjs";
 
 const DIR = "data/bills-src";
 const NS = "52";
@@ -55,6 +56,18 @@ async function pdf(url, max, pages = "head", nOcr = 6) {
   } catch { return ""; }
 }
 
+// Законопроектите на Министерския съвет са в .rtf: текст без външни програми, от „МОТИВИ“ нататък.
+async function rtf(url, max) {
+  try {
+    const r = await fetch(encodeURI(url), { signal: AbortSignal.timeout(90000) });
+    if (!r.ok) return "";
+    let t = clean(rtfToText(Buffer.from(await r.arrayBuffer()).toString("latin1")));
+    const i = t.search(/М\s*О\s*Т\s*И\s*В\s*И/);
+    if (i > 0) t = t.slice(i);
+    return t.slice(0, max);
+  } catch { return ""; }
+}
+
 // Откъс от стенограмата: от първото споменаване на закона нататък.
 function excerpt(body, title, max) {
   const t = strip(body);
@@ -86,7 +99,9 @@ for (let id = index.last + 1; miss < 250 && Date.now() < deadline; id++) {
 
 // 2) Подробности и текстове за още необработените (и за обновяване на тези с ново движение).
 const VERSION = 4;
-const todo = Object.entries(index.bills).filter(([, x]) => !x.done || (x.v ?? 1) < VERSION || (process.env.REFRESH && !x.final));
+// без разпознати мотиви (напр. .rtf на Министерския съвет преди поддръжката му) — опитваме пак, най-много 3 пъти
+const noMotives = (id, x) => (x.mt ?? 0) < 3 && existsSync(`${DIR}/${id}.json`) && (JSON.parse(readFileSync(`${DIR}/${id}.json`, "utf8")).motives?.length ?? 0) < 500;
+const todo = Object.entries(index.bills).filter(([id, x]) => !x.done || (x.v ?? 1) < VERSION || (process.env.REFRESH && !x.final) || noMotives(id, x));
 for (const [id] of todo) {
   if (Date.now() > deadline) break;
   const b = await api(`bill/${id}`);
@@ -106,7 +121,7 @@ for (const [id] of todo) {
   // мотивите не се менят: ако вече са разпознати, не ги разпознаваме пак
   const prev = existsSync(`${DIR}/${id}.json`) ? JSON.parse(readFileSync(`${DIR}/${id}.json`, "utf8")) : null;
   if (prev?.motives?.length > 500) out.motives = prev.motives;
-  else if (f) out.motives = await pdf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000, "tail", 7);
+  else if (f) out.motives = /\.rtf$/i.test(f) ? await rtf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000) : await pdf(`https://www.parliament.bg/bills/${NS}/${f}`, 14000, "tail", 7);
   // Доклади на комисиите (първо и второ четене, вето) и становища на външни организации. Текстът е в A_Cm_Stan_text
   // или в приложен файл (PDF/DOC), който сваляме.
   const docText = async (j, max) => {
@@ -135,7 +150,7 @@ for (const [id] of todo) {
     out.hall.push({ date: s.L_Act_St_date, stage: s.L_Act_St2_name, url: `https://www.parliament.bg/bg/plenaryst/ns/${NS}/ID/${s.Pl_Sten_id}`, text: excerpt(j?.Pl_Sten_body, out.title, 18000) });
   }
   writeFileSync(`${DIR}/${id}.json`, JSON.stringify(out));
-  index.bills[id] = { sign: out.sign, date: out.date, title: out.title, final: out.final, withdrawn: out.withdrawn, adopted: out.adopted, done: true, v: VERSION };
+  index.bills[id] = { sign: out.sign, date: out.date, title: out.title, final: out.final, withdrawn: out.withdrawn, adopted: out.adopted, done: true, v: VERSION, mt: out.motives.length < 500 ? (index.bills[id]?.mt ?? 0) + 1 : 0 };
   n++;
   if (n % 10 === 0) writeFileSync(IDX, JSON.stringify(index));
 }

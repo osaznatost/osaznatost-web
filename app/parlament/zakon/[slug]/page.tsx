@@ -76,6 +76,7 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
   const signals = lawSignals(votes, bills);
   // автоматично извлечените цитати: за законопроектите, по които е гласувано (най-новите първо)
   const autos = (await Promise.all(bills.filter((b) => !b.withdrawn).map((b) => autoFor(b.id)))).filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, 4);
+  const briefs = autos.filter((a) => a.brief?.length).slice(0, 2);
   const nav: [string, string][] = [["nakratko", "Накратко"], ...(signals.length ? [["signali", `Сигнали (${signals.length})`] as [string, string]] : []), ...(bills.length ? [["zakonoproekti", "Кой внесе и кой се изказа"] as [string, string]] : []), ...(law?.motives || law?.critics || autos.length ? [["argumenti", "Двете страни"] as [string, string]] : []), ...(law ? [["mnenie", "Твоето мнение"] as [string, string]] : []), ["grupi", "Как гласуваха"], ["glasuvaniya", `Гласувания (${votes.length})`]];
 
   return (
@@ -91,6 +92,23 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
             <p className="text-[17px]">{law.summary}</p>
             {law.sponsors && <p className="mt-3 text-[15px]"><b>Вносители:</b> {law.sponsors}{law.bill && <> · <a href={law.bill.url} target="_blank" rel="noreferrer">законопроект {law.bill.sign}</a></>}</p>}
             {law.whatHappened && <p className="mt-3 text-[15px]"><b>Какво се случи:</b> {law.whatHappened}</p>}
+          </div>
+        ) : briefs.length ? (
+          <div className="max-w-4xl space-y-5">
+            {briefs.map((a) => {
+              const b = bills.find((x) => x.id === a.id);
+              return (
+                <div key={a.id}>
+                  {briefs.length > 1 && <p className="font-semibold mb-1">{a.title.replace(/^Законопроект /, "")}{b && <span className="text-muted font-normal"> · внесен на {formatDate(b.date)}</span>}</p>}
+                  <p className="text-sm text-muted mb-2">Какво искат вносителите, дословно от мотивите им{b && <>, внесени от {b.byGov ? "Министерския съвет" : who(b)}</>}:</p>
+                  <ul className="list-disc pl-5 space-y-1.5 text-[16px]">{a.brief!.map((x) => <li key={x}>{x}</li>)}</ul>
+                  {a.money && <p className="mt-2 text-[15px]"><b>Пари:</b> {a.money}</p>}
+                  {a.eu && <p className="mt-1 text-[15px]"><b>Европейско право:</b> {a.eu}</p>}
+                  <p className="mt-2 text-sm"><a href={a.url} target="_blank" rel="noreferrer">Пълният текст и мотивите в parliament.bg</a></p>
+                </div>
+              );
+            })}
+            <p className="text-xs text-muted">Изреченията са извадени автоматично по правила, без изкуствен интелект и без преразказ. Това е позицията на вносителите, не наша оценка. Критиките са в „<a href="#argumenti">Двете страни</a>“.</p>
           </div>
         ) : (
           <div className="max-w-4xl bg-surface p-5 rounded-sm text-[15px] space-y-2">

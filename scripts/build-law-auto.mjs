@@ -39,6 +39,29 @@ function speeches(text) {
   return out.filter((s) => !seen.has(s.who) && seen.add(s.who)).slice(0, 10);
 }
 
+// „Накратко“ без изкуствен интелект: дословно от мотивите на вносителя — целта, основните промени и парите.
+const OCR_JUNK = /[a-zA-Z]{3,}|[|©®]|(.)\1{3}/;
+function brief(motives) {
+  if (!motives || motives.length < 300) return null;
+  let t = motives;
+  const i = t.search(/М\s*О\s*Т\s*И\s*В\s*И/i); if (i >= 0) t = t.slice(i);
+  // до подписите и оценката на въздействието
+  const end = t.search(/\n\s*(ВНОСИТЕЛ|ПРЕДВАРИТЕЛНА ОЦЕНКА|МИНИСТЪР-ПРЕДСЕДАТЕЛ|Частична предварителна оценка)/);
+  if (end > 200) t = t.slice(0, end);
+  const START = /(Законопроектът|Със законопроекта|С (предлаганите|настоящия|проекта)|Предлага(т)? се|Предвижда се|Целта|Основн(ият|ата|ите)|Въвежда се|Създава се)/;
+  const fix = (x) => { const m = x.search(START); return m > 0 && m < 80 ? x.slice(m) : x.replace(/^[\d.)\s•–-]+/, ""); };
+  // разпознат текст: поне 80% от думите са истински (кирилица, 2+ букви, без смесени знаци)
+  const clean = (x) => { const w = x.split(/\s+/); return w.filter((z) => /^[„"(]?[А-Яа-яЁё][а-яё-]+[.,;:)“"]*$|^[А-Я]{2,}[.,]?$|^\d/.test(z)).length / w.length >= 0.8; };
+  const ss = sentences(t.replace(/^М\s*О\s*Т\s*И\s*В\s*И[^\n]*\n(\s*(към|по|на) [^\n]*\n){0,3}/i, ""))
+    .map(fix)
+    .filter((x) => /^[А-Я„"(]/.test(x) && clean(x) && !OCR_JUNK.test(x) && !/^(Към|По) (проекта|законопроекта)|^Уважаем|^Молим|оценка на въздействието|Вносител|ДВ, бр\./i.test(x));
+  const goal = ss.filter((x) => /(цел(та|ите)?|цели се|има за цел|насочен|предлага(т)? се|предвижда|въвежда|създава се|основн(ият|ата|ите) (проблем|цел|промени)|законопроектът)/i.test(x) && !/(финансови средства|бюджетни средства)/i.test(x));
+  const pick = goal.filter((x) => x.length < 420).slice(0, 3);
+  const money = ss.find((x) => /(финансови средства|допълнителни (бюджетни )?средства|бюджетни средства|не изисква(т)? (допълнителни )?(разходи|средства))/i.test(x) && x.length < 350) ?? null;
+  const eu = ss.find((x) => /(правото на Европейския съюз|директива|регламент \(ЕС\))/i.test(x) && x.length < 350) ?? null;
+  return pick.length ? { brief: pick, money, eu } : null;
+}
+
 const out = {};
 for (const f of readdirSync(DIR).filter((x) => /^\d+\.json$/.test(x))) {
   const b = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
@@ -71,9 +94,11 @@ for (const f of readdirSync(DIR).filter((x) => /^\d+\.json$/.test(x))) {
     change: take(change, 6), positions: take(spons, 4), critics: take(crit, 6), support: take(supp, 3),
     hall: hall.slice(0, 10),
     opinions: b.opinions.map((o) => o.title.replace(/^Становище (на |от )?/i, "")).slice(0, 12),
+    ...(brief(b.motives) ?? {}),
   };
-  if (e.change.length || e.critics.length || e.hall.length) out[b.id] = e;
+  if (e.change.length || e.critics.length || e.hall.length || e.brief) out[b.id] = e;
 }
 writeFileSync("data/laws-auto.json", JSON.stringify(out));
 const v = Object.values(out);
+console.log(`с „накратко“ от мотивите: ${v.filter((x) => x.brief).length}`);
 console.log(`data/laws-auto.json: ${v.length} законопроекта; с „какво променя“ ${v.filter((x) => x.change.length).length}, с критики ${v.filter((x) => x.critics.length).length}, с изказвания ${v.filter((x) => x.hall.length).length}`);
