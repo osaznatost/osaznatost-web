@@ -1,3 +1,4 @@
+import { kvCached } from "@/lib/kvcache";
 import { DAY, HOUR, memo } from "@/lib/memo";
 
 /** Медии: агенции, обществени медии, разследващи и проверяващи факти. Новините идват през Google News по домейн, за да не зависим от формата на всяка емисия. */
@@ -30,10 +31,10 @@ async function feed(o: (typeof OUTLETS)[number]): Promise<NewsItem[]> {
 }
 
 export function latestNews() {
-  return memo("news", HOUR, async () => {
+  return memo("news", HOUR, () => kvCached("news:latest", 1800, async () => {
     const all = (await Promise.all(OUTLETS.map(feed))).flat();
     return all.sort((a, b) => (a.date < b.date ? 1 : -1));
-  });
+  }, (v) => v.length > 0));
 }
 
 /** Теми, по които на сайта има обективни данни: новината се свързва със съответната страница. */
@@ -56,7 +57,7 @@ export const CONTEXT: { re: RegExp; label: string; href: string }[] = [
 
 /** Последните споменавания на човек в медиите от списъка горе (Google News, търсене по точното име). */
 export function mentionsOf(fullName: string): Promise<NewsItem[]> {
-  return memo(`m:${fullName}`, DAY, () => mentionsOfRaw(fullName));
+  return memo(`m:${fullName}`, DAY, () => kvCached(`news:m:${fullName}`, 12 * 3600, () => mentionsOfRaw(fullName)));
 }
 async function mentionsOfRaw(fullName: string): Promise<NewsItem[]> {
   const q = `"${fullName}" (${OUTLETS.map((o) => `site:${o.domain}`).join(" OR ")})`;

@@ -1,4 +1,5 @@
 import { HOUR, memo } from "@/lib/memo";
+import { kvCached } from "@/lib/kvcache";
 import links from "@/data/political-links.json";
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
 
@@ -29,11 +30,10 @@ export type SupplierStats = { eik: string; name: string; contracts: number; tota
 /** Заявка към Supabase (само четене). Кешира се за час. */
 function q<T>(path: string): Promise<T[]> {
   if (!URL_ || !KEY) return Promise.resolve([]);
-  return memo(`sb:${path}`, HOUR, async () => {
+  return memo(`sb:${path}`, HOUR, () => kvCached<T[] | null>(`sb:${path}`, 3 * 3600, async () => {
     const res = await fetch(`${URL_}/rest/v1/${path}`, { headers: { apikey: KEY } });
-    if (!res.ok) return [];
-    return res.json();
-  });
+    return res.ok ? res.json() : null;
+  }, (v) => v !== null).then((v) => v ?? []));
 }
 
 const enc = encodeURIComponent;
