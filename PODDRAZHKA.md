@@ -28,11 +28,14 @@
 
 Живото състояние е на страницата `/sastoyanie`.
 
-## Публикуване (Vercel)
+## Публикуване (Cloudflare Workers)
 
-- Публикува се автоматично при всяка промяна в `main` (`scripts/vercel-ignore.sh` решава кога).
-- Ботът за данни публикува най-много веднъж на 3 часа, за да не се изчерпва безплатният лимит. Пропуснатите промени влизат в следващата публикация.
-- Промени само в `scripts/`, `.github/`, `*.md`, `supabase/` и суровите данни не публикуват нищо.
+- Сайтът е на https://osaznatost.pavlin140.workers.dev (Cloudflare Workers, план Workers Paid, заедно с другия софтуер).
+- Работният поток `deploy-cloudflare` го изгражда с OpenNext и го качва при всяка промяна в `main` и на всеки 6 часа (за новите данни от автоматичните обновявания).
+- Тайните са само в GitHub secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SITE_PASSWORD`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `SUPABASE_PUBLISHABLE_KEY` (и по желание `VOTE_PEPPER`, `RESEND_API_KEY`, `EMAIL_FROM`). Потокът ги подава на Worker-а.
+- Файловете с данни (`data/**/*.json`) се качват като статични файлове под `/_data/` (`scripts/cf-assets.mjs`) и се четат само от сървъра.
+- Кеш: готовите страници и отговорите от Supabase се пазят в KV `osaznatost-cache` (`cf-worker.ts`, `lib/kvcache.ts`) до следващото качване. След качване `scripts/cf-warm.mjs` обхожда картата на сайта, пълни кеша и отчита страниците с грешка.
+- Без `SITE_PASSWORD` сайтът в Cloudflare показва „Сайтът още се настройва“. За публично пускане: махнете паролата и задайте `ALLOW_PUBLIC=1`.
 
 ## Какво се пише на ръка
 

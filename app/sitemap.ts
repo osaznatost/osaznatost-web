@@ -5,7 +5,7 @@ import { muniSlug, oblastList } from "@/lib/regions";
 import { PARTY_META } from "@/lib/partyMeta";
 import { data as PROMISES, govSlug } from "@/lib/promises";
 
-const BASE = "https://osaznatost-web.vercel.app";
+const BASE = "https://osaznatost.pavlin140.workers.dev";
 
 // Главните страници + депутати, закони, партии, обещания, области и общини.
 // Договорите, фирмите и отделните гласувания (над 200 000) не са тук: до тях се стига от тези страници.

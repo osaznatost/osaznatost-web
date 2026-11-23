@@ -16,7 +16,7 @@ import { ResponsiveTables } from "@/components/ResponsiveTables";
 export const metadata: Metadata = {
   title: { default: "Осъзнатост", template: "%s · Осъзнатост" },
   description: "Какво прави държавата. С числа и източници.",
-  metadataBase: new URL("https://osaznatost-web.vercel.app"),
+  metadataBase: new URL("https://osaznatost.pavlin140.workers.dev"),
   openGraph: { siteName: "Осъзнатост", locale: "bg_BG", type: "website", images: [{ url: "/og.png", width: 1200, height: 630, alt: "Осъзнатост — какво прави държавата, с числа и източници" }] },
   // докато е вътрешен прототип с парола, търсачките не индексират
   robots: process.env.SITE_PASSWORD ? { index: false, follow: false } : { index: true, follow: true },

@@ -2,7 +2,7 @@
 // Засега: Благоевград. Пише out/BLG03/index.json + новите файлове; разчитането е в import-council-sites.mjs (BLG_DIR).
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-const UA = "osaznatost-bot/1.0 (+https://osaznatost-web.vercel.app; отворени данни)";
+const UA = "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev; отворени данни)";
 const curl = (u, out) => { for (let i = 0; i < 3; i++) { try { return execFileSync("curl", ["-sSLf", "-m", "120", "-A", UA, ...(out ? ["-o", out] : []), u], { maxBuffer: 1 << 28 }); } catch { execFileSync("sleep", ["5"]); } } return null; };
 const nd = (h) => { const m = h?.toString("utf8").match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/); return m ? JSON.parse(m[1]) : null; };
 const dir = "out/BLG03"; mkdirSync(dir, { recursive: true });

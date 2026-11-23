@@ -3,7 +3,7 @@
 Граждански инструмент: какво прави държавата, с числа и източници.
 
 ## Стек
-Next.js 16 (App Router) · TypeScript · Tailwind 4 · Observable Plot · Supabase · Vercel.
+Next.js 16 (App Router) · TypeScript · Tailwind 4 · Observable Plot · Supabase · Cloudflare Workers (OpenNext).
 Шрифт: Sofia Sans (Lettersoup), с `lang="bg"` за българските форми на кирилицата.
 
 ## Локално
@@ -13,7 +13,7 @@ npm run dev        # http://localhost:3000
 npx vitest run     # тестове на калкулаторите
 ```
 
-## Променливи на средата (Vercel)
+## Променливи на средата (GitHub secrets → Cloudflare)
 | Име | За какво |
 |---|---|
 | `SITE_PASSWORD` | Парола за вътрешния прототип. Без нея сайтът е отворен. |

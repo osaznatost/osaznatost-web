@@ -7,6 +7,6 @@ const REPO = "https://github.com/osaznatost/osaznatost-web/issues/new";
 export function ReportError() {
   const path = usePathname() || "/";
   const title = `Грешка на ${path}`;
-  const body = `Страница: https://osaznatost-web.vercel.app${path}\n\nКакво е грешно:\n\nКакво трябва да пише (и източник, ако имате):\n`;
+  const body = `Страница: https://osaznatost.pavlin140.workers.dev${path}\n\nКакво е грешно:\n\nКакво трябва да пише (и източник, ако имате):\n`;
   return <a href={`${REPO}?labels=${encodeURIComponent("грешка")}&title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`} target="_blank" rel="noreferrer">Съобщи за грешка</a>;
 }

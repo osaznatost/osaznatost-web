@@ -5,6 +5,6 @@ export default function robots(): MetadataRoute.Robots {
   const open = !process.env.SITE_PASSWORD;
   return {
     rules: open ? { userAgent: "*", allow: "/" } : { userAgent: "*", disallow: "/" },
-    sitemap: "https://osaznatost-web.vercel.app/sitemap.xml",
+    sitemap: "https://osaznatost.pavlin140.workers.dev/sitemap.xml",
   };
 }
