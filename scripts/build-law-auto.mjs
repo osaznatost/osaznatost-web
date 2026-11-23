@@ -40,7 +40,7 @@ function speeches(text) {
 }
 
 // „Накратко“ без изкуствен интелект: дословно от мотивите на вносителя — целта, основните промени и парите.
-const OCR_JUNK = /[a-zA-Z]{3,}|[|©®]|(.)\1{3}/;
+const OCR_JUNK = /[а-яё][a-z]|[a-z][а-яё]|[|©®]|(.)\1{3}/i;
 function brief(motives) {
   if (!motives || motives.length < 300) return null;
   let t = motives;
@@ -51,14 +51,18 @@ function brief(motives) {
   const START = /(Законопроектът|Със законопроекта|С (предлаганите|настоящия|проекта)|Предлага(т)? се|Предвижда се|Целта|Основн(ият|ата|ите)|Въвежда се|Създава се)/;
   const fix = (x) => { const m = x.search(START); return m > 0 && m < 80 ? x.slice(m) : x.replace(/^[\d.)\s•–-]+/, ""); };
   // разпознат текст: поне 80% от думите са истински (кирилица, 2+ букви, без смесени знаци)
-  const clean = (x) => { const w = x.split(/\s+/); return w.filter((z) => /^[„"(]?[А-Яа-яЁё][а-яё-]+[.,;:)“"]*$|^[А-Я]{2,}[.,]?$|^\d/.test(z)).length / w.length >= 0.8; };
-  const ss = sentences(t.replace(/^М\s*О\s*Т\s*И\s*В\s*И[^\n]*\n(\s*(към|по|на) [^\n]*\n){0,3}/i, ""))
+  const clean = (x) => { const w = x.split(/\s+/); return w.filter((z) => /^[„"(]?[А-Яа-яЁё][а-яё-]+[.,;:)“"]*$|^[„"(]?[А-ЯA-Z]{2,}[)“".,;:]*$|^[(№]?\d|^[–-]$|^(ЕС|ЕО|ЕИО)\)?/.test(z)).length / w.length >= 0.8; };
+  // точките от списъци („- …“) са отделни изречения
+  t = t.replace(/([.;:])?\s*\n\s*[-–•]\s+/g, ".\n").replace(/([.;:])?\s+[-–]\s+(?=[А-Я])/g, ". ");
+  const long = (x) => norm(x).split(/(?<=[.!?])\s+(?=[А-ЯA-Z„])/).map((z) => z.trim()).filter((z) => z.length > 40 && z.length < 1200);
+  const ss = long(t.replace(/^М\s*О\s*Т\s*И\s*В\s*И[^\n]*\n(\s*(към|по|на) [^\n]*\n){0,3}/i, ""))
     .map(fix)
     .filter((x) => /^[А-Я„"(]/.test(x) && clean(x) && !OCR_JUNK.test(x) && !/^(Към|По) (проекта|законопроекта)|^Уважаем|^Молим|оценка на въздействието|Вносител|ДВ, бр\./i.test(x));
   const goal = ss.filter((x) => /(цел(та|ите)?|цели се|има за цел|насочен|предлага(т)? се|предвижда|въвежда|създава се|основн(ият|ата|ите) (проблем|цел|промени)|законопроектът)/i.test(x) && !/(финансови средства|бюджетни средства)/i.test(x));
-  const pick = goal.filter((x) => x.length < 420).slice(0, 3);
+  const cut = (x) => (x.length <= 480 ? x : x.slice(0, x.lastIndexOf(" ", 460)).replace(/[,;:]$/, "") + " […]");
+  const pick = goal.slice(0, 3).map(cut);
   const money = ss.find((x) => /(финансови средства|допълнителни (бюджетни )?средства|бюджетни средства|не изисква(т)? (допълнителни )?(разходи|средства))/i.test(x) && x.length < 350) ?? null;
-  const eu = ss.find((x) => /(правото на Европейския съюз|директива|регламент \(ЕС\))/i.test(x) && x.length < 350) ?? null;
+  const eu = ss.find((x) => /(правото на Европейския съюз|транспонира|изискванията на директива|съответствие с (директива|регламент))/i.test(x) && x.length < 350 && !goal.slice(0, 3).includes(x)) ?? null;
   return pick.length ? { brief: pick, money, eu } : null;
 }
 
