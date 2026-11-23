@@ -1,6 +1,5 @@
 // Законопроектите от parliament.bg (data/bills.json, от scripts/build-bills.mjs), свързани със законите по име.
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 import { lawFromTitle } from "@/lib/voteExplain";
 import { MPS, VOTES } from "@/lib/parliament";
 
@@ -14,16 +13,12 @@ export type Bill = {
   proposals: number;
   notes?: { conflict: string[]; against: string[]; votes: { stage: string; committee: string; yes: number; no: number; abst: number }[] };
 };
-let cache: Bill[] | null = null;
-export function allBills(): Bill[] {
-  if (cache) return cache;
-  const f = path.join(process.cwd(), "data", "bills.json");
-  cache = existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")).bills as Bill[]) : [];
-  return cache;
+export async function allBills(): Promise<Bill[]> {
+  return (await data<{ bills: Bill[] }>("bills.json"))?.bills ?? [];
 }
 /** Законопроектите, които променят даден закон (по името му в заглавието). */
-export function billsForLaw(slug: string): Bill[] {
-  return allBills().filter((b) => billLaw(b)?.slug === slug);
+export async function billsForLaw(slug: string): Promise<Bill[]> {
+  return (await allBills()).filter((b) => billLaw(b)?.slug === slug);
 }
 export function billLaw(b: Pick<Bill, "title">) {
   return lawFromTitle(b.title.replace(/^Законопроект/, "")) ?? lawFromTitle(b.title.replace(/^Законопроект/, "Закон"));
@@ -39,21 +34,22 @@ export function billLawPage(b: Pick<Bill, "title">) {
 
 const nameKey = (s: string) => { const p = s.trim().toUpperCase().split(/\s+/); return `${p[0]} ${p.at(-1)}`; };
 /** Законопроектите, сред чиито вносители е депутатът (по име и фамилия), и в чиито доклади е обявил конфликт на интереси. */
-export function billsOfMp(fullName: string, pid?: number, ambiguous = false) {
+export async function billsOfMp(fullName: string, pid?: number, ambiguous = false) {
   const key = nameKey(fullName);
+  const all = await allBills();
   // по номера в parliament.bg, ако го има; иначе по име, но не и когато двама депутати имат едно и също име и фамилия
-  const sponsored = allBills().filter((b) => (pid && b.sponsorIds?.length ? b.sponsorIds.includes(pid) : !ambiguous && b.sponsors.some((s) => nameKey(s) === key)));
+  const sponsored = all.filter((b) => (pid && b.sponsorIds?.length ? b.sponsorIds.includes(pid) : !ambiguous && b.sponsors.some((s) => nameKey(s) === key)));
   const parts = fullName.trim().split(/\s+/), fl = `${parts[0]} ${parts.at(-1)}`;
-  let conflict = allBills().filter((b) => (b.notes?.conflict ?? []).some((c) => c.includes(fl)));
+  let conflict = all.filter((b) => (b.notes?.conflict ?? []).some((c) => c.includes(fl)));
   if (ambiguous) conflict = conflict.filter((b) => sponsored.includes(b)); // при съвпадащи имена — само ако е и вносител
   return { sponsored, conflict };
 }
 
 /** Законопроектите на депутатите по група: групата е тази на мнозинството от вносителите. Без внесените от Министерския съвет. */
-export function billsByGroup() {
+export async function billsByGroup() {
   const party = new Map(MPS.filter((m) => m.pid).map((m) => [m.pid!, m.party]));
   const out = new Map<string, { n: number; adopted: number; withdrawn: number }>();
-  for (const b of allBills()) {
+  for (const b of await allBills()) {
     if (b.byGov || !b.sponsorIds?.length) continue;
     const cnt = new Map<string, number>();
     for (const id of b.sponsorIds) { const p = party.get(id); if (p) cnt.set(p, (cnt.get(p) ?? 0) + 1); }

@@ -32,8 +32,10 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
   const share = top[0] && total ? top[0][1].sum / total : 0;
   const repeats = repeatedWork(contracts).slice(0, 12);
-  const risky = contracts.map((c) => { const fl = contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), strongestLink(c.supplier_eiks)); return { c, fl, score: riskScore(fl) }; })
+  const risky = (await Promise.all(contracts.map(async (c) => { const fl = await contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), strongestLink(c.supplier_eiks)); return { c, fl, score: riskScore(fl) }; })))
     .filter((x) => x.score >= 20).sort((a, b) => b.score - a.score || (b.c.contract_value_eur ?? 0) - (a.c.contract_value_eur ?? 0));
+  const allEiks = contracts.flatMap((c) => c.supplier_eiks);
+  const [SH, SA] = await Promise.all([sharedPeople(allEiks), sharedAddress(allEiks)]);
   const riskShare = contracts.length ? Math.round((risky.length / contracts.length) * 100) : 0;
   const splits = possibleSplits(contracts).slice(0, 10);
   const cats = byCategory(contracts);
@@ -129,7 +131,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
       </section>
 
       {(() => {
-        const sh = sharedPeople(contracts.flatMap((c) => c.supplier_eiks));
+        const sh = SH;
         const names = new Map(contracts.flatMap((c) => c.supplier_eiks.map((e, i) => [e.slice(0, 9), c.supplier_names[i] ?? e] as [string, string])));
         return sh.length > 0 && (
           <section className="mb-10">
@@ -142,7 +144,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         );
       })()}
       {(() => {
-        const sa = sharedAddress(contracts.flatMap((c) => c.supplier_eiks));
+        const sa = SA;
         const rot = rotatingWinners(contracts);
         const names = new Map(contracts.flatMap((c) => c.supplier_eiks.map((e, i) => [e.slice(0, 9), c.supplier_names[i] ?? e] as [string, string])));
         if (!sa.length && !rot.length) return null;

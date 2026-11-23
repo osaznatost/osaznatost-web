@@ -1,6 +1,5 @@
 // Търговският регистър за фирмите с обществени поръчки (data/tr, събрано от scripts/import-tr.py).
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 
 export type TrPerson = { name: string; eik?: string; country?: string; share?: string };
 export type TrFirm = {
@@ -8,21 +7,23 @@ export type TrFirm = {
   address: string | null; activity: string | null; capital: string | null; fetched: string;
   managers: TrPerson[]; board: TrPerson[]; partners: TrPerson[]; owner: TrPerson[]; ubo: TrPerson[]; procurator: TrPerson[];
 };
-const DIR = path.join(process.cwd(), "data", "tr");
-const shards = new Map<string, Record<string, TrFirm>>();
-export function trFor(eik: string): TrFirm | null {
-  const k = eik.slice(0, 2);
-  if (!shards.has(k)) { const f = path.join(DIR, `${k}.json`); shards.set(k, existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {}); }
-  return shards.get(k)![eik.slice(0, 9)] ?? null;
+export async function trFor(eik: string): Promise<TrFirm | null> {
+  return (await data<Record<string, TrFirm>>(`tr/${eik.slice(0, 2)}.json`))?.[eik.slice(0, 9)] ?? null;
 }
-let people: Record<string, [string, string][]> | null = null;
+/** Фирмите по ЕИК наведнъж: ЕИК → запис или null. */
+export async function trMany(eiks: string[]): Promise<Map<string, TrFirm | null>> {
+  const u = [...new Set(eiks.map((e) => e.slice(0, 9)))];
+  const r = await Promise.all(u.map(trFor));
+  return new Map(u.map((e, i) => [e, r[i]]));
+}
 /** Фирмите, в които човек с тези три имена е управител, съдружник или собственик. Съвпадение по имена, не по ЕГН. */
-export function firmsOfPerson(name: string) {
-  if (!people) { const f = path.join(DIR, "people.json"); people = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : {}; }
-  const rows = people![name.toUpperCase().replace(/\s+/g, " ").trim()] ?? [];
+export async function firmsOfPerson(name: string) {
+  const people = (await data<Record<string, [string, string][]>>("tr/people.json")) ?? {};
+  const rows = people[name.toUpperCase().replace(/\s+/g, " ").trim()] ?? [];
   const by = new Map<string, string[]>();
   for (const [eik, role] of rows) by.set(eik, [...new Set([...(by.get(eik) ?? []), role])]);
-  return [...by.entries()].map(([eik, roles]) => ({ eik, roles, firm: trFor(eik) }));
+  const tr = await trMany([...by.keys()]);
+  return [...by.entries()].map(([eik, roles]) => ({ eik, roles, firm: tr.get(eik.slice(0, 9)) ?? null }));
 }
 /** Годината на създаване: от номера на фирменото дело или от първото вписване (след пререгистрацията през 2008 г.). */
 export function foundedYear(f: TrFirm | null) {
@@ -46,31 +47,34 @@ export function peopleOf(f: TrFirm | null) {
     .filter((p) => p.key.startsWith("EIK:") || p.key.split(" ").length >= 3);
 }
 /** Двойки фирми с общ човек (управител, съдружник, собственик) или обща фирма собственик. */
-export function sharedPeople(eiks: string[]) {
+export async function sharedPeople(eiks: string[]) {
   const by = new Map<string, { name: string; firms: Set<string> }>();
-  for (const e of new Set(eiks.map((x) => x.slice(0, 9)))) for (const p of peopleOf(trFor(e))) {
+  const tr = await trMany(eiks);
+  for (const e of new Set(eiks.map((x) => x.slice(0, 9)))) for (const p of peopleOf(tr.get(e) ?? null)) {
     const x = by.get(p.key) ?? { name: p.name, firms: new Set<string>() };
     x.firms.add(e); by.set(p.key, x);
   }
   return [...by.values()].filter((x) => x.firms.size > 1).map((x) => ({ name: x.name, firms: [...x.firms] }));
 }
 /** Други фирми с изпълнители (от тези с поръчки), които имат общ човек с тази. */
-export function relatedFirms(eik: string) {
-  const me = trFor(eik);
+export async function relatedFirms(eik: string) {
+  const me = await trFor(eik);
   const out = new Map<string, string[]>();
   for (const p of peopleOf(me)) {
     if (p.key.startsWith("EIK:")) continue;
-    for (const { eik: e } of firmsOfPerson(p.name)) if (e !== eik.slice(0, 9)) out.set(e, [...new Set([...(out.get(e) ?? []), p.name])]);
+    for (const { eik: e } of await firmsOfPerson(p.name)) if (e !== eik.slice(0, 9)) out.set(e, [...new Set([...(out.get(e) ?? []), p.name])]);
   }
-  return [...out.entries()].map(([e, via]) => ({ eik: e, firm: trFor(e), via }));
+  const tr = await trMany([...out.keys()]);
+  return [...out.entries()].map(([e, via]) => ({ eik: e, firm: tr.get(e) ?? null, via }));
 }
 
 const addrKey = (a: string) => a.replace(/^Държава:\s*БЪЛГАРИЯ\s*/i, "").replace(/,?\s*(ет\.|етаж|ап\.|апартамент|офис|оф\.|вх\.)\s*[^,]*/gi, "").replace(/\s+/g, " ").trim().toUpperCase();
 /** Групи фирми (от дадените) с един и същ адрес на управление в Търговския регистър, без етаж, вход и офис. */
-export function sharedAddress(eiks: string[]) {
+export async function sharedAddress(eiks: string[]) {
   const by = new Map<string, { address: string; firms: Set<string> }>();
+  const tr = await trMany(eiks);
   for (const e of new Set(eiks.map((x) => x.slice(0, 9)))) {
-    const f = trFor(e);
+    const f = tr.get(e) ?? null;
     if (!f?.address) continue;
     const k = addrKey(f.address);
     if (k.length < 25) continue;

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Page, Title } from "@/components/ui";
-import { MIN, minister, shortName } from "@/lib/ministries";
+import { minData, minister, shortName } from "@/lib/ministries";
 
 export const metadata = { title: "Министерствата: кой ги ръководи и колко хора работят в тях" };
 const d = (s: string | null) => (s ? new Date(s).toLocaleDateString("bg-BG", { day: "numeric", month: "long", year: "numeric" }) : "");
 
-export default function Ministerstva() {
-  const list = [...MIN.ministries].sort((a, b) => a.name.localeCompare(b.name, "bg"));
+export default async function Ministerstva() {
+  const MD = await minData();
+  const list = [...MD.ministries].sort((a, b) => a.name.localeCompare(b.name, "bg"));
   const staff = list.reduce((a, m) => a + m.staff, 0);
   return (
     <Page>
@@ -29,7 +30,7 @@ export default function Ministerstva() {
           );
         })}
       </ul>
-      <p className="text-xs text-muted mt-3">Източник: <a href={MIN.url}>{MIN.source}</a>, към {d(MIN.updated)}.</p>
+      <p className="text-xs text-muted mt-3">Източник: <a href={MD.url}>{MD.source}</a>, към {d(MD.updated)}.</p>
     </Page>
   );
 }

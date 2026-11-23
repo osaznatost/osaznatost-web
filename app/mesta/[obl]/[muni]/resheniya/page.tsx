@@ -4,8 +4,10 @@ import { Page, Title } from "@/components/ui";
 import { localData } from "@/lib/local";
 import { findOblastBySlug, muniSlug, oblastList } from "@/lib/regions";
 
-export function generateStaticParams() {
-  return oblastList().flatMap((o) => o.municipalities.filter((m) => (localData(m.code)?.resolutions?.length ?? 0) > 15).map((m) => ({ obl: o.slug, muni: muniSlug(m.code) })));
+export async function generateStaticParams() {
+  const ms = oblastList().flatMap((o) => o.municipalities.map((m) => ({ o, m })));
+  const ds = await Promise.all(ms.map(({ m }) => localData(m.code)));
+  return ms.filter((_, i) => (ds[i]?.resolutions?.length ?? 0) > 15).map(({ o, m }) => ({ obl: o.slug, muni: muniSlug(m.code) }));
 }
 export async function generateMetadata({ params }: { params: Promise<{ obl: string; muni: string }> }) {
   const { obl, muni } = await params;
@@ -18,7 +20,7 @@ export default async function Resheniya({ params }: { params: Promise<{ obl: str
   const { obl, muni } = await params;
   const o = findOblastBySlug(obl);
   const m = o?.municipalities.find((x) => muniSlug(x.code) === muni);
-  const res = m ? localData(m.code)?.resolutions ?? [] : [];
+  const res = m ? (await localData(m.code))?.resolutions ?? [] : [];
   if (!o || !m || !res.length) notFound();
   const by = new Map<string, typeof res>();
   for (const r of [...res].sort((a, b) => (a.date < b.date ? 1 : -1))) by.set(r.date.slice(0, 7), [...(by.get(r.date.slice(0, 7)) ?? []), r]);

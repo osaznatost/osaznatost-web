@@ -1,7 +1,6 @@
 import { Page } from "@/components/ui";
 
 export const metadata = { title: "Вход" };
-export const instant = false;
 
 export default async function Vhod({ searchParams }: { searchParams: Promise<{ next?: string; greshka?: string }> }) {
   const sp = await searchParams;

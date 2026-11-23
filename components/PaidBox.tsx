@@ -4,14 +4,14 @@ import { paidTo, payersLike, paymentsIndex } from "@/lib/payments";
 
 const eur = (v: number) => `${Math.round(v).toLocaleString("bg-BG")} €`;
 const d = (s: string | null) => (s ? s.split("-").reverse().join(".") : "");
-function Note() {
-  const I = paymentsIndex();
+async function Note() {
+  const I = await paymentsIndex();
   return <p className="text-xs text-muted mt-2">Източник: СЕБРА, тримесечни списъци на плащанията над 5000 лв. на бюджетните организации ({I.quarters[0]?.slice(0, 4)}–{I.quarters.at(-1)?.slice(0, 4)}), data.egov.bg, CC0. Получателят е само с име, затова свързването е по име. Повечето общини плащат извън СЕБРА; при тях се виждат само някои плащания (напр. капиталови).</p>;
 }
 
-export function PaidToFirm({ name }: { name: string }) {
-  const r = paidTo(name);
-  if (!r) return <><p className="text-[15px]">Няма плащания към фирма с това име в СЕБРА (или са под {eur(paymentsIndex().minEur)} общо).</p><Note /></>;
+export async function PaidToFirm({ name }: { name: string }) {
+  const [r, I] = await Promise.all([paidTo(name), paymentsIndex()]);
+  if (!r) return <><p className="text-[15px]">Няма плащания към фирма с това име в СЕБРА (или са под {eur(I.minEur)} общо).</p><Note /></>;
   return (
     <>
       <p className="text-[15px] mb-3">Държавни институции са платили <b>{eur(r.total)}</b> с {r.n.toLocaleString("bg-BG")} плащания на получател с това име. <span className="text-muted">Съвпадение по име, не по ЕИК.</span></p>
@@ -26,8 +26,8 @@ export function PaidToFirm({ name }: { name: string }) {
   );
 }
 
-export function PaidByBuyer({ name }: { name: string }) {
-  const ps = payersLike(name);
+export async function PaidByBuyer({ name }: { name: string }) {
+  const ps = await payersLike(name);
   if (!ps.length) return null;
   const by = new Map<string, { name: string; sum: number }>();
   for (const p of ps) for (const [n, k, v] of p.top) { const x = by.get(k) ?? { name: n, sum: 0 }; x.sum += v; by.set(k, x); }

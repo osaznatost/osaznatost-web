@@ -12,8 +12,14 @@ async function sha256(text: string) {
 }
 
 export async function proxy(request: NextRequest) {
+  // Суровите файлове с данни (Cloudflare ги държи под /_data) се четат само от сървъра.
+  if (request.nextUrl.pathname.startsWith("/_data/")) return new NextResponse(null, { status: 404 });
   const password = process.env.SITE_PASSWORD;
-  if (!password) return NextResponse.next(); // без парола (локална разработка)
+  if (!password) {
+    // в Cloudflare без парола не пускаме никого (иначе прототипът би станал публичен)
+    if (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers" && process.env.ALLOW_PUBLIC !== "1") return new NextResponse("Сайтът още се настройва.", { status: 503 });
+    return NextResponse.next(); // без парола (локална разработка)
+  }
 
   const { pathname } = request.nextUrl;
   if (pathname === "/vhod" || pathname === "/api/vhod") return NextResponse.next();

@@ -39,7 +39,7 @@ async function Body({ params }: { params: Promise<{ obl: string; muni: string; m
   const o = findOblastBySlug(obl);
   const s = findSettlement(mesto);
   if (!o || !s) notFound();
-  const L = localData(s.code);
+  const L = await localData(s.code);
   const label = `${s.isVillage ? "с." : "гр."} ${s.name}`;
   const res = (L?.resolutions ?? []).filter((r) => mentions(`${r.title} ${r.text ?? ""}`, s.name));
   const kmet = (L?.resolutions ?? []).map((r) => r.rapporteur).find((r) => r && new RegExp(`кметство\\s+(с\\.|гр\\.)?\\s*${low(s.name)}`).test(r.role));

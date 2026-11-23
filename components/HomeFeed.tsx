@@ -7,11 +7,11 @@ import RISK from "@/data/risk.json";
 import CHECKS from "@/content/checks.json";
 import CASES from "@/content/cases.json";
 import { FUNDS, bn } from "@/lib/funds";
-import { LOCAL_INDEX, localData } from "@/lib/local";
+import { localData, localIndex } from "@/lib/local";
 import { VOTES, formatDate } from "@/lib/parliament";
 import { contractRef, firmUrl, fmtEur } from "@/lib/procurement";
 import { oblastSlug, muniSlug } from "@/lib/regions";
-import { personPage } from "@/lib/people";
+import { peopleLinks } from "@/lib/people";
 import { BAD, STATUS, data as PROMISES, govSlug } from "@/lib/promises";
 
 const FLAG: Record<string, string> = {
@@ -34,7 +34,8 @@ function tidyTitle(t: string) {
   return out.length > 140 ? out.slice(0, 140) + "…" : out;
 }
 
-export function HomeFeed() {
+export async function HomeFeed() {
+  const [{ personPage }, bot, LI] = await Promise.all([peopleLinks(), localData("SFO07"), localIndex()]);
   const R = RISK as unknown as { updated: string; total: number; byScore: Record<string, number>; top: Top[]; suppliers: Agg[] };
   const laws = [...VOTES].filter((v) => /закон/i.test(v.title) && !/процедур/i.test(v.title)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 5);
   const lastDate = VOTES.reduce((m, v) => (v.date > m ? v.date : m), "");
@@ -48,9 +49,8 @@ export function HomeFeed() {
   const gov = PROMISES.parties.find((g) => g.term === "current");
   const govBad = gov?.promises.filter((p) => BAD.includes(p.status) || p.status === "at_risk") ?? [];
   const B = BUDGET as unknown as { year: number; execution: { throughMonth: number | null; revenue: { annualisedEur: number } | null }; revenue: { total: number } };
-  const bot = localData("SFO07");
   const botRes = bot?.resolutions ?? [];
-  const nPeople = Object.values(LOCAL_INDEX.munis).reduce((a, m) => a + m.officials, 0);
+  const nPeople = Object.values(LI.munis).reduce((a, m) => a + m.officials, 0);
   const paid = FUNDS.byProgramme.reduce((a, p) => a + p.paid, 0), contracted = FUNDS.byProgramme.reduce((a, p) => a + p.contracted, 0);
 
   return (

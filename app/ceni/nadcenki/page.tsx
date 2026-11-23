@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 import Link from "next/link";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Page, Title } from "@/components/ui";
@@ -15,8 +14,7 @@ type Cat = { name: string; med: number; n: number; chains: Record<string, { med:
 type Latest = { date: string; chains: Record<string, number>; cats: Record<string, Cat> };
 type EU = { year: string; food: Record<string, number>; aic: Record<string, number>; aicYear: string | null };
 
-const dir = path.join(process.cwd(), "data", "prices");
-const read = <T,>(f: string): T | null => (existsSync(path.join(dir, f)) ? (JSON.parse(readFileSync(path.join(dir, f), "utf8")) as T) : null);
+const read = <T,>(f: string): Promise<T | null> => data<T>(`prices/${f}`);
 const eur = (v: number) => `${v.toLocaleString("bg-BG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const pc = (v: number) => `${v > 0 ? "+" : ""}${Math.round(v).toLocaleString("bg-BG")}%`;
 const dmy = (d: string) => d.split("-").reverse().join(".");
@@ -32,13 +30,9 @@ const WHOLE_MAP: [RegExp, number, string][] = [
 const CHAINS = ["Лидл България", "Кауфланд България", "Билла", "ФАНТАСТИКО", "T Market"];
 const NAMES: Record<string, string> = { BG: "България", RO: "Румъния", EL: "Гърция", HR: "Хърватия", PL: "Полша", HU: "Унгария", CZ: "Чехия", SK: "Словакия", SI: "Словения", AT: "Австрия", DE: "Германия", FR: "Франция", IT: "Италия", ES: "Испания", PT: "Португалия", NL: "Нидерландия", BE: "Белгия", LU: "Люксембург", IE: "Ирландия", DK: "Дания", SE: "Швеция", FI: "Финландия", EE: "Естония", LV: "Латвия", LT: "Литва", CY: "Кипър", MT: "Малта" };
 
-export default function Nadcenki() {
+export default async function Nadcenki() {
   const ident = IDENT.items as Ident[];
-  const P = read<Prod>("products.json");
-  const A = read<Abroad>("abroad.json");
-  const W = read<Whole>("wholesale.json");
-  const L = read<Latest>("latest.json");
-  const E = read<EU>("eu-levels.json");
+  const [P, A, W, L, E] = await Promise.all([read<Prod>("products.json"), read<Abroad>("abroad.json"), read<Whole>("wholesale.json"), read<Latest>("latest.json"), read<EU>("eu-levels.json")]);
 
   const rows = ident.map((i) => ({ i, bg: P?.items[i.id], at: A?.items[i.id] })).filter((r) => r.bg && r.at)
     .map((r) => ({ ...r, diff: (r.bg!.med / r.at!.price - 1) * 100 }));

@@ -1,18 +1,19 @@
 // Какво пише в Търговския регистър за фирмата: кога е създадена, кой я управлява и кой я притежава.
 import Link from "next/link";
-import { personPage } from "@/lib/people";
+import { peopleLinks } from "@/lib/people";
 import { firmUrl } from "@/lib/procurement";
 import { foundedYear, firmsOfPerson, relatedFirms, type TrPerson, trFor } from "@/lib/tr";
 
-function Who({ p }: { p: TrPerson }) {
+async function Who({ p }: { p: TrPerson }) {
   if (p.eik) return <Link href={firmUrl(p.eik)}>{p.name}</Link>;
-  const page = p.name.split(/\s+/).length >= 3 ? personPage(p.name) : null;
-  const other = p.name.split(/\s+/).length >= 3 ? firmsOfPerson(p.name).length : 0;
+  const full = p.name.split(/\s+/).length >= 3;
+  const page = full ? (await peopleLinks()).personPage(p.name) : null;
+  const other = full ? (await firmsOfPerson(p.name)).length : 0;
   return <>{page ? <Link href={page}>{p.name}</Link> : p.name}{p.share ? <span className="text-muted"> ({p.share})</span> : null}{other > 1 ? <span className="text-sm text-muted"> · още {other - 1} фирми с поръчки</span> : null}</>;
 }
 
-export function TrBox({ eik }: { eik: string }) {
-  const t = trFor(eik);
+export async function TrBox({ eik }: { eik: string }) {
+  const [t, rel] = await Promise.all([trFor(eik), relatedFirms(eik)]);
   if (!t) return <p className="text-[15px] text-muted">Още не сме прочели фирмата в Търговския регистър. Обхождаме всички изпълнители поред, по 1 заявка на 5 секунди, както допуска Агенцията по вписванията.</p>;
   const year = foundedYear(t);
   const rows: [string, TrPerson[]][] = [["Управители", t.managers], ["Съвет", t.board], ["Съдружници", t.partners], ["Едноличен собственик", t.owner], ["Действителни собственици", t.ubo], ["Прокуристи", t.procurator]];
@@ -30,20 +31,20 @@ export function TrBox({ eik }: { eik: string }) {
           <div key={l} className="contents"><dt className="text-muted">{l}</dt><dd><ul className="space-y-0.5">{ps.map((p, i) => <li key={i}><Who p={p} /></li>)}</ul></dd></div>
         ))}
       </dl>
-      {(() => { const rel = relatedFirms(eik); return rel.length > 0 && (
+      {rel.length > 0 && (
         <div className="lg:col-span-2 ring-1 ring-[#e08a2e] rounded-sm p-4 bg-white">
           <p className="font-semibold mb-1">Свързани фирми, които също печелят поръчки ({rel.length})</p>
           <ul className="space-y-0.5">{rel.slice(0, 20).map((r) => <li key={r.eik}><Link href={firmUrl(r.eik)}>{r.firm?.name ?? r.eik}</Link> <span className="text-sm text-muted">· общ човек: {r.via.join(", ")}</span></li>)}</ul>
         </div>
-      ); })()}
+      )}
       <p className="text-xs text-muted lg:col-span-2">Източник: Търговски регистър, Агенция по вписванията, прочетено на {t.fetched.split("-").reverse().join(".")}. Връзките между хора са по три имена, не по ЕГН: възможни са съвпадения на имена.</p>
     </div>
   );
 }
 
 /** Фирмите на човек по Търговския регистър (за профила на депутат или длъжностно лице). */
-export function PersonFirms({ name }: { name: string }) {
-  const fs = firmsOfPerson(name);
+export async function PersonFirms({ name }: { name: string }) {
+  const fs = await firmsOfPerson(name);
   if (!fs.length) return null;
   return (
     <div className="text-[15px]">

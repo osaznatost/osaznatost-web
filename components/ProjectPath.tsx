@@ -24,13 +24,12 @@ function Step({ n, title, children, missing }: { n: number; title: string; child
 export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[] }) {
   const [place, siblings] = await Promise.all([buyerPlace(c.buyer_eik), buyerContracts(c.buyer_eik, 500)]);
   const code = place?.municipality_code ?? null;
-  const L = code ? localData(code) : null;
+  const [L, people, paysAll] = await Promise.all([code ? localData(code) : null, peopleFor(code, c.tender_id), Promise.all(c.supplier_names.map((n) => paidFromTo(c.buyer_name, n)))]);
   const isMuni = /^община\s/i.test(c.buyer_name);
   const mine = c.contract_date && c.contract_date >= MANDATE;
   const mayor = L?.officials.find((o) => o.role === "mayor");
   const deputies = L?.officials.filter((o) => o.role === "deputy_mayor") ?? [];
   const council = councilFor(c, L?.resolutions ?? null);
-  const people = peopleFor(code, c.tender_id);
   const sup = supervisionFor(c, siblings);
   const deadline = deadlineOf(c);
   const extended = annexes.filter((a) => /срок|удълж/i.test(a.change_description ?? ""));
@@ -88,7 +87,7 @@ export async function ProjectPath({ c, annexes }: { c: Contract; annexes: Annex[
         </Step>
 
         {(() => {
-          const pays = c.supplier_names.map((n) => paidFromTo(c.buyer_name, n)).filter((x) => x && x.sum > 0);
+          const pays = paysAll.filter((x) => x && x.sum > 0);
           const sum = pays.reduce((a, x) => a + (x?.sum ?? 0), 0);
           return (
             <Step n={6} title="Плащания: колко е преведено на изпълнителя" missing={!pays.length}>

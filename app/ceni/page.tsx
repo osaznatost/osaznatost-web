@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 import Link from "next/link";
 import { MultiLine } from "@/components/Charts";
 import { Anchor, SectionNav } from "@/components/SectionNav";
@@ -13,16 +12,14 @@ type Latest = { date: string; source: string; chains: Record<string, number>; ba
 type Hist = { dates: string[]; cats: Record<string, Record<string, number>> };
 type Place = { name: string; oblast: string; muni: string; index: number; items: number };
 
-const dir = path.join(process.cwd(), "data", "prices");
-const read = <T,>(f: string): T | null => (existsSync(path.join(dir, f)) ? (JSON.parse(readFileSync(path.join(dir, f), "utf8")) as T) : null);
+const read = <T,>(f: string): Promise<T | null> => data<T>(`prices/${f}`);
 const eur = (v: number) => `${v.toLocaleString("bg-BG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const pc = (v: number) => `${v > 0 ? "+" : ""}${v.toLocaleString("bg-BG", { maximumFractionDigits: 1 })}%`;
 const dmy = (d: string) => d.split("-").reverse().join(".");
 
-export default function Ceni() {
-  const L = read<Latest>("latest.json");
-  const H = read<Hist>("history.json");
-  const P = read<Record<string, Place>>("places.json") ?? {};
+export default async function Ceni() {
+  const [L, H, P0] = await Promise.all([read<Latest>("latest.json"), read<Hist>("history.json"), read<Record<string, Place>>("places.json")]);
+  const P = P0 ?? {};
   if (!L || !H) {
     return <Page><Title lead="Данните от портала „Колко струва“ се зареждат. Опитай отново по-късно.">Цени в магазините</Title></Page>;
   }

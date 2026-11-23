@@ -1,4 +1,4 @@
-import { cacheLife } from "next/cache";
+import { DAY, HOUR, memo } from "@/lib/memo";
 
 /** Медии: агенции, обществени медии, разследващи и проверяващи факти. Новините идват през Google News по домейн, за да не зависим от формата на всяка емисия. */
 export const OUTLETS: { id: string; name: string; domain: string; kind: string }[] = [
@@ -29,11 +29,11 @@ async function feed(o: (typeof OUTLETS)[number]): Promise<NewsItem[]> {
   }
 }
 
-export async function latestNews() {
-  "use cache";
-  cacheLife("hours");
-  const all = (await Promise.all(OUTLETS.map(feed))).flat();
-  return all.sort((a, b) => (a.date < b.date ? 1 : -1));
+export function latestNews() {
+  return memo("news", HOUR, async () => {
+    const all = (await Promise.all(OUTLETS.map(feed))).flat();
+    return all.sort((a, b) => (a.date < b.date ? 1 : -1));
+  });
 }
 
 /** Теми, по които на сайта има обективни данни: новината се свързва със съответната страница. */
@@ -53,9 +53,10 @@ export const CONTEXT: { re: RegExp; label: string; href: string }[] = [
 ];
 
 /** Последните споменавания на човек в медиите от списъка горе (Google News, търсене по точното име). */
-export async function mentionsOf(fullName: string): Promise<NewsItem[]> {
-  "use cache";
-  cacheLife("days");
+export function mentionsOf(fullName: string): Promise<NewsItem[]> {
+  return memo(`m:${fullName}`, DAY, () => mentionsOfRaw(fullName));
+}
+async function mentionsOfRaw(fullName: string): Promise<NewsItem[]> {
   const q = `"${fullName}" (${OUTLETS.map((o) => `site:${o.domain}`).join(" OR ")})`;
   try {
     const r = await fetch(`https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=bg&gl=BG&ceid=BG:bg`, { headers: { "user-agent": "Mozilla/5.0 Osaznatost" }, signal: AbortSignal.timeout(8000) });

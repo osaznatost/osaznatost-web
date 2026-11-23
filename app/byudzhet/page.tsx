@@ -88,8 +88,9 @@ const NEXT_KINDS: [RegExp, string][] = [
   [/Националната здравноосигурителна каса/i, "Бюджетът на Здравната каса"],
 ];
 const orgName = (t: string) => t.split(/\s+по\s+(?=Законопроект|ЗД|ЗБ)|\s*-\s*Вх\.|\s+по\s+ЗД|\s+по\s+ЗБ/)[0].replace(/''/g, "“").trim();
-function NextBudget({ year }: { year: number }) {
-  const bills = NEXT_KINDS.map(([re, label]) => ({ label, b: allBills().find((x) => !x.withdrawn && re.test(x.title) && x.title.includes(`за ${year} г`)) }))
+async function NextBudget({ year }: { year: number }) {
+  const all = await allBills();
+  const bills = NEXT_KINDS.map(([re, label]) => ({ label, b: all.find((x) => !x.withdrawn && re.test(x.title) && x.title.includes(`за ${year} г`)) }))
     .filter((x): x is { label: string; b: Bill } => !!x.b);
   if (!bills.length) return null;
   const votes = VOTES.filter((v) => /бюджет/i.test(v.title) && v.title.includes(`за ${year} г`)).sort((a, b) => a.date.localeCompare(b.date) || a.item - b.item).slice(-4);

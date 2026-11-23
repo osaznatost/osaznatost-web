@@ -1,11 +1,11 @@
 import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
 import { politicalLinks } from "@/lib/procurement";
-import { foundedDate, trFor } from "@/lib/tr";
+import { foundedDate, trMany } from "@/lib/tr";
 import { legalException } from "@/lib/legalException.mjs";
 
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
-import { signalFlags, tenderSignal } from "@/lib/tenderSignals.mjs";
+import { signalFlags, tenderSignal } from "@/lib/tenderSignal";
 /** Сила на личния интерес на политик във фирмата: 2 силна, 1 възможна (само по имена), 0 няма (вкл. държавни и общински дружества). */
 export const personalLink = (eik: string): number => politicalStrength(politicalLinks(eik));
 export const strongestLink = (eiks: string[]) => Math.max(0, ...eiks.map(personalLink));
@@ -16,7 +16,7 @@ export type Flag = { id: string; label: string; why: string; weight: number };
 
 const NO_COMPETITION = /договаряне без|пряко договаряне|без предварително обявление|без публикуване/i;
 
-export function contractFlags(c: Contract, annexes: Annex[] = [], political: number | boolean = 0): Flag[] {
+export async function contractFlags(c: Contract, annexes: Annex[] = [], political: number | boolean = 0): Promise<Flag[]> {
   const f: Flag[] = [];
   const v = c.contract_value_eur ?? 0, est = c.estimated_value_eur ?? 0;
   const ex = legalException(c.tender_name);
@@ -36,10 +36,10 @@ export function contractFlags(c: Contract, annexes: Annex[] = [], political: num
   if (pol === 2) f.push({ id: "political", label: "Връзка с политик", why: "Изпълнителят е свързан с депутат или фирмата е посочена в декларацията на длъжностно лице.", weight: 20 });
   if (pol === 1) f.push({ id: "political_name", label: "Възможна връзка с длъжностно лице", why: "В Търговския регистър собственик на фирмата е човек със същите три имена като длъжностно лице. Може да е съименник: проверете.", weight: 8 });
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push({ id: "sub", label: "Голям дял на подизпълнители", why: `Подизпълнителите поемат ${c.subcontracting_percent}% от работата.`, weight: 8 });
-  const young = c.contract_date ? c.supplier_eiks.map((e) => ({ e, d: foundedDate(trFor(e)) })).find(({ d }) => d && Date.parse(c.contract_date!) >= Date.parse(d) && Date.parse(c.contract_date!) - Date.parse(d) < 365 * 864e5) : undefined;
+  const young = c.contract_date ? (await (async () => { const tr = await trMany(c.supplier_eiks); return c.supplier_eiks.map((e) => ({ e, d: foundedDate(tr.get(e.slice(0, 9)) ?? null) })); })()).find(({ d }) => d && Date.parse(c.contract_date!) >= Date.parse(d) && Date.parse(c.contract_date!) - Date.parse(d) < 365 * 864e5) : undefined;
   if (young) f.push({ id: "new", label: "Нова фирма", why: `Изпълнителят е създаден по-малко от година преди договора (${young.d!.endsWith("-01-01") ? `${young.d!.slice(0, 4)} г.` : young.d!.split("-").reverse().join(".")}, по Търговския регистър).`, weight: 15 });
   const LABEL: Record<string, string> = { short: "Кратък срок за оферти", changes: "Чести промени в условията" };
-  for (const [id, w, why] of signalFlags(tenderSignal(c.tender_id)) as [string, number, string][]) f.push({ id, label: LABEL[id], why, weight: w });
+  for (const [id, w, why] of signalFlags(await tenderSignal(c.tender_id)) as [string, number, string][]) f.push({ id, label: LABEL[id], why, weight: w });
   return f;
 }
 export const riskScore = (flags: Flag[]) => Math.min(100, flags.reduce((s, x) => s + x.weight, 0));

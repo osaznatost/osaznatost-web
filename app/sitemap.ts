@@ -9,12 +9,12 @@ const BASE = "https://osaznatost-web.vercel.app";
 
 // Главните страници + депутати, закони, партии, обещания, области и общини.
 // Договорите, фирмите и отделните гласувания (над 200 000) не са тук: до тях се стига от тези страници.
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const top = ["", "/vlast", "/vlast/ministerstva", "/vlast/deklaracii", "/vlast/sadebna-vlast", "/parlament", "/parlament/zakoni", "/parlament/predishni", "/parlament/zayaveno", "/parlament/predishni/51", "/parlament/predishni/50", "/parlament/predishni/49", "/kalkulatori/danaci-razhodi", "/obeshtaniya", "/proverki", "/proverki/chisla", "/proverki/dokladi", "/porachki", "/porachki/risk", "/byudzhet", "/ikonomika", "/ceni", "/ceni/nadcenki", "/mnenie", "/statistiki", "/mesta", "/kalkulatori", "/novini", "/rechnik", "/metodologiya", "/sastoyanie"];
   const u = (p: string, priority = 0.5): MetadataRoute.Sitemap[number] => ({ url: BASE + p, priority });
   return [
     ...top.map((p) => u(p, p === "" ? 1 : 0.8)),
-    ...lawIndex().map((l) => u(`/parlament/zakon/${l.slug}`, 0.7)),
+    ...(await lawIndex()).map((l) => u(`/parlament/zakon/${l.slug}`, 0.7)),
     ...MPS.map((m) => u(`/parlament/deputat/${m.id}`, 0.6)),
     ...PARTY_META.map((p) => u(`/parlament/partiya/${p.slug}`, 0.6)),
     ...PROMISES.parties.map((g) => u(`/obeshtaniya/${govSlug(g)}`, 0.6)),

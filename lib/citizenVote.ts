@@ -1,5 +1,5 @@
 // Мнение на гражданите: сървърни помощници. Не пазим имейли: само HMAC отпечатъци с тайната VOTE_PEPPER.
-// Нужни променливи (въвежда ги Павлин във Vercel): SUPABASE_SECRET_KEY, VOTE_PEPPER, RESEND_API_KEY, EMAIL_FROM.
+// Нужни променливи (въвежда ги Павлин като GitHub secrets; deploy-cloudflare ги подава): SUPABASE_SECRET_KEY, VOTE_PEPPER, RESEND_API_KEY, EMAIL_FROM.
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import LAWS from "@/content/laws.json";
 

@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 
 export type Census = {
   population: number; age: Record<string, number>; gender: { male: number; female: number }; education: Record<string, number>;
@@ -14,14 +13,9 @@ export type PlaceData = {
   ipop: null | { year: number; rollup: { projectCount: number; agreementEur: number; paidEur: number; mrrbPaidEur: number; bbrPaidEur: number; paidPct: number; stalledCount: number };
     projects: { id: string; description: string; agreement: number; paid: number; state: number; muni: number; pct: number; stalled: boolean }[] };
 };
-const dir = path.join(process.cwd(), "data", "place");
-export function placeData(code: string): PlaceData | null {
-  const f = path.join(dir, `${code}.json`);
-  return existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
-}
-export const PLACE_OBL = JSON.parse(readFileSync(path.join(dir, "oblasts.json"), "utf8")) as {
-  updated: string; country: Pick<Census, "population" | "age" | "gender" | "education">; oblasts: Record<string, Census>;
-};
+export const placeData = (code: string) => data<PlaceData>(`place/${code}.json`);
+type PlaceObl = { updated: string; country: Pick<Census, "population" | "age" | "gender" | "education">; oblasts: Record<string, Census> };
+export const placeObl = async () => (await data<PlaceObl>("place/oblasts.json"))!;
 export const AGE: [string, string][] = [["age0_14", "0–14"], ["age15_29", "15–29"], ["age30_44", "30–44"], ["age45_64", "45–64"], ["age65plus", "65+"]];
 export const EDU: [string, string][] = [["tertiary", "Висше"], ["upperSecondary", "Средно"], ["lowerSecondary", "Основно"], ["primaryOrLower", "Начално или по-ниско"]];
 export const TAX: Record<string, { label: string; unit: string }> = {

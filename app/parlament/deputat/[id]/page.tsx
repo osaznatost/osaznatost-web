@@ -13,7 +13,7 @@ import { prevPartiesOf } from "@/lib/parliamentPrev";
 import { billsOfMp, billLawPage } from "@/lib/bills";
 import { VERDICT, autoChecksFor } from "@/lib/autoChecks";
 import { FUNDS } from "@/lib/funds";
-import { firmsOfMp, localPage } from "@/lib/people";
+import { firmsOfMp, peopleLinks } from "@/lib/people";
 import { PersonFirms } from "@/components/TrBox";
 import { firmsOfPerson } from "@/lib/tr";
 import { firmUrl, fmtEur, supplierStats } from "@/lib/procurement";
@@ -40,7 +40,7 @@ async function MpMoney({ id, name }: { id: number; name: string }) {
   const eu = FUNDS.mpConnected.filter((x) => x.mpId === id);
   const eiks = [...new Set([...firms.map((f) => f.eik), ...eu.map((x) => x.eik)])];
   const stats = await Promise.all(eiks.map((e) => supplierStats(e)));
-  const local = localPage(name);
+  const local = (await peopleLinks()).localPage(name);
   if (!eiks.length) return <p className="text-[15px]">Не открихме фирми, свързани с него в Търговския регистър.{local ? <> Има и <Link href={local}>профил в местната власт</Link>.</> : null}</p>;
   const totalProc = stats.reduce((a, s) => a + (s?.total_eur ?? 0), 0), totalEu = eu.reduce((a, x) => a + x.contracted, 0);
   return (
@@ -80,7 +80,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
   const cases = casesFor(mp.name);
   const fl = (n: string) => { const p = n.split(/\s+/); return `${p[0]} ${p.at(-1)}`; };
   const ambiguous = MPS.filter((m) => fl(m.name) === fl(mp.name)).length > 1;
-  const mb = billsOfMp(mp.name, mp.pid, ambiguous);
+  const [mb, ownFirms, acAll] = await Promise.all([billsOfMp(mp.name, mp.pid, ambiguous), firmsOfPerson(mp.name), ambiguous ? Promise.resolve([]) : autoChecksFor(mp.name)]);
   const current = (prof?.ms ?? []).filter((m) => String(m.to).startsWith("9999") && [3, 4, 6, 9].includes(m.t));
   const listName = (n: number) => ELECTIONS.parties.find((p) => p.num === n)?.name ?? "";
   const meta = partyByGroup(mp.party);
@@ -182,7 +182,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
 
       <Anchor id="pari" title="Фирми, поръчки и евросредства" lead="Фирмите, в които е съдружник, собственик, управител или представител (по Търговския регистър, обработен от „Наясно“), и колко пари са получили от обществени поръчки и европейски програми.">
         <Suspense fallback={<p className="text-muted">Проверка на фирмите…</p>}><MpMoney id={mp.id} name={mp.name} /></Suspense>
-        {firmsOfPerson(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
+        {ownFirms.length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
         {declLinksFor(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Декларирани фирми с обществени поръчки</h3><DeclLinks items={declLinksFor(mp.name)} mode="person" /></div>}
       </Anchor>
 
@@ -248,7 +248,7 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
           : <p className="text-[15px] max-w-3xl">Още нямаме проверени твърдения на този депутат. Проверяваме конкретни публични твърдения с числа, по равно за всички (<Link href="/proverki">как работим</Link>). Рейтинг на истинност показваме само когато проверките са достатъчно, за да не подвеждат.</p>}
         {(() => {
           // съименниците не се смесват: показваме автоматичната сверка само при уникално име и фамилия
-          const ac = ambiguous ? [] : autoChecksFor(mp.name);
+          const ac = acAll;
           if (!ac.length) return null;
           const n = (v: "match" | "close" | "off") => ac.filter((c) => c.verdict === v).length;
           return (

@@ -1,7 +1,6 @@
 // Пътят на един проект: решение на общинския съвет → поръчка → договор → изпълнение → надзор и приемане.
 // Свързва поръчките (ЦАИС ЕОП) с решенията на съвета, хората на възложителя и изпълнителя и местната власт.
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 import type { Contract } from "@/lib/procurement";
 import type { Resolution } from "@/lib/local";
 
@@ -9,18 +8,15 @@ type TenderPeople = {
   title: string | null; buyer: string; contacts: string[]; method: string | null; bids: number | null;
   suppliers: Record<string, { name: string; rep: string | null; town: string | null }>; amend: { date: string | null; text: string }[];
 };
-const DIR = path.join(process.cwd(), "data", "projects", "people");
-const cache = new Map<string, Record<string, TenderPeople>>();
-function load(code: string | null | undefined) {
+async function load(code: string | null | undefined): Promise<Record<string, TenderPeople>> {
   if (!code) return {};
-  if (!cache.has(code)) { const f = path.join(DIR, `${code}.json`); cache.set(code, existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as { tenders: Record<string, TenderPeople> }).tenders : {}); }
-  return cache.get(code)!;
+  return (await data<{ tenders: Record<string, TenderPeople> }>(`projects/people/${code}.json`))?.tenders ?? {};
 }
-const SF = path.join(process.cwd(), "data", "projects", "state.json");
-const P = existsSync(SF) ? (JSON.parse(readFileSync(SF, "utf8")) as { first: string | null; last: string | null }) : { first: null, last: null };
 /** Хората по поръчка (по кода на общината на възложителя). */
-export const peopleFor = (code: string | null | undefined, tenderId: number | string) => load(code)[String(tenderId)] ?? null;
-export const PEOPLE_RANGE = { first: P.first, last: P.last };
+export const peopleFor = async (code: string | null | undefined, tenderId: number | string) => (await load(code))[String(tenderId)] ?? null;
+/** Всички поръчки с хора за общината наведнъж (за списъци). */
+export const peopleOfMuni = (code: string | null | undefined) => load(code);
+export const peopleRange = async () => (await data<{ first: string | null; last: string | null }>("projects/state.json")) ?? { first: null, last: null };
 
 const STOP = new Set(("община общината ботевград ботевград“ ремонт ремонтни реконструкция рехабилитация изпълнение изпълнението обект обекта проект проекта строително строителни строителство монтажни работи работа " +
   "доставка доставки услуги услуга територията обществена поръчка предмет връзка изграждане основен основни текущ текущи нужди нуждите съществуващи съществуваща " +
@@ -86,8 +82,8 @@ export function officialByName<T extends { name: string; slug: string; roleRaw: 
 }
 
 /** Поръчките, в които лицето е посочено като лице за контакт на възложителя. */
-export function tendersByContact(code: string, name: string) {
+export async function tendersByContact(code: string, name: string) {
   const p = name.toUpperCase().split(/\s+/);
-  return Object.entries(load(code)).filter(([, t]) => t.contacts.some((c) => { const q = c.toUpperCase().split(/\s+/).filter(Boolean); return q[0] === p[0] && q.at(-1) === p.at(-1); }))
+  return Object.entries(await load(code)).filter(([, t]) => t.contacts.some((c) => { const q = c.toUpperCase().split(/\s+/).filter(Boolean); return q[0] === p[0] && q.at(-1) === p.at(-1); }))
     .map(([id, t]) => ({ id, title: t.title ?? "", suppliers: Object.values(t.suppliers).map((s) => s.name) }));
 }

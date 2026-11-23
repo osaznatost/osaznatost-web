@@ -72,10 +72,10 @@ export default async function Zakon({ params }: { params: Promise<{ slug: string
               </li>
             );
   };
-  const bills = billsForLaw(slug);
+  const bills = await billsForLaw(slug);
   const signals = lawSignals(votes, bills);
   // автоматично извлечените цитати: за законопроектите, по които е гласувано (най-новите първо)
-  const autos = bills.filter((b) => !b.withdrawn).map((b) => autoFor(b.id)).filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, 4);
+  const autos = (await Promise.all(bills.filter((b) => !b.withdrawn).map((b) => autoFor(b.id)))).filter((x): x is NonNullable<typeof x> => Boolean(x)).slice(0, 4);
   const nav: [string, string][] = [["nakratko", "Накратко"], ...(signals.length ? [["signali", `Сигнали (${signals.length})`] as [string, string]] : []), ...(bills.length ? [["zakonoproekti", "Кой внесе и кой се изказа"] as [string, string]] : []), ...(law?.motives || law?.critics || autos.length ? [["argumenti", "Двете страни"] as [string, string]] : []), ...(law ? [["mnenie", "Твоето мнение"] as [string, string]] : []), ["grupi", "Как гласуваха"], ["glasuvaniya", `Гласувания (${votes.length})`]];
 
   return (

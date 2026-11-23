@@ -1,0 +1,59 @@
+# Качва сайта в Cloudflare Workers (адрес osaznatost.<акаунт>.workers.dev).
+# Нужни GitHub secrets (въвежда ги Павлин): CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, SITE_PASSWORD,
+# SUPABASE_URL, SUPABASE_SECRET_KEY, SUPABASE_PUBLISHABLE_KEY; по желание VOTE_PEPPER, RESEND_API_KEY, EMAIL_FROM.
+# Данните се обновяват от други работни потоци, които не могат да пуснат този при push, затова има и график.
+name: deploy-cloudflare
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Проверка на тайните
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          P: ${{ secrets.SITE_PASSWORD }}
+        run: |
+          [ -n "$T" ] && [ -n "$A" ] || { echo "::error::Липсват CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID"; exit 1; }
+          # без парола сайтът би станал публичен: не качваме
+          [ -n "$P" ] || { echo "::error::Липсва SITE_PASSWORD"; exit 1; }
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Сглобяване
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          NODE_OPTIONS: --max-old-space-size=8192
+        run: npx opennextjs-cloudflare build && node scripts/cf-assets.mjs
+      - name: Качване
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
+      - name: Тайни на сайта
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          VOTE_PEPPER: ${{ secrets.VOTE_PEPPER }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+        # само непразните; стойностите не се печатат в лога
+        run: |
+          node -e 'const k=["SITE_PASSWORD","SUPABASE_SECRET_KEY","NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","VOTE_PEPPER","RESEND_API_KEY","EMAIL_FROM"];const o={};for(const x of k)if(process.env[x])o[x]=process.env[x];require("fs").writeFileSync(process.env.RUNNER_TEMP+"/s.json",JSON.stringify(o))'
+          npx wrangler secret bulk "$RUNNER_TEMP/s.json"
+          rm -f "$RUNNER_TEMP/s.json"

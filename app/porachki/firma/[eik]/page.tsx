@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { localPage } from "@/lib/people";
+import { peopleLinks } from "@/lib/people";
 import { Suspense } from "react";
 import { AnnexList, ContractList, LinksBox } from "@/components/proc";
 import { Page, SectionTitle, Title } from "@/components/ui";
@@ -20,6 +20,7 @@ import { contractUrl } from "@/lib/procurement";
 export const metadata = { title: "Фирма" };
 
 async function Content({ params }: { params: Promise<{ eik: string }> }) {
+  const { localPage } = await peopleLinks();
   const { eik } = await params;
   if (!/^\d{9,13}$/.test(eik)) notFound();
   const [s, contracts, annexes] = await Promise.all([supplierStats(eik), supplierContracts(eik), supplierAnnexes(eik)]);
@@ -42,11 +43,11 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
     ...pl.map((l, i) => ({ id: `l${i}`, label: l.who, sub: [l.kind === "mp" ? `депутат${l.party ? `, ${l.party}` : ""}` : l.position, l.roles.join(", ")].filter(Boolean).join(" · "), href: l.kind === "mp" && l.mpId ? mpHref(l.mpId, l.who) : localPage(l.who) ?? undefined, group: (sanctionsFor(l.who) ? "sanction" : "politician") as NetNode["group"] })),
   ];
   const political = personalLink(eik);
-  const scored = contracts.map((c) => {
+  const scored = await Promise.all(contracts.map(async (c) => {
     const ax = annexes.filter((a) => a.buyer_eik === c.buyer_eik && a.contract_number === c.contract_number);
-    const f = contractFlags(c, ax, political);
+    const f = await contractFlags(c, ax, political);
     return { c, f, score: riskScore(f) };
-  });
+  }));
   const high = scored.filter((x) => x.score >= 45);
   const eu = FUNDS.mpConnected.filter((x) => x.eik === eik);
   const serial = FUNDS.integrity.serial.find((x) => x.eik === eik);

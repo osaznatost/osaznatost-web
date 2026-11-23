@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 
 export type Decl = {
     year: number; fiscalYear: number; filedAt: string; url: string; position: string; institution?: string | null; income: number; incomeSpouse: number;
@@ -19,14 +18,9 @@ export type Resolution = {
 };
 export type LocalData = { code: string; name: string | null; generatedAt: string | null; officials: Official[]; resolutions: Resolution[] | null };
 
-const dir = path.join(process.cwd(), "data", "local");
-export function localData(code: string): LocalData | null {
-  const f = path.join(dir, `${code}.json`);
-  return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as LocalData) : null;
-}
-export const LOCAL_INDEX = JSON.parse(readFileSync(path.join(dir, "index.json"), "utf8")) as {
-  updated: string; source: string; tags: Record<string, { bg: string }>; munis: Record<string, { name: string; officials: number; stakes: number; resolutions: number }>;
-};
+export const localData = (code: string) => data<LocalData>(`local/${code}.json`);
+type LocalIndex = { updated: string; source: string; tags: Record<string, { bg: string }>; munis: Record<string, { name: string; officials: number; stakes: number; resolutions: number }> };
+export const localIndex = async () => (await data<LocalIndex>("local/index.json"))!;
 
 /** Нормализира име на фирма за сравнение: без правна форма, кавички и разлики между латиница и кирилица. */
 const LAT: Record<string, string> = { A: "А", B: "В", C: "С", E: "Е", H: "Н", K: "К", M: "М", O: "О", P: "Р", T: "Т", X: "Х", Y: "У" };
@@ -39,11 +33,12 @@ export function normFirm(s: string) {
 export const VOTE_BG: Record<string, string> = { for: "За", against: "Против", abstain: "Въздържал се", absent: "Отсъства", "not_voted": "Не гласува" };
 
 /** Индекс на всички длъжностни лица в общините: slug → [код на общината, име, длъжност]. */
-export const PEOPLE = JSON.parse(readFileSync(path.join(dir, "people.json"), "utf8")) as Record<string, [string, string, string]>;
-export function personBySlug(slug: string) {
-  const p = PEOPLE[slug];
+type People = Record<string, [string, string, string]>;
+export const localPeople = async () => (await data<People>("local/people.json")) ?? {};
+export async function personBySlug(slug: string) {
+  const p = (await localPeople())[slug];
   if (!p) return null;
-  const L = localData(p[0]);
+  const L = await localData(p[0]);
   const o = L?.officials.find((x) => x.slug === slug);
   return o && L ? { o, L } : null;
 }

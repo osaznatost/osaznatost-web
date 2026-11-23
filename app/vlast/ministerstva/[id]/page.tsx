@@ -4,15 +4,14 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import SignalNote from "@/components/SignalNote";
 import { Page, SectionTitle, Title } from "@/components/ui";
-import { MIN, buyerEiks, ministry, shortName, type Ministry } from "@/lib/ministries";
+import { minData, buyerEiks, ministry, shortName, type Ministry } from "@/lib/ministries";
 import { buyerContracts, buyerUrl, firmUrl, fmtEur, politicalLinks, supplierContracts } from "@/lib/procurement";
 import { firmsOfPerson } from "@/lib/tr";
-import { PC, companiesOf, type PublicCompany } from "@/lib/publicCompanies";
+import { pcData, companiesOf, type PublicCompany } from "@/lib/publicCompanies";
 
-export function generateStaticParams() { return MIN.ministries.map((m) => ({ id: m.id })); }
+export async function generateStaticParams() { return (await minData()).ministries.map((m) => ({ id: m.id })); }
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
-  const m = ministry((await params).id);
-  return { title: m ? m.name : "Министерство" };
+  return { title: (await ministry((await params).id))?.name ?? "Министерство" };
 }
 const d = (s: string | null) => (s ? new Date(s).toLocaleDateString("bg-BG", { day: "numeric", month: "long", year: "numeric" }) : "");
 const ROLE: Record<string, number> = { GBHeadAdm: 0, GBPosition: 1, politicalOffice: 2, position: 3 };
@@ -23,7 +22,7 @@ async function LeaderFirms({ m }: { m: Ministry }) {
   const buyers = new Set(buyerEiks(m));
   const rows: { person: string; role: string; eik: string; firm: string; roles: string[]; n: number; sum: number }[] = [];
   for (const l of m.leaders.filter((x) => x.person && x.person.split(" ").length >= 3)) {
-    for (const f of firmsOfPerson(l.person!)) {
+    for (const f of await firmsOfPerson(l.person!)) {
       const cs = (await supplierContracts(f.eik, 500)).filter((c) => buyers.has(c.buyer_eik));
       if (cs.length) rows.push({ person: l.person!, role: l.role, eik: f.eik, firm: f.firm?.name ?? f.eik, roles: f.roles, n: cs.length, sum: cs.reduce((a, c) => a + (c.contract_value_eur ?? 0), 0) });
     }
@@ -67,7 +66,7 @@ async function Procurement({ m }: { m: Ministry }) {
 async function BoardFirms({ cs }: { cs: PublicCompany[] }) {
   await connection();
   const rows: { co: PublicCompany; person: string; eik: string; firm: string; n: number; sum: number }[] = [];
-  for (const co of cs.filter((c) => c.eik)) for (const p of co.board.filter((x) => x.split(" ").length >= 3)) for (const f of firmsOfPerson(p)) {
+  for (const co of cs.filter((c) => c.eik)) for (const p of co.board.filter((x) => x.split(" ").length >= 3)) for (const f of await firmsOfPerson(p)) {
     if (f.eik === co.eik) continue;
     const cts = (await supplierContracts(f.eik, 500)).filter((c) => c.buyer_eik === co.eik);
     if (cts.length) rows.push({ co, person: p, eik: f.eik, firm: f.firm?.name ?? f.eik, n: cts.length, sum: cts.reduce((a, c) => a + (c.contract_value_eur ?? 0), 0) });
@@ -79,14 +78,14 @@ async function BoardFirms({ cs }: { cs: PublicCompany[] }) {
 }
 
 export default async function Ministerstvo({ params }: { params: Promise<{ id: string }> }) {
-  const m = ministry((await params).id);
+  const [m, MD, PC] = await Promise.all([params.then((p) => ministry(p.id)), minData(), pcData()]);
   if (!m) notFound();
   const leaders = [...m.leaders].sort((a, b) => (ROLE[a.kind] ?? 9) - (ROLE[b.kind] ?? 9));
   const groups = new Map<string, typeof m.units>();
   for (const u of m.units) groups.set(u.group ?? "Други звена", [...(groups.get(u.group ?? "Други звена") ?? []), u]);
   const single = (role: string) => m.leaders.filter((l) => l.role === role).length === 1; // при няколко заместник-министри не личи кой кого е сменил
-  const companies = companiesOf(m);
-  const changes = Object.entries(MIN.history).filter(([k, h]) => k.startsWith(`${m.id}|`) && h.length > 1 && single(k.split("|")[1]));
+  const companies = await companiesOf(m);
+  const changes = Object.entries(MD.history).filter(([k, h]) => k.startsWith(`${m.id}|`) && h.length > 1 && single(k.split("|")[1]));
   return (
     <Page>
       <Title back={{ href: "/vlast/ministerstva", label: "Министерствата" }} kicker="Министерство"
@@ -142,7 +141,7 @@ export default async function Ministerstvo({ params }: { params: Promise<{ id: s
         <p className="text-xs text-muted mt-1">Линкът води към поръчките на структурата.</p>
       </section>}
 
-      <p className="text-xs text-muted">Източник: <a href={m.url}>Административен регистър, органиграма на {m.name}</a>, към {d(MIN.updated)}. Търговски регистър и ЦАИС ЕОП за фирмите и поръчките.</p>
+      <p className="text-xs text-muted">Източник: <a href={m.url}>Административен регистър, органиграма на {m.name}</a>, към {d(MD.updated)}. Търговски регистър и ЦАИС ЕОП за фирмите и поръчките.</p>
     </Page>
   );
 }

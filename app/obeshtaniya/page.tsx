@@ -15,11 +15,11 @@ function StatusBar({ g }: { g: Gov }) {
   );
 }
 
-export default function Obeshtaniya() {
+export default async function Obeshtaniya() {
   const current = data.parties.filter((p) => p.term === "current");
   const past = data.parties.filter((p) => p.term === "past");
   const caretaker = data.parties.filter((p) => p.term === "caretaker");
-  const opp = billsByGroup().filter((r) => r.party !== "ПБ");
+  const opp = (await billsByGroup()).filter((r) => r.party !== "ПБ");
   const areas = [...new Set(data.parties.flatMap((p) => p.promises.map((x) => x.area)))].sort();
   return (
     <Page>

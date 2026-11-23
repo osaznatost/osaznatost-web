@@ -1,5 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 import Link from "next/link";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Page, Title } from "@/components/ui";
@@ -17,8 +16,7 @@ type T = { year: string; name: string; pos: string; inst: string; cat: string; e
 type TL = { who: string; kind: string; party: string | null; mpId: number | null; position: string | null; roles: string[]; eik: string; co: string; n: number; eur: number };
 type Data = { updated: string; people: number; stats?: { declarations: number; people: number; mps: number; years: string[]; trPeople?: number; trMps?: number; allPeople?: number; allMps?: number }; links: L[]; trLinks?: TL[]; ambiguous: number; publicRoles?: number; trOnly?: T[] };
 
-const dir = path.join(process.cwd(), "data", "declarations");
-const read = (): Data | null => (existsSync(path.join(dir, "links.json")) ? (JSON.parse(readFileSync(path.join(dir, "links.json"), "utf8")) as Data) : null);
+const read = (): Promise<Data | null> => data<Data>("declarations/links.json");
 const eur = (v: number) => `${Math.round(v).toLocaleString("bg-BG")} €`;
 const dmy = (d: string) => d.split("-").reverse().join(".");
 
@@ -41,8 +39,8 @@ function Row({ l }: { l: L }) {
   );
 }
 
-export default function Deklaracii() {
-  const D = read();
+export default async function Deklaracii() {
+  const D = await read();
   const L = D?.links ?? [];
   const people = new Set(L.map((l) => l.name)).size;
   const own = L.filter((l) => l.own).sort((a, b) => (b.own!.eur - a.own!.eur));

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { personPage } from "@/lib/people";
+import { peopleLinks } from "@/lib/people";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { formatDate } from "@/lib/parliament";
 import { SANCTIONS } from "@/lib/sanctions";
@@ -9,7 +9,8 @@ export const metadata = { title: "Корупция: санкции, обвине
 
 const SHORT: Record<string, string> = { GLOMAG: "„Магнитски“ (САЩ)", "7031c": "Забрана за влизане в САЩ", UKGAC: "Санкции на Великобритания" };
 
-export default function Sankcii() {
+export default async function Sankcii() {
+  const { personPage } = await peopleLinks();
   const P = SANCTIONS.people;
   const active = P.filter((p) => p.measures.some((m) => !m.status.startsWith("отмен")));
   const byParty = new Map<string, number>();

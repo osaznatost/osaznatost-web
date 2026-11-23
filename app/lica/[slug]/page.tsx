@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { MultiLine } from "@/components/Charts";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import MPH from "@/data/mp-history.json";
-import { PEOPLE, normFirm, personBySlug, personHref, type Official } from "@/lib/local";
+import { localPeople, normFirm, personBySlug, personHref, type Official } from "@/lib/local";
 import { firmUrl, fmtEur, placeSuppliersAll } from "@/lib/procurement";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
@@ -14,15 +14,15 @@ import { tendersByContact } from "@/lib/projects";
 import { PersonFirms } from "@/components/TrBox";
 import { declLinksFor } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
-import { firmsOfPerson, peopleOf, trFor } from "@/lib/tr";
+import { firmsOfPerson, peopleOf, trMany } from "@/lib/tr";
 
 // Предварително само кметовете; останалите ~6000 профила се правят при първо отваряне и се кешират.
-export function generateStaticParams() {
-  return Object.entries(PEOPLE).filter(([, p]) => p[2] === "Кмет").map(([slug]) => ({ slug }));
+export async function generateStaticParams() {
+  return Object.entries(await localPeople()).filter(([, p]) => p[2] === "Кмет").map(([slug]) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
-  const p = personBySlug((await params).slug);
+  const p = await personBySlug((await params).slug);
   return { title: p ? `${p.o.name}, ${p.o.roleRaw.toLowerCase()}` : "Профил" };
 }
 
@@ -34,6 +34,7 @@ async function StakeCheck({ code, o }: { code: string; o: Official }) {
   const stakes = o.decl?.stakes ?? [];
   if (!stakes.length) return <p className="text-[15px]">В последната декларация няма дялове във фирми.</p>;
   const sup = await placeSuppliersAll(code);
+  const trs = await trMany(sup.map((x) => x.eik));
   return (
     <ul className="space-y-2 text-[15px]">{stakes.map((st, i) => {
       const n = normFirm(st.company);
@@ -42,7 +43,7 @@ async function StakeCheck({ code, o }: { code: string; o: Official }) {
         <li key={i} className={`ring-1 rounded-sm p-3 bg-white ${hit ? "ring-2 ring-red" : "ring-rule"}`}>
           <b>{st.company}</b>{st.share ? `, ${st.share}${/%/.test(st.share) ? "" : " дяла"}` : ""}{st.holder && norm(st.holder) !== norm(o.name) ? ` (на ${st.holder})` : ""}{st.office ? <span className="text-sm text-muted"> · седалище: {st.office}</span> : null}
           {hit ? (() => {
-            const tr = trFor(hit.eik), names = peopleOf(tr).map((p) => norm(p.name));
+            const tr = trs.get(hit.eik.slice(0, 9)) ?? null, names = peopleOf(tr).map((p) => norm(p.name));
             const confirmed = names.includes(norm(o.name)) || (st.holder ? names.includes(norm(st.holder)) : false);
             return <p className="mt-1">{tr ? (confirmed ? "Потвърдено по Търговския регистър: " : "Фирма с почти същото име (в Търговския регистър деклараторът не фигурира в нея, възможно е да е друга фирма): ") : "Фирма с почти същото име: "}<Link href={firmUrl(hit.eik)}>{hit.name}</Link> има {hit.contracts} договора с възложители от общината за {fmtEur(hit.total_eur)}.{tr ? "" : " Проверете в Търговския регистър дали е същата фирма."}</p>;
           })()
@@ -58,7 +59,7 @@ export default function Lice({ params }: { params: Promise<{ slug: string }> }) 
 }
 
 async function Body({ params }: { params: Promise<{ slug: string }> }) {
-  const p = personBySlug((await params).slug);
+  const p = await personBySlug((await params).slug);
   if (!p) notFound();
   const { o, L } = p;
   const code = L.code, obl = oblastSlug(code), muniHref = `/mesta/${obl}/${muniSlug(code)}`;
@@ -69,7 +70,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
   const colleagues = L.officials.filter((x) => x.slug !== o.slug && ["mayor", "deputy_mayor", "council_chair", "chief_architect"].includes(x.role));
   const d = o.decl;
   const proposed = (L.resolutions ?? []).filter((r) => r.rapporteur?.slug === o.slug);
-  const runs = tendersByContact(L.code, o.name);
+  const [runs, ownFirms] = await Promise.all([tendersByContact(L.code, o.name), firmsOfPerson(o.name)]);
   return (
     <Page>
       <Title back={{ href: `${muniHref}#vlast`, label: `Местна власт: ${L.name ?? ""}` }} kicker={`${o.roleRaw} · ${L.name ?? ""}`}
@@ -141,7 +142,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
         </section>
       )}
 
-      {firmsOfPerson(o.name).length > 0 && (
+      {ownFirms.length > 0 && (
         <section className="mb-10">
           <SectionTitle>Фирми по Търговския регистър</SectionTitle>
           <PersonFirms name={o.name} />

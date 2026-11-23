@@ -9,8 +9,8 @@ const fmt = (d: string) => d.split("-").reverse().join(".");
 const num = (v: number, unit: string) => `${v.toLocaleString("bg-BG")}${unit === "%" ? "%" : " €"}`;
 const key = (n: string) => { const p = n.trim().toLowerCase().split(/\s+/); return `${p[0]} ${p.at(-1)}`; };
 
-export default function Chisla() {
-  const { updated, checks } = autoChecks();
+export default async function Chisla() {
+  const { updated, checks } = await autoChecks();
   const mp = new Map(MPS.map((m) => [key(m.name), m]));
   const count = (v: keyof typeof VERDICT) => checks.filter((c) => c.verdict === v).length;
   return (

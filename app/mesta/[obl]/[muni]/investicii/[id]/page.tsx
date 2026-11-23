@@ -8,9 +8,11 @@ import { placeData } from "@/lib/place";
 import { fmtEur, muniContracts } from "@/lib/procurement";
 import { findOblastBySlug, muniSlug, oblastList } from "@/lib/regions";
 
-type P = NonNullable<ReturnType<typeof placeData>>;
-export function generateStaticParams() {
-  return oblastList().flatMap((o) => o.municipalities.flatMap((m) => (placeData(m.code)?.ipop?.projects ?? []).map((p) => ({ obl: o.slug, muni: muniSlug(m.code), id: p.id }))));
+type P = NonNullable<Awaited<ReturnType<typeof placeData>>>;
+export async function generateStaticParams() {
+  const ms = oblastList().flatMap((o) => o.municipalities.map((m) => ({ o, m })));
+  const ds = await Promise.all(ms.map(({ m }) => placeData(m.code)));
+  return ms.flatMap(({ o, m }, i) => (ds[i]?.ipop?.projects ?? []).map((p) => ({ obl: o.slug, muni: muniSlug(m.code), id: p.id })));
 }
 export async function generateMetadata({ params }: { params: Promise<{ muni: string; id: string }> }) {
   const { id } = await params;
@@ -47,7 +49,7 @@ export default async function Investicia({ params }: { params: Promise<{ obl: st
   const { obl, muni, id } = await params;
   const o = findOblastBySlug(obl);
   const m = o?.municipalities.find((x) => muniSlug(x.code) === muni);
-  const P: P | null = m ? placeData(m.code) : null;
+  const P: P | null = m ? await placeData(m.code) : null;
   const p = P?.ipop?.projects.find((x) => x.id === decodeURIComponent(id));
   if (!o || !m || !P?.ipop || !p) notFound();
   const mn = (v: number) => fmtEur(v);

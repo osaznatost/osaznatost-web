@@ -8,7 +8,7 @@ import { REGIONAL_SECTORS, val } from "@/lib/economy";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, oblastStats } from "@/lib/regions";
 import { STATS, fmt } from "@/lib/stats";
 import { ChoroMap } from "@/components/ChoroMap";
-import { EDU, PLACE_OBL, placeData, share } from "@/lib/place";
+import { EDU, placeData, placeObl, share } from "@/lib/place";
 
 export function generateStaticParams() { return oblastList().map((o) => ({ obl: o.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ obl: string }> }) {
@@ -29,9 +29,10 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
   const agg = munis.reduce((a, x) => { x.el?.lists.forEach((l) => { a[l.name] = { ...l, votes: (a[l.name]?.votes ?? 0) + l.votes }; }); return a; }, {} as Record<string, { name: string; color: string; slug: string; votes: number }>);
   const aggTot = munis.reduce((a, x) => a + (x.el?.total ?? 0), 0);
   const lists = Object.values(agg).sort((a, b) => b.votes - a.votes);
-  const OC = PLACE_OBL.oblasts[o.prefix], BG = PLACE_OBL.country;
+  const [PO, PDS] = await Promise.all([placeObl(), Promise.all(o.municipalities.map((m) => placeData(m.code)))]);
+  const OC = PO.oblasts[o.prefix], BG = PO.country;
   const eduT = (c: { education: Record<string, number> }) => EDU.reduce((a, [k]) => a + (c.education[k] ?? 0), 0);
-  const prof = o.municipalities.map((m) => ({ m, p: placeData(m.code) })).filter((x) => x.p?.census).map(({ m, p }) => {
+  const prof = o.municipalities.map((m, i) => ({ m, p: PDS[i] })).filter((x) => x.p?.census).map(({ m, p }) => {
     const c = p!.census!;
     return { m, pop: c.population, old: share(c.age.age65plus, c.population), young: share(c.age.age0_14, c.population), uni: share(c.education.tertiary, eduT(c)), unemp: c.employment.unemploymentRate, ipop: p!.ipop?.rollup.agreementEur ?? 0 };
   }).sort((a, b) => b.pop - a.pop);

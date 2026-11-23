@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { localPage } from "@/lib/people";
+import { peopleLinks } from "@/lib/people";
 import { type Annex, type Contract, buyerUrl, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
 import { isPublicFirm, politicalStrength } from "@/lib/politicalFlag.mjs";
 
@@ -86,7 +86,8 @@ function AnnexRows({ items }: { items: Annex[] }) {
   );
 }
 
-export function LinksBox({ eik }: { eik: string }) {
+export async function LinksBox({ eik }: { eik: string }) {
+  const { localPage } = await peopleLinks();
   const l = politicalLinks(eik);
   if (!l.length) return <p className="text-[15px]">По Търговския регистър и декларациите не открихме връзка на фирмата с депутат или длъжностно лице. Това не изключва връзки чрез роднини или посредници.</p>;
   const pub = isPublicFirm(l), st = politicalStrength(l);

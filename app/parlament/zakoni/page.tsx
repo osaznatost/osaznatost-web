@@ -8,8 +8,8 @@ export const metadata = { title: "Всички закони" };
 
 const DOT = { high: "bg-red", mid: "bg-[#e08a2e]", info: "bg-[#8a8f8c]" };
 
-export default function Zakoni() {
-  const laws = lawIndex();
+export default async function Zakoni() {
+  const laws = await lawIndex();
   const explained = laws.filter((l) => l.explained).length;
   const flagged = laws.filter((l) => l.signals.some((s) => s.level === "high")).length;
   return (

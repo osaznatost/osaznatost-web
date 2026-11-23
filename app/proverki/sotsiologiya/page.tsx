@@ -14,7 +14,7 @@ const D = P as unknown as { source: string; generatedAt: string; agencies: Ag[];
 const pp = (v: number) => { const r = Math.round(v * 10) / 10; return `${r > 0 ? "+" : ""}${(r === 0 ? 0 : r).toLocaleString("bg-BG", { maximumFractionDigits: 1 })}`; };
 const dd = (s: string) => s.split("-").reverse().join(".");
 
-export default function Sotsiologiya() {
+export default async function Sotsiologiya() {
   const names = Object.fromEntries(D.agencies.map((a) => [a.id, a.name]));
   const last = D.elections[0];
   return (
@@ -36,7 +36,7 @@ export default function Sotsiologiya() {
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Средна грешка: с колко процентни пункта средно се разминава прогнозата за всяка партия с резултата. По-малко е по-точно. „Системно“: партии, при които агенцията многократно надценява (+) или подценява (−).</p>
         <div className="overflow-x-auto"><table className="w-full text-[15px]">
           <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3">Агенция</th><th className="px-2 text-right">Средна грешка</th><th className="px-2 text-right">Избори</th><th className="px-2 text-right">Проучвания</th><th className="px-2">Системно</th><th className="px-2 text-right">Пари от държавата*</th></tr></thead>
-          <tbody>{D.agencies.map((a) => { const paid = paidTo(a.name); return (
+          <tbody>{(await Promise.all(D.agencies.map(async (a) => [a, await paidTo(a.name)] as const))).map(([a, paid]) => { return (
             <tr key={a.id} className="border-b border-rule align-top">
               <td className="py-2 pr-3 font-semibold">{a.site ? <a href={a.site} target="_blank" rel="noreferrer">{a.name}</a> : a.name}{a.eik && <span className="block text-xs text-muted font-normal">ЕИК {a.eik}</span>}</td>
               <td className="px-2 text-right num">{a.mae.toLocaleString("bg-BG")} пр.п.</td>

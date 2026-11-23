@@ -4,15 +4,13 @@ import { VOTES, formatDate } from "@/lib/parliament";
 import { VoteBoard } from "@/components/parliament";
 import { HomeFeed } from "@/components/HomeFeed";
 import { CPI_GROUPS, CPI_MONTHLY, DEBT_GDP, DEBT_GDP_SOURCE, P } from "@/lib/params";
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
+import { data } from "@/lib/data";
 
 /** Кошницата от 20 основни стоки по данните на „Колко струва“ (сбор от типичните цени). */
-function basket() {
-  const f = path.join(process.cwd(), "data", "prices", "latest.json"), h = path.join(process.cwd(), "data", "prices", "history.json");
-  if (!existsSync(f) || !existsSync(h)) return null;
-  const L = JSON.parse(readFileSync(f, "utf8")) as { date: string; basket: number[]; cats: Record<string, { med: number }> };
-  const H = JSON.parse(readFileSync(h, "utf8")) as { dates: string[]; cats: Record<string, Record<string, number>> };
+async function basket() {
+  const L = await data<{ date: string; basket: number[]; cats: Record<string, { med: number }> }>("prices/latest.json");
+  const H = await data<{ dates: string[]; cats: Record<string, Record<string, number>> }>("prices/history.json");
+  if (!L || !H) return null;
   const ids = L.basket.filter((id) => L.cats[String(id)] && H.cats[String(id)]?.[H.dates[0]]);
   const now = ids.reduce((s, id) => s + L.cats[String(id)].med, 0), first = ids.reduce((s, id) => s + H.cats[String(id)][H.dates[0]], 0);
   return ids.length ? { now, change: (now / first - 1) * 100, n: ids.length, date: L.date, from: H.dates[0] } : null;
@@ -26,8 +24,8 @@ const calcs = [
   { href: "/kalkulatori/nuzhen-dohod", t: "Нужен доход", d: "Каква заплата ви трябва за живота, който искате." },
 ];
 
-export default function Home() {
-  const b = basket();
+export default async function Home() {
+  const b = await basket();
   const d25 = DEBT_GDP.at(-1)!;
   const d24 = DEBT_GDP.at(-2)!;
   const cpi = CPI_MONTHLY.at(-1)!;

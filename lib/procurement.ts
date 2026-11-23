@@ -1,4 +1,4 @@
-import { cacheLife, cacheTag } from "next/cache";
+import { HOUR, memo } from "@/lib/memo";
 import links from "@/data/political-links.json";
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
 
@@ -27,14 +27,13 @@ export type Annex = {
 export type SupplierStats = { eik: string; name: string; contracts: number; total_eur: number | null; buyers: number; single_offer: number; first_date: string; last_date: string };
 
 /** Заявка към Supabase (само четене). Кешира се за час. */
-async function q<T>(path: string): Promise<T[]> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("procurement");
-  if (!URL_ || !KEY) return [];
-  const res = await fetch(`${URL_}/rest/v1/${path}`, { headers: { apikey: KEY } });
-  if (!res.ok) return [];
-  return res.json();
+function q<T>(path: string): Promise<T[]> {
+  if (!URL_ || !KEY) return Promise.resolve([]);
+  return memo(`sb:${path}`, HOUR, async () => {
+    const res = await fetch(`${URL_}/rest/v1/${path}`, { headers: { apikey: KEY } });
+    if (!res.ok) return [];
+    return res.json();
+  });
 }
 
 const enc = encodeURIComponent;

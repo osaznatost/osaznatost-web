@@ -14,12 +14,12 @@ import { SANCTIONS } from "@/lib/sanctions";
 export const metadata = { title: "Властта: кой решава и как" };
 
 // Един поглед върху властта: кой управлява, как се приемат законите, къде има сигнали и как да се проследи всяко решение.
-export default function Vlast() {
+export default async function Vlast() {
   const seats = currentSeats();
   const total = seats.reduce((s, x) => s + x.seats, 0);
   const top = [...seats].sort((a, b) => b.seats - a.seats)[0];
   const gov = PROMISES.parties.find((g) => g.term === "current");
-  const laws = lawIndex();
+  const laws = await lawIndex();
   const high = laws.filter((l) => l.signals.some((s) => s.level === "high"));
   const sameDay = laws.filter((l) => l.signals.some((s) => s.title === "Двете четения в един ден"));
   const fast = laws.filter((l) => l.signals.some((s) => /^Само \d+ дни между/.test(s.title)));

@@ -9,7 +9,7 @@ import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblas
 import { FIN_SOURCE } from "@/lib/places";
 import { fmt } from "@/lib/stats";
 import { SettlementMap } from "@/components/SettlementMap";
-import { AGE, EDU, PLACE_OBL, placeData, share } from "@/lib/place";
+import { AGE, EDU, placeData, placeObl, share } from "@/lib/place";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { MuniPower } from "@/components/MuniPower";
@@ -39,7 +39,8 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.expenditure != null).map((h) => ({ series: "Разходи", x: h.year, value: Math.round(h.expenditure! / 1e5) / 10 })),
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
-  const P = placeData(m.code), C = P?.census, OC = PLACE_OBL.oblasts[m.code.slice(0, 3)], BG = PLACE_OBL.country;
+  const [P, PO] = await Promise.all([placeData(m.code), placeObl()]);
+  const C = P?.census, OC = PO.oblasts[m.code.slice(0, 3)], BG = PO.country;
   const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
   const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
 

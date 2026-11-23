@@ -2,8 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Cache Components са изключени: в Cloudflare Workers засядат (таймерите на средата). Кешът е в lib/memo.ts.
   turbopack: {
     rules: {
       "*.css": {
