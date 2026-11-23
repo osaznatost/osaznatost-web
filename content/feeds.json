@@ -1,12 +1,68 @@
 [
- {"file": "update-data.yml", "label": "Парламент, депутати, бюджет, евросредства, местна власт", "every": "всеки ден сутрин; ср–пт и вечер", "maxHours": 36},
- {"file": "update-program.yml", "label": "Програма на парламента", "every": "3 пъти на ден", "maxHours": 24},
- {"file": "update-bills.yml", "label": "Законопроекти: мотиви, доклади, становища, дебати", "every": "всяка нощ", "maxHours": 36},
- {"file": "update-steno.yml", "label": "Стенограми и сверка на числата", "every": "всяка нощ", "maxHours": 36},
- {"file": "update-procurement.yml", "label": "Обществени поръчки и анекси (ЦАИС ЕОП)", "every": "на всеки 3 часа", "maxHours": 12},
- {"file": "update-tender-signals.yml", "label": "Сигнали от обявленията (срокове, промени)", "every": "всяка нощ", "maxHours": 36},
- {"file": "update-tr.yml", "label": "Търговски регистър", "every": "на всеки 2 часа", "maxHours": 12},
- {"file": "council.yml", "label": "Решения на общинските съвети", "every": "на всеки 4 часа", "maxHours": 24},
- {"file": "update-prices.yml", "label": "Цени в магазините", "every": "всеки ден", "maxHours": 36},
- {"file": "update-stats.yml", "label": "Статистики (Евростат, НСИ)", "every": "всеки вторник", "maxHours": 192}
+  {
+    "file": "update-data.yml",
+    "label": "Парламент, депутати, бюджет, евросредства, местна власт",
+    "every": "всеки ден сутрин; ср–пт и вечер",
+    "maxHours": 36
+  },
+  {
+    "file": "update-program.yml",
+    "label": "Програма на парламента",
+    "every": "3 пъти на ден",
+    "maxHours": 24
+  },
+  {
+    "file": "update-bills.yml",
+    "label": "Законопроекти: мотиви, доклади, становища, дебати",
+    "every": "всяка нощ",
+    "maxHours": 36
+  },
+  {
+    "file": "update-steno.yml",
+    "label": "Стенограми и сверка на числата",
+    "every": "всяка нощ",
+    "maxHours": 36
+  },
+  {
+    "file": "update-procurement.yml",
+    "label": "Обществени поръчки и анекси (ЦАИС ЕОП)",
+    "every": "на всеки 3 часа",
+    "maxHours": 12
+  },
+  {
+    "file": "update-tender-signals.yml",
+    "label": "Сигнали от обявленията (срокове, промени)",
+    "every": "всяка нощ",
+    "maxHours": 36
+  },
+  {
+    "file": "update-tr.yml",
+    "label": "Търговски регистър",
+    "every": "на всеки 2 часа",
+    "maxHours": 12
+  },
+  {
+    "file": "council.yml",
+    "label": "Решения на общинските съвети",
+    "every": "на всеки 4 часа",
+    "maxHours": 24
+  },
+  {
+    "file": "update-prices.yml",
+    "label": "Цени в магазините",
+    "every": "всеки ден",
+    "maxHours": 36
+  },
+  {
+    "file": "update-stats.yml",
+    "label": "Статистики (Евростат, НСИ)",
+    "every": "всеки вторник",
+    "maxHours": 192
+  },
+  {
+    "file": "deploy-cloudflare.yml",
+    "label": "Качване на сайта с новите данни (Cloudflare)",
+    "every": "на всеки 6 часа и при промяна",
+    "maxHours": 8
+  }
 ]
