@@ -57,3 +57,17 @@ jobs:
           node -e 'const k=["SITE_PASSWORD","SUPABASE_SECRET_KEY","NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","VOTE_PEPPER","RESEND_API_KEY","EMAIL_FROM"];const o={};for(const x of k)if(process.env[x])o[x]=process.env[x];require("fs").writeFileSync(process.env.RUNNER_TEMP+"/s.json",JSON.stringify(o))'
           npx wrangler secret bulk "$RUNNER_TEMP/s.json"
           rm -f "$RUNNER_TEMP/s.json"
+  warm:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with: { sparse-checkout: scripts }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/cf-warm.mjs
+        env:
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          MINUTES: "20"
