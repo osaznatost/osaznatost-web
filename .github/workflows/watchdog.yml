@@ -1,12 +1,12 @@
 name: Пазач на обновяванията
 on:
   schedule:
-    - cron: "53 7,19 * * *"
+    - cron: "53 */3 * * *"
   workflow_dispatch:
 permissions:
   contents: read
   issues: write
-  actions: read
+  actions: write
 jobs:
   watch:
     runs-on: ubuntu-latest

@@ -15,6 +15,11 @@ for (const f of feeds) {
   const hours = ok ? (Date.now() - new Date(ok.created_at).getTime()) / 36e5 : Infinity;
   const failedInRow = runs.findIndex((r) => r.conclusion === "success");
   const fails = (failedInRow === -1 ? runs : runs.slice(0, failedInRow)).filter((r) => r.conclusion === "failure").length;
+  // GitHub понякога пропуска планираните пускания: закъснялото обновяване се пуска наново, ако в момента не върви
+  if (hours > f.maxHours && !runs.some((r) => r.status === "in_progress" || r.status === "queued")) {
+    const r = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${f.file}/dispatches`, { method: "POST", headers: H, body: JSON.stringify({ ref: "main" }) });
+    console.log(r.ok ? "Пуснато наново:" : `Не можах да пусна (${r.status}):`, f.file);
+  }
   if (hours > f.maxHours || fails >= 2) late.push(`- **${f.label}** (\`${f.file}\`): последно успешно ${ok ? `преди ${Math.round(hours)} ч.` : "няма"}; неуспешни опити подред: ${fails}. [Опитите](https://github.com/${repo}/actions/workflows/${f.file})`);
 }
 
