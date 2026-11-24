@@ -12,6 +12,7 @@ import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { MPS } from "@/lib/parliament";
 import { tendersByContact } from "@/lib/projects";
 import { PersonFirms } from "@/components/TrBox";
+import { PersonLinks } from "@/components/PersonLinks";
 import { declLinksFor } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { firmsOfPerson, peopleOf, trMany } from "@/lib/tr";
@@ -175,6 +176,12 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
           <PersonFirms name={o.name} verified={!!verifiedFor(code, o.slug)} />
         </section>
       )}
+
+      <section className="mb-10" id="svarzani">
+        <SectionTitle>Свързани лица и фирми (с историята)</SectionTitle>
+        <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Всички фирми, в които лицето е било или е управител, съдружник или собственик, хората, които са били с него в тях, и техните фирми, които печелят поръчки в общината.</p>
+        <Suspense fallback={<p className="text-muted">Зареждане…</p>}><PersonLinks code={code} slug={o.slug} /></Suspense>
+      </section>
 
       {(mp || mpNow) && (
         <section className="mb-10 max-w-3xl">

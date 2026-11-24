@@ -15,6 +15,7 @@ import { Anchor, SectionNav } from "@/components/SectionNav";
 import { AuditsList } from "@/components/AuditsList";
 import { auditsOfMuni } from "@/lib/audits";
 import { MuniPower } from "@/components/MuniPower";
+import { MuniLinks } from "@/components/PersonLinks";
 import { MuniProjects } from "@/components/MuniProjects";
 import { PlaceProcurement } from "@/components/PlaceProcurement";
 
@@ -144,6 +145,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
 
       <Anchor id="vlast" title="Местна власт" lead="Кой управлява общината, какво е декларирал, дали има дялове във фирми, които печелят поръчки, и как гласува общинският съвет.">
         <MuniPower code={m.code} />
+        <MuniLinks code={m.code} />
       </Anchor>
 
       <Anchor id="proekti" title="Проекти" lead="Всеки ремонт, строеж, доставка и услуга от началото на мандата: кой е решил, кой е възложил, кой изпълнява, за колко и до кога, анексите и кой приема работата.">
