@@ -100,6 +100,7 @@ eiks = sorted(set(tot) | prio, key=lambda e: (e not in prio, -tot.get(e, 0)))
 print("Изпълнители в базата:", len(eiks))
 cutoff = (date.today() - timedelta(days=REFRESH)).isoformat()
 todo = [e for e in eiks if (load(e).get(e) or {}).get("fetched", "") < cutoff]
+if os.environ.get("ONLY_EIKS"): todo = [e.strip()[:9] for e in os.environ["ONLY_EIKS"].split(",") if e.strip()]
 print("За проверка:", len(todo))
 
 start, done, empty, fail, pace = time.time(), 0, 0, 0, 5.0

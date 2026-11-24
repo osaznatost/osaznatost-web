@@ -7,6 +7,9 @@ on:
     inputs:
       minutes:
         default: "330"
+      eiks:
+        description: "Само тези ЕИК (със запетая)"
+        default: ""
 
 permissions:
   contents: write
@@ -26,6 +29,7 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           MINUTES: ${{ inputs.minutes || '330' }}
+          ONLY_EIKS: ${{ inputs.eiks || '' }}
         run: python3 scripts/import-tr.py
       - name: Запис (в scripts/, без публикуване на сайта)
         if: always()
