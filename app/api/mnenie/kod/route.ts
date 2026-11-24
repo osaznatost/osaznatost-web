@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { codeHash, db, emailHash, newCode, normEmail, ready, sendCode, validEmail } from "@/lib/citizenVote";
+import { codeHash, db, emailHash, newCode, normEmail, preview, ready, sendCode, validEmail } from "@/lib/citizenVote";
 
 const DAILY_LIMIT = 90; // безплатният план за имейли позволява 100 писма на ден
 
@@ -21,6 +21,7 @@ export async function POST(req: Request) {
     method: "POST", headers: { prefer: "resolution=merge-duplicates" },
     body: JSON.stringify({ email_hash: eh, code_hash: codeHash(eh, code), expires_at: new Date(now + 15 * 60e3).toISOString(), attempts: 0, sent_at: new Date(now).toISOString(), sends_hour: recent ? prev.sends_hour + 1 : 1 }),
   });
+  if (preview()) return NextResponse.json({ ok: true, preview: code });
   if (!(await sendCode(email, code))) return NextResponse.json({ error: "Писмото не можа да се изпрати. Опитай отново по-късно." }, { status: 502 });
   return NextResponse.json({ ok: true });
 }

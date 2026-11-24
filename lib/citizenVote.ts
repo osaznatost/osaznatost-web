@@ -9,7 +9,11 @@ const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const KEY = process.env.SUPABASE_SECRET_KEY;
 const PEPPER = process.env.VOTE_PEPPER;
 
-export const ready = () => Boolean(URL_ && KEY && PEPPER && PEPPER.length >= 24 && process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+const base = () => Boolean(URL_ && KEY && PEPPER && PEPPER.length >= 24);
+const mail = () => Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+/** Пробен режим: писмата още не са свързани, но сайтът е зад парола (само за редакцията). Кодът се показва на екрана. */
+export const preview = () => base() && !mail() && Boolean(process.env.SITE_PASSWORD) && process.env.ALLOW_PUBLIC !== "1";
+export const ready = () => base() && (mail() || preview());
 const h = (s: string) => createHmac("sha256", PEPPER as string).update(s).digest("hex");
 export const normEmail = (e: string) => e.trim().toLowerCase();
 export const validEmail = (e: string) => e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);

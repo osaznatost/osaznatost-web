@@ -23,7 +23,7 @@ export function CitizenVote({ item, question }: { item: string; question: string
     finally { setBusy(false); }
   };
   const vote = async (choice: string) => { const j = await post("/api/mnenie/glas", { item, choice }); if (j) setS({ ...s, voted: j.voted, totals: j.totals }); };
-  const askCode = async () => { if (await post("/api/mnenie/kod", { email })) { setStep("code"); setMsg("Изпратихме ти код. Провери и папката за спам."); } };
+  const askCode = async () => { const j = await post("/api/mnenie/kod", { email }); if (j) { setStep("code"); setMsg(j.preview ? `Пробен режим (писмата още не са свързани): кодът ти е ${j.preview}.` : "Изпратихме ти код. Провери и папката за спам."); } };
   const confirm = async () => { if (await post("/api/mnenie/potvardi", { email, code })) { setS({ ...s, verified: true, voted: null }); setStep("idle"); setMsg("Имейлът е потвърден. Сега можеш да гласуваш."); } };
 
   if (s.open === undefined) return <div className="bg-surface rounded-sm p-5 text-[15px] text-muted">Зарежда се…</div>;
