@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { data } from "@/lib/data";
-import { biggestAnnexes, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks, subcontracted, type PlaceFilter } from "@/lib/procurement";
+import { contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
 import { officialHref, officialLinks } from "@/components/PersonLinks";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 
+type PAnnex = { id: string; day: string; tender_name: string; buyer_eik: string; buyer_name: string; contract_number: string; supplier_eiks: string[]; supplier_names: string[]; value_difference_eur: number | null; muni?: string };
+type PSub = { id: string; day: string; tender_name: string; buyer_name: string; contract_date: string | null; contract_value_eur: number | null; supplier_eiks: string[]; subcontractor_names: string | null; subcontractor_eiks: string | null; subcontracting_percent: string | null; muni?: string };
 type Council = { code: string; muni: string; id: string; date: string; number: string; title: string; url: string | null; tally: { for: number; against: number; abstain: number } | null; result: string | null; kinds: string[]; firms: string[]; by: string | null };
 
 const since = (days: number) => new Date(Date.now() - days * 864e5).toISOString().slice(0, 10);
@@ -27,13 +29,14 @@ async function Flag({ eiks }: { eiks: string[] }) {
 /** „Какво се промени“: нови анекси с увеличение, договори с подизпълнители, решения на съвета за общинско имущество. */
 export async function Changes({ code, days = 90 }: { code?: string; days?: number }) {
   await connection(); // само при отваряне, не при изграждането (иначе 265 общини × заявки към базата)
-  const f: PlaceFilter = code ? { obshtina: code } : {};
   const from = since(days);
-  const [annexes, subs, council] = await Promise.all([
-    biggestAnnexes(from, f).catch(() => []),
-    subcontracted(from, f).catch(() => []),
+  const [proc, council] = await Promise.all([
+    data<{ annexes: PAnnex[]; subs: PSub[] }>("changes/proc.json").then((x) => x ?? { annexes: [], subs: [] }),
     data<Council[]>("changes/council.json").then((x) => (x ?? []).filter((r) => r.date >= from && (!code || r.code === code))),
   ]);
+  const here = <T extends { day: string; muni?: string }>(x: T) => x.day >= from && (!code || x.muni === code);
+  const annexes = proc.annexes.filter(here).sort((a, b) => (b.value_difference_eur ?? 0) - (a.value_difference_eur ?? 0));
+  const subs = proc.subs.filter(here);
   const card = "ring-1 ring-rule rounded-sm bg-white p-4";
   return (
     <div className="grid gap-6 lg:grid-cols-3 text-[15px]">
@@ -44,7 +47,7 @@ export async function Changes({ code, days = 90 }: { code?: string; days?: numbe
           <ul className="space-y-3">{annexes.slice(0, 12).map((a) => (
             <li key={a.id}>
               <Link href={contractUrl(contractRef(a.buyer_eik, a.contract_number))} className="line-clamp-2">{a.tender_name}</Link>
-              <span className="block text-sm"><b className="num">+{fmtEur(a.value_difference_eur)}</b> · {fmtDate(a.published_at)} · {a.buyer_name}</span>
+              <span className="block text-sm"><b className="num">+{fmtEur(a.value_difference_eur)}</b> · {fmtDate(a.day)} · {a.buyer_name}</span>
               <span className="block text-sm text-muted">Изпълнител: {a.supplier_names.map((n, i) => <span key={i}>{i > 0 && ", "}{a.supplier_eiks[i] ? <Link href={firmUrl(a.supplier_eiks[i])}>{n}</Link> : n}</span>)}</span>
               <Flag eiks={a.supplier_eiks} />
             </li>

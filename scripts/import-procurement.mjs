@@ -189,14 +189,37 @@ if (!from) {
 to = to ?? yesterday;
 
 let day = from, done = 0, nC = 0, nA = 0;
+const fresh = { annexes: [], subs: [] }; // за „Какво се промени“ (data/changes/proc.json), без четене от базата
 while (day <= to && done < MAX_DAYS) {
   const [c, a] = await Promise.all([fetchDay("договори", day), fetchDay("анекси", day)]);
   if (c === null || a === null) { console.log(`${day}: данните още не са публикувани — ще опитам при следващото пускане`); break; }
-  nC += await upsert("proc_contracts", c.map(contractRow));
-  nA += await upsert("proc_annexes", a.map(annexRow));
+  const cr = c.map(contractRow), ar = a.map(annexRow);
+  if (!process.env.CHANGES_ONLY) { nC += await upsert("proc_contracts", cr); nA += await upsert("proc_annexes", ar); }
+  for (const x of ar) if ((x.value_difference_eur ?? 0) > 0) fresh.annexes.push({ id: x.id, day, tender_name: x.tender_name, buyer_eik: x.buyer_eik, buyer_name: x.buyer_name, contract_number: x.contract_number, supplier_eiks: x.supplier_eiks, supplier_names: x.supplier_names, value_difference_eur: x.value_difference_eur, current_value_eur: x.current_value_eur, change_description: x.change_description });
+  for (const x of cr) if (x.has_subcontractors) fresh.subs.push({ id: x.id, day, tender_name: x.tender_name, buyer_eik: x.buyer_eik, buyer_name: x.buyer_name, contract_date: x.contract_date, contract_value_eur: x.contract_value_eur, supplier_eiks: x.supplier_eiks, supplier_names: x.supplier_names, subcontractor_names: x.subcontractor_names, subcontractor_eiks: x.subcontractor_eiks, subcontracting_percent: x.subcontracting_percent });
   if (!manual) await setState(day);
   if (done % 20 === 0) console.log(`${day}: ${c.length} договора, ${a.length} анекса`);
   day = addDays(day, 1);
   done++;
 }
 console.log(`Готово: ${done} дни, ${nC} договора, ${nA} анекса. Последен ден: ${addDays(day, -1)}`);
+
+// Пазим последните 180 дни в data/changes/proc.json; общината на възложителя се взема с една заявка по първичния ключ.
+{
+  const { existsSync, mkdirSync, readFileSync, writeFileSync } = await import("node:fs");
+  const F = "data/changes/proc.json";
+  mkdirSync("data/changes", { recursive: true });
+  const old = existsSync(F) ? JSON.parse(readFileSync(F, "utf8")) : { annexes: [], subs: [] };
+  const cut = addDays(new Date().toISOString().slice(0, 10), -180);
+  const merge = (a, b) => [...new Map([...a, ...b].map((x) => [x.id, x])).values()].filter((x) => x.day >= cut).sort((p, q) => (p.day < q.day ? 1 : -1));
+  const out = { annexes: merge(old.annexes, fresh.annexes), subs: merge(old.subs, fresh.subs) };
+  const need = [...new Set([...out.annexes, ...out.subs].filter((x) => !x.muni && x.buyer_eik).map((x) => x.buyer_eik))];
+  const geo = {};
+  for (let i = 0; i < need.length; i += 150) {
+    const r = await fetch(`${URL_}/rest/v1/proc_buyers?eik=in.(${need.slice(i, i + 150).map(encodeURIComponent).join(",")})&select=eik,municipality_code`, { headers: { apikey: KEY, authorization: `Bearer ${KEY}` } }).catch(() => null);
+    if (r?.ok) for (const b of await r.json()) geo[b.eik] = b.municipality_code;
+  }
+  for (const x of [...out.annexes, ...out.subs]) if (!x.muni && geo[x.buyer_eik]) x.muni = geo[x.buyer_eik];
+  writeFileSync(F, JSON.stringify(out));
+  console.log(`Промени: ${out.annexes.length} анекса с увеличение, ${out.subs.length} договора с подизпълнители`);
+}
