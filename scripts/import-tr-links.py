@@ -145,15 +145,15 @@ for slug, (code, name, role) in todo:
     own = [h for h in search(name) if h["field"] in ROLE]
     firms = sorted({h["uic"] for h in own})
     for uic in firms:
-        if out_of_time(): break
+        if officials_time_up(): break
         rec = deed(uic)
         if not rec or NGO.search(rec.get("name") or ""): continue
         for p in rec["people"]:
-            if out_of_time(): break
+            if officials_time_up(): break
             if p.get("eik"):  # съдружник е фирма: четем и нейните хора
                 sub = deed(p["eik"][:9])
                 for sp in (sub or {}).get("people", []):
-                    if not sp.get("eik") and norm(sp["n"]) != norm(name) and not out_of_time(): search(sp["n"])
+                    if not sp.get("eik") and norm(sp["n"]) != norm(name) and not officials_time_up(): search(sp["n"])
             elif norm(p["n"]) != norm(name): search(p["n"])
     if not officials_time_up():
         DONE[slug] = date.today().isoformat(); n += 1
