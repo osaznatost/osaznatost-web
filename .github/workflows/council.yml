@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils >/dev/null
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null
       - name: Четене от сайтовете на съветите
         env:
           MINUTES: ${{ inputs.minutes || '45' }}
