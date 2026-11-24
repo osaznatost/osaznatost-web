@@ -80,6 +80,8 @@ for (const [section, kind] of Object.entries(SECTIONS)) {
     console.log(section, y, seen.size);
   }
 }
-const items = [...byId.values()].sort((a, b) => b.year - a.year || Number(b.id) - Number(a.id));
+// един и същ доклад е публикуван и в „Доклади“, и в „Доклади – общини“ под различен номер: пазим един
+const seenT = new Set();
+const items = [...byId.values()].sort((a, b) => b.year - a.year || Number(b.id) - Number(a.id)).filter((x) => { const k = `${x.year}|${x.title.toLowerCase().replace(/\s+/g, " ")}`; if (seenT.has(k)) return false; seenT.add(k); return true; });
 writeFileSync(OUT, JSON.stringify({ updated: new Date().toISOString().slice(0, 10), source: `${BASE}/bg/oditna-dejnost/`, items }));
 console.log(`Одитни доклади: ${items.length} (нови ${added}); с община: ${items.filter((x) => x.munis.length).length}`);
