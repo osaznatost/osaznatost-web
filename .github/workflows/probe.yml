@@ -5,7 +5,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: node scripts/import-budget-draft.mjs && sed 's/^/## /' data/budget-draft.json | head -120
+      - run: |
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          curl -s -m 60 -A "$UA" -o h.html -w "## home %{http_code}\n" https://www.bulnao.government.bg/bg/
+          grep -o 'href="[^"]*"' h.html | sort -u | grep -iv "static\|\.css\|\.js" | head -120 | sed 's/^/## /'
