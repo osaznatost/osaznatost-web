@@ -9,7 +9,7 @@ async function Who({ p }: { p: TrPerson }) {
   const full = p.name.split(/\s+/).length >= 3;
   const page = full ? (await peopleLinks()).personPage(p.name) : null;
   const other = full ? (await firmsOfPerson(p.name)).length : 0;
-  return <>{page ? <Link href={page}>{p.name}</Link> : p.name}{p.share ? <span className="text-muted"> ({p.share})</span> : null}{other > 1 ? <span className="text-sm text-muted"> · още {other - 1} фирми с поръчки</span> : null}</>;
+  return <>{page ? <Link href={page}>{p.name}</Link> : p.name}{p.share ? <span className="text-muted"> ({p.share})</span> : null}{other > 1 ? <span className="text-sm text-muted"> · още {other - 1} фирми в регистъра</span> : null}</>;
 }
 
 export async function TrBox({ eik }: { eik: string }) {
@@ -33,7 +33,7 @@ export async function TrBox({ eik }: { eik: string }) {
       </dl>
       {rel.length > 0 && (
         <div className="lg:col-span-2 ring-1 ring-[#e08a2e] rounded-sm p-4 bg-white">
-          <p className="font-semibold mb-1">Свързани фирми, които също печелят поръчки ({rel.length})</p>
+          <p className="font-semibold mb-1">Свързани фирми чрез общ човек ({rel.length})</p>
           <ul className="space-y-0.5">{rel.slice(0, 20).map((r) => <li key={r.eik}><Link href={firmUrl(r.eik)}>{r.firm?.name ?? r.eik}</Link> <span className="text-sm text-muted">· общ човек: {r.via.join(", ")}</span></li>)}</ul>
         </div>
       )}
