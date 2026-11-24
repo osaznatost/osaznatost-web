@@ -75,6 +75,9 @@ export const biggestContracts = (since: string, f: PlaceFilter = {}) =>
   q<Contract>(`${ct(f)}?contract_date=gte.${since}&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
 export const singleOfferBig = (since: string, f: PlaceFilter = {}) =>
   q<Contract>(`${ct(f)}?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
+/** Договори от дадена дата, в които са посочени подизпълнители. */
+export const subcontracted = (since: string, f: PlaceFilter = {}) =>
+  q<Contract>(`${ct(f)}?contract_date=gte.${since}&has_subcontractors=is.true&order=contract_date.desc&limit=40${geoQ(f)}`);
 export const biggestAnnexes = (since: string, f: PlaceFilter = {}) =>
   q<Annex>(`${at(f)}?published_at=gte.${since}&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20${geoQ(f)}`);
 
