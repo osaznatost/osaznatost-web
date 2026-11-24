@@ -81,7 +81,7 @@ def search(name):
 
 def deed(uic):
     c = DEEDS.get(uic)
-    if c and c["at"] >= (date.today() - timedelta(days=REFRESH)).isoformat(): return c
+    if c and c.get("v") == 2 and c["at"] >= (date.today() - timedelta(days=REFRESH)).isoformat(): return c
     d = get(uic)
     if not d: return c
     fields = []  # (nameCode, subUICType, subUIC, ident, current html, date)
@@ -96,24 +96,27 @@ def deed(uic):
         hist = get(f"{uic}/SubDeeds/{t}/{sub}/Fields/{ident}/History")
         versions = sorted(((v.get("fieldEntryDate") or "")[:10], v.get("htmlData", "")) for v in (hist or []) if isinstance(v, dict))
         if not versions: versions = [(cdate, cur)]
-        seen = {}  # име → {from, to, share}
+        seen = {}  # име → списък периоди [{n, eik, from, to, share}]
         for i, (dt, h) in enumerate(versions):
-            active = set()
+            active, erased_now, info = set(), set(), {}
             for e in entries(h):
                 n, eik, share, erased = person(e)
                 if not n or n.startswith("Заличено") or not VALID(n, eik): continue
                 k = norm(n)
-                if erased:
-                    if k in seen and not seen[k]["to"]: seen[k]["to"] = dt
-                    continue
-                active.add(k)
-                if k not in seen or seen[k]["to"]: seen[k] = {"n": n, "eik": eik, "from": dt, "to": None, "share": share}
-                elif share: seen[k]["share"] = share
-            for k, v in seen.items():
-                if k not in active and not v["to"] and i > 0 and h.strip(): v["to"] = dt
-        for v in seen.values():
-            people.append({"n": v["n"], "role": ROLE[code], "from": v["from"], "to": v["to"], **({"share": v["share"]} if v["share"] else {}), **({"eik": v["eik"]} if v["eik"] else {})})
-    rec = {"at": date.today().isoformat(), "name": d.get("companyName") or d.get("fullName"), "status": d.get("deedStatus"), "people": people}
+                if erased: erased_now.add(k)
+                else: active.add(k); info[k] = (n, eik, share)
+            # Смяна на дял (напр. превалутиране в евро) е „заличен стар запис + нов запис“ за същия човек: периодът продължава.
+            for k in active:
+                cur = seen.get(k)
+                n, eik, share = info[k]
+                if not cur or cur[-1]["to"]: seen.setdefault(k, []).append({"n": n, "eik": eik, "from": dt, "to": None, "share": share})
+                elif share: cur[-1]["share"] = share
+            for k, iv in seen.items():
+                if k not in active and not iv[-1]["to"] and (k in erased_now or (i > 0 and h.strip())): iv[-1]["to"] = dt
+        for iv in seen.values():
+            for v in iv:
+                people.append({"n": v["n"], "role": ROLE[code], "from": v["from"], "to": v["to"], **({"share": v["share"]} if v["share"] else {}), **({"eik": v["eik"]} if v["eik"] else {})})
+    rec = {"v": 2, "at": date.today().isoformat(), "name": d.get("companyName") or d.get("fullName"), "status": d.get("deedStatus"), "people": people}
     DEEDS[uic] = rec
     return rec
 
