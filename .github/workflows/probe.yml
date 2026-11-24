@@ -5,12 +5,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          curl -s -m 60 -o d.xml "https://register.cacbg.bg/2026/60EABF4A-67A3-4BDF-975E-6A745C2B771E233208.xml"; wc -c d.xml
-          python3 -c "
-          import re;s=open('d.xml',encoding='utf8',errors='ignore').read()
-          s=re.sub(r'>\s+<','><',s)
-          for m in re.finditer(r'<(Table\w*|\w*Share\w*|\w*Company\w*|\w*Participation\w*)[ >]',s): pass
-          tags=sorted(set(re.findall(r'<(\w+)',s)));print('## TAGS',' '.join(tags)[:3000])
-          i=s.find('дружеств');print('## CTX',s[max(0,i-1500):i+1500])
-          "
+      - env:
+          U: ${{ secrets.SUPABASE_URL }}
+          K: ${{ secrets.SUPABASE_SECRET_KEY }}
+          P: ${{ secrets.VOTE_PEPPER }}
+        run: |
+          for t in cv_codes cv_votes cv_totals cv_sends; do echo "$t: $(curl -s -o /dev/null -w '%{http_code}' "$U/rest/v1/$t?limit=1" -H "apikey: $K" -H "Authorization: Bearer $K")"; done
+          echo "rpc: $(curl -s -X POST "$U/rest/v1/rpc/cv_count_send" -H "apikey: $K" -H "Authorization: Bearer $K" -H 'content-type: application/json' -d '{"d":"2026-11-24"}')"
+          echo "pepper length: ${#P}"
