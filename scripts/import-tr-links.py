@@ -217,6 +217,7 @@ SUP = set()
 for f in glob.glob("scripts/tr-cache/*.json"):
     try: SUP |= set(json.load(open(f)).keys())
     except Exception: pass
+SUP |= set(jload("scripts/tr-suppliers.json", {}).get("tot", {}).keys())  # всички изпълнители по поръчките (ако списъкът е готов)
 rev = {}
 for code, v in by.items():
     for slug, p in v.items():
