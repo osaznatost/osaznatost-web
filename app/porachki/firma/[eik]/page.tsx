@@ -16,6 +16,7 @@ import { PaidToFirm } from "@/components/PaidBox";
 import { declLinksForEik } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { contractUrl } from "@/lib/procurement";
+import { trFor } from "@/lib/tr";
 
 export const metadata = { title: "Фирма" };
 
@@ -24,7 +25,19 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const { eik } = await params;
   if (!/^\d{9,13}$/.test(eik)) notFound();
   const [s, contracts, annexes] = await Promise.all([supplierStats(eik), supplierContracts(eik), supplierAnnexes(eik)]);
-  if (!s && !contracts.length) notFound();
+  if (!s && !contracts.length) {
+    const t = await trFor(eik);
+    if (!t) notFound();
+    return (
+      <>
+        <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`Фирма · ЕИК ${eik}`}
+          lead="Няма обществени поръчки, спечелени от тази фирма. Данните по-долу са от официалния Търговски регистър.">
+          {t.name || eik}
+        </Title>
+        <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
+      </>
+    );
+  }
   const name = s?.name ?? contracts[0]?.supplier_names[contracts[0].supplier_eiks.indexOf(eik)] ?? eik;
   const byBuyer = new Map<string, { name: string; n: number; sum: number }>();
   for (const c of contracts) {
