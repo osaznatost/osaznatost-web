@@ -6,14 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          sudo apt-get install -y -qq antiword poppler-utils >/dev/null
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -m 60 -A "$UA" -o p.html https://vidinobs.com/resheniq
-          python3 -c "
-          import re;s=open('p.html',encoding='utf8').read()
-          for m in re.finditer(r'(Решени[ея][^<]{0,120}?Протокол[^<]{0,60})[\s\S]{0,800}?href=\"(https://vidinobs.com/storage/protocols/[^\"]+)\"', s): print('## IT', re.sub(r'\s+',' ',m.group(1)), m.group(2))
-          " | head -40
-          F=$(python3 -c "
-          import re;s=open('p.html',encoding='utf8').read();print(re.findall(r'href=\"(https://vidinobs.com/storage/protocols/[^\"]+\.doc)\"',s)[-1])")
-          curl -sL -m 60 -A "$UA" -o d.doc "$F"; antiword -m UTF-8.txt d.doc > d.txt 2>/dev/null || antiword d.doc > d.txt; wc -c d.txt
-          head -c 5000 d.txt | sed 's/^/## T /'
+          curl -s -m 60 -A "$UA" -o i.html https://portal.registryagency.bg/CR/
+          grep -o 'src="[^"]*\.js[^"]*"' i.html | sed 's/^/## JS /'
+          for j in $(grep -o 'src="[^"]*\.js[^"]*"' i.html | sed 's/src="//;s/"$//'); do
+            case $j in http*) u=$j;; /*) u=https://portal.registryagency.bg$j;; *) u=https://portal.registryagency.bg/CR/$j;; esac
+            curl -s -m 60 -A "$UA" "$u" | grep -o '"[^"]*api/[^"]*"' | sort -u | head -80 | sed "s|^|## API |"
+          done
