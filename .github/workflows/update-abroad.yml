@@ -1,7 +1,7 @@
 name: Цени в чужбина (BILLA Австрия, Евростат)
 on:
-  schedule:
-    - cron: "41 5 * * 1"   # всеки понеделник
+  # schedule (Cloudflare):
+    # cf-cron: "41 5 * * 1"   # всеки понеделник
   workflow_dispatch:
 permissions:
   contents: write

@@ -1,8 +1,8 @@
 name: Обновяване на поръчките
 
 on:
-  schedule:
-    - cron: "23 */3 * * *"   # на всеки 3 часа; след наваксване внася само новия ден
+  # schedule (Cloudflare):
+    # cf-cron: "23 */3 * * *"   # на всеки 3 часа; след наваксване внася само новия ден
   workflow_dispatch:
   push:
     branches: [main]

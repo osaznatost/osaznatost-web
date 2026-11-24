@@ -1,7 +1,7 @@
 name: Министерствата (Административен регистър)
 on:
-  schedule:
-    - cron: "23 4 * * 1"   # всеки понеделник
+  # schedule (Cloudflare):
+    # cf-cron: "23 4 * * 1"   # всеки понеделник
   workflow_dispatch:
 permissions:
   contents: write

@@ -1,7 +1,7 @@
 name: Проверка за счупени линкове
 on:
-  schedule:
-    - cron: "29 2 * * 0"   # всяка неделя
+  # schedule (Cloudflare):
+    # cf-cron: "29 2 * * 0"   # всяка неделя
   workflow_dispatch:
 permissions:
   contents: read

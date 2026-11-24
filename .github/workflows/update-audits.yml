@@ -1,7 +1,7 @@
 name: Одити на Сметната палата
 on:
-  schedule:
-    - cron: "29 5 * * 3"   # всяка сряда сутрин
+  # schedule (Cloudflare):
+    # cf-cron: "29 5 * * 3"   # всяка сряда сутрин
   workflow_dispatch:
     inputs:
       full:

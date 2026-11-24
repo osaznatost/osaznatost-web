@@ -1,7 +1,7 @@
 name: Стенограми — числа в изказванията и автоматична сверка
 on:
-  schedule:
-    - cron: "47 3 * * *"
+  # schedule (Cloudflare):
+    # cf-cron: "47 3 * * *"
   workflow_dispatch:
 permissions:
   contents: write

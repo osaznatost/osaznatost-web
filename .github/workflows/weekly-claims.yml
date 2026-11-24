@@ -1,7 +1,7 @@
 name: Седмична проверка на твърдения
 on:
-  schedule:
-    - cron: "17 6 * * 1"   # всеки понеделник
+  # schedule (Cloudflare):
+    # cf-cron: "17 6 * * 1"   # всеки понеделник
   workflow_dispatch:
 permissions:
   contents: read

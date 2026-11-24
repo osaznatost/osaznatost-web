@@ -1,7 +1,7 @@
 name: Сигнали от обявленията (срокове и промени)
 on:
-  schedule:
-    - cron: "37 1 * * *"
+  # schedule (Cloudflare):
+    # cf-cron: "37 1 * * *"
   workflow_dispatch:
     inputs:
       back:

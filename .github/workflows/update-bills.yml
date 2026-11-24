@@ -1,7 +1,7 @@
 name: Законопроекти (мотиви, доклади, становища, дебати)
 on:
-  schedule:
-    - cron: "17 2 * * *"
+  # schedule (Cloudflare):
+    # cf-cron: "17 2 * * *"
   workflow_dispatch:
     inputs:
       refresh:

@@ -1,7 +1,7 @@
 name: Инфлация, лихви и дълг (НСИ, БНБ, Евростат)
 on:
-  schedule:
-    - cron: "37 9 * * *"   # всеки ден; записва само при нов месец или поправка
+  # schedule (Cloudflare):
+    # cf-cron: "37 9 * * *"   # всеки ден; записва само при нов месец или поправка
   workflow_dispatch:
 permissions:
   contents: write

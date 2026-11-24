@@ -1,7 +1,7 @@
 name: Архивно копие на базата
 on:
-  schedule:
-    - cron: "13 1 * * 1"   # всеки понеделник
+  # schedule (Cloudflare):
+    # cf-cron: "13 1 * * 1"   # всеки понеделник
   workflow_dispatch:
 permissions:
   contents: read

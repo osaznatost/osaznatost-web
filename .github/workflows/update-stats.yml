@@ -1,8 +1,8 @@
 name: Обновяване на статистиките
 
 on:
-  schedule:
-    - cron: "41 5 * * 2"   # всеки вторник
+  # schedule (Cloudflare):
+    # cf-cron: "41 5 * * 2"   # всеки вторник
   workflow_dispatch:
   push:
     branches: [main]

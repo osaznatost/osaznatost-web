@@ -1,8 +1,8 @@
 name: Цени на едро (ДКСБТ)
 # dksbt.bg отговаря само на български IP адреси, затова задачата върви на self-hosted runner в България (Mac).
 on:
-  schedule:
-    - cron: "17 7 * * 6"   # събота сутрин, след петъчния бюлетин
+  # schedule (Cloudflare):
+    # cf-cron: "17 7 * * 6"   # събота сутрин, след петъчния бюлетин
   workflow_dispatch:
 permissions:
   contents: write
