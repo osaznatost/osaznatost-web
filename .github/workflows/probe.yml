@@ -6,17 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -s -m 60 -H 'Accept: application/json' https://portal.registryagency.bg/CR/api/Deeds/106590683 -o d.json; wc -c d.json
-          python3 - <<'PY'
-          import json,re
-          d=json.load(open('d.json'))
-          print('TOP', list(d.keys()))
-          for s in d.get('sections',[]):
-            print('SEC', {k:v for k,v in s.items() if k!='subDeeds'})
-            for sd in s.get('subDeeds',[]):
-              print(' SUB', {k:v for k,v in sd.items() if k!='groups'})
-              for g in sd.get('groups',[]):
-                for fl in g.get('fields',[]):
-                  print('  F', fl.get('nameCode'), {k:(str(v)[:80]) for k,v in fl.items() if k not in ('htmlData',)}, re.sub('<[^>]+>',' ',fl.get('htmlData',''))[:160])
-          PY
-          for u in "Deeds/106590683?loadFieldsFromAllLegalForms=true" "Deeds/106590683/history" "Deeds/106590683?isHistory=true" "Deeds/Search?name=%D0%9C%D0%98%D0%A0%D0%9E%D0%A1%D0%9B%D0%90%D0%92" "Search/SearchPersons?name=x"; do echo "## $u $(curl -s -m 30 -o /dev/null -w '%{http_code} %{size_download}' -H 'Accept: application/json' "https://portal.registryagency.bg/CR/api/$u")"; done
+          curl -s -m 60 https://portal.registryagency.bg/CR/ -o i.html; grep -oE 'src="[^"]+\.js"' i.html | head
+          for s in $(grep -oE 'src="[^"]+\.js"' i.html | sed 's/src="//;s/"//'); do
+            u=$s; case $u in http*) ;; /*) u="https://portal.registryagency.bg$u";; *) u="https://portal.registryagency.bg/CR/$u";; esac
+            curl -s -m 60 "$u" >> all.js
+          done
+          wc -c all.js
+          grep -oE '"[^"]{0,60}(api/|Deeds|History|history|Persons|Search)[^"]{0,80}"' all.js | sort -u | head -120
