@@ -6,12 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for p in "CR/Reports/ActiveConditionTabResult?uic=106590683" "CR/Reports/VerificationPersonOrg" "CR/Reports/ActiveCondition"; do
-            curl -s -m 60 "https://portal.registryagency.bg/$p" -o p.html; echo "## $p $(wc -c < p.html)"; grep -oE '(src|href)="[^"]+\.js[^"]*"' p.html | head -20
-            for s in $(grep -oE 'src="[^"]+\.js[^"]*"' p.html | sed 's/src="//;s/"//'); do
-              u=$s; case $u in http*) ;; /*) u="https://portal.registryagency.bg$u";; *) u="https://portal.registryagency.bg/CR/$u";; esac
-              curl -s -m 60 "$u" >> all.js
-            done
-          done
+          set +e
+          m=$(curl -s -m 60 "https://portal.registryagency.bg/CR/Reports/ActiveConditionTabResult?uic=106590683" | grep -oE '/CR/dist/main[^"]+')
+          curl -s -m 180 "https://portal.registryagency.bg$m" -o all.js; wc -c all.js
+          for c in $(grep -oE '/CR/dist/[0-9a-z.]+\.js' all.js | sort -u | head -40); do curl -s -m 120 "https://portal.registryagency.bg$c" >> all.js; done
           wc -c all.js
-          grep -oE '"[^"]{0,40}api/[^"]{0,100}"|`[^`]{0,40}api/[^`]{0,100}`' all.js | sort -u | head -150
+          grep -oE '.{0,60}api/[A-Za-z/{}$.+"`]{0,90}' all.js | sort -u | head -200
