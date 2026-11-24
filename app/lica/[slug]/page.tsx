@@ -41,8 +41,7 @@ async function StakeCheck({ code, o }: { code: string; o: Official }) {
   if (!stakes.length && trFirms.length) return (
     <div className="text-[15px] max-w-3xl space-y-2">
       <p className="bg-surface rounded-sm px-4 py-3">
-        В последната декларация не са посочени дялове или управление на фирми, а в Търговския регистър {v ? "лицето" : "човек със същите три имена"} е
-        вписан(а) в <b>{trFirms.length}</b> {trFirms.length === 1 ? "фирма" : "фирми"} (вижте „Фирми по Търговския регистър“ по-долу).
+        В последната декларация не са посочени дялове или управление на фирми, а в Търговския регистър {v ? "лицето е вписано" : "човек със същите три имена е вписан"} в <b>{trFirms.length}</b> {trFirms.length === 1 ? "фирма" : "фирми"} (вижте „Фирми по Търговския регистър“ по-долу).
         {v ? ` Самоличността е проверена от ${v.by} на ${v.verified.split("-").reverse().join(".")}.` : " Съвпадението е по име; възможно е да е друг човек."}
       </p>
       <p className="text-sm text-muted">Несъответствието е повод за въпрос, не доказателство за нарушение: някои участия (напр. прекратени преди периода на декларацията) не се декларират. Проверката на декларациите е на Комисията за противодействие на корупцията.</p>
@@ -173,7 +172,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
           <SectionTitle>Фирми по Търговския регистър</SectionTitle>
           {verifiedFor(code, o.slug) ? <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Връзката е проверена (не е само съвпадение по име). Данните за всяка фирма са от официалния Търговски регистър.</p>
             : <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Съвпадение по трите имена в Търговския регистър; без ЕГН не може да се потвърди, че е същият човек.</p>}
-          <PersonFirms name={o.name} />
+          <PersonFirms name={o.name} verified={!!verifiedFor(code, o.slug)} />
         </section>
       )}
 

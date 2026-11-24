@@ -43,13 +43,13 @@ export async function TrBox({ eik }: { eik: string }) {
 }
 
 /** Фирмите на човек по Търговския регистър (за профила на депутат или длъжностно лице). */
-export async function PersonFirms({ name }: { name: string }) {
+export async function PersonFirms({ name, verified = false }: { name: string; verified?: boolean }) {
   const fs = await firmsOfPerson(name);
   if (!fs.length) return null;
   return (
     <div className="text-[15px]">
       <ul className="space-y-1">{fs.map(({ eik, roles, firm }) => <li key={eik}><Link href={firmUrl(eik)}>{firm?.name ?? eik}</Link> <span className="text-sm text-muted">· {roles.join(", ")}{firm?.town ? ` · ${firm.town}` : ""}</span></li>)}</ul>
-      <p className="text-xs text-muted mt-1">По Търговския регистър, само фирми с обществени поръчки. Съвпадение по три имена: проверете, че е същият човек.</p>
+      {!verified && <p className="text-xs text-muted mt-1">По Търговския регистър, само фирми с обществени поръчки. Съвпадение по три имена: проверете, че е същият човек.</p>}
     </div>
   );
 }
