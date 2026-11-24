@@ -7,13 +7,9 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 -A "$UA" -o p.html "https://www.bulnao.government.bg/bg/oditna-dejnost/dokladi-obshini/"
-          python3 -c "
-          s=open('p.html',encoding='utf8').read(); i=s.find('/bg/documents/'); print('## ITEM', s[i-1500:i+1500].replace(chr(10),' '))
-          import re; print('## PAGES', sorted(set(re.findall(r'href=\"([^\"]*(?:page|stran)[^\"]*)\"', s)))[:20]); print('## FORM', re.findall(r'<(?:select|input)[^>]*name=\"([^\"]+)\"', s)); print('## COUNT', s.count('/bg/documents/'))
-          j=s.rfind('/bg/documents/'); print('## TAIL', re.sub(r'\s+',' ',s[j:j+3000]))
-          " | cut -c1-6000
-          curl -s -m 60 -A "$UA" -o p2.html -w "## p2 %{http_code} %{size_download}\n" "https://www.bulnao.government.bg/bg/oditna-dejnost/dokladi-obshini/?page=2"
-          grep -o '/bg/documents/[0-9]*' p2.html | head -3 | sed 's/^/## P2 /'
-          curl -s -m 60 -A "$UA" -o p3.html -w "## y %{http_code} %{size_download}\n" "https://www.bulnao.government.bg/bg/oditna-dejnost/dokladi-obshini/?year=2024"
-          grep -o '/bg/documents/[0-9]*' p3.html | head -3 | sed 's/^/## Y /'
+          for u in https://vidinobs.com/resheniq https://vidinobs.com/protokoli; do
+            curl -sL -m 60 -A "$UA" -o p.html -w "## $u %{http_code} %{size_download} %{url_effective}\n" "$u"
+            grep -o 'href="[^"]*"' p.html | sort -u | grep -iv "\.css\|\.js\|fonts\|#" | head -60 | sed 's/^/## /'
+            python3 -c "
+          import re,html;s=open('p.html',encoding='utf8',errors='ignore').read();t=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S);t=html.unescape(re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',t)));print('## TEXT',t[:2500])"
+          done
