@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { data } from "@/lib/data";
 import { biggestAnnexes, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks, subcontracted, type PlaceFilter } from "@/lib/procurement";
 import { officialHref, officialLinks } from "@/components/PersonLinks";
@@ -25,6 +26,7 @@ async function Flag({ eiks }: { eiks: string[] }) {
 
 /** „Какво се промени“: нови анекси с увеличение, договори с подизпълнители, решения на съвета за общинско имущество. */
 export async function Changes({ code, days = 90 }: { code?: string; days?: number }) {
+  await connection(); // само при отваряне, не при изграждането (иначе 265 общини × заявки към базата)
   const f: PlaceFilter = code ? { obshtina: code } : {};
   const from = since(days);
   const [annexes, subs, council] = await Promise.all([
