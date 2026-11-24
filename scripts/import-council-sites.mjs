@@ -464,9 +464,9 @@ function parseVidin(text, url) {
     let title = rel, rapporteur = null;
     const om = rel.match(/^(?:Предложение|Докладна записка)[^,]*?\sот\s+(.+?)\s+[–-]\s+(.+?),?\s+относно\s+(.+)$/i);
     if (om) {
-      const r = om[2];
-      rapporteur = { name: om[1].replace(/^(д-р|инж\.?|арх\.?|проф\.?)\s*/i, "").replace(/\s+/g, " ").trim(),
-        role: /зам\.?\s*-?\s*кмет/i.test(r) ? "заместник-кмет" : /кмет/i.test(r) ? "кмет на общината" : /председател/i.test(r) ? "председател на общинския съвет" : /съветник/i.test(r) ? "общински съветник" : r.split(",")[0].toLowerCase().trim() };
+      const r = om[1].includes(",") ? om[1].slice(om[1].indexOf(",") + 1) + " " + om[2] : om[2];
+      rapporteur = { name: om[1].split(",")[0].replace(/^(д-р|инж\.?|арх\.?|проф\.?)\s*/i, "").replace(/\s+/g, " ").trim(),
+        role: /зам\.?\s*-?\s*кмет|заместник/i.test(r) ? (/за кмет/i.test(r) ? "заместник-кмет, за кмет" : "заместник-кмет") : /кмет/i.test(r) ? "кмет на общината" : /председател/i.test(r) ? "председател на общинския съвет" : /съветник/i.test(r) ? "общински съветник" : r.split(",")[0].toLowerCase().trim() };
       title = om[3];
     } else title = rel.replace(/^.*?относно\s+/i, "");
     title = title.replace(/^./, (c) => c.toUpperCase());
