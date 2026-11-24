@@ -270,6 +270,15 @@ export async function MuniLinks({ code }: { code: string }) {
   );
 }
 
+/** Длъжностните лица, свързани с фирмата по Търговския регистър (пряко или през човек от друга обща фирма). */
+export async function officialLinks(eik: string): Promise<Rev[]> {
+  const rev = (await data<Record<string, Rev[]>>("tr-links/by-firm.json"))?.[eik.slice(0, 9)] ?? [];
+  const seen = new Set<string>();
+  return rev.filter((r) => { const k = `${r.s}|${r.via ?? ""}`; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+export const officialHref = (r: { c: string; s: string }) => (r.c === "MP" ? `/parlament/deputat/${r.s.slice(3)}` : `/lica/${r.s}#svarzani`);
+export const viaText = (r: Rev) => (r.via ? `през ${titleCase(r.via)}${r.in?.length ? ` (${r.in.map(firmName).join(", ")})` : ""}` : "пряко вписан(а) във фирмата");
+
 /** За страницата на фирмата: длъжностни лица, свързани с нея пряко или през човек, който е бил с тях в друга фирма. */
 export async function FirmOfficials({ eik }: { eik: string }) {
   const rev = (await data<Record<string, Rev[]>>("tr-links/by-firm.json"))?.[eik.slice(0, 9)] ?? [];

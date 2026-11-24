@@ -12,7 +12,7 @@ import { FUNDS, mpHref } from "@/lib/funds";
 import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { TrBox } from "@/components/TrBox";
-import { FirmHistory, FirmOfficials } from "@/components/PersonLinks";
+import { FirmHistory, FirmOfficials, officialHref, officialLinks, viaText } from "@/components/PersonLinks";
 import { PaidToFirm } from "@/components/PaidBox";
 import { declLinksForEik } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
@@ -25,7 +25,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const { localPage } = await peopleLinks();
   const { eik } = await params;
   if (!/^\d{9,13}$/.test(eik)) notFound();
-  const [s, contracts, annexes] = await Promise.all([supplierStats(eik), supplierContracts(eik), supplierAnnexes(eik)]);
+  const [s, contracts, annexes, offs] = await Promise.all([supplierStats(eik), supplierContracts(eik), supplierAnnexes(eik), officialLinks(eik)]);
   if (!s && !contracts.length) {
     const t = await trFor(eik);
     if (!t) notFound();
@@ -57,6 +57,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
     ...[...partners.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 6).map(([e, p]) => ({ id: `p${e}`, label: p.name, sub: `заедно в ${p.n} дог.`, href: firmUrl(e), group: "partner" as const, weight: p.sum })),
     ...pl.map((l, i) => ({ id: `l${i}`, label: l.who, sub: [l.kind === "mp" ? `депутат${l.party ? `, ${l.party}` : ""}` : l.position, l.roles.join(", ")].filter(Boolean).join(" · "), href: l.kind === "mp" && l.mpId ? mpHref(l.mpId, l.who) : localPage(l.who) ?? undefined, group: (sanctionsFor(l.who) ? "sanction" : "politician") as NetNode["group"] })),
   ];
+  for (const [i, r] of offs.slice(0, 8).entries()) net.push({ id: `o${i}`, label: r.n, sub: `${r.r.toLowerCase()} · ${r.via ? `през ${r.via.toLowerCase().replace(/(^|\s)(\p{L})/gu, (_, a, b) => a + b.toUpperCase())}` : "пряко"}`, href: officialHref(r), group: "politician" });
   const political = personalLink(eik);
   const scored = await Promise.all(contracts.map(async (c) => {
     const ax = annexes.filter((a) => a.buyer_eik === c.buyer_eik && a.contract_number === c.contract_number);
@@ -76,17 +77,20 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         lead={s ? `Печелила е ${s.contracts} договора от ${fmtDate(s.first_date)} до ${fmtDate(s.last_date)}.` : undefined}>
         {name}
       </Title>
-      {((pl.length > 0 && political > 0) || high.length > 0) && (
-        <a href={pl.length && political ? "#vrazki" : "#risk"} className="block ring-2 ring-red rounded-sm p-4 mb-6 bg-white no-underline text-ink max-w-4xl">
-          <b>{[pl.length > 0 && political > 0 && `${political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
-        </a>
+      {((pl.length > 0 && political > 0) || high.length > 0 || offs.length > 0) && (
+        <div className="ring-2 ring-red rounded-sm p-4 mb-6 bg-white max-w-4xl text-[15px] space-y-2">
+          <a href={pl.length && political ? "#vrazki" : offs.length ? "#svarzani-lica" : "#risk"} className="block no-underline text-ink">
+            <b>{[pl.length > 0 && political > 0 && `${political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, offs.length > 0 && `${offs.length} ${offs.length === 1 ? "връзка" : "връзки"} с длъжностни лица по Търговския регистър`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
+          </a>
+          {offs.length > 0 && <ul className="text-sm space-y-0.5">{offs.slice(0, 3).map((r, i) => <li key={i}><Link href={officialHref(r)}>{r.n}</Link>, {r.r.toLowerCase()}: {viaText(r)}</li>)}</ul>}
+        </div>
       )}
       <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ["plateno", "Платено"], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
       <div id="obobshtenie" className="scroll-mt-32 lg:scroll-mt-20" />
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[
           ["Договори", String(s?.contracts ?? contracts.length)],
-          ["Обща стойност", fmtEur(s?.total_eur)],
+          ["Обща стойност", fmtEur(s?.total_eur ?? (contracts.reduce((x, c) => x + (c.contract_value_eur ?? 0), 0) || null))],
           ["Възложители", String(s?.buyers ?? byBuyer.size)],
           ["С една оферта", String(s?.single_offer ?? 0)],
         ].map(([l, v]) => (
@@ -94,7 +98,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         ))}
       </section>
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
-      <div className="mb-10 space-y-8"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
+      <div id="svarzani-lica" className="mb-10 space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
 
       {net.length > 1 && (
         <section className="mb-10">
