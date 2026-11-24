@@ -1,5 +1,9 @@
 import Link from "next/link";
+import { AuditsList } from "@/components/AuditsList";
 import { Page, SectionTitle, Title } from "@/components/ui";
+import { auditsFile } from "@/lib/audits";
+import { findMunicipality } from "@/lib/places";
+import { oblastSlug, muniSlug } from "@/lib/regions";
 
 export const metadata = { title: "Доклади на контролните органи", description: "Какво казват последните доклади на Европейската прокуратура, ОЛАФ, Сметната палата и АДФИ за България." };
 
@@ -18,7 +22,13 @@ const Box = ({ title, period, facts, note, links }: { title: string; period: str
   </section>
 );
 
-export default function Dokladi() {
+export default async function Dokladi() {
+  const A = await auditsFile();
+  const items = A?.items ?? [];
+  const crim = items.filter((a) => a.kind === "след наказателно производство");
+  const recent = items.filter((a) => a.kind !== "финансов одит" && a.kind !== "след наказателно производство");
+  const byMuni = new Map<string, number>();
+  for (const a of items) for (const c of a.munis) byMuni.set(c, (byMuni.get(c) ?? 0) + 1);
   return (
     <Page>
       <Title back={{ href: "/proverki", label: "Проверки" }} kicker="Контролните органи"
@@ -48,6 +58,30 @@ export default function Dokladi() {
       <p className="text-sm text-muted max-w-3xl">
         Конкретните дела срещу политици са в <Link href="/proverki/sankcii">Санкции и съдебни случаи</Link>. Числата тук се обновяват ръчно веднъж годишно, когато излезе новият доклад.
       </p>
+      {items.length > 0 && (
+        <>
+          <section className="mb-10 max-w-4xl">
+            <SectionTitle>Последните одитни доклади на Сметната палата</SectionTitle>
+            <p className="text-sm text-muted -mt-3 mb-4">Общо {items.length.toLocaleString("bg-BG")} доклада от {Math.min(...items.map((a) => a.year))} г. насам; {byMuni.size} общини имат поне един. Пълният текст е в PDF-а на Сметната палата.</p>
+            <AuditsList items={recent} limit={15} />
+          </section>
+          {crim.length > 0 && (
+            <section className="mb-10 max-w-4xl">
+              <SectionTitle>Доклади, публикувани след приключило наказателно производство</SectionTitle>
+              <p className="text-sm text-muted -mt-3 mb-4">Сметната палата публикува тези доклади едва когато делото, по което са били изпратени на прокуратурата, приключи.</p>
+              <AuditsList items={crim} limit={15} />
+            </section>
+          )}
+          <section className="mb-10 max-w-4xl">
+            <SectionTitle>Общините с най-много одити</SectionTitle>
+            <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-[15px]">{[...byMuni].sort((a, b) => b[1] - a[1]).slice(0, 20).map(([c, n]) => {
+              const m = findMunicipality(c);
+              return <li key={c} className="flex justify-between border-b border-rule py-1"><a href={`/mesta/${oblastSlug(c)}/${muniSlug(c)}#oditi`}>{m?.name ?? c}</a><span className="num">{n}</span></li>;
+            })}</ul>
+            <p className="text-xs text-muted mt-2">Източник: <a href={A!.source}>Сметна палата, одитна дейност</a>, обновено {A!.updated.split("-").reverse().join(".")}.</p>
+          </section>
+        </>
+      )}
     </Page>
   );
 }

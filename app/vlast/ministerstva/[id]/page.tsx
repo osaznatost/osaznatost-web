@@ -1,5 +1,7 @@
 import { connection } from "next/server";
 import Link from "next/link";
+import { AuditsList } from "@/components/AuditsList";
+import { auditsMentioning } from "@/lib/audits";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import SignalNote from "@/components/SignalNote";
@@ -84,7 +86,7 @@ export default async function Ministerstvo({ params }: { params: Promise<{ id: s
   const groups = new Map<string, typeof m.units>();
   for (const u of m.units) groups.set(u.group ?? "Други звена", [...(groups.get(u.group ?? "Други звена") ?? []), u]);
   const single = (role: string) => m.leaders.filter((l) => l.role === role).length === 1; // при няколко заместник-министри не личи кой кого е сменил
-  const companies = await companiesOf(m);
+  const [companies, audits] = await Promise.all([companiesOf(m), auditsMentioning(m.name)]);
   const changes = Object.entries(MD.history).filter(([k, h]) => k.startsWith(`${m.id}|`) && h.length > 1 && single(k.split("|")[1]));
   return (
     <Page>
@@ -113,6 +115,13 @@ export default async function Ministerstvo({ params }: { params: Promise<{ id: s
         <SectionTitle>Обществени поръчки</SectionTitle>
         <Suspense fallback={<p className="text-muted">Зареждане на поръчките…</p>}><Procurement m={m} /></Suspense>
       </section>
+
+      {audits.length > 0 && (
+        <section className="mb-10">
+          <SectionTitle>Проверки на Сметната палата</SectionTitle>
+          <AuditsList items={audits} />
+        </section>
+      )}
 
       <section className="mb-10">
         <SectionTitle>Структура</SectionTitle>

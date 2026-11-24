@@ -12,6 +12,8 @@ import { SettlementMap } from "@/components/SettlementMap";
 import { AGE, EDU, placeData, placeObl, share } from "@/lib/place";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
+import { AuditsList } from "@/components/AuditsList";
+import { auditsOfMuni } from "@/lib/audits";
 import { MuniPower } from "@/components/MuniPower";
 import { MuniProjects } from "@/components/MuniProjects";
 import { PlaceProcurement } from "@/components/PlaceProcurement";
@@ -39,7 +41,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.expenditure != null).map((h) => ({ series: "Разходи", x: h.year, value: Math.round(h.expenditure! / 1e5) / 10 })),
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
-  const [P, PO] = await Promise.all([placeData(m.code), placeObl()]);
+  const [P, PO, audits] = await Promise.all([placeData(m.code), placeObl(), auditsOfMuni(m.code)]);
   const C = P?.census, OC = PO.oblasts[m.code.slice(0, 3)], BG = PO.country;
   const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
   const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
@@ -48,7 +50,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     <Page>
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
-      <SectionNav items={[["pari", "Пари"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
+      <SectionNav items={[["pari", "Пари"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ...(audits.length ? [["oditi", "Одити"] as [string, string]] : []), ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
       <div id="pari" className="scroll-mt-32 lg:scroll-mt-20" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
@@ -147,6 +149,14 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
       <Anchor id="proekti" title="Проекти" lead="Всеки ремонт, строеж, доставка и услуга от началото на мандата: кой е решил, кой е възложил, кой изпълнява, за колко и до кога, анексите и кой приема работата.">
         <Suspense fallback={<p className="text-muted">Зареждане на проектите…</p>}><MuniProjects code={m.code} /></Suspense>
       </Anchor>
+
+      {audits.length > 0 && (
+        <section id="oditi" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
+          <SectionTitle>Проверки на Сметната палата</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Одитните доклади, в които е проверявана общината. В тях са констатациите и препоръките; при съмнение за престъпление Сметната палата сезира прокуратурата.</p>
+          <AuditsList items={audits} />
+        </section>
+      )}
 
       {fin && (
         <section className="mb-12">
