@@ -7,15 +7,13 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for p in dokladi dokladi-obshini; do
-            curl -s -m 60 -A "$UA" -o p.html -w "## $p %{http_code} %{size_download}\n" "https://www.bulnao.government.bg/bg/oditna-dejnost/$p/"
-            python3 - <<'P'
-          import re,html
-          s=open("p.html",encoding="utf8").read()
-          i=s.find("<main"); s=s[i if i>0 else 0:]
-          t=re.sub(r"<script.*?</script>|<style.*?</style>","",s,flags=re.S)
-          t=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',t)
-          t=re.sub(r"<[^>]+>"," ",t); t=html.unescape(re.sub(r"\s+"," ",t))
-          for k in range(0,min(len(t),5000),300): print("## "+t[k:k+300])
-          P
-          done
+          curl -s -m 60 -A "$UA" -o p.html "https://www.bulnao.government.bg/bg/oditna-dejnost/dokladi-obshini/"
+          python3 -c "
+          s=open('p.html',encoding='utf8').read(); i=s.find('/bg/documents/'); print('## ITEM', s[i-1500:i+1500].replace(chr(10),' '))
+          import re; print('## PAGES', sorted(set(re.findall(r'href=\"([^\"]*(?:page|stran)[^\"]*)\"', s)))[:20]); print('## FORM', re.findall(r'<(?:select|input)[^>]*name=\"([^\"]+)\"', s)); print('## COUNT', s.count('/bg/documents/'))
+          j=s.rfind('/bg/documents/'); print('## TAIL', re.sub(r'\s+',' ',s[j:j+3000]))
+          " | cut -c1-6000
+          curl -s -m 60 -A "$UA" -o p2.html -w "## p2 %{http_code} %{size_download}\n" "https://www.bulnao.government.bg/bg/oditna-dejnost/dokladi-obshini/?page=2"
+          grep -o '/bg/documents/[0-9]*' p2.html | head -3 | sed 's/^/## P2 /'
+          curl -s -m 60 -A "$UA" -o p3.html -w "## y %{http_code} %{size_download}\n" "https://www.bulnao.government.bg/bg/oditna-dejnost/dokladi-obshini/?year=2024"
+          grep -o '/bg/documents/[0-9]*' p3.html | head -3 | sed 's/^/## Y /'
