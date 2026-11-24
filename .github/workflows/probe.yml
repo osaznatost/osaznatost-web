@@ -5,32 +5,12 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - env:
+          U: ${{ secrets.SUPABASE_URL }}
+          K: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
           set +e
-          B=https://portal.registryagency.bg/CR/api/Deeds
-          N=$(python3 -c "import urllib.parse;print(urllib.parse.quote('МИРОСЛАВ СИМЕОНОВ ЗАХАРИЕВ'))")
-          echo "## Z"; curl -s -m 100 -H 'Accept: application/json' "$B/SubjectInFields?name=$N&searchInHistory=true&type=1"; echo
-          sleep 3
-          for e in 131090107 130210863 101638850 175103346 200198146 106579651; do
-            curl -s -m 60 -H 'Accept: application/json' "$B/$e" -o d.json
-            python3 - "$e" <<'PY'
-          import json,re,sys
-          d=json.load(open('d.json')); print('###',sys.argv[1],d.get('companyName'),'status',d.get('deedStatus'))
-          for s in d.get('sections',[]):
-            for sd in s.get('subDeeds',[]):
-              for g in sd.get('groups',[]):
-                for fl in g.get('fields',[]):
-                  if fl.get('nameCode') in ('CR_F_7_L','CR_F_19_L','CR_F_23_L','CR_F_18_L'):
-                    print(' cur',fl['nameCode'],sd.get('subUICType'),sd.get('subUIC'),fl.get('fieldIdent'),re.sub('<[^>]+>',' ',fl.get('htmlData',''))[:200])
-                    open('ids','a').write(f"{sys.argv[1]} {sd.get('subUICType')} {sd.get('subUIC')} {fl.get('fieldIdent')}\n")
-          PY
-            sleep 2
+          S=$(date -u -d '-90 days' +%F)
+          for q in "proc_annexes?published_at=gte.$S&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20&select=id" "proc_contracts?contract_date=gte.$S&has_subcontractors=is.true&order=contract_date.desc&limit=40&select=id" "proc_contracts_geo?contract_date=gte.$S&has_subcontractors=is.true&municipality_code=eq.SFO07&order=contract_date.desc&limit=40&select=id" "proc_annexes_geo?published_at=gte.$S&value_difference_eur=gt.0&municipality_code=eq.SFO07&order=value_difference_eur.desc.nullslast&limit=20&select=id"; do
+            echo "## $q $(curl -s -m 60 -o o.json -w '%{http_code} %{time_total}' "$U/rest/v1/$q" -H "apikey: $K" -H "Authorization: Bearer $K") $(head -c 150 o.json)"
           done
-          while read e t s f; do echo "## H $e $f"; curl -s -m 60 -H 'Accept: application/json' "$B/$e/SubDeeds/$t/$s/Fields/$f/History" | python3 -c "
-          import json,sys,re
-          try: d=json.load(sys.stdin)
-          except Exception as x: print('ERR',x); sys.exit()
-          print(type(d).__name__, (list(d.keys()) if isinstance(d,dict) else len(d)))
-          items=d if isinstance(d,list) else d.get('fields') or d.get('items') or []
-          for it in items[:12]: print('  ',{k:(str(v)[:40]) for k,v in it.items() if k!='htmlData'}, re.sub('<[^>]+>',' ',it.get('htmlData',''))[:220])
-          "; sleep 2; done < ids
