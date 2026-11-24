@@ -1,0 +1,35 @@
+name: Одити на Сметната палата
+on:
+  schedule:
+    - cron: "29 5 * * 3"   # всяка сряда сутрин
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Всички години (бавно)"
+        required: false
+        default: "0"
+permissions:
+  contents: write
+concurrency:
+  group: audits
+  cancel-in-progress: false
+jobs:
+  audits:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/import-bulnao.mjs
+        env:
+          FULL: ${{ github.event.inputs.full || '0' }}
+      - name: Запис
+        run: |
+          git add data/audits.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Одити на Сметната палата: обновяване"
+          git pull --rebase -X theirs
+          git push

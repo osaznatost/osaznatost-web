@@ -17,6 +17,9 @@
  "update-abroad.yml": [
   "41 5 * * 1"
  ],
+ "update-audits.yml": [
+  "29 5 * * 3"
+ ],
  "update-bills.yml": [
   "17 2 * * *"
  ],
