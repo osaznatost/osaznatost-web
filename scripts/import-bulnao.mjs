@@ -9,6 +9,7 @@ const UA = "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev; open 
 const BASE = "https://www.bulnao.government.bg";
 const SECTIONS = {
   dokladi: "одит",
+  "dokladi-obshini": "одит",
   "finansovi-oditi-na-gfo": "финансов одит",
   "dokladi-sled-priklyuchili-nakazatelni-proizvodstva": "след наказателно производство",
   "kontrol-na-obshtestvenite-porychki": "обществени поръчки",
