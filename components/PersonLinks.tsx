@@ -5,14 +5,15 @@ import { firmUrl, fmtEur, placeSuppliersAll } from "@/lib/procurement";
 type Role = { role: string; from?: string; to?: string | null; share?: string };
 type Other = Role & { n: string; eik?: string };
 type Firm = { eik: string; name: string; status?: number; mine: Role[]; others: Other[] };
-type Co = { n: string; via: string[]; firms: { eik: string; name: string }[] };
+type Through = { eik: string; name: string; role: string; from?: string; to?: string | null };
+type Co = { n: string; via: string[]; through?: Record<string, Through>; firms: { eik: string; name: string }[] };
 export type PersonLinksData = { name: string; role: string; firms: Firm[]; co: Co[] };
 
 const y = (d?: string | null) => (d ? d.slice(0, 4) : "");
 const period = (r: Role) => (r.from ? `${y(r.from)}–${r.to ? y(r.to) : "досега"}` : r.to ? `до ${y(r.to)}` : "");
 const roleText = (r: Role) => [r.role, period(r), r.share].filter(Boolean).join(", ");
 const titleCase = (s: string) => s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
-const firmName = (s: string) => s.replace(/^"|"$/g, "").replace(/\\"/g, "\"");
+const firmName = (s: string) => s.replace(/["„“]/g, "").trim();
 
 // Пресичат ли се два периода (кога и двамата са били във фирмата)?
 function overlap(a: Role, b: Role) {
@@ -48,8 +49,14 @@ export async function PersonLinks({ code, slug }: { code: string; slug: string }
             return (
               <div key={`${c.n}-${f.eik}`}>
                 <p><Link href={firmUrl(s.eik)}>{firmName(f.name)}</Link>: <b>{s.contracts}</b> договора за {fmtEur(s.total_eur)} от възложители в общината.</p>
-                <p className="text-muted">Вписан в нея е <b className="text-ink">{titleCase(c.n)}</b>, който е бил заедно с лицето във{" "}
+                <p className="text-muted">Вписан в нея е <b className="text-ink">{titleCase(c.n)}</b>, свързан с лицето във{" "}
                   {shared.map((sf, i) => {
+                    const direct = sf.others.some((o) => o.n.toUpperCase() === c.n.toUpperCase());
+                    const th = direct ? undefined : c.through?.[sf.eik];
+                    if (th) {
+                      const ent = sf.others.find((o) => o.eik?.slice(0, 9) === th.eik);
+                      return <span key={sf.eik}>{i > 0 && ", "}„{firmName(sf.name)}“ чрез фирмата „{firmName(th.name)}“ (лицето в „{firmName(sf.name)}“: {sf.mine.map(roleText).join("; ")}; „{firmName(th.name)}“ там: {ent ? roleText(ent) : "съдружник"}; {titleCase(c.n)} в „{firmName(th.name)}“: {roleText(th)})</span>;
+                    }
                     const his = sf.others.filter((o) => o.n.toUpperCase() === c.n.toUpperCase());
                     const both = his.some((h) => sf.mine.some((m) => overlap(h, m)));
                     return <span key={sf.eik}>{i > 0 && ", "}„{firmName(sf.name)}“ (лицето: {sf.mine.map(roleText).join("; ")}; {titleCase(c.n)}: {his.map(roleText).join("; ")}{both ? "" : "; не по едно и също време"})</span>;
@@ -68,13 +75,13 @@ export async function PersonLinks({ code, slug }: { code: string; slug: string }
           <ul className="divide-y divide-rule border-y border-rule">
             {p.firms.map((f) => {
               const s = bySup.get(f.eik);
-              const people = f.others.filter((o) => !o.eik);
+              const people = f.others;
               return (
                 <li key={f.eik} className="py-2.5">
                   <p>{s ? <Link href={firmUrl(s.eik)}>{firmName(f.name)}</Link> : <a href={`https://portal.registryagency.bg/CR/Reports/ActiveConditionTabResult?uic=${f.eik}`} target="_blank" rel="noreferrer">{firmName(f.name)}</a>}
                     <span className="text-sm text-muted"> · ЕИК {f.eik}</span></p>
                   <p className="text-sm">Лицето: {f.mine.length ? f.mine.map(roleText).join("; ") : "в орган на управление"}</p>
-                  {people.length > 0 && <p className="text-sm text-muted">С него във фирмата, някога: {people.slice(0, 12).map((o) => `${titleCase(o.n)} (${roleText(o)})`).join(" · ")}{people.length > 12 ? ` и още ${people.length - 12}` : ""}</p>}
+                  {people.length > 0 && <p className="text-sm text-muted">С него във фирмата, някога: {people.slice(0, 12).map((o) => `${o.eik ? firmName(o.n) : titleCase(o.n)} (${roleText(o)})`).join(" · ")}{people.length > 12 ? ` и още ${people.length - 12}` : ""}</p>}
                 </li>
               );
             })}
