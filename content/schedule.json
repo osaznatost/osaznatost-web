@@ -1,0 +1,70 @@
+{
+ "backup.yml": [
+  "13 1 * * 1"
+ ],
+ "check-links.yml": [
+  "29 2 * * 0"
+ ],
+ "council-mac.yml": [
+  "23 9 * * *"
+ ],
+ "council.yml": [
+  "41 */4 * * *"
+ ],
+ "deploy-cloudflare.yml": [
+  "17 */6 * * *"
+ ],
+ "update-abroad.yml": [
+  "41 5 * * 1"
+ ],
+ "update-bills.yml": [
+  "17 2 * * *"
+ ],
+ "update-data.yml": [
+  "17 4 * * *",
+  "52 7 * * *",
+  "43 16 * * 3-5"
+ ],
+ "update-declarations.yml": [
+  "37 2 * * *"
+ ],
+ "update-macro.yml": [
+  "37 9 * * *"
+ ],
+ "update-ministries.yml": [
+  "23 4 * * 1"
+ ],
+ "update-prices.yml": [
+  "23 3 * * *"
+ ],
+ "update-procurement.yml": [
+  "23 */3 * * *"
+ ],
+ "update-program.yml": [
+  "17 6,12,18 * * *"
+ ],
+ "update-sebra.yml": [
+  "17 6 20 1,4,7,10 *"
+ ],
+ "update-stats.yml": [
+  "41 5 * * 2"
+ ],
+ "update-steno.yml": [
+  "47 3 * * *"
+ ],
+ "update-tender-signals.yml": [
+  "37 1 * * *"
+ ],
+ "update-tr.yml": [
+  "11 */6 * * *"
+ ],
+ "update-wholesale.yml": [
+  "17 7 * * 6"
+ ],
+ "watchdog.yml": [
+  "53 */3 * * *"
+ ],
+ "weekly-claims.yml": [
+  "17 6 * * 1"
+ ]
+}

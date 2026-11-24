@@ -4,9 +4,10 @@
 // кешът започва наново, така че данните не остаряват повече от едно обновяване.
 // @ts-expect-error: файлът се създава от OpenNext при изграждане
 import handler from "./.open-next/worker.js";
+import SCHEDULE from "./content/schedule.json";
 
 type KV = { get(k: string, t: "stream"): Promise<ReadableStream | null>; getWithMetadata<M>(k: string, t: "stream"): Promise<{ value: ReadableStream | null; metadata: M | null }>; put(k: string, v: ReadableStream | ArrayBuffer | string, o?: { expirationTtl?: number; metadata?: unknown }): Promise<void> };
-type Env = { CACHE?: KV; SITE_PASSWORD?: string; BUILD_ID?: string };
+type Env = { CACHE?: KV; SITE_PASSWORD?: string; BUILD_ID?: string; GH_DISPATCH_TOKEN?: string };
 type Ctx = { waitUntil(p: Promise<unknown>): void; passThroughOnException?(): void };
 
 const TTL = 12 * 3600;
@@ -28,7 +29,38 @@ async function authed(req: Request, env: Env) {
 // Заглавките, по които Next различава отговорите (RSC навигация и т.н.)
 const VARY = ["rsc", "next-router-state-tree", "next-router-prefetch", "next-router-segment-prefetch", "next-url"];
 
+// Минимален cron: числа, *, */n, a-b, a-b/n и списъци; ден от седмицата 0–6 (0 = неделя). Часовете са UTC.
+function field(expr: string, v: number, min: number, max: number) {
+  return expr.split(",").some((part) => {
+    const [rng, stepS] = part.split("/");
+    const step = stepS ? Number(stepS) : 1;
+    let lo = min, hi = max;
+    if (rng !== "*") { const [a, b] = rng.split("-").map(Number); lo = a; hi = b ?? (stepS ? max : a); }
+    return v >= lo && v <= hi && (v - lo) % step === 0;
+  });
+}
+export function cronMatch(cron: string, d: Date) {
+  const [mi, h, dom, mo, dow] = cron.trim().split(/\s+/);
+  return field(mi, d.getUTCMinutes(), 0, 59) && field(h, d.getUTCHours(), 0, 23) && field(dom, d.getUTCDate(), 1, 31) && field(mo, d.getUTCMonth() + 1, 1, 12) && field(dow, d.getUTCDay(), 0, 6);
+}
+
+// Планировчик: всяка минута проверява графика и пуска съответните обновявания в GitHub (workflow_dispatch).
+async function scheduled(ev: { scheduledTime: number }, env: Env, ctx: Ctx) {
+  if (!env.GH_DISPATCH_TOKEN) return;
+  const d = new Date(ev.scheduledTime);
+  const due = Object.entries(SCHEDULE as Record<string, string[]>).filter(([, cs]) => cs.some((c) => cronMatch(c, d))).map(([f]) => f);
+  ctx.waitUntil(Promise.all(due.map(async (f) => {
+    const r = await fetch(`https://api.github.com/repos/osaznatost/osaznatost-web/actions/workflows/${f}/dispatches`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${env.GH_DISPATCH_TOKEN}`, Accept: "application/vnd.github+json", "User-Agent": "osaznatost-scheduler", "X-GitHub-Api-Version": "2022-11-28" },
+      body: JSON.stringify({ ref: "main" }),
+    });
+    console.log(`график ${d.toISOString().slice(0, 16)} ${f}: ${r.status}`);
+  })));
+}
+
 export default {
+  scheduled,
   async fetch(req: Request, env: Env, ctx: Ctx): Promise<Response> {
     const url = new URL(req.url);
     const kv = env.CACHE;

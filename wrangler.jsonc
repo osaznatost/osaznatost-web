@@ -25,5 +25,10 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "osaznatost"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "* * * * *"
+    ]
+  }
 }

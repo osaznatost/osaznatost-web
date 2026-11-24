@@ -35,7 +35,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           NODE_OPTIONS: --max-old-space-size=8192
-        run: npx opennextjs-cloudflare build && node scripts/cf-assets.mjs
+        run: node scripts/build-schedule.mjs && npx opennextjs-cloudflare build && node scripts/cf-assets.mjs
       - name: Качване
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -52,8 +52,9 @@ jobs:
           VOTE_PEPPER: ${{ secrets.VOTE_PEPPER }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          GH_DISPATCH_TOKEN: ${{ secrets.GH_DISPATCH_TOKEN }}
         # само непразните; стойностите не се печатат в лога
         run: |
-          node -e 'const k=["SITE_PASSWORD","SUPABASE_SECRET_KEY","NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","VOTE_PEPPER","RESEND_API_KEY","EMAIL_FROM"];const o={};for(const x of k)if(process.env[x])o[x]=process.env[x];require("fs").writeFileSync(process.env.RUNNER_TEMP+"/s.json",JSON.stringify(o))'
+          node -e 'const k=["SITE_PASSWORD","SUPABASE_SECRET_KEY","NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","VOTE_PEPPER","RESEND_API_KEY","EMAIL_FROM","GH_DISPATCH_TOKEN"];const o={};for(const x of k)if(process.env[x])o[x]=process.env[x];require("fs").writeFileSync(process.env.RUNNER_TEMP+"/s.json",JSON.stringify(o))'
           npx wrangler secret bulk "$RUNNER_TEMP/s.json"
           rm -f "$RUNNER_TEMP/s.json"
