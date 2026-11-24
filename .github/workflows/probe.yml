@@ -6,10 +6,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://www.bta.bg/bg/rss/free https://bntnews.bg/rss https://bntnews.bg/bg/rss/news https://www.dnevnik.bg/rss/ https://www.capital.bg/rss/ https://www.mediapool.bg/rss/ https://factcheck.bg/feed/ https://www.svobodnaevropa.bg/api/zrqiteuuir https://www.svobodnaevropa.bg/api/ https://bnr.bg/rss https://bnr.bg/horizont/rss; do
-            curl -sL -m 25 -A "$UA" -o f.xml -w "## $u %{http_code} %{content_type} %{size_download}\n" "$u"
-            echo "items: $(grep -o '<item' f.xml | wc -l)  enclosure: $(grep -o '<enclosure' f.xml | wc -l)  media: $(grep -oE '<media:(content|thumbnail)' f.xml | wc -l)  img: $(grep -o '<img' f.xml | wc -l)"
-            grep -oE '<enclosure[^>]*>|<media:(content|thumbnail)[^>]*>' f.xml | head -1
-            grep -oE '<link>[^<]*' f.xml | sed -n 2p
-          done
+          curl -s -m 60 -H 'Accept: application/json' https://portal.registryagency.bg/CR/api/Deeds/106590683 -o d.json; wc -c d.json
+          python3 - <<'PY'
+          import json,re
+          d=json.load(open('d.json'))
+          print('TOP', list(d.keys()))
+          for s in d.get('sections',[]):
+            print('SEC', {k:v for k,v in s.items() if k!='subDeeds'})
+            for sd in s.get('subDeeds',[]):
+              print(' SUB', {k:v for k,v in sd.items() if k!='groups'})
+              for g in sd.get('groups',[]):
+                for fl in g.get('fields',[]):
+                  print('  F', fl.get('nameCode'), {k:(str(v)[:80]) for k,v in fl.items() if k not in ('htmlData',)}, re.sub('<[^>]+>',' ',fl.get('htmlData',''))[:160])
+          PY
+          for u in "Deeds/106590683?loadFieldsFromAllLegalForms=true" "Deeds/106590683/history" "Deeds/106590683?isHistory=true" "Deeds/Search?name=%D0%9C%D0%98%D0%A0%D0%9E%D0%A1%D0%9B%D0%90%D0%92" "Search/SearchPersons?name=x"; do echo "## $u $(curl -s -m 30 -o /dev/null -w '%{http_code} %{size_download}' -H 'Accept: application/json' "https://portal.registryagency.bg/CR/api/$u")"; done
