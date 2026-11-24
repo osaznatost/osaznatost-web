@@ -7,9 +7,6 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 -A "$UA" -o i.html https://portal.registryagency.bg/CR/
-          grep -o 'src="[^"]*\.js[^"]*"' i.html | sed 's/^/## JS /'
-          for j in $(grep -o 'src="[^"]*\.js[^"]*"' i.html | sed 's/src="//;s/"$//'); do
-            case $j in http*) u=$j;; /*) u=https://portal.registryagency.bg$j;; *) u=https://portal.registryagency.bg/CR/$j;; esac
-            curl -s -m 60 -A "$UA" "$u" | grep -o '"[^"]*api/[^"]*"' | sort -u | head -80 | sed "s|^|## API |"
-          done
+          curl -s -m 60 -A "$UA" -o m.js "https://portal.registryagency.bg/CR/dist/main.84514c143eddb9e5339e.js"
+          grep -oE '"(Deeds|Search|Persons?|Subjects|Report|Rights)[A-Za-z/]*"|[a-zA-Z]+Url\+?"/[A-Za-z/]+"|"[A-Za-z]+/[A-Za-z]+/?"' m.js | sort -u | head -150 | sed 's/^/## /'
+          grep -oE '.{60}(ersonName|personName|PersonName|name=|SearchPerson|participant).{80}' m.js | head -20 | sed 's/^/## C /'
