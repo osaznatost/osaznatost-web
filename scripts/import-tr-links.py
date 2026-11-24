@@ -24,8 +24,8 @@ DEEDS = jload(f"{DIR}/deeds.json", {})     # ЕИК → {at, name, status, peopl
 DONE = jload(f"{DIR}/done.json", {})       # slug на длъжностното лице → дата на обработката
 
 ROLE = {"CR_F_7_L": "управител", "CR_F_19_L": "съдружник", "CR_F_23_L": "едноличен собственик", "CR_F_10_L": "член на съвета на директорите",
-        "CR_F_12_L": "член на управителния съвет", "CR_F_11_L": "член на надзорния съвет", "CR_F_18_L": "физическо лице търговец"}
-IDENT = {"CR_F_7_L": "00070", "CR_F_19_L": "00190", "CR_F_23_L": "00230", "CR_F_10_L": "00100", "CR_F_12_L": "00120", "CR_F_11_L": "00110", "CR_F_18_L": "00180"}
+        "CR_F_12_L": "член на управителния съвет", "CR_F_18_L": "физическо лице търговец"}
+IDENT = {"CR_F_7_L": "00070", "CR_F_19_L": "00190", "CR_F_23_L": "00230", "CR_F_10_L": "00100", "CR_F_12_L": "00120", "CR_F_18_L": "00180"}
 NGO = re.compile(r"Сдружение|Фондация|Читалище|Народно читалище|Сдружение на собствениците", re.I)
 
 start, calls = time.time(), 0
@@ -39,11 +39,12 @@ def get(path):
             body, _, code = r.stdout.decode("utf-8", "replace").rpartition("\n")
         except subprocess.TimeoutExpired:
             body, code = "", "0"
+        CODES[code] = CODES.get(code, 0) + 1
         if code == "200":
             try: return json.loads(body) if body.strip() else None
             except ValueError: return None
-        if code in ("404", "400"): return None
-        time.sleep(10 * (a + 1))
+        if code not in ("429", "0", "500", "502", "503", "504"): return None
+        time.sleep(15 * (a + 1) if code == "429" else 5)
     return None
 
 def norm(n): return re.sub(r"\s+", " ", (n or "").replace('"', "").replace("„", "").replace("“", "").strip()).upper()
@@ -63,6 +64,11 @@ def person(lines):
     share = next((m.group(1) for l in lines for m in [re.search(r"Размер[^:]*:\s*([\d.,]+\s*(?:€|лв\.?|%))", l)] if m), None)
     return name, (ident.group(1) if ident else None), share, any("Заличено обстоятелство" in l for l in lines)
 
+def VALID(n, eik=None):
+    if eik: return True
+    return ":" not in n and len(re.findall(r"[А-Яа-яA-Za-z]{2,}", n)) >= 2 and not re.match(r"^(по |заедно|поотделно|и |или )", n, re.I)
+
+CODES = {}
 def search(name):
     k = norm(name)
     c = SEARCH.get(k)
@@ -95,7 +101,7 @@ def deed(uic):
             active = set()
             for e in entries(h):
                 n, eik, share, erased = person(e)
-                if not n or n.startswith("Заличено"): continue
+                if not n or n.startswith("Заличено") or not VALID(n, eik): continue
                 k = norm(n)
                 if erased:
                     if k in seen and not seen[k]["to"]: seen[k]["to"] = dt
@@ -135,12 +141,17 @@ for slug, (code, name, role) in todo:
         rec = deed(uic)
         if not rec or NGO.search(rec.get("name") or ""): continue
         for p in rec["people"]:
-            if norm(p["n"]) != norm(name) and not out_of_time(): search(p["n"])
+            if out_of_time(): break
+            if p.get("eik"):  # съдружник е фирма: четем и нейните хора
+                sub = deed(p["eik"][:9])
+                for sp in (sub or {}).get("people", []):
+                    if not sp.get("eik") and norm(sp["n"]) != norm(name) and not out_of_time(): search(sp["n"])
+            elif norm(p["n"]) != norm(name): search(p["n"])
     if not out_of_time():
         DONE[slug] = date.today().isoformat(); n += 1
     if n % 5 == 0: save()
 save()
-print(f"Обработени: {n}, заявки: {calls}, минути: {(time.time() - start) / 60:.1f}")
+print(f"Обработени: {n}, заявки: {calls}, минути: {(time.time() - start) / 60:.1f}, отговори: {CODES}")
 
 # Изход за сайта: по община.
 by = {}
@@ -155,18 +166,24 @@ for slug, (code, name, role) in PEOPLE.items():
         if not rec: continue
         mine = [p for p in rec["people"] if norm(p["n"]) == k]
         firms.append({"eik": uic, "name": rec["name"], "status": rec["status"], "mine": [{x: p[x] for x in ("role", "from", "to", "share") if p.get(x)} for p in mine],
-                      "others": [{x: p[x] for x in ("n", "role", "from", "to", "share", "eik") if p.get(x)} for p in rec["people"] if norm(p["n"]) != k]})
+                      "others": [{x: p[x] for x in ("n", "role", "from", "to", "share", "eik") if p.get(x)} for p in rec["people"] if norm(p["n"]) != k and VALID(p["n"], p.get("eik"))]})
         if NGO.search(rec.get("name") or ""): continue
+        cands = [(p, None) for p in rec["people"] if not p.get("eik")]
         for p in rec["people"]:
+            if p.get("eik") and DEEDS.get(p["eik"][:9]):
+                ent = DEEDS[p["eik"][:9]]
+                cands += [(sp, {"eik": p["eik"][:9], "name": ent["name"]}) for sp in ent["people"] if not sp.get("eik")]
+        for p, through in cands:
             pk = norm(p["n"])
-            if pk == k or p.get("eik"): continue
-            o = co.setdefault(pk, {"n": p["n"], "via": set(), "firms": {}})
+            if pk == k or not VALID(p["n"]): continue
+            o = co.setdefault(pk, {"n": p["n"], "via": set(), "firms": {}, "through": {}})
             o["via"].add(uic)
+            if through: o["through"][uic] = {**through, "role": p["role"], "from": p.get("from"), "to": p.get("to")}
             for h in SEARCH.get(pk, {}).get("hits", []):
                 if h["field"] in ROLE and h["uic"] not in {f["eik"] for f in firms} and h["uic"] != uic:
                     o["firms"][h["uic"]] = h["firm"]
     by.setdefault(code, {})[slug] = {"name": name, "role": role, "firms": firms,
-        "co": [{"n": o["n"], "via": sorted(o["via"]), "firms": [{"eik": e, "name": f} for e, f in sorted(o["firms"].items())]} for o in co.values()]}
+        "co": [{"n": o["n"], "via": sorted(o["via"]), **({"through": o["through"]} if o["through"] else {}), "firms": [{"eik": e, "name": f} for e, f in sorted(o["firms"].items())]} for o in co.values()]}
 for code, v in by.items():
     json.dump(v, open(f"{OUT}/{code}.json", "w"), ensure_ascii=False, separators=(",", ":"))
 print("Общини с данни:", len(by))
