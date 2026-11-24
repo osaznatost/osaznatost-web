@@ -6,10 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -s -m 60 https://portal.registryagency.bg/CR/ -o i.html; grep -oE 'src="[^"]+\.js"' i.html | head
-          for s in $(grep -oE 'src="[^"]+\.js"' i.html | sed 's/src="//;s/"//'); do
-            u=$s; case $u in http*) ;; /*) u="https://portal.registryagency.bg$u";; *) u="https://portal.registryagency.bg/CR/$u";; esac
-            curl -s -m 60 "$u" >> all.js
+          for p in "CR/Reports/ActiveConditionTabResult?uic=106590683" "CR/Reports/VerificationPersonOrg" "CR/Reports/ActiveCondition"; do
+            curl -s -m 60 "https://portal.registryagency.bg/$p" -o p.html; echo "## $p $(wc -c < p.html)"; grep -oE '(src|href)="[^"]+\.js[^"]*"' p.html | head -20
+            for s in $(grep -oE 'src="[^"]+\.js[^"]*"' p.html | sed 's/src="//;s/"//'); do
+              u=$s; case $u in http*) ;; /*) u="https://portal.registryagency.bg$u";; *) u="https://portal.registryagency.bg/CR/$u";; esac
+              curl -s -m 60 "$u" >> all.js
+            done
           done
           wc -c all.js
-          grep -oE '"[^"]{0,60}(api/|Deeds|History|history|Persons|Search)[^"]{0,80}"' all.js | sort -u | head -120
+          grep -oE '"[^"]{0,40}api/[^"]{0,100}"|`[^`]{0,40}api/[^`]{0,100}`' all.js | sort -u | head -150
