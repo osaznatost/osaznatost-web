@@ -5,11 +5,11 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - env:
-          U: ${{ secrets.SUPABASE_URL }}
-          K: ${{ secrets.SUPABASE_SECRET_KEY }}
-          P: ${{ secrets.VOTE_PEPPER }}
-        run: |
-          for t in cv_codes cv_votes cv_totals cv_sends; do echo "$t: $(curl -s -o /dev/null -w '%{http_code}' "$U/rest/v1/$t?limit=1" -H "apikey: $K" -H "Authorization: Bearer $K")"; done
-          echo "rpc: $(curl -s -X POST "$U/rest/v1/rpc/cv_count_send" -H "apikey: $K" -H "Authorization: Bearer $K" -H 'content-type: application/json' -d '{"d":"2026-11-24"}')"
-          echo "pepper length: ${#P}"
+      - run: |
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in https://www.bta.bg/bg/rss/free https://bntnews.bg/rss https://bntnews.bg/bg/rss/news https://www.dnevnik.bg/rss/ https://www.capital.bg/rss/ https://www.mediapool.bg/rss/ https://factcheck.bg/feed/ https://www.svobodnaevropa.bg/api/zrqiteuuir https://www.svobodnaevropa.bg/api/ https://bnr.bg/rss https://bnr.bg/horizont/rss; do
+            curl -sL -m 25 -A "$UA" -o f.xml -w "## $u %{http_code} %{content_type} %{size_download}\n" "$u"
+            echo "items: $(grep -o '<item' f.xml | wc -l)  enclosure: $(grep -o '<enclosure' f.xml | wc -l)  media: $(grep -oE '<media:(content|thumbnail)' f.xml | wc -l)  img: $(grep -o '<img' f.xml | wc -l)"
+            grep -oE '<enclosure[^>]*>|<media:(content|thumbnail)[^>]*>' f.xml | head -1
+            grep -oE '<link>[^<]*' f.xml | sed -n 2p
+          done
