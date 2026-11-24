@@ -7,5 +7,15 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 -A "$UA" -o h.html -w "## home %{http_code}\n" https://www.bulnao.government.bg/bg/
-          grep -o 'href="[^"]*"' h.html | sort -u | grep -iv "static\|\.css\|\.js" | head -120 | sed 's/^/## /'
+          for p in dokladi dokladi-obshini; do
+            curl -s -m 60 -A "$UA" -o p.html -w "## $p %{http_code} %{size_download}\n" "https://www.bulnao.government.bg/bg/oditna-dejnost/$p/"
+            python3 - <<'P'
+          import re,html
+          s=open("p.html",encoding="utf8").read()
+          i=s.find("<main"); s=s[i if i>0 else 0:]
+          t=re.sub(r"<script.*?</script>|<style.*?</style>","",s,flags=re.S)
+          t=re.sub(r'<a [^>]*href="([^"]+)"[^>]*>',r' [\1] ',t)
+          t=re.sub(r"<[^>]+>"," ",t); t=html.unescape(re.sub(r"\s+"," ",t))
+          for k in range(0,min(len(t),5000),300): print("## "+t[k:k+300])
+          P
+          done
