@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { connection } from "next/server";
 import { data } from "@/lib/data";
 import { firmUrl, fmtEur, placeSuppliersAll, supplierStats } from "@/lib/procurement";
 
@@ -157,6 +158,7 @@ async function suppliersFor(code: string, p: PersonLinksData): Promise<Sup[]> {
 
 /** Свързани лица по Търговския регистър, с историята: фирмите на лицето, хората с него в тях и техните фирми с поръчки в общината. */
 export async function PersonLinks({ code, slug }: { code: string; slug: string }) {
+  await connection(); // при отваряне, не при изграждането: заявките към базата не бива да спъват build-а
   const all = await data<Record<string, PersonLinksData>>(`tr-links/${code}.json`);
   const p = all?.[slug];
   if (!p) return <p className="text-[15px] text-muted max-w-3xl">Търговският регистър (с историята на фирмите) за това лице още се проверява. Обхождаме длъжностните лица поред, щадящо за регистъра.</p>;
@@ -242,6 +244,7 @@ export async function PersonLinks({ code, slug }: { code: string; slug: string }
 
 /** За страницата на общината: длъжностните лица, свързани (пряко или през бивш/сегашен съдружник) с изпълнители на поръчки в общината. */
 export async function MuniLinks({ code }: { code: string }) {
+  await connection(); // при отваряне, не при изграждането: заявките към базата не бива да спъват build-а
   const all = await data<Record<string, PersonLinksData>>(`tr-links/${code}.json`);
   if (!all) return null;
   const sup = (await placeSuppliersAll(code)) as Sup[];
