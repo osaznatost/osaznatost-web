@@ -36,7 +36,7 @@ jobs:
         run: |
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"
-          git add scripts/tr-links data/tr-links
+          git add scripts/tr-links data/tr-links data/tr-hist
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Свързани лица: Търговски регистър с история"
           for i in 1 2 3; do git push && break; git pull --rebase -X ours -q origin main; done

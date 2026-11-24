@@ -12,7 +12,7 @@ import { FUNDS, mpHref } from "@/lib/funds";
 import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { TrBox } from "@/components/TrBox";
-import { FirmOfficials } from "@/components/PersonLinks";
+import { FirmHistory, FirmOfficials } from "@/components/PersonLinks";
 import { PaidToFirm } from "@/components/PaidBox";
 import { declLinksForEik } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
@@ -36,7 +36,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           {t.name || eik}
         </Title>
         <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
-        <FirmOfficials eik={eik} />
+        <div className="space-y-8"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
       </>
     );
   }
@@ -94,7 +94,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         ))}
       </section>
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
-      <div className="mb-10"><FirmOfficials eik={eik} /></div>
+      <div className="mb-10 space-y-8"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
 
       {net.length > 1 && (
         <section className="mb-10">

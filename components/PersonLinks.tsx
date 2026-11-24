@@ -297,3 +297,36 @@ export async function FirmOfficials({ eik }: { eik: string }) {
     </div>
   );
 }
+
+/** За страницата на фирмата: кой е бил управител, съдружник или собственик и кога (историята от Търговския регистър). */
+export async function FirmHistory({ eik }: { eik: string }) {
+  const rec = (await data<Record<string, { name: string; people: Other[] }>>(`tr-hist/${eik.slice(0, 2)}.json`))?.[eik.slice(0, 9)];
+  if (!rec?.people.length) return null;
+  const byName = new Map<string, { n: string; eik?: string; roles: Other[] }>();
+  for (const p of rec.people) { const k = p.n.toUpperCase(); const v = byName.get(k) ?? { n: p.n, eik: p.eik, roles: [] }; v.roles.push(p); byName.set(k, v); }
+  const rows = [...byName.values()].sort((a, b) => (a.roles[0].from ?? "") < (b.roles[0].from ?? "") ? -1 : 1);
+  const now = new Date().getFullYear();
+  const start = Math.min(now - 5, ...rec.people.map((p) => +y(p.from)).filter((v) => v > 1980)), span = now - start + 1;
+  const pct = (yr: number) => ((yr - start) / span) * 100;
+  return (
+    <div className="max-w-4xl">
+      <p className="font-semibold mb-1">Собственици и управители във времето</p>
+      <p className="text-sm text-muted mb-3">Включително бившите, по историята на вписванията в Търговския регистър.</p>
+      <ul className="space-y-2">
+        {rows.map((r) => (
+          <li key={r.n} className="grid grid-cols-[minmax(0,10rem)_1fr] sm:grid-cols-[16rem_1fr] gap-3 items-center">
+            <span className="text-sm truncate" title={`${r.n}: ${r.roles.map(roleText).join("; ")}`}>{r.eik ? firmName(r.n) : titleCase(r.n)}</span>
+            <span className="relative h-5 bg-surface rounded-sm">
+              {r.roles.map((m, i) => {
+                const a = +y(m.from) || start, b = m.to ? +y(m.to) + 1 : now + 1;
+                return <span key={i} title={[roleText(m), m.share].filter(Boolean).join(", ")} className={`absolute rounded-sm ${m.role === "съдружник" || m.role === "едноличен собственик" ? "bg-[#b08436] top-2.5 bottom-0.5" : "bg-ink top-0.5 bottom-2.5"}`} style={{ left: `${pct(a)}%`, width: `${Math.max(1.5, pct(b) - pct(a))}%` }} />;
+              })}
+            </span>
+          </li>
+        ))}
+        <li className="grid grid-cols-[minmax(0,10rem)_1fr] sm:grid-cols-[16rem_1fr] gap-3 text-xs text-muted"><span /><span className="flex justify-between"><span>{start}</span><span>{Math.round(start + span / 2)}</span><span>{now}</span></span></li>
+      </ul>
+      <p className="text-xs text-muted mt-2"><span className="inline-block w-3 h-2 bg-ink align-middle mr-1" />управител или член на съвет <span className="inline-block w-3 h-2 bg-[#b08436] align-middle ml-3 mr-1" />съдружник или собственик · Задръж върху лента за подробности.</p>
+    </div>
+  );
+}

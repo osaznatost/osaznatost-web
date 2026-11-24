@@ -137,9 +137,11 @@ if os.environ.get("ONLY"): order = [(s, PEOPLE[s]) for s in os.environ["ONLY"].s
 todo = [(s, p) for s, p in order if DONE.get(s, "") < cutoff or os.environ.get("ONLY")]
 print("Длъжностни лица за обработка:", len(todo))
 
+FIRM_MIN = float(os.environ.get("FIRM_MINUTES", "12"))  # последните минути от всяко пускане: история на фирмите с поръчки
+def officials_time_up(): return time.time() - start > max(0, MINUTES - FIRM_MIN) * 60
 n = 0
 for slug, (code, name, role) in todo:
-    if out_of_time(): break
+    if officials_time_up(): break
     own = [h for h in search(name) if h["field"] in ROLE]
     firms = sorted({h["uic"] for h in own})
     for uic in firms:
@@ -153,10 +155,25 @@ for slug, (code, name, role) in todo:
                 for sp in (sub or {}).get("people", []):
                     if not sp.get("eik") and norm(sp["n"]) != norm(name) and not out_of_time(): search(sp["n"])
             elif norm(p["n"]) != norm(name): search(p["n"])
-    if not out_of_time():
+    if not officials_time_up():
         DONE[slug] = date.today().isoformat(); n += 1
     if n % 5 == 0: save()
 save()
+# Историята на изпълнителите на поръчки (по стойност; списъкът е от import-tr.py), за страниците на фирмите.
+sup_tot = jload("scripts/tr-suppliers.json", {}).get("tot", {})
+import glob as _g
+if not sup_tot:
+    for f in _g.glob("scripts/tr-cache/*.json"):
+        try: sup_tot.update({k: 0 for k in json.load(open(f))})
+        except Exception: pass
+fq = [e for e in sorted(sup_tot, key=lambda e: -sup_tot[e]) if not (DEEDS.get(e, {}).get("v") == 2 and DEEDS[e]["at"] >= cutoff)]
+fd = 0
+for e in fq:
+    if out_of_time(): break
+    deed(e); fd += 1
+    if fd % 20 == 0: save()
+save()
+print("Фирми с история:", fd, "остават:", len(fq) - fd)
 print(f"Обработени: {n}, заявки: {calls}, минути: {(time.time() - start) / 60:.1f}, отговори: {CODES}")
 
 # Изход за сайта: по община.
@@ -211,5 +228,11 @@ for code, v in by.items():
                     shared = [x["name"] for x in p["firms"] if x["eik"] in c["via"]]
                     rev.setdefault(t["eik"], []).append({"c": code, "s": slug, "n": p["name"], "r": p["role"], "via": c["n"], "vr": t.get("roles", []), "in": shared[:3]})
 json.dump(rev, open(f"{OUT}/by-firm.json", "w"), ensure_ascii=False, separators=(",", ":"))
+# История на хората във всяка прочетена фирма, на дялове по първите две цифри на ЕИК.
+os.makedirs("data/tr-hist", exist_ok=True)
+sh = {}
+for e, rec in DEEDS.items():
+    if rec.get("v") == 2: sh.setdefault(e[:2], {})[e] = {"name": rec["name"], "people": [{k: p[k] for k in ("n", "role", "from", "to", "share", "eik") if p.get(k)} for p in rec["people"] if VALID(p["n"], p.get("eik"))]}
+for k, v in sh.items(): json.dump(v, open(f"data/tr-hist/{k}.json", "w"), ensure_ascii=False, separators=(",", ":"))
 print("Фирми с поръчки, свързани с длъжностни лица:", len(rev))
 print("Общини с данни:", len(by))
