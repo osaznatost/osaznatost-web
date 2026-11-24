@@ -5,7 +5,7 @@ import { contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } fr
 import { officialHref, officialLinks } from "@/components/PersonLinks";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 
-type PAnnex = { id: string; day: string; tender_name: string; buyer_eik: string; buyer_name: string; contract_number: string; supplier_eiks: string[]; supplier_names: string[]; value_difference_eur: number | null; muni?: string };
+type PAnnex = { id: string; day: string; tender_name: string; buyer_eik: string; buyer_name: string; contract_number: string; supplier_eiks: string[]; supplier_names: string[]; value_difference_eur: number | null; current_value_eur?: number | null; muni?: string };
 type PSub = { id: string; day: string; tender_name: string; buyer_name: string; contract_date: string | null; contract_value_eur: number | null; supplier_eiks: string[]; subcontractor_names: string | null; subcontractor_eiks: string | null; subcontracting_percent: string | null; muni?: string };
 type Council = { code: string; muni: string; id: string; date: string; number: string; title: string; url: string | null; tally: { for: number; against: number; abstain: number } | null; result: string | null; kinds: string[]; firms: string[]; by: string | null };
 
@@ -48,6 +48,7 @@ export async function Changes({ code, days = 90 }: { code?: string; days?: numbe
             <li key={a.id}>
               <Link href={contractUrl(contractRef(a.buyer_eik, a.contract_number))} className="line-clamp-2">{a.tender_name}</Link>
               <span className="block text-sm"><b className="num">+{fmtEur(a.value_difference_eur)}</b> · {fmtDate(a.day)} · {a.buyer_name}</span>
+              {((a.value_difference_eur ?? 0) > 50e6 || (a.current_value_eur && (a.value_difference_eur ?? 0) > 0.9 * a.current_value_eur)) && <span className="block text-xs text-muted">Необичайно голяма промяна: възможна е грешка при въвеждането в ЦАИС ЕОП. Проверете обявлението.</span>}
               <span className="block text-sm text-muted">Изпълнител: {a.supplier_names.map((n, i) => <span key={i}>{i > 0 && ", "}{a.supplier_eiks[i] ? <Link href={firmUrl(a.supplier_eiks[i])}>{n}</Link> : n}</span>)}</span>
               <Flag eiks={a.supplier_eiks} />
             </li>
