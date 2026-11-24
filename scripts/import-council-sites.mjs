@@ -462,9 +462,11 @@ function parseVidin(text, url) {
     const rel = flat(chunk.split(/ОТНОСНО\s*:/i)[1]?.split(/\n\s*\n|На основание/)[0] ?? "");
     // „Предложение №… от <кой> – <длъжност>, относно <въпрос>“
     let title = rel, rapporteur = null;
-    const om = rel.match(/^(?:Предложение|Докладна записка)[^,]*?от\s+(.+?)\s*[–-]\s*([^,]+?),?\s+относно\s+(.+)$/i);
+    const om = rel.match(/^(?:Предложение|Докладна записка)[^,]*?\sот\s+(.+?)\s+[–-]\s+(.+?),?\s+относно\s+(.+)$/i);
     if (om) {
-      rapporteur = { name: om[1].replace(/^(д-р|инж\.?|арх\.?)\s*/i, "").trim(), role: /кмет/i.test(om[2]) ? "кмет на общината" : /председател/i.test(om[2]) ? "председател на общинския съвет" : om[2].toLowerCase().trim() };
+      const r = om[2];
+      rapporteur = { name: om[1].replace(/^(д-р|инж\.?|арх\.?|проф\.?)\s*/i, "").replace(/\s+/g, " ").trim(),
+        role: /зам\.?\s*-?\s*кмет/i.test(r) ? "заместник-кмет" : /кмет/i.test(r) ? "кмет на общината" : /председател/i.test(r) ? "председател на общинския съвет" : /съветник/i.test(r) ? "общински съветник" : r.split(",")[0].toLowerCase().trim() };
       title = om[3];
     } else title = rel.replace(/^.*?относно\s+/i, "");
     title = title.replace(/^./, (c) => c.toUpperCase());
