@@ -109,7 +109,11 @@ export async function HomeGlance() {
           <div className={`${card} lg:col-span-2`}>
             <p className="font-semibold mb-3">Последните новини</p>
             <ul className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2 text-[15px]">{news.slice(0, 8).map((n) => (
-              <li key={n.url} className="leading-snug"><a href={n.url} target="_blank" rel="noreferrer">{n.title}</a> <span className="text-sm text-muted">· {outlet(n.outlet)}</span></li>
+              <li key={n.url} className="leading-snug flex gap-3 items-start min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element -- корицата остава на сървъра на медията */}
+                {n.image && <img src={n.image} alt="" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-20 aspect-[3/2] object-cover rounded-sm bg-white shrink-0" />}
+                <span className="min-w-0 break-words"><a href={n.url} target="_blank" rel="noreferrer">{n.title}</a> <span className="text-sm text-muted">· {outlet(n.outlet)}</span></span>
+              </li>
             ))}</ul>
             <p className="text-sm mt-3"><Link href="/novini">Всички новини и къде на сайта има данни по темата</Link></p>
           </div>
