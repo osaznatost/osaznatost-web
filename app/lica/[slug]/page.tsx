@@ -32,7 +32,17 @@ const norm = (s: string) => s.toUpperCase().replace(/\s+/g, " ").trim();
 async function StakeCheck({ code, o }: { code: string; o: Official }) {
   await connection();
   const stakes = o.decl?.stakes ?? [];
-  if (!stakes.length) return <p className="text-[15px]">В последната декларация няма дялове във фирми.</p>;
+  if (!stakes.length) return (
+    <div className="text-[15px] max-w-3xl space-y-2">
+      <p>В последната декларация не са посочени дялове или управление на фирми.</p>
+      <p className="text-sm text-muted">
+        Това е казаното в декларацията. Търговския регистър проверяваме само за фирмите, които имат договори по обществени поръчки,
+        защото Агенцията по вписванията не предлага безплатно търсене по име на човек. Ако лицето участва във фирми без обществени поръчки,
+        то няма да се види тук. Справка по име може да се направи в <a href="https://portal.registryagency.bg/CR/" target="_blank" rel="noreferrer">Търговския регистър</a>,
+        а несъответствие между декларацията и регистъра може да се подаде като сигнал до Комисията за противодействие на корупцията, която проверява декларациите.
+      </p>
+    </div>
+  );
   const sup = await placeSuppliersAll(code);
   const trs = await trMany(sup.map((x) => x.eik));
   return (
