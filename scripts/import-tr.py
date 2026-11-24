@@ -93,6 +93,9 @@ while True:  # по id, на порции (агрегиращият изглед
     last = rows[-1]["id"].replace("&", "%26").replace("#", "%23").replace(" ", "%20")
 # Първо фирмите, които трябват за декларациите (data/tr/priority.json от build-declaration-links.mjs), после по стойност.
 prio = set(json.load(open("data/tr/priority.json"))) if os.path.exists("data/tr/priority.json") else set()
+# Проверени от редакцията връзки лице ↔ фирма (content/person-firms.json): четат се първи, дори без поръчки.
+if os.path.exists("content/person-firms.json"):
+    for v in json.load(open("content/person-firms.json"))["people"].values(): prio |= {e[:9] for e in v.get("eiks", [])}
 eiks = sorted(set(tot) | prio, key=lambda e: (e not in prio, -tot.get(e, 0)))
 print("Изпълнители в базата:", len(eiks))
 cutoff = (date.today() - timedelta(days=REFRESH)).isoformat()

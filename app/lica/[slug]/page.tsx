@@ -15,6 +15,10 @@ import { PersonFirms } from "@/components/TrBox";
 import { declLinksFor } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { firmsOfPerson, peopleOf, trMany } from "@/lib/tr";
+import VERIFIED from "@/content/person-firms.json";
+
+type Verified = { verified: string; by: string; eiks: string[] };
+const verifiedFor = (code: string, slug: string) => (VERIFIED.people as Record<string, Verified>)[`${code}/${slug}`] ?? null;
 
 // Предварително само кметовете; останалите ~6000 профила се правят при първо отваряне и се кешират.
 export async function generateStaticParams() {
@@ -32,6 +36,18 @@ const norm = (s: string) => s.toUpperCase().replace(/\s+/g, " ").trim();
 async function StakeCheck({ code, o }: { code: string; o: Official }) {
   await connection();
   const stakes = o.decl?.stakes ?? [];
+  const trFirms = await firmsOfPerson(o.name);
+  const v = verifiedFor(code, o.slug);
+  if (!stakes.length && trFirms.length) return (
+    <div className="text-[15px] max-w-3xl space-y-2">
+      <p className="bg-surface rounded-sm px-4 py-3">
+        В последната декларация не са посочени дялове или управление на фирми, а в Търговския регистър {v ? "лицето" : "човек със същите три имена"} е
+        вписан(а) в <b>{trFirms.length}</b> {trFirms.length === 1 ? "фирма" : "фирми"} (вижте „Фирми по Търговския регистър“ по-долу).
+        {v ? ` Самоличността е проверена от ${v.by} на ${v.verified.split("-").reverse().join(".")}.` : " Съвпадението е по име; възможно е да е друг човек."}
+      </p>
+      <p className="text-sm text-muted">Несъответствието е повод за въпрос, не доказателство за нарушение: някои участия (напр. прекратени преди периода на декларацията) не се декларират. Проверката на декларациите е на Комисията за противодействие на корупцията.</p>
+    </div>
+  );
   if (!stakes.length) return (
     <div className="text-[15px] max-w-3xl space-y-2">
       <p>В последната декларация не са посочени дялове или управление на фирми.</p>
@@ -155,6 +171,8 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
       {ownFirms.length > 0 && (
         <section className="mb-10">
           <SectionTitle>Фирми по Търговския регистър</SectionTitle>
+          {verifiedFor(code, o.slug) ? <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Връзката е проверена (не е само съвпадение по име). Данните за всяка фирма са от официалния Търговски регистър.</p>
+            : <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Съвпадение по трите имена в Търговския регистър; без ЕГН не може да се потвърди, че е същият човек.</p>}
           <PersonFirms name={o.name} />
         </section>
       )}
