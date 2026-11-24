@@ -3,12 +3,13 @@ on:
   workflow_dispatch:
 jobs:
   probe:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 15
     steps:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://www.silistra.bg/ https://silistra.bg/ https://obs.silistra.bg/ https://os.silistra.bg/ https://www.obs-silistra.bg/ https://silistra.bg/obshtinski-savet https://www.silistra.bg/bg/obshtinski-savet; do
-            curl -sL -m 30 -A "$UA" -o p.html -w "## $u %{http_code} %{url_effective} %{size_download}\n" "$u"
-            grep -oiE 'href="[^"]*(reshen|savet|sachet|council|обс|решени)[^"]*"' p.html | sort -u | head -15
+          for u in https://silistra.egov.bg/ https://www.plovdiv.bg/ https://obs.plovdiv.bg/ https://www.smolyan.bg/ https://targovishte.bg/ https://www.targovishte.bg/ https://silistra.egov.bg/wps/portal/municipality-silistra/administration/council; do
+            curl -sL -m 40 -A "$UA" -o p.html -w "## $u %{http_code} %{url_effective} %{size_download}\n" "$u"
+            grep -oiE 'href="[^"]*"' p.html | grep -iE 'reshen|savet|suvet|council|obs|resolution|решени|съвет' | sort -u | head -12
           done
