@@ -127,8 +127,11 @@ def save():
 
 # Длъжностните лица: първо поисканите общини, после кметове и ръководства, после съветниците.
 PEOPLE = json.load(open("data/local/people.json"))
-rank = {"Кмет": 0, "Заместник кмет": 1, "Председател на ОбС": 2, "Главен архитект": 3}
-order = sorted(PEOPLE.items(), key=lambda kv: (kv[1][0] not in FIRST, rank.get(kv[1][2], 4), kv[1][0]))
+# Народните представители: код „MP“, slug „mp-<id>“.
+for m in json.load(open("data/parliament-ns52.json"))["mps"]:
+    PEOPLE[f"mp-{m['id']}"] = ["MP", m["name"], "Народен представител"]
+rank = {"Кмет": 0, "Заместник кмет": 1, "Народен представител": 2, "Председател на ОбС": 3, "Главен архитект": 4}
+order = sorted(PEOPLE.items(), key=lambda kv: (kv[1][0] not in FIRST, rank.get(kv[1][2], 5), kv[1][0]))
 cutoff = (date.today() - timedelta(days=REFRESH)).isoformat()
 if os.environ.get("ONLY"): order = [(s, PEOPLE[s]) for s in os.environ["ONLY"].split(",") if s in PEOPLE]
 todo = [(s, p) for s, p in order if DONE.get(s, "") < cutoff or os.environ.get("ONLY")]
@@ -184,9 +187,29 @@ for slug, (code, name, role) in PEOPLE.items():
             if through: o["through"][uic] = {**through, "role": p["role"], "from": p.get("from"), "to": p.get("to")}
             for h in SEARCH.get(pk, {}).get("hits", []):
                 if h["field"] in ROLE and h["uic"] not in {f["eik"] for f in firms} and h["uic"] != uic:
-                    o["firms"][h["uic"]] = h["firm"]
+                    f0 = o["firms"].setdefault(h["uic"], {"name": h["firm"], "roles": []})
+                    if ROLE[h["field"]] not in f0["roles"]: f0["roles"].append(ROLE[h["field"]])
     by.setdefault(code, {})[slug] = {"name": name, "role": role, "firms": firms,
-        "co": [{"n": o["n"], "via": sorted(o["via"]), **({"through": o["through"]} if o["through"] else {}), "firms": [{"eik": e, "name": f} for e, f in sorted(o["firms"].items())]} for o in co.values()]}
+        "co": [{"n": o["n"], "via": sorted(o["via"]), **({"through": o["through"]} if o["through"] else {}), "firms": [{"eik": e, "name": f["name"], "roles": f["roles"]} for e, f in sorted(o["firms"].items())]} for o in co.values()]}
 for code, v in by.items():
     json.dump(v, open(f"{OUT}/{code}.json", "w"), ensure_ascii=False, separators=(",", ":"))
+
+# Обратен индекс за страниците на фирмите: само фирми с обществени поръчки (тези в scripts/tr-cache).
+import glob
+SUP = set()
+for f in glob.glob("scripts/tr-cache/*.json"):
+    try: SUP |= set(json.load(open(f)).keys())
+    except Exception: pass
+rev = {}
+for code, v in by.items():
+    for slug, p in v.items():
+        for f in p["firms"]:
+            if f["eik"] in SUP: rev.setdefault(f["eik"], []).append({"c": code, "s": slug, "n": p["name"], "r": p["role"], "mine": f["mine"]})
+        for c in p["co"]:
+            for t in c["firms"]:
+                if t["eik"] in SUP:
+                    shared = [x["name"] for x in p["firms"] if x["eik"] in c["via"]]
+                    rev.setdefault(t["eik"], []).append({"c": code, "s": slug, "n": p["name"], "r": p["role"], "via": c["n"], "vr": t.get("roles", []), "in": shared[:3]})
+json.dump(rev, open(f"{OUT}/by-firm.json", "w"), ensure_ascii=False, separators=(",", ":"))
+print("Фирми с поръчки, свързани с длъжностни лица:", len(rev))
 print("Общини с данни:", len(by))

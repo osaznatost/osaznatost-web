@@ -15,6 +15,7 @@ import { VERDICT, autoChecksFor } from "@/lib/autoChecks";
 import { FUNDS } from "@/lib/funds";
 import { firmsOfMp, peopleLinks } from "@/lib/people";
 import { PersonFirms } from "@/components/TrBox";
+import { PersonLinks } from "@/components/PersonLinks";
 import { firmsOfPerson } from "@/lib/tr";
 import { firmUrl, fmtEur, supplierStats } from "@/lib/procurement";
 import { DS_CHECK, MS_TYPE, NS_YEARS, claimsFor, dsFor, historyFor, prefsFor, profileFor } from "@/lib/mpProfile";
@@ -184,6 +185,9 @@ export default async function Deputat({ params }: { params: Promise<{ id: string
         <Suspense fallback={<p className="text-muted">Проверка на фирмите…</p>}><MpMoney id={mp.id} name={mp.name} /></Suspense>
         {ownFirms.length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Управител, съдружник или собственик (Търговски регистър)</h3><PersonFirms name={mp.name} /></div>}
         {declLinksFor(mp.name).length > 0 && <div className="mt-6"><h3 className="font-semibold mb-2">Декларирани фирми с обществени поръчки</h3><DeclLinks items={declLinksFor(mp.name)} mode="person" /></div>}
+      </Anchor>
+      <Anchor id="svarzani" title="Свързани лица и фирми (с историята)" lead="Всички фирми, в които депутатът е бил или е управител, съдружник или собственик, хората, които са били с него в тях, и техните фирми с обществени поръчки.">
+        <PersonLinks code="MP" slug={`mp-${mp.id}`} />
       </Anchor>
 
       {(mb.sponsored.length > 0 || mb.conflict.length > 0) && (
