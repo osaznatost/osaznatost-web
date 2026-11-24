@@ -9,7 +9,6 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://silistra.egov.bg/ https://www.plovdiv.bg/ https://obs.plovdiv.bg/ https://www.smolyan.bg/ https://targovishte.bg/ https://www.targovishte.bg/ https://silistra.egov.bg/wps/portal/municipality-silistra/administration/council; do
-            curl -sL -m 40 -A "$UA" -o p.html -w "## $u %{http_code} %{url_effective} %{size_download}\n" "$u"
-            grep -oiE 'href="[^"]*"' p.html | grep -iE 'reshen|savet|suvet|council|obs|resolution|решени|съвет' | sort -u | head -12
-          done
+          curl -sL -m 40 -A "$UA" https://silistra.egov.bg/ ; echo
+          curl -sL -m 40 -A "$UA" "https://silistra.egov.bg/wps/portal/municipality-silistra/" | head -c 600; echo
+          for u in https://plovdivcouncil.bg/ https://www.plovdiv-os.bg/ https://os.plovdiv.bg/ https://www.os-plovdiv.bg/ https://obshtinskisavet.plovdiv.bg/; do curl -sL -m 30 -A "$UA" -o p.html -w "## $u %{http_code} %{url_effective} %{size_download}\n" "$u"; done
