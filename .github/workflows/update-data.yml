@@ -58,7 +58,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: node scripts/build-risk.mjs
+        # Пълен преглед на договорите: само при сутрешното пускане, за да пазим дисковия бюджет на базата.
+        run: if [ "$(date -u +%H)" -lt 6 ] || [ "${{ github.event_name }}" = push ]; then node scripts/build-risk.mjs; else echo "Рискът се смята веднъж на ден"; fi
       - name: Запис, ако има промяна
         run: |
           git add data/

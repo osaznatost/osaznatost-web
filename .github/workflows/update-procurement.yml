@@ -30,4 +30,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: node scripts/build-buyers.mjs
+        # Пълен преглед на таблицата: веднъж на ден (първото пускане след полунощ UTC), за да пазим дисковия бюджет на базата.
+        run: if [ "$(date -u +%H)" -lt 3 ] || [ "${{ github.event_name }}" = push ]; then node scripts/build-buyers.mjs; else echo "Възложителите се преглеждат веднъж на ден"; fi

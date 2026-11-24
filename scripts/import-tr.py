@@ -80,17 +80,27 @@ def parse(d):
 
 # Кои фирми: изпълнителите по стойност на поръчките
 H = (f"apikey: {KEY}", f"Authorization: Bearer {KEY}")
+# Списъкът изпълнители се чете от базата най-много веднъж седмично (пълен преглед на договорите харчи дисковия бюджет на базата).
+SUP = "scripts/tr-suppliers.json"
 tot = {}
-last = ""
-while True:  # по id, на порции (агрегиращият изглед изтича по време)
-    code, body = curl(f"{URL}/rest/v1/proc_contracts?select=id,supplier_eiks,contract_value_eur&id=gt.{last}&order=id&limit=1000", H)
-    rows = json.loads(body or "[]") if code == 200 else []
-    if code != 200: print("Грешка при четене на договорите:", code, body[:200]); break
-    for r in rows:
-        for e in r.get("supplier_eiks") or []:
-            if re.fullmatch(r"\d{9}|\d{13}", e or ""): tot[e[:9]] = tot.get(e[:9], 0) + (r.get("contract_value_eur") or 0) / max(1, len(r["supplier_eiks"]))
-    if len(rows) < 1000: break
-    last = rows[-1]["id"].replace("&", "%26").replace("#", "%23").replace(" ", "%20")
+cached = json.load(open(SUP)) if os.path.exists(SUP) else {}
+fresh = cached.get("at", "") >= (date.today() - timedelta(days=7)).isoformat()
+if os.environ.get("ONLY_EIKS") or fresh:
+    tot = cached.get("tot", {})
+    print("Изпълнители от кеша от", cached.get("at"))
+else:
+    last, ok = "", True
+    while True:  # по id, на порции (агрегиращият изглед изтича по време)
+        code, body = curl(f"{URL}/rest/v1/proc_contracts?select=id,supplier_eiks,contract_value_eur&id=gt.{last}&order=id&limit=1000", H)
+        rows = json.loads(body or "[]") if code == 200 else []
+        if code != 200: print("Грешка при четене на договорите:", code, body[:200]); ok = False; break
+        for r in rows:
+            for e in r.get("supplier_eiks") or []:
+                if re.fullmatch(r"\d{9}|\d{13}", e or ""): tot[e[:9]] = tot.get(e[:9], 0) + (r.get("contract_value_eur") or 0) / max(1, len(r["supplier_eiks"]))
+        if len(rows) < 1000: break
+        last = rows[-1]["id"].replace("&", "%26").replace("#", "%23").replace(" ", "%20")
+    if ok and tot: json.dump({"at": date.today().isoformat(), "tot": {k: round(v) for k, v in tot.items()}}, open(SUP, "w"))
+    elif not tot: tot = cached.get("tot", {})
 # Първо фирмите, които трябват за декларациите (data/tr/priority.json от build-declaration-links.mjs), после по стойност.
 prio = set(json.load(open("data/tr/priority.json"))) if os.path.exists("data/tr/priority.json") else set()
 # Проверени от редакцията връзки лице ↔ фирма (content/person-firms.json): четат се първи, дори без поръчки.
