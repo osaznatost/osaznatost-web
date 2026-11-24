@@ -6,7 +6,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 -A "$UA" -o m.js "https://portal.registryagency.bg/CR/dist/main.84514c143eddb9e5339e.js"
-          grep -oE '"(Deeds|Search|Persons?|Subjects|Report|Rights)[A-Za-z/]*"|[a-zA-Z]+Url\+?"/[A-Za-z/]+"|"[A-Za-z]+/[A-Za-z]+/?"' m.js | sort -u | head -150 | sed 's/^/## /'
-          grep -oE '.{60}(ersonName|personName|PersonName|name=|SearchPerson|participant).{80}' m.js | head -20 | sed 's/^/## C /'
+          curl -s -m 60 -o d.xml "https://register.cacbg.bg/2026/60EABF4A-67A3-4BDF-975E-6A745C2B771E233208.xml"; wc -c d.xml
+          python3 -c "
+          import re;s=open('d.xml',encoding='utf8',errors='ignore').read()
+          s=re.sub(r'>\s+<','><',s)
+          for m in re.finditer(r'<(Table\w*|\w*Share\w*|\w*Company\w*|\w*Participation\w*)[ >]',s): pass
+          tags=sorted(set(re.findall(r'<(\w+)',s)));print('## TAGS',' '.join(tags)[:3000])
+          i=s.find('дружеств');print('## CTX',s[max(0,i-1500):i+1500])
+          "
