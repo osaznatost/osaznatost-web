@@ -7,10 +7,7 @@ jobs:
     steps:
       - run: |
           set +e
-          m=$(curl -s -m 60 "https://portal.registryagency.bg/CR/Reports/ActiveConditionTabResult?uic=106590683" | grep -oE '/CR/dist/main[^"]+')
-          curl -s -m 180 "https://portal.registryagency.bg$m" -o main.js
-          grep -oE '.{0,300}13a1285c292c4dca' main.js | head -2
-          grep -oE '[.]p=".{0,40}' main.js | head
-          for c in $(grep -oE '[0-9]+:"[0-9a-f]{20}"' main.js | sed -E 's/([0-9]+):"([0-9a-f]+)"/\1.\2/'); do echo "chunk $c $(curl -s -m 90 -o c_$c.js -w '%{http_code} %{size_download}' "https://portal.registryagency.bg/CR/dist/$c.js")"; cat c_$c.js >> all.js; done
-          grep -oE '.{0,60}api/[A-Za-z/{}$.+"`]{0,90}' all.js | sort -u | head -200
-          grep -oE '.{0,80}[Hh]istory.{0,80}' all.js | sort -u | head -40
+          curl -s -m 240 "https://portal.registryagency.bg/CR/dist/Reports.d57d44dfc439ebdaec0e.js" -o r.js; wc -c r.js
+          grep -oE '.{0,70}api/[A-Za-z/{}$.+"`?=&]{0,100}' r.js | sort -u | head -150
+          echo ===; grep -oE '.{0,100}[Hh]istor.{0,100}' r.js | sort -u | head -40
+          echo ===; grep -oE '.{0,100}(Person|person)[A-Za-z]*Search.{0,100}' r.js | sort -u | head -20
