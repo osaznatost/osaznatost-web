@@ -7,10 +7,30 @@ jobs:
     steps:
       - run: |
           set +e
-          curl -s -m 240 "https://portal.registryagency.bg/CR/dist/Reports.d57d44dfc439ebdaec0e.js" -o r.js
-          m=$(curl -s -m 60 "https://portal.registryagency.bg/CR/Reports/ActiveConditionTabResult?uic=106590683" | grep -oE '/CR/dist/main[^"]+'); curl -s -m 120 "https://portal.registryagency.bg$m" -o main.js
-          grep -oE '.{0,160}SubjectInFields.{0,60}' r.js | head -3
-          grep -oE '.{0,120}(baseUrl|apiUrl|serviceUrl|"Deeds"|Deeds/").{0,120}' r.js main.js | head -20
-          B=https://portal.registryagency.bg/CR/api
-          G=$(python3 -c "import urllib.parse;print(urllib.parse.quote('ИВАН АЛЕКСАНДРОВ ГАВАЛЮГОВ'))")
-          echo "## search $(curl -s -m 200 -H 'Accept: application/json' -o s.json -w '%{http_code} %{size_download} %{time_total}' "$B/Deeds/SubjectInFields?name=$G&searchInHistory=true&type=1")"; head -c 3000 s.json; echo
+          B=https://portal.registryagency.bg/CR/api/Deeds
+          N=$(python3 -c "import urllib.parse;print(urllib.parse.quote('МИРОСЛАВ СИМЕОНОВ ЗАХАРИЕВ'))")
+          echo "## Z"; curl -s -m 100 -H 'Accept: application/json' "$B/SubjectInFields?name=$N&searchInHistory=true&type=1"; echo
+          sleep 3
+          for e in 131090107 130210863 101638850 175103346 200198146 106579651; do
+            curl -s -m 60 -H 'Accept: application/json' "$B/$e" -o d.json
+            python3 - "$e" <<'PY'
+          import json,re,sys
+          d=json.load(open('d.json')); print('###',sys.argv[1],d.get('companyName'),'status',d.get('deedStatus'))
+          for s in d.get('sections',[]):
+            for sd in s.get('subDeeds',[]):
+              for g in sd.get('groups',[]):
+                for fl in g.get('fields',[]):
+                  if fl.get('nameCode') in ('CR_F_7_L','CR_F_19_L','CR_F_23_L','CR_F_18_L'):
+                    print(' cur',fl['nameCode'],sd.get('subUICType'),sd.get('subUIC'),fl.get('fieldIdent'),re.sub('<[^>]+>',' ',fl.get('htmlData',''))[:200])
+                    open('ids','a').write(f"{sys.argv[1]} {sd.get('subUICType')} {sd.get('subUIC')} {fl.get('fieldIdent')}\n")
+          PY
+            sleep 2
+          done
+          while read e t s f; do echo "## H $e $f"; curl -s -m 60 -H 'Accept: application/json' "$B/$e/SubDeeds/$t/$s/Fields/$f/History" | python3 -c "
+          import json,sys,re
+          try: d=json.load(sys.stdin)
+          except Exception as x: print('ERR',x); sys.exit()
+          print(type(d).__name__, (list(d.keys()) if isinstance(d,dict) else len(d)))
+          items=d if isinstance(d,list) else d.get('fields') or d.get('items') or []
+          for it in items[:12]: print('  ',{k:(str(v)[:40]) for k,v in it.items() if k!='htmlData'}, re.sub('<[^>]+>',' ',it.get('htmlData',''))[:220])
+          "; sleep 2; done < ids
