@@ -3,12 +3,12 @@ on:
   workflow_dispatch:
 jobs:
   probe:
-    runs-on: [self-hosted, macOS]
-    timeout-minutes: 15
+    runs-on: ubuntu-latest
     steps:
-      - run: |
-          set +e
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -m 40 -A "$UA" https://silistra.egov.bg/ ; echo
-          curl -sL -m 40 -A "$UA" "https://silistra.egov.bg/wps/portal/municipality-silistra/" | head -c 600; echo
-          for u in https://plovdivcouncil.bg/ https://www.plovdiv-os.bg/ https://os.plovdiv.bg/ https://www.os-plovdiv.bg/ https://obshtinskisavet.plovdiv.bg/; do curl -sL -m 30 -A "$UA" -o p.html -w "## $u %{http_code} %{url_effective} %{size_download}\n" "$u"; done
+      - env:
+          U: ${{ secrets.SUPABASE_URL }}
+          K: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          for q in "proc_buyers?select=eik&limit=1" "proc_contracts?select=id&order=contract_date.desc&limit=5" "ingest_state?select=*&limit=3"; do
+            echo "## $q $(curl -s -m 60 -o o.json -w '%{http_code} %{time_total}' "$U/rest/v1/$q" -H "apikey: $K" -H "Authorization: Bearer $K") $(head -c 120 o.json)"
+          done
