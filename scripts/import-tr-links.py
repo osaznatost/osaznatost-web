@@ -12,7 +12,7 @@ from datetime import date, timedelta
 API = "https://portal.registryagency.bg/CR/api/Deeds"
 UA = "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
 MINUTES = float(os.environ.get("MINUTES", "45"))
-PACE = float(os.environ.get("PACE", "2.5"))
+PACE = float(os.environ.get("PACE", "4"))
 REFRESH = int(os.environ.get("REFRESH_DAYS", "60"))
 FIRST = [c.strip() for c in os.environ.get("CODES", "SFO07").split(",") if c.strip()]
 DIR, OUT = "scripts/tr-links", "data/tr-links"

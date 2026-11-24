@@ -2,7 +2,7 @@ name: Свързани лица (Търговски регистър с исто
 
 on:
   # schedule (Cloudflare):
-    # cf-cron: "41 22 * * *"
+    # cf-cron: "41 */3 * * *"
   workflow_dispatch:
     inputs:
       only:
