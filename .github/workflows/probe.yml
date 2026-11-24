@@ -5,12 +5,10 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - env:
-          U: ${{ secrets.SUPABASE_URL }}
-          K: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: |
+      - run: |
           set +e
-          S=$(date -u -d '-90 days' +%F)
-          for q in "proc_annexes?published_at=gte.$S&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20&select=id" "proc_contracts?contract_date=gte.$S&has_subcontractors=is.true&order=contract_date.desc&limit=40&select=id" "proc_contracts_geo?contract_date=gte.$S&has_subcontractors=is.true&municipality_code=eq.SFO07&order=contract_date.desc&limit=40&select=id" "proc_annexes_geo?published_at=gte.$S&value_difference_eur=gt.0&municipality_code=eq.SFO07&order=value_difference_eur.desc.nullslast&limit=20&select=id"; do
-            echo "## $q $(curl -s -m 60 -o o.json -w '%{http_code} %{time_total}' "$U/rest/v1/$q" -H "apikey: $K" -H "Authorization: Bearer $K") $(head -c 150 o.json)"
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in https://www.silistra.bg/ https://silistra.bg/ https://obs.silistra.bg/ https://os.silistra.bg/ https://www.obs-silistra.bg/ https://silistra.bg/obshtinski-savet https://www.silistra.bg/bg/obshtinski-savet; do
+            curl -sL -m 30 -A "$UA" -o p.html -w "## $u %{http_code} %{url_effective} %{size_download}\n" "$u"
+            grep -oiE 'href="[^"]*(reshen|savet|sachet|council|обс|решени)[^"]*"' p.html | sort -u | head -15
           done
