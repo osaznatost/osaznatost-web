@@ -4,7 +4,7 @@ import { writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 const B = "https://reports.appk.government.bg/Public/Public/CompanyDetails/";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const get = (u) => { try { return execFileSync("curl", ["-sS", "-L", "--fail", "-m", "40", "-A", "Mozilla/5.0 (osaznatost.bg; отворени данни)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch { return null; } };
+const get = (u) => { try { return execFileSync("curl", ["-sS", "-L", "--fail", "-m", "40", "-A", "Mozilla/5.0 (osaznatost.bg; open data)", u], { maxBuffer: 1 << 26 }).toString("utf8"); } catch { return null; } };
 const dec = (s) => s.replace(/&amp;/g, "&").replace(/&#x([0-9a-f]+);/gi, (_, x) => String.fromCodePoint(parseInt(x, 16))).replace(/&quot;/g, "\"").replace(/&amp;/g, "&").replace(/&nbsp;/g, " ");
 const txt = (h) => dec(h.replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/g, "").replace(/<br\s*\/?>|<\/(p|div|li|dd|dt|td|tr|h\d)>/gi, "\n").replace(/<[^>]+>/g, " ")).replace(/[ \t]+/g, " ").replace(/\n\s*/g, "\n");
 const between = (t, a, b) => { const i = t.indexOf(a); if (i < 0) return null; const j = t.indexOf(b, i + a.length); return t.slice(i + a.length, j < 0 ? undefined : j).trim(); };

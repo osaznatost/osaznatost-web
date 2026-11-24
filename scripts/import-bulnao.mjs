@@ -5,7 +5,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const OUT = "data/audits.json";
-const UA = "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev; отворени данни)";
+const UA = "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev; open data)";
 const BASE = "https://www.bulnao.government.bg";
 const SECTIONS = {
   dokladi: "одит",

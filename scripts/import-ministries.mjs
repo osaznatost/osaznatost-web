@@ -4,7 +4,7 @@
 import { writeFileSync, readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 const B = "https://iisda.government.bg";
-const UA = { "user-agent": "Mozilla/5.0 (osaznatost.bg; отворени данни)" };
+const UA = { "user-agent": "Mozilla/5.0 (osaznatost.bg; open data)" };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // curl, а не fetch: сървърът на регистъра не връща пълната верига от сертификати и Node я отказва,
 // докато curl я довършва от системните сертификати. Проверката на сертификата остава включена.

@@ -53,7 +53,7 @@ def num(x):
 def fetch(d):
     f = f"/tmp/kolkostruva-{d}.zip"
     if not os.path.exists(f):
-        r = subprocess.run(["curl", "-sSLf", "-m", "300", "-A", "Mozilla/5.0 (osaznatost.bg; отворени данни)", "-o", f, f"https://kolkostruva.bg/opendata_files/{d}.zip"])
+        r = subprocess.run(["curl", "-sSLf", "-m", "300", "-A", "Mozilla/5.0 (osaznatost.bg; open data)", "-o", f, f"https://kolkostruva.bg/opendata_files/{d}.zip"])
         if r.returncode != 0:
             return None
     return f
