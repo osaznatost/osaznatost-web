@@ -86,7 +86,7 @@ function Graph({ paths }: { paths: Path[] }) {
   return (
     <div className="w-full overflow-x-auto bg-white rounded-sm ring-1 ring-rule">
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full min-w-[720px]" role="img" aria-label="Схема на връзките">
-        {["Лицето", "Общи фирми", "Хора в тях", "Печелят обществени поръчки"].map((t, i) => <text key={t} x={X[i]} y={18} textAnchor={i === 3 ? "start" : "middle"} fontSize={12} fill="#56605b">{t}</text>)}
+        {["Лицето", "Общи фирми", "Хора в тях", "Печелят обществени поръчки"].map((t, i) => <text key={t} x={i === 3 ? W - 8 : X[i]} y={18} textAnchor={i === 3 ? "end" : "middle"} fontSize={12} fill="#56605b">{t}</text>)}
         {[...links.values()].map(({ a, b, strong }) => {
           const p1 = pos.get(a)!, p2 = pos.get(b)!, mx = (p1.x + p2.x) / 2;
           return <path key={`${a}>${b}`} d={`M${p1.x},${p1.y} C${mx},${p1.y} ${mx},${p2.y} ${p2.x},${p2.y}`} fill="none" stroke={strong ? "#c8102e" : "#9aa39e"} strokeOpacity={strong ? 0.55 : 0.6} strokeWidth={strong ? 2.5 : 1.5} strokeDasharray={strong ? undefined : "5 4"} />;
