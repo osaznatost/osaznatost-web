@@ -13,6 +13,7 @@ import { MPS } from "@/lib/parliament";
 import { tendersByContact } from "@/lib/projects";
 import { PersonFirms } from "@/components/TrBox";
 import { PersonLinks } from "@/components/PersonLinks";
+import { SignalForm } from "@/components/SignalForm";
 import { declLinksFor } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { firmsOfPerson, peopleOf, trMany } from "@/lib/tr";
@@ -180,6 +181,12 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
         <SectionTitle>Свързани лица и фирми (с историята)</SectionTitle>
         <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Всички фирми, в които лицето е било или е управител, съдружник или собственик, хората, които са били с него в тях, и техните фирми, които печелят поръчки в общината.</p>
         <Suspense fallback={<p className="text-muted">Зареждане…</p>}><PersonLinks code={code} slug={o.slug} /></Suspense>
+      </section>
+
+      <section className="mb-10" id="signal">
+        <SectionTitle>Сигнал за проверка</SectionTitle>
+        <p className="text-sm text-muted -mt-3 mb-3 max-w-3xl">Ако знаете факти, които не съответстват на декларацията (имущество, прехвърлено на близки, облаги от общината), тук може да съставите сигнал до компетентния орган. Декларираното се попълва автоматично.</p>
+        <SignalForm d={{ name: o.name, role: o.roleRaw, place: L.name ?? "", year: d?.year ?? null, url: d?.url ?? null, income: d?.income ?? null, realEstate: d?.realEstate ?? null, vehicles: d?.vehicles ?? null, bankEur: d?.bankEur ?? null, stakes: d?.stakes?.length ?? 0 }} />
       </section>
 
       {(mp || mpNow) && (
