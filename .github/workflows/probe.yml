@@ -11,8 +11,10 @@ jobs:
           node-version: 22
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: ONLY=PDV22 MINUTES=2 node scripts/import-council-sites.mjs
-      - run: python3 -c "
+      - run: |
+          python3 - <<'PY'
           import json;d=json.load(open('data/council/PDV22.json'))['decisions']
           print(len(d))
           for x in d[:6]: print(json.dumps(x,ensure_ascii=False)[:700])
-          print('tally', sum(1 for x in d if x['tally']), 'rej', sum(1 for x in d if x['result']=='rejected'))"
+          print('tally', sum(1 for x in d if x['tally']), 'rej', sum(1 for x in d if x['result']=='rejected'))
+          PY
