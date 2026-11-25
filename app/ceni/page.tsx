@@ -55,7 +55,7 @@ export default async function Ceni() {
       </Title>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {[
-          { href: "/ceni/nadcenki#dm", t: "България срещу Европа", d: "Един и същ продукт в dm в 5 държави и в 5 вериги у нас срещу BILLA Австрия." },
+          { href: "/ceni/nadcenki#dm", t: "България срещу Европа", d: "Един и същ продукт в dm в 5 държави и във веригите у нас, в Румъния (Auchan, Carrefour) и в Австрия (BILLA)." },
           { href: "/ceni/nadcenki#edro", t: "Надценки", d: "Цена на едро срещу цена в магазина, по данни на ДКСБТ и КЗП." },
           { href: "/ceni/nadcenki#evropa", t: "Храната спрямо ЕС", d: "Ценово равнище и покупателна способност в България и другите страни (Евростат)." },
           { href: "/ikonomika/pokupatelna-sila", t: "Какво купува заплатата", d: "Колко хляб, ток и гориво купува минималната заплата тук и в съседните страни." },

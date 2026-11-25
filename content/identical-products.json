@@ -27,6 +27,17 @@
      "chain": "T Market",
      "name": "СПАГЕТИ BARILLA NO5 500Г"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8076800195057"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "11004101",
+     "search": "barilla spaghetti"
+    }
    ]
   },
   {
@@ -51,6 +62,17 @@
      "chain": "ФАНТАСТИКО",
      "name": "СПАГЕТИ BARILLA НОМЕР 3 500 ГР"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8076800195033"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "11004100",
+     "search": "barilla spaghetti"
+    }
    ]
   },
   {
@@ -70,6 +92,12 @@
     {
      "chain": "ФАНТАСТИКО",
      "name": "СПАГЕТИ BARILLA 100% ПЪЛНОЗЪРНЕСТИ №5 500 ГР"
+    }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8076809529419"
     }
    ]
   },
@@ -99,6 +127,12 @@
      "chain": "T Market",
      "name": "МАКАРОНИ BARILLA PENNE RIGATE 500Г"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8076809516457"
+    }
    ]
   },
   {
@@ -127,6 +161,17 @@
      "chain": "T Market",
      "name": "МАКАРОНИ BARILLA FUSILLI 500Г"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8076809523486"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "11004115",
+     "search": "barilla fusilli"
+    }
    ]
   },
   {
@@ -142,7 +187,18 @@
     "search": "monini",
     "sku": "00-793862"
    },
-   "bgMore": []
+   "bgMore": [],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "80053835"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "14501470",
+     "search": "monini"
+    }
+   ]
   },
   {
    "id": "mutti-peeled",
@@ -161,6 +217,13 @@
     {
      "chain": "ФАНТАСТИКО",
      "name": "ДОМАТИ MUTTI ЦЕЛИ БЕЛЕНИ 400 Г КОНСЕРВА"
+    }
+   ],
+   "ro": [
+    {
+     "chain": "Carrefour",
+     "id": "11018944",
+     "search": "mutti"
     }
    ]
   },
@@ -182,6 +245,12 @@
      "chain": "ФАНТАСТИКО",
      "name": "ДОМАТИ MUTTI СИТНО НАРЯЗАНИ 400 ГР"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "80042556"
+    }
    ]
   },
   {
@@ -197,7 +266,18 @@
     "search": "bonduelle",
     "sku": "00-602789"
    },
-   "bgMore": []
+   "bgMore": [],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "3083680009508"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "11000219",
+     "search": "bonduelle fasole"
+    }
+   ]
   },
   {
    "id": "bonduelle-white",
@@ -212,7 +292,18 @@
     "search": "bonduelle",
     "sku": "00-420859"
    },
-   "bgMore": []
+   "bgMore": [],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "3083680001663"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "11001101",
+     "search": "bonduelle fasole"
+    }
+   ]
   },
   {
    "id": "lavazza-crema-gusto",
@@ -240,6 +331,17 @@
      "chain": "T Market",
      "name": "КАФЕ LAVAZZA CREMA GUSTO 250 ГР"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8000070038769"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "14501019",
+     "search": "lavazza"
+    }
    ]
   },
   {
@@ -260,6 +362,12 @@
      "chain": "Кауфланд България",
      "name": "LAVAZZA CREMAAROMA КАФЕ НА ЗЪРНА 1КГ"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8000070024441"
+    }
    ]
   },
   {
@@ -279,6 +387,17 @@
     {
      "chain": "Кауфланд България",
      "name": "ELMEX ПАСТА ЗА ЗЪБИ CARIESPROTECTION75МЛ"
+    }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8718951477575"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "12519994",
+     "search": "elmex"
     }
    ]
   },
@@ -307,6 +426,17 @@
     {
      "chain": "T Market",
      "name": "ПАСТА ЗА ЗЪБИ ELMEX SENSITIVE 75 МЛ"
+    }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8718951470613"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "12519996",
+     "search": "elmex"
     }
    ]
   },
@@ -352,6 +482,17 @@
      "chain": "Кауфланд България",
      "name": "ELMEX ПАСТА ЗА ЗЪБИ JUNIOR 6-12 Г. 75 МЛ"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8718951470583"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "12519993",
+     "search": "elmex"
+    }
    ]
   },
   {
@@ -367,7 +508,18 @@
     "search": "colgate max white",
     "sku": "00-731141"
    },
-   "bgMore": []
+   "bgMore": [],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "8718951540033"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "12522067",
+     "search": "colgate max white purple"
+    }
+   ]
   },
   {
    "id": "milka-alpine",
@@ -391,6 +543,12 @@
      "chain": "T Market",
      "name": "ШОКОЛАД MILKA МЛЕЧЕН 90Г"
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "7622202271601"
+    }
    ]
   },
   {
@@ -410,6 +568,12 @@
     {
      "chain": "Кауфланд България",
      "name": "MILKA ШОКОЛАД OREO 100 Г"
+    }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "7622210999108"
     }
    ]
   },
@@ -435,6 +599,17 @@
      "chain": "Лидл България",
      "name": "KINDER ШОКОЛАД 8 БР."
     }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "40084701"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "11004552",
+     "search": "kinder chocolate"
+    }
    ]
   },
   {
@@ -458,6 +633,17 @@
     {
      "chain": "ФАНТАСТИКО",
      "name": "ШОКОЛАД LINDT ЛИНДОР МЛЕЧЕН 100 ГР КАСИ"
+    }
+   ],
+   "ro": [
+    {
+     "chain": "Auchan",
+     "ean": "7610400097093"
+    },
+    {
+     "chain": "Carrefour",
+     "id": "14523947",
+     "search": "lindt lindor"
     }
    ]
   }

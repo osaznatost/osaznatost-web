@@ -1,4 +1,4 @@
-name: Цени в чужбина (BILLA Австрия, Евростат)
+name: Цени в чужбина (BILLA Австрия, Auchan и Carrefour Румъния, Евростат)
 on:
   # schedule (Cloudflare):
     # cf-cron: "41 5 * * 1"   # всеки понеделник

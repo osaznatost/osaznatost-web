@@ -9,7 +9,8 @@ export const metadata = { title: "Надценки и цени спрямо чу
 
 type Ident = { id: string; label: string; size: string; group: string; bg: { chain: string; name: string }; at: { search: string; sku: string } };
 type Prod = { date: string; items: Record<string, { med: number; min: number; max: number; stores: number; chains?: Record<string, { med: number; stores: number }> }> };
-type Abroad = { date: string; chain: string; items: Record<string, { name: string; price: number; promo: boolean; url: string }> };
+type Offer = { name: string; price: number; promo: boolean; url: string };
+type Abroad = { date: string; chain: string; items: Record<string, Offer>; ro?: { date: string; ron: number; chains: Record<string, Record<string, Offer & { lei: number }>> } };
 type Whole = { week: string; source: string; url: string; items: Record<string, { eur: number; unit: string }> };
 type Cat = { name: string; med: number; n: number; chains: Record<string, { med: number; min: number; n: number }> };
 type Latest = { date: string; chains: Record<string, number>; cats: Record<string, Cat> };
@@ -35,16 +36,30 @@ export default async function Nadcenki() {
   const ident = IDENT.items as Ident[];
   const [P, A, W, L, E] = await Promise.all([read<Prod>("products.json"), read<Abroad>("abroad.json"), read<Whole>("wholesale.json"), read<Latest>("latest.json"), read<EU>("eu-levels.json")]);
 
-  const rows = ident.map((i) => ({ i, bg: P?.items[i.id], at: A?.items[i.id] })).filter((r) => r.bg && r.at)
-    .map((r) => ({ ...r, diff: (r.bg!.med / r.at!.price - 1) * 100 }));
-  const dearer = rows.filter((r) => r.diff > 1).length, cheaper = rows.filter((r) => r.diff < -1).length;
-  const sumBg = rows.reduce((s, r) => s + r.bg!.med, 0), sumAt = rows.reduce((s, r) => s + r.at!.price, 0);
-  const hyg = rows.filter((r) => r.i.group === "Хигиена");
-  // Същите продукти и в другите вериги у нас (по данните на КЗП), ако ги продават.
+  // Чужбина: BILLA Австрия и веригите в Румъния. Ред има, ако продуктът е намерен у нас и поне в една чужда верига.
+  const ROCH = ["Auchan", "Carrefour"].filter((c) => Object.keys(A?.ro?.chains[c] ?? {}).length);
+  const rows = ident.map((i) => {
+    const bg = P?.items[i.id], at = A?.items[i.id];
+    const ro = Object.fromEntries(ROCH.flatMap((c) => { const o = A?.ro?.chains[c]?.[i.id]; return o ? [[c, o]] : []; })) as Record<string, Offer & { lei: number }>;
+    return { i, bg, at, ro };
+  }).filter((r) => r.bg && (r.at || Object.keys(r.ro).length));
   const BGCH: [string, string][] = [["Билла", "BILLA"], ["Кауфланд България", "Kaufland"], ["Лидл България", "Lidl"], ["ФАНТАСТИКО", "Фантастико"], ["T Market", "T Market"]];
   const bgCh = BGCH.filter(([c]) => rows.some((r) => r.bg!.chains?.[c]));
   const cheapestBg = (r: (typeof rows)[number]) => Math.min(...Object.values(r.bg!.chains ?? {}).map((x) => x.med), r.bg!.med);
-  const sumCheap = rows.reduce((s, r) => s + cheapestBg(r), 0);
+  const cheapestRo = (r: (typeof rows)[number]) => { const v = Object.values(r.ro).map((o) => o.price); return v.length ? Math.min(...v) : null; };
+  // Сравнение „най-евтиното у нас срещу най-евтиното в държавата“ върху продуктите, които ги има и на двете места.
+  const vs = (get: (r: (typeof rows)[number]) => number | null) => {
+    const rs = rows.filter((r) => get(r) != null);
+    const bg = rs.reduce((s, r) => s + cheapestBg(r), 0), ab = rs.reduce((s, r) => s + get(r)!, 0);
+    return { n: rs.length, bg, ab, diff: ab ? (bg / ab - 1) * 100 : 0, dearer: rs.filter((r) => cheapestBg(r) / get(r)! > 1.01).length };
+  };
+  const vsRo = vs(cheapestRo), vsAt = vs((r) => r.at?.price ?? null);
+  const billa = rows.filter((r) => r.at);
+  const sumBg = billa.reduce((s, r) => s + r.bg!.med, 0), sumAt = billa.reduce((s, r) => s + r.at!.price, 0);
+  const hyg = billa.filter((r) => r.i.group === "Хигиена");
+  const rel = (a: number, b: number | null) => (b == null ? null : (a / b - 1) * 100);
+  const Diff = ({ v }: { v: number | null }) => <td className={`text-right px-2 font-semibold ${v == null ? "" : v > 1 ? "text-red" : v < -1 ? "text-green" : ""}`}>{v == null ? <span className="text-muted font-normal">–</span> : pc(v)}</td>;
+  const Price = ({ o, low }: { o?: Offer & { lei?: number }; low?: boolean }) => <td className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{o ? <><a href={o.url} rel="nofollow noopener">{eur(o.price)}</a>{o.promo && <span className="block text-xs text-muted">промоция</span>}</> : <span className="text-muted">–</span>}</td>;
 
   const whole = W && L ? Object.entries(W.items).flatMap(([name, w]) => {
     const m = WHOLE_MAP.find(([re]) => re.test(name));
@@ -65,34 +80,44 @@ export default async function Nadcenki() {
       <Title lead="Три сравнения, изчислени по един и същ начин за всички: еднакви продукти в една и съща верига в България и в Австрия; цената на едро срещу цената в магазина; и колко струва храната у нас спрямо доходите в ЕС. Под всяка цифра стои какво точно сравняваме.">
         Надценки и цени спрямо чужбина
       </Title>
-      <SectionNav items={[["dm", "dm в 5 държави"], ["ednakvi", "5 вериги у нас срещу Австрия"], ["edro", "Едро → дребно"], ["evropa", "България в ЕС"], ["metodologiya", "Методология"]]} />
+      <SectionNav items={[["dm", "dm в 5 държави"], ["ednakvi", "Вериги: България, Румъния, Австрия"], ["edro", "Едро → дребно"], ["evropa", "България в ЕС"], ["metodologiya", "Методология"]]} />
 
       <Anchor id="dm" title="Един и същ продукт в 5 държави (dm)" lead="Хиляди еднакви продукти (козметика, хигиена, бебешки и домашни стоки, храни) с един и същ баркод в dm България, Германия, Австрия, Румъния и Хърватия. Показваме колко по-скъпо или по-евтино е у нас.">
         <DmCompare />
       </Anchor>
 
-      <Anchor id="ednakvi" title="Един и същ продукт във веригите у нас и в Австрия" lead={`Еднакви артикули (марка, вид и разфасовка) в BILLA, Kaufland, Lidl, Фантастико и T Market в България и в BILLA Австрия. В България: обичайната цена в магазините на всяка верига по данните на КЗП${P ? ` (${dmy(P.date)})` : ""}; в Австрия: онлайн магазинът на BILLA${A ? ` (${dmy(A.date)})` : ""}. Празно поле: веригата не продава точно този артикул.`}>
+      <Anchor id="ednakvi" title="Един и същ продукт във веригите у нас, в Румъния и в Австрия" lead={`Еднакви артикули (марка, вид и разфасовка) по държави и по вериги. България: BILLA, Kaufland, Lidl, Фантастико и T Market, обичайната цена в магазините по данните на КЗП${P ? ` (${dmy(P.date)})` : ""}. Румъния: онлайн магазините на Auchan и Carrefour${A?.ro ? ` (${dmy(A.ro.date)}, леи по курса на ЕЦБ ${A.ro.ron.toLocaleString("bg-BG")} за 1 €)` : ""}. Австрия: онлайн магазинът на BILLA${A ? ` (${dmy(A.date)})` : ""}. Празно поле: веригата не продава точно този артикул или в момента го няма.`}>
         {rows.length === 0 ? <p className="text-muted">Данните се събират. Опитай отново по-късно.</p> : (
           <>
             <div className="grid gap-3 sm:grid-cols-3 mb-5">
-              <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">По-скъпо в България</p><p className="display text-[2.4rem] leading-none mt-1">{dearer} от {rows.length}</p><p className="text-xs text-muted mt-1">с повече от 1%</p></div>
-              <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">По-евтино в България</p><p className="display text-[2.4rem] leading-none mt-1">{cheaper} от {rows.length}</p><p className="text-xs text-muted mt-1">с повече от 1%</p></div>
-              <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Цялата кошница</p><p className="display text-[2.4rem] leading-none mt-1">{pc((sumBg / sumAt - 1) * 100)}</p><p className="text-xs text-muted mt-1">{eur(sumBg)} в BILLA у нас срещу {eur(sumAt)} в BILLA Австрия. Ако всеки продукт се купи от най-евтината верига у нас: {eur(sumCheap)} ({pc((sumCheap / sumAt - 1) * 100)}).</p></div>
+              {vsRo.n > 0 && <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">България спрямо Румъния</p><p className="display text-[2.4rem] leading-none mt-1">{pc(vsRo.diff)}</p><p className="text-xs text-muted mt-1">{vsRo.n} продукта, всеки от най-евтината верига: {eur(vsRo.bg)} у нас срещу {eur(vsRo.ab)} в Румъния. По-скъпи у нас: {vsRo.dearer} от {vsRo.n}.</p></div>}
+              {vsAt.n > 0 && <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">България спрямо Австрия</p><p className="display text-[2.4rem] leading-none mt-1">{pc(vsAt.diff)}</p><p className="text-xs text-muted mt-1">{vsAt.n} продукта, най-евтината верига у нас: {eur(vsAt.bg)} срещу {eur(vsAt.ab)} в BILLA Австрия. По-скъпи у нас: {vsAt.dearer} от {vsAt.n}.</p></div>}
+              {billa.length > 0 && <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Една и съща верига: BILLA</p><p className="display text-[2.4rem] leading-none mt-1">{pc((sumBg / sumAt - 1) * 100)}</p><p className="text-xs text-muted mt-1">{eur(sumBg)} в BILLA у нас срещу {eur(sumAt)} в BILLA Австрия, за {billa.length} продукта.</p></div>}
             </div>
-            <table className="w-full text-[15px] num">
-              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Продукт</th>{bgCh.map(([c, n]) => <th key={c} className="text-right px-2 font-normal">{n}</th>)}<th className="text-right px-2 font-normal">BILLA Австрия</th><th className="text-right px-2 font-normal">BILLA: БГ спрямо AT</th></tr></thead>
+            <div className="overflow-x-auto">
+            <table className="w-full text-[15px] num min-w-[900px]">
+              <thead>
+                <tr className="text-sm"><th></th><th colSpan={bgCh.length} className="text-center px-2 pb-1 font-semibold border-b border-rule">България</th>{ROCH.length > 0 && <th colSpan={ROCH.length} className="text-center px-2 pb-1 font-semibold border-b border-rule">Румъния</th>}<th className="text-center px-2 pb-1 font-semibold border-b border-rule">Австрия</th><th colSpan={ROCH.length ? 2 : 1} className="text-center px-2 pb-1 font-semibold border-b border-rule">Най-евтино у нас спрямо</th></tr>
+                <tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Продукт</th>{bgCh.map(([c, n]) => <th key={c} className="text-right px-2 font-normal">{n}</th>)}{ROCH.map((c) => <th key={c} className="text-right px-2 font-normal">{c}</th>)}<th className="text-right px-2 font-normal">BILLA</th>{ROCH.length > 0 && <th className="text-right px-2 font-normal">Румъния</th>}<th className="text-right px-2 font-normal">Австрия</th></tr>
+              </thead>
               <tbody>{["Основни храни", "Кафе", "Хигиена", "Други"].flatMap((g) => {
                 const rs = rows.filter((r) => r.i.group === g);
-                return rs.length ? [<tr key={g}><td colSpan={bgCh.length + 3} className="pt-4 pb-1 text-sm font-semibold">{g}</td></tr>, ...rs.map((r) => (
+                const cols = 1 + bgCh.length + ROCH.length + 1 + (ROCH.length ? 2 : 1);
+                return rs.length ? [<tr key={g}><td colSpan={cols} className="pt-4 pb-1 text-sm font-semibold">{g}</td></tr>, ...rs.map((r) => {
+                  const lowBg = cheapestBg(r), lowRo = cheapestRo(r);
+                  return (
                   <tr key={r.i.id} className="border-b border-rule">
                     <td className="py-1.5 pr-3">{r.i.label}<span className="text-sm text-muted">, {r.i.size}</span></td>
-                    {bgCh.map(([c]) => { const v = c === "Билла" ? r.bg!.med : r.bg!.chains?.[c]?.med; const low = v != null && v === cheapestBg(r) && Object.keys(r.bg!.chains ?? {}).length > 1; return <td key={c} className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{v != null ? eur(v) : <span className="text-muted">–</span>}</td>; })}
-                    <td className="text-right px-2"><a href={r.at!.url} rel="nofollow noopener">{eur(r.at!.price)}</a>{r.at!.promo && <span className="block text-xs text-muted">промоция</span>}</td>
-                    <td className={`text-right px-2 font-semibold ${r.diff > 1 ? "text-red" : r.diff < -1 ? "text-green" : ""}`}>{pc(r.diff)}</td>
-                  </tr>))] : [];
+                    {bgCh.map(([c]) => { const v = c === "Билла" ? r.bg!.med : r.bg!.chains?.[c]?.med; const low = v != null && v === lowBg && Object.keys(r.bg!.chains ?? {}).length > 1; return <td key={c} className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{v != null ? eur(v) : <span className="text-muted">–</span>}</td>; })}
+                    {ROCH.map((c) => <Price key={c} o={r.ro[c]} low={Object.keys(r.ro).length > 1 && r.ro[c]?.price === lowRo} />)}
+                    <Price o={r.at} />
+                    {ROCH.length > 0 && <Diff v={rel(lowBg, lowRo)} />}
+                    <Diff v={rel(lowBg, r.at?.price ?? null)} />
+                  </tr>); })] : [];
               })}</tbody>
             </table>
-            <p className="text-sm text-muted mt-3 max-w-3xl">Зелено: най-евтината верига у нас за този продукт. „BILLA: БГ спрямо AT“: с колко процента цената в BILLA България е над (+) или под (−) цената в Австрия. Цените са крайни, с ДДС. В България ДДС върху храните е 20%, в Австрия 10% за повечето храни и 4,9% за някои основни, затова при храните част от разликата е данъкът. При пастите за зъби ДДС и в двете държави е 20%{hyg.length ? ` — там сравнението е най-чисто: ${hyg.filter((r) => r.diff > 1).length} от ${hyg.length} са по-скъпи у нас` : ""}.</p>
+            </div>
+            <p className="text-sm text-muted mt-3 max-w-3xl">Зелено: най-евтината верига в държавата за този продукт. Последните колони: с колко процента най-евтината цена у нас е над (+) или под (−) най-евтината цена в Румъния и цената в Австрия. Цените са крайни, с ДДС, в евро. ДДС върху храните: България 20%, Румъния 11%, Австрия 10% (за някои основни 4,9%), затова при храните част от разликата е данъкът. При пастите за зъби ДДС е 20% у нас, 21% в Румъния и 20% в Австрия{hyg.length ? ` — там сравнението е най-чисто: в BILLA ${hyg.filter((r) => r.bg!.med / r.at!.price > 1.01).length} от ${hyg.length} са по-скъпи у нас` : ""}. Цените в Румъния и Австрия са от онлайн магазините и може да включват промоция (отбелязано е).</p>
           </>
         )}
       </Anchor>
