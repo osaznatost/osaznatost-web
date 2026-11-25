@@ -59,6 +59,8 @@ const SITES = {
   BLG53: { name: "Якоруда", wp: "https://www.yakoruda.bg", wpCat: /Решения и протоколи/, from: "2023-11-01" },
   HKV34: { name: "Хасково", list: (p) => `https://www.haskovo.bg/bg/mandat-2023-2027${p ? `/page/${p * 18}` : ""}`, item: /href="\/?(bg\/mandat-2023-2027\/reshenie-\d+-ot-[\d-]+g?)"/g, base: "https://www.haskovo.bg/", from: "2023-11-01" },
   // „Страници с файлове“: страниците (по години/заседания) съдържат връзки към PDF/Word с решенията; всеки файл се чете веднъж.
+  DOB28: { name: "Добрич", pages: () => ["2023-g", ...[2024, 2025, 2026, 2027].map((y) => `resheniya-ot-zasedaniya-na-obshtinski-savet-prez-${y}-g`)].map((x) => `https://www.dobrich.bg/bg/resheniya-mandat-2023-2027-g/${x}`), fileRe: /res|resh|\d+-\d+/i, base: "https://www.dobrich.bg/", from: "2023-11-01" },
+  BGS08: { name: "Камено", pages: () => ["https://www.kameno.bg/bg/page/482"], sub: /href="((?:https:\/\/(?:www\.)?kameno\.bg)?\/bg\/page\/resheniya-20(?:2[3-9])-godina-\d+)"/g, fileRe: /РЕШЕНИ|%D0%A0%D0%95%D0%A8/i, base: "https://www.kameno.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -973,23 +975,26 @@ function dateOf(s) {
 }
 function parseGeneric(text, fb) {
   const t = ws(text);
-  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)\s*(\d+(?:-\d+)?)/i);
-  const number = fb.number || (nm ? nm[1] : null);
+  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)?\s*(\d+(?:\s*[–-]\s*\d+)?)/i);
+  const pt = !nm && t.match(/Решение\s+по\s+т\.\s*(\d+)[\s\S]{0,40}?Протокол\s*№\s*(\d+)/i); // „Решение по т.1 от Протокол №10/…“
+  const number = fb.number || (nm ? nm[1].replace(/\s*[–-]\s*/, "-") : pt ? `${pt[2]}-${pt[1]}` : null);
   const pm = t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*(?:№|N)\s*(\d+)[^\n]{0,80}/i);
   const date = (pm && dateOf(pm[0])) || (nm && dateOf(t.slice(t.indexOf(nm[0]), t.indexOf(nm[0]) + 160))) || fb.date;
   if (!number || !date) return null;
-  const after = nm ? t.slice(t.indexOf(nm[0]) + nm[0].length) : t;
-  const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
+  const hd = nm ?? pt;
+  const after = hd ? t.slice(t.indexOf(hd[0]) + hd[0].length) : t;
+  const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.|(?:^|\n)\s*Относно)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
   const reshi = after.split(/Р\s*Е\s*Ш\s*И\s*:?/);
   const body = ws((reshi.length > 1 ? reshi.slice(1).join(" ") : after).split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател\s+на|Мотиви\s*:|МОТИВИ|Гласували|ГЛАСУВАЛИ|Резултати от гласуването|РАЗГЛАСЯВАНЕ)/)[0]);
   // Без „Относно“: заглавие от началото на решението, без правното основание („На основание …, Общински съвет – X …“).
   const lead = flat(body).replace(/^\s*На\s+основание[\s\S]{0,700}?Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\s*Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\d+\.\s*/, "");
-  let title = om ? flat(om[1]) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
+  let title = om ? flat(om[1]) : fb.title ? flat(fb.title) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
   title = title.replace(/^[:\s–-]+/, "").replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
   const vm = t.match(/(?:„?за“?\s*[–:-]?\s*(\d+)[\s,;]+„?против“?\s*[–:-]?\s*(\d+)[\s,;]+„?въздърж\S*(?:\s+се)?“?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без))/i);
   const nn = (x) => (/без/i.test(x) ? 0 : +x);
-  const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : null;
+  const vk = !vm && t.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
+  const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
   if (tally) tally.method = /поименно/i.test(t) ? "named" : "open";
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
   return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,
@@ -1049,11 +1054,14 @@ async function wpGeneric(code, S, prev) {
 function splitDecisions(text, url, fallbackDate) {
   const t = text.replace(/\f/g, "\n");
   const head = dateOf((t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л[\s\S]{0,200}/i) ?? [""])[0]) ?? fallbackDate;
-  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N)\s*\d)/);
+  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N)?\s*\d)|(?=Решение\s+по\s+т\.\s*\d)/);
   const out = [], seen = new Set();
-  for (const ch of parts) {
-    if (!/^Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/.test(ch)) continue;
-    const d = parseGeneric(ch, { number: null, date: head, url });
+  for (let i = 0; i < parts.length; i++) {
+    const ch = parts[i];
+    if (!/^(Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е|Решение\s+по\s+т\.)/.test(ch)) continue;
+    // Заглавието често е точката от дневния ред точно преди решението („ПО ПЪРВА ТОЧКА ОТ ДНЕВНИЯ РЕД / …“).
+    const ag = i > 0 ? [...parts[i - 1].matchAll(/ТОЧКА\s+ОТ\s+ДНЕВНИЯ\s+РЕД\s*:?\s*\n([\s\S]{5,700}?)\n\s*\n/g)].pop()?.[1] : null;
+    const d = parseGeneric(ch, { number: null, date: head, url, title: ag });
     if (d && !seen.has(d.number)) { seen.add(d.number); out.push(d); }
   }
   return out;
@@ -1075,6 +1083,7 @@ async function filesGeneric(code, S, prev) {
     if (S.sub) for (const m of html.matchAll(S.sub)) queue.push(new URL(unent(m[1]), S.base).href);
     const main = html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
+    if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
     const files = [...main.matchAll(/href="([^"]+\.(?:pdf|docx?))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
       .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]), S.base).href, t: htmlText2(m[2]) }));
     for (const f of files) {
