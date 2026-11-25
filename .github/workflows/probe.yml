@@ -5,10 +5,9 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - env:
-          U: ${{ secrets.SUPABASE_URL }}
-          K: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: |
-          for q in "proc_buyers?select=eik&limit=1" "proc_contracts?select=id&order=contract_date.desc&limit=5" "ingest_state?select=*&limit=3"; do
-            echo "## $q $(curl -s -m 60 -o o.json -w '%{http_code} %{time_total}' "$U/rest/v1/$q" -H "apikey: $K" -H "Authorization: Bearer $K") $(head -c 120 o.json)"
+      - run: |
+          set +e
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in https://www.dm-drogeriemarkt.bg/ https://www.dm.de/ https://www.dm.ro/ https://www.dm.hr/ https://www.ikea.bg/ https://www.ikea.com/ro/ro/ https://www.ikea.com/de/de/ https://www.lidl.bg/ https://www.lidl.de/ https://www.kaufland.bg/ https://www.kaufland.ro/ https://www.billa.cz/ https://www.lilly.bg/ https://www.dm.at/robots.txt https://www.dm-drogeriemarkt.bg/robots.txt https://www.ikea.bg/robots.txt; do
+            curl -sL -m 25 -A "$UA" -o p -w "## $u %{http_code} %{size_download}\n" "$u"
           done
