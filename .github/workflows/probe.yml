@@ -7,19 +7,9 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          for c in DOB28 BGS08 GAB29; do rm -f data/council/$c.json; ONLY=$c MINUTES=2 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "DOB28 BGS08 GAB29".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-          PY
+          python3 probe/look.py "https://obs.kazanlak.bg/r-6-1.html" "https://www.karlovo.bg/section-97-content.html" "https://www.lom.bg/section-254-content.html" "https://www.nova-zagora.bg/bg/zasedania-i-reshenia" "https://www.dimitrovgrad.bg/bg/aktove-na-obshtinski-savet" "https://www.razgrad.bg/obsinski-s-vet" "https://www.asenovgrad.bg/bg/obshtinski-savet" 2>&1 | grep -vE 'facebook|#main|#aside|#header' | cut -c1-300 | head -230
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.gabrovo.bg/bg/page/274 -o g.html; grep -oE '<a[^>]+href="[^"]+"[^>]*>[^<]{0,40}20(2[3-6])[^<]{0,20}' g.html | head
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.razgrad.bg -o r.html; grep -oiE '<a[^>]+href="[^"]+"[^>]*>[^<]*(съвет|решени)[^<]*' r.html | head
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.asenovgrad.bg -o a.html; grep -oiE '<a[^>]+href="[^"]+"[^>]*>[^<]*(съвет|решени)[^<]*' a.html | head
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.dimitrovgrad.bg/bg/obshtinski-savet -o d.html; grep -oiE '<a[^>]+href="[^"]+"[^>]*>[^<]*(акт|решени|2023)[^<]*' d.html | head
