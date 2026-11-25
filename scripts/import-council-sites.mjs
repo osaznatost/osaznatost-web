@@ -71,9 +71,8 @@ const SITES = {
   // Сайтове, които показват списъка чрез JavaScript (render: true → браузър без екран).
   SZR12: { name: "Казанлък", render: true, list: (p) => `https://obs.kazanlak.bg/r-6-${p + 1}.html`, item: /href="((?:https:\/\/obs\.kazanlak\.bg)?\/?page-\d+\.html)"[^>]*>\s*РЕШЕНИЕ/g, base: "https://obs.kazanlak.bg/", from: "2023-11-01" },
   HKV28: { name: "Свиленград", render: true, pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet${p ? `/page/${p * 10}` : ""}`), sub: /href="((?:https:\/\/www\.svilengrad\.bg)?\/?bg\/resheniya-na-obshtinski-savet\/[^"?#]*zasedanie[^"?#]*)"/g, inline: true, base: "https://www.svilengrad.bg/", from: "2023-11-01" },
-  TGV24: { name: "Попово", render: true, pages: () => ["https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html"], sub: /href="((?:https:\/\/www\.popovo\.bg)?\/?bg\/obs-menu\/reshenia-obs-new\/reshenia-obs-2023-2027-\/\d+-reshenia[^"#]*)"/g, inline: true, base: "https://www.popovo.bg/", from: "2023-11-01" },
   BGS15: { name: "Несебър", render: true, pages: () => [1, 2, 3, 4, 5].map((p) => `https://os-nessebar.eu/resheniya${p > 1 ? `?page=${p}` : ""}`), sub: /href="(https:\/\/os-nessebar\.eu\/resheniya\/resheniya-ot-protokol-[^"#]+)"/g, inline: true, base: "https://os-nessebar.eu/", from: "2023-11-01" },
-  VAR02: { name: "Аксаково", render: true, pages: () => ["https://www.aksakovo.bg/section-4167-content.html"], whole: true, fileRe: /решени/i, base: "https://www.aksakovo.bg/", from: "2023-11-01" },
+  TGV24: { name: "Попово", pages: () => ["https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html"], sub: /href="((?:https?:\/\/www\.popovo\.bg)?\/?bg\/obs-menu\/reshenia-obs-new\/reshenia-obs-2023-2027-\/\d+-reshenia[^"#]*)"/g, whole: true, fileRe: /files\.popovo|Reshenia/i, base: "https://www.popovo.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1117,18 +1116,20 @@ async function filesGeneric(code, S, prev) {
     const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
-    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
-      .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]), S.base).href, t: htmlText2(m[2]) }));
+    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
+      .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]).replace(/#.*$/, ""), S.base).href, t: htmlText2(m[2]) }));
     for (const f of files) {
       if (timeUp() || blocked) break;
       if (f.u in prev.files) continue;
       const buf = await get(f.u, true, 2);
       if (!buf) continue;
-      const kind = /\.docx$/i.test(f.u) ? "docx" : /\.doc$/i.test(f.u) ? "doc" : /\.pdf$/i.test(f.u) ? "pdf" : fileKind(buf);
+      const kind = /\.docx(\?|$)/i.test(f.u) ? "docx" : /\.doc(\?|$)/i.test(f.u) ? "doc" : /\.pdf(\?|$)/i.test(f.u) ? "pdf" : fileKind(buf);
       let tx = kind === "docx" ? docxText(buf) : kind === "doc" ? docText(buf) : pdfText(buf);
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
       if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = splitDecisions(tx, f.u, dateOf(f.t));
+      // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
+      if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       prev.files[f.u] = ds.length;
       take(ds);
     }
@@ -1176,7 +1177,7 @@ for (const [code, S] of Object.entries(SITES)) {
     const added = S.pages ? await filesGeneric(code, S, prev) : S.wp ? await wpGeneric(code, S, prev) : S.list ? await listGeneric(code, S, prev) : S.wpApi ? await plovdiv(code, S, prev) : S.vidin ? await vidin(code, S, prev) : S.knl ? await knl(code, S, prev) : S.blgDir ? await blgDir(code, S, prev) : S.vratza ? await vratza(code, S, prev) : S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
-    for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
+    for (const d of prev.decisions) { d.title = d.title.replace(/^ОС_\d+\/[\d.]+\s*[–-]\s*/, "").replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
     if (!decisions.length && !existsSync(f)) continue; // нищо прочетено (напр. свърши времето) — не пишем празен файл
     writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.pages ? S.pages()[0] : S.wp ? S.wp : S.list ? S.list(0) : S.wpApi ? "https://www.plovdiv.bg/общински-съвет/нормативна-база/решения/" : S.vidin ? "https://vidinobs.com/resheniq" : S.knl ? "https://obs.kyustendil.bg/reshenia-obs" : S.blgDir ? "https://blagoevgrad.bg/header-menu/resheniia-na-obshtinski-suvet" : S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : S.vratza ? S.vratza(1) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));

@@ -4,11 +4,26 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
+      - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - run: |
-          python3 probe/all.py "https://www.balchik.bg/bg/mandat-2023-2027|(?i)\.pdf|\.doc|reshen|page|202[3-6]" "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-/2754-reshenia-obs-2026.html|(?i)files\.popovo|\.pdf" 2>&1 | head -40
-          curl -s "https://sandanski.bg/wp-json/wp/v2/categories?per_page=100&search=%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB" | python3 -c "import json,sys;[print('  C',c['id'],c['name'],c['count']) for c in json.load(sys.stdin)]"
-          curl -s "https://sandanski.bg/wp-json/wp/v2/posts?per_page=2&categories=$(curl -s 'https://sandanski.bg/wp-json/wp/v2/categories?per_page=100&search=%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB' | python3 -c 'import json,sys;print(max(json.load(sys.stdin),key=lambda c:c["count"])["id"])')" | python3 -c "
-          import json,sys
-          for p in json.load(sys.stdin): print('  P',p['date'],p['title']['rendered'][:100],p['content']['rendered'][:600])"
+          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=3 node scripts/import-council-sites.mjs; done
+        env:
+          CODES: "TGV24"
+      - run: |
+          python3 - <<'PY'
+          import json,os
+          for c in "TGV24".split():
+            f=f'data/council/{c}.json'
+            if not os.path.exists(f): print("X",c,"нищо"); continue
+            j=json.load(open(f)); d=j['decisions']
+            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
+            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:140],"|",x['text'][:90])
+            print("   files:",list(j['files'].items())[:3])
+          PY
