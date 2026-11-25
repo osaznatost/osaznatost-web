@@ -7,4 +7,8 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: python3 probe/all.py "https://obs.kazanlak.bg/r-6-2.html|(?i)\.pdf|\.doc|d-|reshen|решение|item|view" "https://www.karlovo.bg/section-493-content.html|(?i)\.pdf|\.doc|assets|uploads|subsection" "https://www.lom.bg/section-254-content.html|202[3-6]" "https://www.petrich.bg/bg/obshinski-svet/zasedaniya/|(?i)zased|\.pdf|\.doc|reshen|202[3-6]" "https://www.gabrovo.bg/bg/page/274|(?i)202[3-6]|reshen|files"
+      - run: |
+          python3 probe/all.py "https://www.petrich.bg/bg/obshinski-svet/zasedaniya/zasedaniya-na-obs/|(?i)zased|\.pdf|\.doc|reshen|202[3-6]" "https://gabrovo.bg/files/OBS/reshenia/2026/|." "https://www.nova-zagora.bg/bg/zasedania-i-reshenia?page=0|(?i)node|page="
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.gabrovo.bg/bg/page/274 | grep -oE '(fetch|axios|ajax|api)[^;]{0,160}' | head -10
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://obs.kazanlak.bg/r-6-2.html | grep -oiE '(ajax|\.php\?|api/|data-url)[^"'"'"' ]{0,140}' | sort -u | head -10
+          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.karlovo.bg/section-493-content.html | grep -oiE '(ajax|\.php\?|api/|iframe[^>]{0,200})' | sort -u | head -10
