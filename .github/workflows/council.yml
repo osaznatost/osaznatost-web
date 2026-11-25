@@ -31,10 +31,10 @@ jobs:
         run: node -e 'const d=require("./data/council/SOF46.json");console.log(JSON.stringify(d.decisions.slice(0,3),null,1).slice(0,3000))' || true
       - name: Запис (data/council не се публикува сам; влиза в сайта при дневното обновяване)
         run: |
+          git fetch -q origin main && node scripts/merge-council.mjs origin/main
           git add data/council
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"
           git commit -m "Общински съвети: още решения"
-          git pull --rebase -X theirs
-          git push
+          for i in 1 2 3 4 5; do git fetch -q origin main && git rebase -X theirs origin/main && git push && break; sleep 10; done
