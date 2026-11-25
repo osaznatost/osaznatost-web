@@ -7,4 +7,4 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: python3 probe/fp2.py
+      - run: python3 probe/look.py "https://www.haskovo.bg/bg/mandat-2023-2027?page=2" "https://www.haskovo.bg/bg/mandat-2023-2027/reshenie-749-ot-13112026-g" "https://www.dobrich.bg/bg/resheniya" "https://www.sevlievo.bg/bg/resheniya" "https://samokov.obshtini.bg" "https://www.dupnitsa.bg/section-88-content.html" "https://www.obs-pernik.bg/"
