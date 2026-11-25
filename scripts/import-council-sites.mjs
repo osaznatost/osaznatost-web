@@ -980,9 +980,9 @@ function parseGeneric(text, fb) {
   const after = nm ? t.slice(t.indexOf(nm[0]) + nm[0].length) : t;
   const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
   const reshi = after.split(/Р\s*Е\s*Ш\s*И\s*:?/);
-  const body = ws((reshi.length > 1 ? reshi.slice(1).join(" ") : after.replace(/^[\s\S]*?На\s+основание[^\n]*\n/, "")).split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател\s+на|Мотиви\s*:|МОТИВИ|Гласували|ГЛАСУВАЛИ|Резултати от гласуването|РАЗГЛАСЯВАНЕ)/)[0]);
+  const body = ws((reshi.length > 1 ? reshi.slice(1).join(" ") : after).split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател\s+на|Мотиви\s*:|МОТИВИ|Гласували|ГЛАСУВАЛИ|Резултати от гласуването|РАЗГЛАСЯВАНЕ)/)[0]);
   // Без „Относно“: заглавие от началото на решението, без правното основание („На основание …, Общински съвет – X …“).
-  const lead = flat(body).replace(/^[\s\S]{0,700}?Общинск\S*\s+съвет\S*\s*[–-]?\s*[А-Я][а-я]+(?:\s+[А-Я][а-я]+)?\s*,?\s*/, "").replace(/^\d+\.\s*/, "");
+  const lead = flat(body).replace(/^\s*На\s+основание[\s\S]{0,700}?Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\s*Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\d+\.\s*/, "");
   let title = om ? flat(om[1]) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
   title = title.replace(/^[:\s–-]+/, "").replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
@@ -1021,12 +1021,22 @@ async function wpGeneric(code, S, prev) {
         if (d) ds = [d];
       } else {
         // Публикацията е само връзки към файлове: четем PDF-ите (едно решение или целия протокол).
-        for (const m of [...html.matchAll(/href="([^"]+\.pdf)"/gi)].slice(0, 40)) {
+        let files = [...html.matchAll(/href="([^"]+\.(?:pdf|docx?))"/gi)].map((m) => new URL(unent(m[1]), S.wp).href);
+        if (!files.length) { // прикачени файлове извън текста (приставки като „WP Attachments“)
+          try { files = JSON.parse((await get(`${S.wp}/wp-json/wp/v2/media?parent=${post.id}&per_page=50`, false, 2)) ?? "[]").map((x) => x.source_url).filter((u) => /\.(pdf|docx?)$/i.test(u ?? "")); } catch {}
+        }
+        for (const u of [...new Set(files)].slice(0, 40)) {
           if (timeUp()) break;
-          const buf = await get(new URL(unent(m[1]), S.wp).href, true, 2);
-          if (buf) ds.push(...splitDecisions(pdfText(buf), new URL(unent(m[1]), S.wp).href, post.date.slice(0, 10)));
+          const buf = await get(u, true, 2);
+          if (!buf) continue;
+          const tx = /\.docx$/i.test(u) ? docxText(buf) : /\.doc$/i.test(u) ? docText(buf) : pdfText(buf);
+          const sp = splitDecisions(tx, u, dateOf(ttl) ?? post.date.slice(0, 10));
+          // Един файл = едно решение с номер в заглавието на публикацията (напр. „Решение № 1203/29.10.2026г.“)
+          if (!sp.length && /решение/i.test(ttl)) { const d = parseGeneric(tx, { number: ttl.match(/(\d+)/)?.[1], date: dateOf(ttl) ?? post.date.slice(0, 10), url: u }); if (d) sp.push(d); }
+          ds.push(...sp);
         }
       }
+      if (timeUp()) break; // не отбелязваме като прочетена публикация, чиито файлове не стигнахме да прочетем
       prev.files[post.link] = ds.length;
       for (const d of ds) if (d.date >= S.from) { prev.decisions.push(d); added++; }
     }
