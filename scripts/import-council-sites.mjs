@@ -982,7 +982,7 @@ function dateOf(s) {
 }
 function parseGeneric(text, fb) {
   const t = ws(text);
-  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)?\s*(\d+(?:\s*[–-]\s*\d+)?)/i);
+  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*:?\s*(?:№|N|No)?\s*(\d+(?:\s*[–-]\s*\d+)?)/i);
   const pt = !nm && t.match(/Решение\s+по\s+т\.\s*(\d+)[\s\S]{0,40}?Протокол\s*№\s*(\d+)/i); // „Решение по т.1 от Протокол №10/…“
   const number = fb.number || (nm ? nm[1].replace(/\s*[–-]\s*/, "-") : pt ? `${pt[2]}-${pt[1]}` : null);
   const pm = t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*(?:№|N)\s*(\d+)[^\n]{0,80}/i);
@@ -1001,11 +1001,15 @@ function parseGeneric(text, fb) {
   let title = om ? flat(om[1]) : fb.title ? flat(fb.title) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|(?<!(?:^|[\s(])(?:чл|ал|т|гр|с|ул|бл|вх|ет|ап|д|г|лв|кв|м|пл|бул|р-н|ж\.к|№|ПИ|УПИ|ид|изм|доп|бр|ДВ|стр|пр|кв\.м))[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
   title = title.replace(/^[:\s–-]+/, "").replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
-  const vm = t.match(/(?:„?за“?\s*[–:-]?\s*(\d+)[\s,;]+„?против“?\s*[–:-]?\s*(\d+)[\s,;]+„?въздърж\S*(?:\s+се)?“?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без))/i);
+  // Гласуването може да е преди решението („Гласували 20: „за“ – 20 …“, в края на предходния откъс) или след него.
+  // Ако в края на този откъс вече започва увод към следващото решение, не го броим за това решение.
+  const own = t.replace(/(?<=[\s\S]{80})\n[^\n]*(?:Присъствали|Гласували)\s+\d+\s*:[\s\S]*$/, "");
+  const vt = own + "\n" + (fb.pre ?? "").split(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/).pop();
+  const vm = vt.match(/(?:[„“"”]?за[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?против[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?въздърж\S*(?:\s+се)?[“”"]?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*[„“"”]?за[“”"]?,?\s*(\d+|без)\s*(?:глас\S*\s*)?[„“"”]?против[“”"]?\s*и\s*(\d+|без))/i);
   const nn = (x) => (/без/i.test(x) ? 0 : +x);
-  const vk = !vm && t.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
+  const vk = !vm && vt.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
   const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
-  if (tally) tally.method = /поименно/i.test(t) ? "named" : "open";
+  if (tally) tally.method = /поименно/i.test(vt) ? "named" : "open";
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
   return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,
     result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава|разрешава|избира)|отхвърля)/i.test(body) ? "rejected" : "adopted",
@@ -1064,14 +1068,14 @@ async function wpGeneric(code, S, prev) {
 function splitDecisions(text, url, fallbackDate) {
   const t = text.replace(/\f/g, "\n");
   const head = dateOf((t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л[\s\S]{0,200}/i) ?? [""])[0]) ?? fallbackDate;
-  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N)?\s*\d)|(?=Решение\s+по\s+т\.\s*\d)/);
+  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*:?\s*(?:№|N)?\s*\d)|(?=Решение\s+по\s+т\.\s*\d)/);
   const out = [], seen = new Set();
   for (let i = 0; i < parts.length; i++) {
     const ch = parts[i];
     if (!/^(Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е|Решение\s+по\s+т\.)/.test(ch)) continue;
     // Заглавието често е точката от дневния ред точно преди решението („ПО ПЪРВА ТОЧКА ОТ ДНЕВНИЯ РЕД / …“).
     const ag = i > 0 ? [...parts[i - 1].matchAll(/ТОЧКА\s+ОТ\s+ДНЕВНИЯ\s+РЕД\s*:?\s*\n([\s\S]{5,700}?)\n\s*\n/g)].pop()?.[1] : null;
-    const d = parseGeneric(ch, { number: null, date: head, url, title: ag });
+    const d = parseGeneric(ch, { number: null, date: head, url, title: ag, pre: i > 0 ? parts[i - 1].slice(-700) : "" });
     if (d && !seen.has(d.number)) { seen.add(d.number); out.push(d); }
   }
   return out;
