@@ -78,8 +78,8 @@ const SITES = {
   LOV19: { name: "Луковит", list: (p) => `https://www.lukovit.bg/bg/reshenia${p ? `/page/${p * 12}` : ""}`, item: /href="(\/?bg\/resheniya\/[^"#]+)"/g, base: "https://www.lukovit.bg/", from: "2023-11-01" },
   SFO26: { name: "Костинброд", linkDate: true, pages: () => ["https://www.obs.kostinbrod.bg/obsr/"], whole: true, fileRe: /РЕШЕНИ|%D0%A0%D0%95%D0%A8%D0%95%D0%9D%D0%98/i, base: "https://www.obs.kostinbrod.bg/", from: "2023-11-01" },
   BGS01: { name: "Айтос", pages: () => ["https://aytos.bg/resheniya-mandat-6391.html"], whole: true, fileRe: /\/files\//i, base: "https://aytos.bg/", from: "2023-11-01" },
-  PAZ29: { name: "Септември", pages: () => ["https://obs.septemvri.org/index.php/protokoli-ot-zasedaniyata-na-obshtinski-savet"], whole: true, fileRe: /protokoli_sesii/i, base: "https://obs.septemvri.org/", from: "2023-11-01" },
-  SFO17: { name: "Елин Пелин", pages: () => ["https://www.elinpelin.bg/section-6-%C2%A0%C2%A0resheniya.html"], whole: true, fileRe: /./, base: "https://www.elinpelin.bg/", from: "2023-11-01" },
+  PAZ29: { name: "Септември", pages: () => ["https://obs.septemvri.org/index.php/protokoli-ot-zasedaniyata-na-obshtinski-savet"], whole: true, fileRe: /protokoli_sesii/i, fileDate: /_(\d{2})(\d{2})(\d{2})\.pdf$/i, base: "https://obs.septemvri.org/", from: "2023-11-01" },
+  BGS21: { name: "Созопол", render: true, pages: () => ["https://sozopol.obs-savet.eu/obs/%D0%9F%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB%D0%B8%20%D1%81%20%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D0%A1"], sub: /href="((?:https:\/\/sozopol\.obs-savet\.eu)?\/blog\/protokol-[^"#]+)"/g, fileRe: /file-download|\.pdf/i, base: "https://sozopol.obs-savet.eu/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1147,7 +1147,7 @@ async function filesGeneric(code, S, prev) {
     const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
-    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
+    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*|\/api\/file-download\/[\w-]+))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
       .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]).replace(/#.*$/, ""), S.base).href, t: htmlText2(m[2]) }));
     if (process.env.DEBUG) console.log("DBG page", pu, html.length, "files", files.length);
     for (const f of files) {
@@ -1164,6 +1164,7 @@ async function filesGeneric(code, S, prev) {
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       if (S.linkDate) { const ld = dateOf(f.t); if (ld) for (const d of ds) d.date = ld; }
+      if (S.fileDate) { const m = f.u.match(S.fileDate); if (m) for (const d of ds) d.date = `20${m[3]}-${m[2]}-${m[1]}`; }
       prev.files[f.u] = ds.length;
       take(ds);
     }
