@@ -8,8 +8,5 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 30 -A "$UA" "https://www.dm-drogeriemarkt.bg/p/d/1913393/nivea-izmivasht-mitselaren-gel-za-litse-s-rozova-voda" -o p.html; wc -c p.html
-          grep -oE '(https?:)?//[a-z0-9.-]*(dmtech|dm\.de|dm-drogeriemarkt)[^"'"'"' )]*' p.html | sort -u | head -30
-          grep -oE '"(gtin|price|formattedPrice|value|currency)"[^,]{0,60}' p.html | head -10
-          for js in $(grep -oE 'src="[^"]+\.js"' p.html | sed 's/src="//;s/"//' | head -6); do u=$js; case $u in /*) u="https://www.dm-drogeriemarkt.bg$u";; esac; curl -s -m 40 "$u" >> a.js; done
-          grep -oE '"https://[a-z0-9.-]*dmtech[^"]{0,120}"|`https://[a-z0-9.-]*dmtech[^`]{0,120}`|products\.dm\.de[^"`]{0,120}|/product/[^"`]{0,100}' a.js | sort -u | head -40
+          curl -s -m 60 https://assets.dm.de/product/2026.1124.1610/product-dm.min.js -o p.js; wc -c p.js
+          grep -oE '.{0,80}(/products/|/product/|detail/|availability|/prices?)[^"`]{0,80}' p.js | sort -u | head -40
