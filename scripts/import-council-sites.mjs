@@ -1122,6 +1122,7 @@ async function filesGeneric(code, S, prev) {
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
     const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
       .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]).replace(/#.*$/, ""), S.base).href, t: htmlText2(m[2]) }));
+    if (process.env.DEBUG) console.log("DBG page", pu, html.length, "files", files.length);
     for (const f of files) {
       if (timeUp() || blocked) break;
       if (f.u in prev.files) continue;
@@ -1132,6 +1133,7 @@ async function filesGeneric(code, S, prev) {
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
       if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = splitDecisions(tx, f.u, dateOf(f.t));
+      if (process.env.DEBUG) console.log("DBG file", kind, buf.length, tx.length, ds.length, f.u.slice(0, 120), JSON.stringify(tx.slice(0, 300)));
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       prev.files[f.u] = ds.length;
