@@ -8,8 +8,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          python3 probe/look.py "https://obs.kazanlak.bg/r-6-1.html" "https://www.karlovo.bg/section-97-content.html" "https://www.lom.bg/section-254-content.html" "https://www.nova-zagora.bg/bg/zasedania-i-reshenia" "https://www.dimitrovgrad.bg/bg/aktove-na-obshtinski-savet" "https://www.razgrad.bg/obsinski-s-vet" "https://www.asenovgrad.bg/bg/obshtinski-savet" 2>&1 | grep -vE 'facebook|#main|#aside|#header' | cut -c1-300 | head -230
-          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.gabrovo.bg/bg/page/274 -o g.html; grep -oE '<a[^>]+href="[^"]+"[^>]*>[^<]{0,40}20(2[3-6])[^<]{0,20}' g.html | head
-          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.razgrad.bg -o r.html; grep -oiE '<a[^>]+href="[^"]+"[^>]*>[^<]*(съвет|решени)[^<]*' r.html | head
-          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.asenovgrad.bg -o a.html; grep -oiE '<a[^>]+href="[^"]+"[^>]*>[^<]*(съвет|решени)[^<]*' a.html | head
-          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.dimitrovgrad.bg/bg/obshtinski-savet -o d.html; grep -oiE '<a[^>]+href="[^"]+"[^>]*>[^<]*(акт|решени|2023)[^<]*' d.html | head
+          python3 probe/look.py "https://www.asenovgrad.bg/bg/resheniya" "https://www.dimitrovgrad.bg/bg/aktove-na-obshtinskiya-savet" "https://www.karlovo.bg/section-493-content.html" "https://www.razgrad.bg/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet" 2>&1 | grep -vE 'facebook|#main|#aside|#header' | cut -c1-220 | head -160
+          for u in https://obs.kazanlak.bg/r-6-1.html https://www.lom.bg/section-254-content.html https://www.gabrovo.bg/bg/page/274; do echo "## F $u"; curl -sL -m 30 -A "osaznatost-bot/1.0" "$u" | grep -oE 'href="[^"]*(202[3-6]|r-6-[0-9]+|page/[0-9]+)[^"]*"[^>]*>[^<]{0,80}' | head -15; done
