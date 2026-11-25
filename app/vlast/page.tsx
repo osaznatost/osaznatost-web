@@ -8,6 +8,7 @@ import { CLAIMS } from "@/lib/checks";
 import { lawIndex } from "@/lib/lawIndex";
 import { MPS, currentSeats, formatDate } from "@/lib/parliament";
 import { firmsOfMp } from "@/lib/people";
+import { data as readData } from "@/lib/data";
 import { BAD, GOOD, data as PROMISES, govSlug } from "@/lib/promises";
 import { SANCTIONS } from "@/lib/sanctions";
 
@@ -26,7 +27,16 @@ export default async function Vlast() {
   const trans = laws.filter((l) => l.signals.some((s) => /преходните и заключителните/.test(s.title)));
   const cut = laws.filter((l) => l.signals.some((s) => /^Съкратен срок за предложения/.test(s.title)));
   const coi = laws.filter((l) => l.signals.some((s) => /конфликт на интереси/.test(s.title)));
-  const mpFirms = MPS.map((m) => ({ m, firms: firmsOfMp(m.id) })).filter((x) => x.firms.length).sort((a, b) => b.firms.length - a.firms.length);
+  // Фирмите на депутатите: от декларациите и от проверката в Търговския регистър (с историята). Тук броим само
+  // сегашните участия (без дата на край); проверката на всички депутати върви постепенно и списъкът се допълва сам.
+  type TrMp = Record<string, { firms: { eik: string; name: string; mine: { role: string; to: string | null }[] }[] }>;
+  const trMp = (await readData<TrMp>("tr-links/MP.json")) ?? {};
+  const mpFirms = MPS.map((m) => {
+    const fs = new Map<string, string | null>(firmsOfMp(m.id).map((f) => [f.eik, null]));
+    for (const f of trMp[`mp-${m.id}`]?.firms ?? []) if (f.mine.some((r) => !r.to)) fs.set(f.eik, f.name);
+    return { m, firms: [...fs].map(([eik, name]) => ({ eik, name })) };
+  }).filter((x) => x.firms.length).sort((a, b) => b.firms.length - a.firms.length);
+  const mpChecked = MPS.filter((m) => trMp[`mp-${m.id}`]).length;
   const false_ = CLAIMS.filter((c) => c.verdict === "Невярно" || c.verdict === "Подвеждащо");
   const promises = PROMISES.parties.flatMap((g) => g.promises.map((p) => ({ g, p })));
   const good = promises.filter((x) => GOOD.includes(x.p.status)).length, bad = promises.filter((x) => BAD.includes(x.p.status)).length;
@@ -121,14 +131,14 @@ export default async function Vlast() {
 
       <Anchor id="firmi" title="Депутати и фирми" lead="Депутати, които по Търговския регистър или декларациите си са собственици или управители на фирми. Участието във фирма не е нарушение; важно е, когато фирмата работи с държавата.">
         <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {mpFirms.slice(0, 30).map(({ m, firms }) => (
+          {mpFirms.map(({ m, firms }) => (
             <li key={m.id} className="ring-1 ring-rule rounded-sm p-3 bg-white">
               <Link href={`/parlament/deputat/${m.id}`} className="font-semibold">{m.name}</Link>
-              <p className="text-sm text-muted">{firms.length} {firms.length === 1 ? "фирма" : "фирми"} · {firms.slice(0, 3).map((f, i) => <span key={f.eik}>{i > 0 && ", "}<Link href={`/porachki/firma/${f.eik}`}>ЕИК {f.eik}</Link></span>)}</p>
+              <p className="text-sm text-muted">{firms.length} {firms.length === 1 ? "фирма" : "фирми"} · {firms.slice(0, 3).map((f, i) => <span key={f.eik}>{i > 0 && ", "}<Link href={`/porachki/firma/${f.eik}`}>{f.name ?? `ЕИК ${f.eik}`}</Link></span>)}</p>
             </li>
           ))}
         </ul>
-        {mpFirms.length > 30 && <p className="text-sm text-muted mt-2">и още {mpFirms.length - 30}. Всеки е в профила на депутата.</p>}
+        <p className="text-sm text-muted mt-3 max-w-3xl">Това не са всички депутати, а тези, при които досега е намерено сегашно участие във фирма. Проверени в Търговския регистър: {mpChecked} от {MPS.length} депутати; проверката продължава автоматично на всеки 3 часа и списъкът се допълва сам. Съвпадението е по три имена (без ЕГН), затова при съименници е възможна грешка. Минали участия (вече прекратени) са в профила на всеки депутат.</p>
       </Anchor>
 
       <Anchor id="proverka" title="Как да проверите сами">
