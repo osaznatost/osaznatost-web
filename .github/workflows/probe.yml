@@ -8,15 +8,18 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 40 -A "$UA" -D h.txt "https://www.plovdiv.bg/obs/wp-json/wp/v2/categories?per_page=100" -o c.json; grep -i "x-wp-total" h.txt
-          python3 -c "import json;[print('  C',c['id'],c['name'],c['count'],c['parent']) for c in json.load(open('c.json'))]"
-          ID=$(python3 -c "import json;print([c['id'] for c in json.load(open('c.json')) if c['name']=='Решения'][0])")
-          curl -s -m 60 -A "$UA" -D h2.txt "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts?categories=$ID&per_page=3&orderby=date&order=desc" -o p.json; grep -i "x-wp-total" h2.txt
+          curl -s -m 60 -A "$UA" "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts/31095" -o p.json
           python3 - <<'PY'
           import json,re,html
-          for p in json.load(open('p.json')):
-            print('  P',p['id'],p['date'],html.unescape(p['title']['rendered'])[:200],p['link'][:120])
-            c=html.unescape(re.sub(r'<[^>]+>',' ',p['content']['rendered']))
-            print('    ',re.sub(r'\s+',' ',c)[:1800])
-            print('    links',re.findall(r'href="([^"]+)"',p['content']['rendered'])[:5])
+          p=json.load(open('p.json'))
+          print('  K',list(p.keys()))
+          for k in ['acf','meta','metadata','class_list']: print('  ',k,str(p.get(k))[:800])
+          c=p['content']['rendered']; t=html.unescape(re.sub(r'<[^>]+>','\n',c)); t=re.sub(r'\n\s*\n+','\n',t)
+          print('  TAIL',t[-2500:])
+          PY
+          curl -s -m 60 -A "$UA" "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts?categories=22&per_page=1&after=2023-11-01T00:00:00&order=asc" -D h.txt -o q.json; grep -i x-wp-total h.txt; python3 -c "import json,html;p=json.load(open('q.json'))[0];print('  FIRST',p['date'],html.unescape(p['title']['rendered']))"
+          curl -sL -m 60 -A "$UA" "$(python3 -c "import json;print(json.load(open('p.json'))['link'])")" -o page.html; python3 - <<'PY'
+          import re,html
+          s=html.unescape(open('page.html',errors='ignore').read()); i=s.find('Резултати')
+          print('  PAGE',re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',s[i-200:i+3000])) if i>0 else 'none')
           PY
