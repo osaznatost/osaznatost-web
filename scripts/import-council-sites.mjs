@@ -61,7 +61,9 @@ const SITES = {
   // „Страници с файлове“: страниците (по години/заседания) съдържат връзки към PDF/Word с решенията; всеки файл се чете веднъж.
   DOB28: { name: "Добрич", pages: () => ["2023-g", ...[2024, 2025, 2026, 2027].map((y) => `resheniya-ot-zasedaniya-na-obshtinski-savet-prez-${y}-g`)].map((x) => `https://www.dobrich.bg/bg/resheniya-mandat-2023-2027-g/${x}`), fileRe: /res|resh|\d+-\d+/i, base: "https://www.dobrich.bg/", from: "2023-11-01" },
   BGS08: { name: "Камено", pages: () => ["https://www.kameno.bg/bg/page/482"], sub: /href="((?:https:\/\/(?:www\.)?kameno\.bg)?\/bg\/page\/resheniya-20(?:2[3-9])-godina-\d+)"/g, fileRe: /РЕШЕНИ|%D0%A0%D0%95%D0%A8/i, base: "https://www.kameno.bg/", from: "2023-11-01" },
-  GAB29: { name: "Севлиево", pages: () => [0, 1, 2, 3].map((p) => `https://www.sevlievo.bg/bg/resheniya-na-obshtinski-savet-sevlievo${p ? `/page/${p * 12}` : ""}`), sub: /href="\/?(bg\/resheniya-na-obshtinski-savet-sevlievo\/resheniya-na-obshtinskiya-savet-s-protokol-[^"?#]+)"/g, pagePdf: true, base: "https://www.sevlievo.bg/", from: "2023-11-01" },
+  PDV01: { name: "Асеновград", pages: () => ["https://www.asenovgrad.bg/bg/resheniya/mandat-2023-g-2027-g"], fileRe: /reshenie/i, base: "https://www.asenovgrad.bg/", from: "2023-11-01" },
+  HKV09: { name: "Димитровград", pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.dimitrovgrad.bg/bg/resheniya-na-obs${p ? `/page/${p * 10}` : ""}`), sub: /href="\/?(bg\/resheniya-na-obs\/zasedanie-na-obshtinski-savet[^"?#]+)"/g, inline: true, base: "https://www.dimitrovgrad.bg/", from: "2023-11-01" },
+  RAZ26: { name: "Разград", pages: () => [0, 1, 2, 3, 4].map((p) => `https://www.razgrad.bg/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet${p ? `?start=${p * 10}` : ""}`), sub: /href="(\/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet\/protokol-no\d+)"/g, fileRe: /Protokol/i, base: "https://www.razgrad.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -984,7 +986,7 @@ function parseGeneric(text, fb) {
   if (!number || !date) return null;
   const hd = nm ?? pt;
   const after = hd ? t.slice(t.indexOf(hd[0]) + hd[0].length) : t;
-  const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
+  const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.|(?:^|\n)\s*Относно)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
   const reshi = after.split(/Р\s*Е\s*Ш\s*И\s*:?/);
   const body = ws((reshi.length > 1 ? reshi.slice(1).join(" ") : after).split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател\s+на|Мотиви\s*:|МОТИВИ|Гласували|ГЛАСУВАЛИ|Резултати от гласуването|РАЗГЛАСЯВАНЕ)/)[0]);
   // Без „Относно“: заглавие от началото на решението, без правното основание („На основание …, Общински съвет – X …“).
@@ -994,7 +996,8 @@ function parseGeneric(text, fb) {
   if (!title) return null;
   const vm = t.match(/(?:„?за“?\s*[–:-]?\s*(\d+)[\s,;]+„?против“?\s*[–:-]?\s*(\d+)[\s,;]+„?въздърж\S*(?:\s+се)?“?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без))/i);
   const nn = (x) => (/без/i.test(x) ? 0 : +x);
-  const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : null;
+  const vk = !vm && t.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
+  const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
   if (tally) tally.method = /поименно/i.test(t) ? "named" : "open";
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
   return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,
