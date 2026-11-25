@@ -5,14 +5,8 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          set +e
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for t in "barilla spaghetti" "barilla penne rigate" "barilla fusilli" "monini classico" "mutti pelati" "mutti polpa" "bonduelle fasole rosie" "bonduelle fasole alba" "lavazza crema e gusto" "lavazza crema aroma" "elmex" "colgate max white purple" "milka alpine" "milka oreo" "kinder chocolate" "lindt lindor"; do
-            echo "## $t"; curl -s -m 30 -A "$UA" "https://www.auchan.ro/api/catalog_system/pub/products/search?ft=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$t")&_from=0&_to=9" | python3 -c "
-          import json,sys
-          try:
-            for p in json.load(sys.stdin)[:10]: o=p['items'][0]['sellers'][0]['commertialOffer']; print('  ',p['items'][0].get('ean'),'|',p.get('productName'),'|',o.get('Price'),o.get('ListPrice'))
-          except Exception as e: print('ERR',e)"; sleep 1
-          done
-          echo "## BILLA CZ paths"; for u in "https://shop.billa.cz/vyhledavani?q=barilla" "https://shop.billa.cz/hledat/barilla" "https://shop.billa.cz/vyhledavani/barilla"; do curl -sL -m 30 -A "$UA" -o b.html -w "$u %{http_code} %{size_download}\n" "$u"; grep -c __NUXT_DATA__ b.html; done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node probe/cz.mjs
