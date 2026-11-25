@@ -104,6 +104,7 @@ input[type="range"] {
 /* Таблици, превърнати в карти на телефона (components/ResponsiveTables.tsx). */
 @media (max-width: 639px) {
   table.stacked, table.stacked tbody, table.stacked tr, table.stacked td { display: block; width: 100%; }
+  table.stacked { min-width: 0 !important; }
   table.stacked thead { display: none; }
   table.stacked tr { border: 1px solid var(--color-rule); border-radius: 4px; padding: 0.5rem 0.75rem; margin-bottom: 0.6rem; background: #fff; }
   table.stacked td { display: flex; justify-content: space-between; gap: 1rem; padding: 0.15rem 0 !important; border: 0 !important; text-align: right; }

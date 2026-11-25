@@ -58,8 +58,8 @@ export default async function Nadcenki() {
   const sumBg = billa.reduce((s, r) => s + r.bg!.med, 0), sumAt = billa.reduce((s, r) => s + r.at!.price, 0);
   const hyg = billa.filter((r) => r.i.group === "Хигиена");
   const rel = (a: number, b: number | null) => (b == null ? null : (a / b - 1) * 100);
-  const Diff = ({ v }: { v: number | null }) => <td className={`text-right px-2 font-semibold ${v == null ? "" : v > 1 ? "text-red" : v < -1 ? "text-green" : ""}`}>{v == null ? <span className="text-muted font-normal">–</span> : pc(v)}</td>;
-  const Price = ({ o, low }: { o?: Offer & { lei?: number }; low?: boolean }) => <td className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{o ? <><a href={o.url} rel="nofollow noopener">{eur(o.price)}</a>{o.promo && <span className="block text-xs text-muted">промоция</span>}</> : <span className="text-muted">–</span>}</td>;
+  const Diff = ({ v, label }: { v: number | null; label: string }) => <td data-label={label} className={`text-right px-2 font-semibold ${v == null ? "" : v > 1 ? "text-red" : v < -1 ? "text-green" : ""}`}>{v == null ? <span className="text-muted font-normal">–</span> : pc(v)}</td>;
+  const Price = ({ o, low, label }: { o?: Offer & { lei?: number }; low?: boolean; label: string }) => <td data-label={label} className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{o ? <><a href={o.url} rel="nofollow noopener">{eur(o.price)}</a>{o.promo && <span className="block text-xs text-muted">промоция</span>}</> : <span className="text-muted">–</span>}</td>;
 
   const whole = W && L ? Object.entries(W.items).flatMap(([name, w]) => {
     const m = WHOLE_MAP.find(([re]) => re.test(name));
@@ -108,11 +108,11 @@ export default async function Nadcenki() {
                   return (
                   <tr key={r.i.id} className="border-b border-rule">
                     <td className="py-1.5 pr-3">{r.i.label}<span className="text-sm text-muted">, {r.i.size}</span></td>
-                    {bgCh.map(([c]) => { const v = c === "Билла" ? r.bg!.med : r.bg!.chains?.[c]?.med; const low = v != null && v === lowBg && Object.keys(r.bg!.chains ?? {}).length > 1; return <td key={c} className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{v != null ? eur(v) : <span className="text-muted">–</span>}</td>; })}
-                    {ROCH.map((c) => <Price key={c} o={r.ro[c]} low={Object.keys(r.ro).length > 1 && r.ro[c]?.price === lowRo} />)}
-                    <Price o={r.at} />
-                    {ROCH.length > 0 && <Diff v={rel(lowBg, lowRo)} />}
-                    <Diff v={rel(lowBg, r.at?.price ?? null)} />
+                    {bgCh.map(([c]) => { const v = c === "Билла" ? r.bg!.med : r.bg!.chains?.[c]?.med; const low = v != null && v === lowBg && Object.keys(r.bg!.chains ?? {}).length > 1; return <td key={c} data-label={`${BGCH.find(([x]) => x === c)![1]} · България`} className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{v != null ? eur(v) : <span className="text-muted">–</span>}</td>; })}
+                    {ROCH.map((c) => <Price key={c} label={`${c} · Румъния`} o={r.ro[c]} low={Object.keys(r.ro).length > 1 && r.ro[c]?.price === lowRo} />)}
+                    <Price label="BILLA · Австрия" o={r.at} />
+                    {ROCH.length > 0 && <Diff label="Най-евтино у нас спрямо Румъния" v={rel(lowBg, lowRo)} />}
+                    <Diff label="Най-евтино у нас спрямо Австрия" v={rel(lowBg, r.at?.price ?? null)} />
                   </tr>); })] : [];
               })}</tbody>
             </table>
