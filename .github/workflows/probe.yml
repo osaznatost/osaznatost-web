@@ -4,23 +4,9 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          for c in PDV01 SLV16; do rm -f data/council/$c.json; ONLY=$c MINUTES=2.5 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "PDV01 SLV16".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-            print("   files:",list(j['files'].items())[:4])
-          PY
+          F='(?i)решени|reshen|resheni|obs|общински.съвет|obshtinski'
+          python3 probe/all.py "https://www.velingrad.bg|$F" "https://www.troyan.bg|$F" "https://panagyurishte.bg/obsthinski-savet/|$F" "https://www.harmanli.bg|$F" "https://www.svilengrad.bg|$F" "https://www.pomorie.bg|$F" "http://os-nessebar.eu/|$F" "https://www.chervenbryag.bg|$F" "https://www.sandanski.bg|$F" "https://www.bansko.bg|$F" "https://www.rakovski.bg|$F" "https://www.popovo.bg|$F" "https://www.aksakovo.bg|$F" "https://www.balchik.bg|$F" "https://www.momchilgrad.bg/obshtinski-savet.html|$F" "https://www.kozloduy.bg|$F" "https://www.gotsedelchev.bg|$F" 2>&1 | cut -c1-200
