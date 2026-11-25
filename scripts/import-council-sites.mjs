@@ -73,6 +73,7 @@ const SITES = {
   HKV28: { name: "Свиленград", render: true, pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet${p ? `/page/${p * 10}` : ""}`), sub: /href="((?:https:\/\/www\.svilengrad\.bg)?\/?bg\/resheniya-na-obshtinski-savet\/[^"?#]*zasedanie[^"?#]*)"/g, inline: true, base: "https://www.svilengrad.bg/", from: "2023-11-01" },
   BGS15: { name: "Несебър", render: true, pages: () => [1, 2, 3, 4, 5].map((p) => `https://os-nessebar.eu/resheniya${p > 1 ? `?page=${p}` : ""}`), sub: /href="(https:\/\/os-nessebar\.eu\/resheniya\/resheniya-ot-protokol-[^"#]+)"/g, inline: true, base: "https://os-nessebar.eu/", from: "2023-11-01" },
   TGV24: { name: "Попово", pages: () => ["https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html"], sub: /href="((?:https?:\/\/www\.popovo\.bg)?\/?bg\/obs-menu\/reshenia-obs-new\/reshenia-obs-2023-2027-\/\d+-reshenia[^"#]*)"/g, whole: true, fileRe: /files\.popovo|Reshenia/i, base: "https://www.popovo.bg/", from: "2023-11-01" },
+  DOB03: { name: "Балчик", index: "https://www.balchik.bg/bg/mandat-2023-2027", list: () => "https://www.balchik.bg/bg/mandat-2023-2027", indexRe: /href="(\/?bg\/mandat-2023-2027\/resheniya-ot-zasedanie[^"#]*)"/g, item: /href="(\/?bg\/mandat-2023-2027\/reshenie-\d+[^"#]*)"/g, urlDate: true, mainRe: /<div class="content">[\s\S]*?<\/article>/i, titleRe: /Дата на публикуване:\s*[\d.]+\s*г?\.?\s*([\s\S]{5,600}?)\s*Вносител:\s*([^\n]{3,150}?)\s*(?:В залата|Поименно|Явно|Гласуване|\n)/, base: "https://www.balchik.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1140,12 +1141,16 @@ async function filesGeneric(code, S, prev) {
 // Списък със страници на решения (по една страница на решение).
 async function listGeneric(code, S, prev) {
   let added = 0;
-  for (let p = 0; p < 200; p++) {
+  // S.index: страница със заседанията → всяко заседание е отделен списък с решения.
+  const idx = S.index ? await get(S.index, false, 2) : null;
+  const lists = idx ? [...new Set([...idx.matchAll(S.indexRe)].map((m) => new URL(unent(m[1]), S.base).href))] : null;
+  for (let p = 0; p < (lists ? lists.length : 200); p++) {
     if (timeUp() || blocked) break;
-    const list = S.render ? await render(S.list(p)) : await get(S.list(p), false, 2);
+    const lu = lists ? lists[p] : S.list(p);
+    const list = S.render ? await render(lu) : await get(lu, false, 2);
     if (!list) break;
     const links = [...new Set([...list.matchAll(S.item)].map((m) => new URL(unent(m[1]), S.base).href))];
-    if (!links.length) { prev.complete = true; break; }
+    if (!links.length) { if (lists) continue; prev.complete = true; break; }
     let fresh = 0, old = 0;
     for (const u of links) {
       if (timeUp() || blocked) break;
@@ -1154,14 +1159,18 @@ async function listGeneric(code, S, prev) {
       let page = await get(u);
       if (S.render && (!page || !/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/i.test(htmlText2(page)))) page = await render(u);
       if (!page) continue;
-      const main = page.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? page;
-      const d = parseGeneric(htmlText2(main), { number: u.match(/reshenie-(\d+)/)?.[1], date: dateOf(u.replace(/.*-ot-(\d{2})(\d{2})(\d{4}).*/, "$1.$2.$3")), url: u });
+      const main = (S.mainRe && page.match(S.mainRe)?.[0]) || page.match(/<main[\s\S]*?<\/main>/i)?.[0] || page;
+      const mt = htmlText2(main);
+      const d = parseGeneric(mt, { number: u.match(/reshenie-(\d+)/)?.[1], date: dateOf(u.replace(/.*-ot-(\d{2})(\d{2})(\d{4}).*/, "$1.$2.$3")), url: u });
+      if (d && S.urlDate) { const ud = dateOf(u.replace(/.*-ot-(\d{2})(\d{2})(\d{4}).*/, "$1.$2.$3")); if (ud) d.date = ud; }
+      if (d && S.titleRe) { const tm = mt.match(S.titleRe); if (tm) { d.title = tm[1].replace(/\s+/g, " ").trim(); if (tm[2]) d.proposedBy = tm[2].replace(/\s+/g, " ").trim(); } }
       prev.files[u] = d ? 1 : 0;
       if (d) { if (d.date >= S.from) { prev.decisions.push(d); added++; } else old++; }
     }
     if (old > 0) { prev.complete = true; break; }
-    if (fresh === 0 && prev.complete) break;
+    if (fresh === 0 && prev.complete && !lists) break;
   }
+  if (lists && !timeUp()) prev.complete = true;
   return added;
 }
 
