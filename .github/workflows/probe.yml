@@ -4,8 +4,26 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
+      - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://sozopol.obs-savet.eu/; do rm -f p.html; echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u")"; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,80}' p.html | sort -u | head -40; grep -oiE '[a-z0-9-]+\.obs-savet\.eu' p.html | sort -u; done
+          for c in $CODES; do rm -f data/council/$c.json; DEBUG=1 ONLY=$c MINUTES=4 node scripts/import-council-sites.mjs; done
+        env:
+          CODES: "PAZ29 SFO17"
+      - run: |
+          python3 - <<'PY'
+          import json,os
+          for c in "PAZ29 SFO17".split():
+            f=f'data/council/{c}.json'
+            if not os.path.exists(f): print("X",c,"нищо"); continue
+            j=json.load(open(f)); d=j['decisions']
+            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
+            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:140],"|",x['text'][:90])
+            print("   files:",list(j['files'].items())[:3])
+          PY

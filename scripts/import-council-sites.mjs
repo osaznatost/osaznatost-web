@@ -76,9 +76,10 @@ const SITES = {
   DOB03: { name: "Балчик", index: "https://www.balchik.bg/bg/mandat-2023-2027", list: () => "https://www.balchik.bg/bg/mandat-2023-2027", indexRe: /href="(\/?bg\/mandat-2023-2027\/resheniya-ot-zasedanie[^"#]*)"/g, item: /href="(\/?bg\/mandat-2023-2027\/reshenie-\d+[^"#]*)"/g, urlDate: true, mainRe: /<div class="content">[\s\S]*?<\/article>/i, titleRe: /Дата на публикуване:\s*[\d.]+\s*г?\.?\s*([\s\S]{5,600}?)\s*Вносител:\s*([^\n]{3,150}?)\s*(?:В залата|Поименно|Явно|Гласуване|\n)/, base: "https://www.balchik.bg/", from: "2023-11-01" },
   BGS13: { name: "Царево", reshi: true, pages: () => ["https://tsarevo.bg/obshtinski-savet/resheniya"], whole: true, fileRe: /re6eniq_obs/i, base: "https://tsarevo.bg/", from: "2023-11-01" },
   LOV19: { name: "Луковит", list: (p) => `https://www.lukovit.bg/bg/reshenia${p ? `/page/${p * 12}` : ""}`, item: /href="(\/?bg\/resheniya\/[^"#]+)"/g, base: "https://www.lukovit.bg/", from: "2023-11-01" },
-  SFO26: { name: "Костинброд", pages: () => ["https://www.obs.kostinbrod.bg/obsr/"], whole: true, fileRe: /РЕШЕНИ|%D0%A0%D0%95%D0%A8%D0%95%D0%9D%D0%98/i, base: "https://www.obs.kostinbrod.bg/", from: "2023-11-01" },
+  SFO26: { name: "Костинброд", linkDate: true, pages: () => ["https://www.obs.kostinbrod.bg/obsr/"], whole: true, fileRe: /РЕШЕНИ|%D0%A0%D0%95%D0%A8%D0%95%D0%9D%D0%98/i, base: "https://www.obs.kostinbrod.bg/", from: "2023-11-01" },
   BGS01: { name: "Айтос", pages: () => ["https://aytos.bg/resheniya-mandat-6391.html"], whole: true, fileRe: /\/files\//i, base: "https://aytos.bg/", from: "2023-11-01" },
-  PAZ29: { name: "Септември", pages: () => ["https://obs.septemvri.org/index.php/resheniya"], whole: true, fileRe: /./, base: "https://obs.septemvri.org/", from: "2023-11-01" },
+  PAZ29: { name: "Септември", pages: () => ["https://obs.septemvri.org/index.php/protokoli-ot-zasedaniyata-na-obshtinski-savet"], whole: true, fileRe: /protokoli_sesii/i, base: "https://obs.septemvri.org/", from: "2023-11-01" },
+  SFO17: { name: "Елин Пелин", pages: () => ["https://www.elinpelin.bg/section-6-%C2%A0%C2%A0resheniya.html"], whole: true, fileRe: /./, base: "https://www.elinpelin.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1162,6 +1163,7 @@ async function filesGeneric(code, S, prev) {
       if (process.env.DEBUG) { const k = Math.floor(tx.length * 0.45); console.log("DBG file", kind, ds.length, k, JSON.stringify(tx.slice(k, k + 1800).replace(/ {3,}/g, "  "))); }
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
+      if (S.linkDate) { const ld = dateOf(f.t); if (ld) for (const d of ds) d.date = ld; }
       prev.files[f.u] = ds.length;
       take(ds);
     }
