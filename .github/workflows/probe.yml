@@ -4,22 +4,11 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          for c in DOB28 BGS08 VTR28 GAB29; do rm -f data/council/$c.json; ONLY=$c MINUTES=2 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "DOB28 BGS08 VTR28 GAB29".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-          PY
+          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+          UA="osaznatost-bot/1.0"
+          curl -sL -A "$UA" "https://www.dobrich.bg/uploads/posts/2026/res-38_27_10_2026.pdf" -o a.pdf; echo "## DOB"; pdftotext -layout a.pdf - | head -70
+          curl -sL -A "$UA" "https://www.kameno.bg/userfiles/files/%D0%A0%D0%95%D0%A8%D0%95%D0%9D%D0%98%D0%AF%20%E2%84%9610.pdf" -o b.pdf; echo "## KAM"; pdftotext -layout b.pdf - | head -50; pdffonts b.pdf | head -5
+          echo "## SEV"; python3 probe/look.py "https://www.sevlievo.bg/bg/resheniya-na-obshtinski-savet-sevlievo/resheniya-na-obshtinskiya-savet-s-protokol-12-ot-21-oktomvri-2026-g" | grep -E '^   (T|L.*(pdf|doc))' | cut -c1-3000
