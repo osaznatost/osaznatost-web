@@ -4,22 +4,7 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
       - run: |
-          for c in HKV33; do rm -f data/council/$c.json; ONLY=$c MINUTES=4 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "HKV33 KRZ21".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-          PY
+          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+          curl -sL -A "osaznatost-bot/1.0" "https://www.harmanli.bg/uploads/posts/resheniya-ot-10-do-36-ot-29112023-g.pdf" -o a.pdf; ls -la a.pdf; file a.pdf; pdfinfo a.pdf | head -5; echo "CHARS $(pdftotext -layout a.pdf - | wc -c)"; pdftotext -layout a.pdf - | head -60 | sed 's/^/T /'
