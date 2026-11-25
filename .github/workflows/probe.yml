@@ -4,22 +4,17 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
-          for c in PER32 SZR22 HKV11 VID16 VID06 BLG53 HKV34; do rm -f data/council/$c.json; ONLY=$c MINUTES=1.5 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "PER32 SZR22 HKV11 VID16 VID06 BLG53 HKV34".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            d=json.load(open(f))['decisions']
-            print("X",c,len(d),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:2]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:150])
-          PY
+          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for S in "https://www.obs-pernik.bg|" "https://www.dimovo.bg|" "https://www.ivaylovgrad.bg|" "https://www.maglizh.bg|"; do B=${S%|}
+            echo "## $B"
+            curl -s -m 40 -A "$UA" "$B/wp-json/wp/v2/categories?per_page=100&search=%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8" | python3 -c "import json,sys;[print('  C',c['id'],c['name'],c['count']) for c in json.load(sys.stdin)]" 
+          done
+          curl -s -m 40 -A "$UA" "https://www.obs-pernik.bg/wp-json/wp/v2/posts?per_page=2&search=%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D0%B5" | python3 -c "
+          import json,sys
+          for p in json.load(sys.stdin): print('  P',p['title']['rendered'],p['categories'],p['content']['rendered'][:1500])"
+          curl -s -m 40 -A "$UA" "https://www.dimovo.bg/wp-json/wp/v2/posts?per_page=1&categories=28" | python3 -c "
+          import json,sys
+          for p in json.load(sys.stdin): print('  D',p['title']['rendered'],p['content']['rendered'][:1200])"
