@@ -8,5 +8,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          F='(?i)решени|reshen|resheni|obs|общински.съвет|obshtinski'
-          python3 probe/all.py "https://www.velingrad.bg|$F" "https://www.troyan.bg|$F" "https://panagyurishte.bg/obsthinski-savet/|$F" "https://www.harmanli.bg|$F" "https://www.svilengrad.bg|$F" "https://www.pomorie.bg|$F" "http://os-nessebar.eu/|$F" "https://www.chervenbryag.bg|$F" "https://www.sandanski.bg|$F" "https://www.bansko.bg|$F" "https://www.rakovski.bg|$F" "https://www.popovo.bg|$F" "https://www.aksakovo.bg|$F" "https://www.balchik.bg|$F" "https://www.momchilgrad.bg/obshtinski-savet.html|$F" "https://www.kozloduy.bg|$F" "https://www.gotsedelchev.bg|$F" 2>&1 | cut -c1-200
+          F='(?i)\.pdf|\.docx?|reshen|решени|page|protokol|202[3-6]'
+          python3 probe/all.py "https://www.harmanli.bg/bg/resheniya-na-obshtinski-savet-mandat-2023-2027|$F" "https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet|$F" "https://os-nessebar.eu/resheniya/resheniya-ot-protokol-3016102026-g|$F" "https://os-nessebar.eu/resheniya|$F" "https://bansko.bg/administratsiya/obsthinski-savet/protokoli-i-resheniya/|$F" "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html|$F" "https://www.aksakovo.bg/section-4167-content.html|$F" "https://www.balchik.bg/bg/posts/index/42|$F" "https://www.momchilgrad.bg/resheniya.html|$F" 2>&1 | cut -c1-200
