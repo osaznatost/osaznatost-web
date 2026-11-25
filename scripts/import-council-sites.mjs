@@ -64,7 +64,8 @@ const SITES = {
   HKV09: { name: "Димитровград", pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.dimitrovgrad.bg/bg/resheniya-na-obs${p ? `/page/${p * 10}` : ""}`), sub: /href="\/?(bg\/resheniya-na-obs\/zasedanie-na-obshtinski-savet[^"?#]+)"/g, inline: true, base: "https://www.dimitrovgrad.bg/", from: "2023-11-01" },
   RAZ26: { name: "Разград", pages: () => [0, 1, 2, 3, 4].map((p) => `https://www.razgrad.bg/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet${p ? `?start=${p * 10}` : ""}`), sub: /href="(\/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet\/protokol-no\d+)"/g, fileRe: /Protokol/i, base: "https://www.razgrad.bg/", from: "2023-11-01" },
   BLG33: { name: "Петрич", pages: () => ["https://www.petrich.bg/bg/obshinski-svet/zasedaniya/zasedaniya-na-obs/"], sub: /href="(\/bg\/council\/obshinski-svet\/zasedaniya\/zasedaniya-na-obs\/\d+\/)"/g, fileRe: /реш|resh/i, base: "https://www.petrich.bg/", from: "2023-11-01" },
-  SLV16: { name: "Нова Загора", pages: () => [0, 1, 2].map((p) => `https://www.nova-zagora.bg/bg/zasedania-i-reshenia?page=${p}`), sub: /href="(\/bg\/node\/\d+)"[^>]*>\s*Заседание/g, fileRe: /реш|resh/i, base: "https://www.nova-zagora.bg/", from: "2023-11-01" },
+  PDV01: { name: "Асеновград", pages: () => ["https://www.asenovgrad.bg/bg/resheniya/mandat-2023-g-2027-g"], whole: true, fileRe: /reshenie/i, base: "https://www.asenovgrad.bg/", from: "2023-11-01" },
+  SLV16: { name: "Нова Загора", pages: () => [0, 1, 2].map((p) => `https://www.nova-zagora.bg/bg/zasedania-i-reshenia?page=${p}`), sub: /href="(\/bg\/node\/\d+)"[^>]*>\s*Заседание/g, whole: true, fileRe: /Протокол|\/p\d+\.pdf/i, base: "https://www.nova-zagora.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1085,7 +1086,7 @@ async function filesGeneric(code, S, prev) {
     const html = await get(pu, false, 2);
     if (!html) continue;
     if (S.sub) for (const m of html.matchAll(S.sub)) queue.push(new URL(unent(m[1]), S.base).href);
-    const main = html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
+    const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
     const files = [...main.matchAll(/href="([^"]+\.(?:pdf|docx?))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
@@ -1145,6 +1146,7 @@ for (const [code, S] of Object.entries(SITES)) {
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
+    if (!decisions.length && !existsSync(f)) continue; // нищо прочетено (напр. свърши времето) — не пишем празен файл
     writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.pages ? S.pages()[0] : S.wp ? S.wp : S.list ? S.list(0) : S.wpApi ? "https://www.plovdiv.bg/общински-съвет/нормативна-база/решения/" : S.vidin ? "https://vidinobs.com/resheniq" : S.knl ? "https://obs.kyustendil.bg/reshenia-obs" : S.blgDir ? "https://blagoevgrad.bg/header-menu/resheniia-na-obshtinski-suvet" : S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : S.vratza ? S.vratza(1) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
