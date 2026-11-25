@@ -7,4 +7,19 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: python3 probe/look.py "https://www.haskovo.bg/bg/mandat-2023-2027?page=2" "https://www.haskovo.bg/bg/mandat-2023-2027/reshenie-749-ot-13112026-g" "https://www.dobrich.bg/bg/resheniya" "https://www.sevlievo.bg/bg/resheniya" "https://samokov.obshtini.bg" "https://www.dupnitsa.bg/section-88-content.html" "https://www.obs-pernik.bg/"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+      - run: |
+          for c in PER32 SZR22 HKV11 VID16 VID06 BLG53 HKV34; do rm -f data/council/$c.json; ONLY=$c MINUTES=1.5 node scripts/import-council-sites.mjs; done
+      - run: |
+          python3 - <<'PY'
+          import json,os
+          for c in "PER32 SZR22 HKV11 VID16 VID06 BLG53 HKV34".split():
+            f=f'data/council/{c}.json'
+            if not os.path.exists(f): print("X",c,"нищо"); continue
+            d=json.load(open(f))['decisions']
+            print("X",c,len(d),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
+            for x in d[:2]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:150])
+          PY
