@@ -63,17 +63,17 @@ export default function Investicii() {
         <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">По държавата на непосредствения инвеститор. Когато тя е Нидерландия, Кипър, Люксембург или офшорна зона, често това е холдинг, а крайният собственик е другаде. Такива държави са отбелязани с *.</p>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">
-            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Държава</th><th className="p-3 num">Натрупано {y}</th><th className="p-3 num hidden sm:table-cell">Дял</th><th className="p-3 num hidden md:table-cell">{base}</th><th className="p-3 num">Нови за 3 г.</th><th className="p-3 num">Доход {y}</th><th className="p-3 num hidden sm:table-cell">Доходност</th></tr></thead>
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Държава</th><th className="p-3 num">Натрупано {y}</th><th className="p-3 num table-cell">Дял</th><th className="p-3 num table-cell">{base}</th><th className="p-3 num">Нови за 3 г.</th><th className="p-3 num">Доход {y}</th><th className="p-3 num table-cell">Доходност</th></tr></thead>
             <tbody>
               {top.map((c) => (
                 <tr key={c.k} className="border-t border-rule">
                   <td className="p-3">{c.name}{TRANSIT.has(c.k) && <span className="text-muted"> *</span>}</td>
                   <td className="p-3 num font-semibold">{mn(c.s)}</td>
-                  <td className="p-3 num hidden sm:table-cell">{fmt((c.s! / stock) * 100, 1)}%</td>
-                  <td className="p-3 num hidden md:table-cell">{mn(c.s0)}</td>
+                  <td className="p-3 num table-cell">{fmt((c.s! / stock) * 100, 1)}%</td>
+                  <td className="p-3 num table-cell">{mn(c.s0)}</td>
                   <td className={`p-3 num ${c.f3 != null && c.f3 < 0 ? "text-red" : ""}`}>{mn(c.f3)}</td>
                   <td className="p-3 num">{mn(c.inc)}</td>
-                  <td className="p-3 num hidden sm:table-cell">{c.ret == null ? "–" : `${fmt(c.ret, 1)}%`}</td>
+                  <td className="p-3 num table-cell">{c.ret == null ? "–" : `${fmt(c.ret, 1)}%`}</td>
                 </tr>
               ))}
             </tbody>
@@ -86,12 +86,12 @@ export default function Investicii() {
         <SectionTitle>В кои отрасли</SectionTitle>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white mb-6">
           <table className="w-full text-[15px]">
-            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Отрасъл</th><th className="p-3 num">Натрупано {y}</th><th className="p-3 num">Дял</th><th className="p-3 num hidden sm:table-cell">{base}</th><th className="p-3 num">Нови {y}</th></tr></thead>
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Отрасъл</th><th className="p-3 num">Натрупано {y}</th><th className="p-3 num">Дял</th><th className="p-3 num table-cell">{base}</th><th className="p-3 num">Нови {y}</th></tr></thead>
             <tbody>
               {sectors.map((s) => (
                 <tr key={s.code} className="border-t border-rule">
                   <td className="p-3">{s.name}</td><td className="p-3 num font-semibold">{mn(s.v)}</td><td className="p-3 num">{fmt((s.v! / stock) * 100, 1)}%</td>
-                  <td className="p-3 num hidden sm:table-cell">{mn(s.v0)}</td><td className={`p-3 num ${s.f != null && s.f < 0 ? "text-red" : ""}`}>{mn(s.f)}</td>
+                  <td className="p-3 num table-cell">{mn(s.v0)}</td><td className={`p-3 num ${s.f != null && s.f < 0 ? "text-red" : ""}`}>{mn(s.f)}</td>
                 </tr>
               ))}
             </tbody>

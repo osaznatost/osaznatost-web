@@ -22,7 +22,7 @@ const groups: { title: string; items: { href: string; label: string; about: stri
       { href: "/byudzhet", label: "Бюджет", about: "Приходи, разходи, дълг" },
       { href: "/porachki", label: "Поръчки", about: "Договори, фирми, риск, връзки с политици" },
       { href: "/ikonomika", label: "Икономика", about: "Растеж, инфлация, заплати, жилища" },
-      { href: "/ceni", label: "Цени", about: "Цените в магазините по вериги и места" },
+      { href: "/ceni", label: "Цени", about: "Цените в магазините, надценки и сравнение с Европа" },
     ],
   },
   {
@@ -40,7 +40,10 @@ const groups: { title: string; items: { href: string; label: string; about: stri
     ],
   },
 ];
-const DESKTOP = groups.flatMap((g) => g.items.filter((i) => !["/metodologiya", "/rechnik", "/parlament/zakoni"].includes(i.href)).map((i) => ({ ...i, group: g.title })));
+const MORE = ["/parlament/zakoni", "/rechnik", "/metodologiya"];
+const DESKTOP = groups.flatMap((g) => g.items.filter((i) => !MORE.includes(i.href)).map((i) => ({ ...i, group: g.title })));
+// На компютър редът е тесен: тези раздели са в „Още“, но са същите като в менюто на телефона.
+const DESKTOP_MORE = groups.flatMap((g) => g.items).filter((i) => MORE.includes(i.href));
 const isActive = (path: string, href: string) => path === href || path.startsWith(href + "/");
 
 function SearchIcon() {
@@ -82,6 +85,19 @@ function Header({ path }: { path: string }) {
               </Link>
             </span>
           ))}
+          <details key={path} className="relative group">
+            <summary className={"list-none cursor-pointer pb-1 border-b-2 [&::-webkit-details-marker]:hidden " + (DESKTOP_MORE.some((i) => isActive(path, i.href)) ? "text-white border-red" : "text-white/75 border-transparent hover:text-white")}>Още ▾</summary>
+            <ul className="absolute right-0 mt-2 w-72 bg-deep ring-1 ring-white/15 rounded-sm shadow-lg z-50 py-1">
+              {DESKTOP_MORE.map((i) => (
+                <li key={i.href}>
+                  <Link href={i.href} className="block px-4 py-2.5 no-underline text-white hover:bg-white/10">
+                    <span className="block font-semibold">{i.label}</span>
+                    <span className="block text-sm text-white/65">{i.about}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </details>
         </nav>
 
         <div className="ml-auto flex items-center gap-1">

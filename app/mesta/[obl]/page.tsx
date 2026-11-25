@@ -110,7 +110,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
         <SectionTitle>Общините</SectionTitle>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">
-            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Община</th><th className="p-3 num">Жители</th><th className="p-3 num">Собствени приходи*</th><th className="p-3 num">Дълг</th><th className="p-3 num">Евросредства на човек</th><th className="p-3 hidden md:table-cell">Първа на изборите</th></tr></thead>
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Община</th><th className="p-3 num">Жители</th><th className="p-3 num">Собствени приходи*</th><th className="p-3 num">Дълг</th><th className="p-3 num">Евросредства на човек</th><th className="p-3 table-cell">Първа на изборите</th></tr></thead>
             <tbody>{munis.map(({ m, f, fin, el }) => (
               <tr key={m.code} className="border-t border-rule">
                 <td className="p-3"><Link href={`/mesta/${o.slug}/${muniSlug(m.code)}`} className="font-semibold">{m.name}</Link>{fin?.recovery && <span className="text-xs ml-2 bg-[#fbecc4] rounded-full px-2 py-0.5">в оздравяване</span>}</td>
@@ -118,7 +118,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
                 <td className="p-3 num">{mn(fin?.revenue)}</td>
                 <td className="p-3 num">{mn(fin?.debt)}</td>
                 <td className="p-3 num">{f ? `${Math.round(f.perCapita).toLocaleString("bg-BG")} €` : "–"}</td>
-                <td className="p-3 hidden md:table-cell">{el ? `${el.lists[0].name} ${fmt(el.lists[0].pct, 0)}%` : "–"}</td>
+                <td className="p-3 table-cell">{el ? `${el.lists[0].name} ${fmt(el.lists[0].pct, 0)}%` : "–"}</td>
               </tr>
             ))}</tbody>
           </table>

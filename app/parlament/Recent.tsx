@@ -50,7 +50,7 @@ export function RecentSittings({ days = 3 }: { days?: number }) {
                       <Link href={g.slug ? `/parlament/zakon/${g.slug}` : `/parlament/glasuvane/${main.id}`} className="font-semibold text-ink no-underline hover:underline line-clamp-2">{g.name}</Link>
                       <div className="flex items-center gap-2 mt-1.5"><OutcomeTag outcome={main.outcome} /><span className="text-xs text-muted">{stage}</span></div>
                       <div className="mt-2"><TallyBar c={tally(main)} height={6} /></div>
-                      <p className="hidden sm:block text-xs text-muted mt-1.5">{PARTIES.filter((p) => br[p] && partyPosition(br[p]) !== "absent").map((p) => `${partyName(p)}: ${POS[partyPosition(br[p])]}`).join(" · ")}</p>
+                      <p className="block text-xs text-muted mt-1.5">{PARTIES.filter((p) => br[p] && partyPosition(br[p]) !== "absent").map((p) => `${partyName(p)}: ${POS[partyPosition(br[p])]}`).join(" · ")}</p>
                     </li>
                   );
                 })}
@@ -130,9 +130,9 @@ export function WeekProgram() {
                 {x.analysed && <span className="text-xs font-semibold text-[#1f5c2a]">има анализ</span>}
               </div>
               {x.slug ? <Link href={`/parlament/zakon/${x.slug}`} className="font-semibold text-ink">{x.title}</Link> : <p className="font-semibold">{x.title}</p>}
-              {x.sponsors && <p className="hidden sm:block text-sm text-muted mt-0.5">Вносители: {x.sponsors}{x.firstReading ? ` · първо четене на ${x.firstReading}` : ""}</p>}
+              {x.sponsors && <p className="block text-sm text-muted mt-0.5">Вносители: {x.sponsors}{x.firstReading ? ` · първо четене на ${x.firstReading}` : ""}</p>}
               {x.acts.length > 0 && (
-                <p className="hidden sm:block text-sm mt-1">{x.acts.length === 1 ? "Законопроект" : `${x.acts.length} законопроекта`}: {x.acts.map((a, i) => <span key={a.id}>{i > 0 && ", "}<a href={billUrl(a.id)} target="_blank" rel="noreferrer">{a.sign}</a></span>)}</p>
+                <p className="block text-sm mt-1">{x.acts.length === 1 ? "Законопроект" : `${x.acts.length} законопроекта`}: {x.acts.map((a, i) => <span key={a.id}>{i > 0 && ", "}<a href={billUrl(a.id)} target="_blank" rel="noreferrer">{a.sign}</a></span>)}</p>
               )}
             </div>
           </li>

@@ -53,7 +53,19 @@ export default async function Ceni() {
       <Title lead={`Типичните цени на 85 стоки от голямата потребителска кошница във всички големи вериги, по данни, които търговците подават всеки ден на Комисията за защита на потребителите. Последни данни: ${dmy(L.date)}.`}>
         Цени в магазините
       </Title>
-      <p className="mb-4 text-[15px]"><Link href="/ceni/nadcenki">Надценки и цени спрямо чужбина</Link>: еднакви продукти в България и Австрия, цена на едро срещу цена в магазина.</p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        {[
+          { href: "/ceni/nadcenki#ednakvi", t: "България срещу Европа", d: "Един и същ продукт, една и съща верига: цената в BILLA България и BILLA Австрия." },
+          { href: "/ceni/nadcenki#edro", t: "Надценки", d: "Цена на едро срещу цена в магазина, по данни на ДКСБТ и КЗП." },
+          { href: "/ceni/nadcenki#evropa", t: "Храната спрямо ЕС", d: "Ценово равнище и покупателна способност в България и другите страни (Евростат)." },
+          { href: "/ikonomika/pokupatelna-sila", t: "Какво купува заплатата", d: "Колко хляб, ток и гориво купува минималната заплата тук и в съседните страни." },
+        ].map((c) => (
+          <Link key={c.href} href={c.href} className="block ring-1 ring-rule rounded-sm p-4 bg-white no-underline text-ink hover:ring-2 hover:ring-green">
+            <span className="block font-semibold text-lg leading-snug">{c.t} →</span>
+            <span className="block text-sm text-muted mt-1">{c.d}</span>
+          </Link>
+        ))}
+      </div>
       <SectionNav items={[["koshnitsa", "Кошницата"], ["veregi", "Вериги"], ["oblasti", "Области"], ["mesta", "Населени места"], ["stoki", "Всички стоки"], ["kak", "Как смятаме"]]} />
 
       <Anchor id="koshnitsa" title="Кошницата" lead={`Сбор от типичните цени на ${basket.length} основни стоки (хляб, мляко, сирене, масло, пиле, кайма, яйца, боб, ориз, захар, брашно, олио, банани, ябълки, домати, лук, картофи и др.).`}>

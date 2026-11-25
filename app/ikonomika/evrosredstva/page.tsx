@@ -111,12 +111,12 @@ export default function Evrosredstva() {
         <p className="font-semibold mb-2">Най-големите бенефициенти</p>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">
-            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Бенефициент</th><th className="p-3 num">Договори</th><th className="p-3 num">Договорени</th><th className="p-3 num">Изплатени</th><th className="p-3 num hidden sm:table-cell">Дял изплатен</th></tr></thead>
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Бенефициент</th><th className="p-3 num">Договори</th><th className="p-3 num">Договорени</th><th className="p-3 num">Изплатени</th><th className="p-3 num table-cell">Дял изплатен</th></tr></thead>
             <tbody>{F.top.slice(0, 25).map((x) => (
               <tr key={x.eik} className="border-t border-rule">
                 <td className="p-3"><Link href={`/porachki/firma/${x.eik}`}>{x.name}</Link>{x.mpTied && <span className="text-xs ml-2 bg-[#fbecc4] rounded-full px-2 py-0.5">връзка с депутат</span>}</td>
                 <td className="p-3 num">{x.contracts}</td><td className="p-3 num">{mn(x.contracted)}</td><td className="p-3 num">{mn(x.paid)}</td>
-                <td className={`p-3 num hidden sm:table-cell ${x.paid / x.contracted < 0.2 ? "text-red" : ""}`}>{fmt((x.paid / x.contracted) * 100, 0)}%</td>
+                <td className={`p-3 num table-cell ${x.paid / x.contracted < 0.2 ? "text-red" : ""}`}>{fmt((x.paid / x.contracted) * 100, 0)}%</td>
               </tr>
             ))}</tbody>
           </table>

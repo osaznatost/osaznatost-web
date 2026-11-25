@@ -123,7 +123,7 @@ export default async function StatPage({ params }: { params: Promise<{ id: strin
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Сравняваме годишните промени, а не самите стойности, за да не излизат връзки само защото всичко расте с времето. Корелацията показва, че две неща се движат заедно. Тя не доказва, че едното причинява другото.</p>
           <div className="overflow-x-auto">
             <table className="w-full text-[15px]">
-              <thead><tr className="text-left text-sm text-muted"><th className="py-2 pr-3">Показател</th><th className="py-2 pr-3">Посока</th><th className="py-2 pr-3">Сила</th><th className="py-2 pr-3 num">r</th><th className="py-2 num hidden sm:table-cell">Години</th></tr></thead>
+              <thead><tr className="text-left text-sm text-muted"><th className="py-2 pr-3">Показател</th><th className="py-2 pr-3">Посока</th><th className="py-2 pr-3">Сила</th><th className="py-2 pr-3 num">r</th><th className="py-2 num table-cell">Години</th></tr></thead>
               <tbody>
                 {corr.map((c) => (
                   <tr key={c.id} className="border-t border-rule">
@@ -131,7 +131,7 @@ export default async function StatPage({ params }: { params: Promise<{ id: strin
                     <td className="py-2 pr-3">{Math.abs(c.r) < 0.3 ? "няма ясна" : c.r > 0 ? "в една посока" : "в обратни посоки"}</td>
                     <td className="py-2 pr-3">{strength(c.r)}</td>
                     <td className="py-2 pr-3 num">{fmt(c.r, 2)}</td>
-                    <td className="py-2 num hidden sm:table-cell">{c.from}–{c.to} ({c.n})</td>
+                    <td className="py-2 num table-cell">{c.from}–{c.to} ({c.n})</td>
                   </tr>
                 ))}
               </tbody>

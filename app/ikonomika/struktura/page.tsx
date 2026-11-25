@@ -113,20 +113,20 @@ export default function Struktura() {
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">
             <thead><tr className="text-left text-sm text-muted border-b border-rule">
-              <th className="p-3">Сектор</th><th className="p-3 num">Дял {y}</th><th className="p-3 num hidden md:table-cell">Дял {first}</th><th className="p-3 num hidden md:table-cell">ЕС</th>
-              <th className="p-3 num">Ръст*</th><th className="p-3 num">Заети</th><th className="p-3 num">На зает</th><th className="p-3 num hidden sm:table-cell">Заплати**</th>
+              <th className="p-3">Сектор</th><th className="p-3 num">Дял {y}</th><th className="p-3 num table-cell">Дял {first}</th><th className="p-3 num table-cell">ЕС</th>
+              <th className="p-3 num">Ръст*</th><th className="p-3 num">Заети</th><th className="p-3 num">На зает</th><th className="p-3 num table-cell">Заплати**</th>
             </tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.code} className={`border-t border-rule ${r.sub ? "text-muted" : ""}`}>
                   <td className={`p-3 ${r.sub ? "pl-8 text-sm" : ""}`}><span className="inline-block w-2.5 h-2.5 rounded-full mr-2" style={{ background: r.color }} />{r.name}</td>
                   <td className="p-3 num font-semibold">{f1(r.share)}%</td>
-                  <td className="p-3 num hidden md:table-cell">{f1(r.shareFirst)}%</td>
-                  <td className="p-3 num hidden md:table-cell">{f1(r.shareEu)}%</td>
+                  <td className="p-3 num table-cell">{f1(r.shareFirst)}%</td>
+                  <td className="p-3 num table-cell">{f1(r.shareEu)}%</td>
                   <td className={`p-3 num ${r.real != null && r.real < 0 ? "text-red" : ""}`}>{r.real == null ? "–" : `${r.real > 0 ? "+" : ""}${fmt(r.real, 1)}%`}</td>
                   <td className="p-3 num">{f1(r.emp)}%</td>
                   <td className="p-3 num">{r.prod ? `${fmt(r.prod, 1)} хил. €` : "–"}</td>
-                  <td className="p-3 num hidden sm:table-cell">{f1(r.labour)}%</td>
+                  <td className="p-3 num table-cell">{f1(r.labour)}%</td>
                 </tr>
               ))}
             </tbody>
@@ -192,7 +192,7 @@ export default function Struktura() {
         <div className="ring-1 ring-rule rounded-sm p-4 bg-white mb-6"><ChoroMap values={mapValues} color="#1F4D3A" legend="БВП на човек, € годишно" unit=" €" /></div>
         <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
           <table className="w-full text-[15px]">
-            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Област</th><th className="p-3 num">Добавена стойност {ry}</th><th className="p-3 num">На човек</th><th className="p-3">Най-голям сектор</th>{REGIONAL_SECTORS.slice(0, 2).map((s) => <th key={s.code} className="p-3 num hidden md:table-cell">{s.name}</th>)}<th className="p-3 num hidden md:table-cell">ИТ</th></tr></thead>
+            <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Област</th><th className="p-3 num">Добавена стойност {ry}</th><th className="p-3 num">На човек</th><th className="p-3">Най-голям сектор</th>{REGIONAL_SECTORS.slice(0, 2).map((s) => <th key={s.code} className="p-3 num table-cell">{s.name}</th>)}<th className="p-3 num table-cell">ИТ</th></tr></thead>
             <tbody>
               {oblasts.map((o) => (
                 <tr key={o.code} className="border-t border-rule">
@@ -200,8 +200,8 @@ export default function Struktura() {
                   <td className="p-3 num">{bn(o.tot)}</td>
                   <td className="p-3 num">{o.pc ? `${Math.round(o.pc).toLocaleString("bg-BG")} €` : "–"}</td>
                   <td className="p-3">{o.top.name} <span className="text-muted">{f1(o.top.share)}%</span></td>
-                  {o.secs.slice(0, 2).map((s) => <td key={s.code} className="p-3 num hidden md:table-cell">{f1(s.share)}%</td>)}
-                  <td className="p-3 num hidden md:table-cell">{f1(o.secs.find((s) => s.code === "J")?.share)}%</td>
+                  {o.secs.slice(0, 2).map((s) => <td key={s.code} className="p-3 num table-cell">{f1(s.share)}%</td>)}
+                  <td className="p-3 num table-cell">{f1(o.secs.find((s) => s.code === "J")?.share)}%</td>
                 </tr>
               ))}
             </tbody>

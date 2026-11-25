@@ -62,7 +62,7 @@ export default async function Home() {
               <input name="q" placeholder="напр. асфалт Ботевград 2024" className="flex-1 rounded-md px-4 py-3 text-ink bg-white text-[16px]" />
               <button className="bg-red hover:bg-red-dark text-white font-semibold px-4 rounded-md">Търси</button>
             </form>
-            <div className="mt-4 hidden sm:flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-3">
               <Link href="/parlament" className="no-underline bg-red hover:bg-red-dark text-white hover:text-white font-semibold px-5 py-3 rounded-md">Вижте гласуванията</Link>
               <Link href="/kalkulatori" className="no-underline ring-1 ring-white/40 hover:ring-white text-white hover:text-white px-5 py-3 rounded-md">Калкулатори</Link>
             </div>
@@ -123,7 +123,7 @@ export default async function Home() {
             <li key={c.href}>
               <Link href={c.href} className="group block h-full no-underline rounded-lg p-4 sm:p-5 bg-white ring-1 ring-rule hover:ring-green hover:bg-surface">
                 <span className="display block text-[1.4rem] sm:text-[1.7rem] leading-tight text-ink group-hover:text-green">{c.t}</span>
-                <span className="hidden sm:block text-muted text-[15px] mt-2">{c.d}</span>
+                <span className="block text-muted text-[15px] mt-2">{c.d}</span>
               </Link>
             </li>
           ))}
