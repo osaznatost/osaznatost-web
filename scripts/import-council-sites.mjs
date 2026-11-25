@@ -923,12 +923,12 @@ function parsePlovdiv(post) {
     tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
     text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body };
 }
-// Поименното гласуване: всеки ред „<три имена> <За|Против|Въздържал се>“. Ако в PDF-а има няколко гласувания (по подвъпроси), взимаме последното.
+// Поименното гласуване: всеки ред „<три имена> [група] <За|Против|Въздържал се>“. Ако в PDF-а има няколко гласувания (по подвъпроси), взимаме последното.
 function plovdivTally(t) {
   const blocks = t.split(/Поименно\s+гласуване/i).slice(1);
   const b = blocks.length ? blocks[blocks.length - 1] : t;
   let f = 0, a = 0, ab = 0;
-  for (const m of b.matchAll(/^\s*[А-ЯЁ][а-я]+(?:\s+[А-ЯЁ][а-яА-Я-]+){1,3}\s{2,}(За|Против|Въздържал\s+се)\s*$/gm)) { if (m[1] === "За") f++; else if (m[1] === "Против") a++; else ab++; }
+  for (const m of b.matchAll(/^\s*[А-Я][а-я][^\n]*?\s{2,}(За|Против|Въздържал\s+се)\s*$/gm)) { if (m[1] === "За") f++; else if (m[1] === "Против") a++; else ab++; }
   return f + a + ab >= 10 ? { for: f, against: a, abstain: ab, method: "named" } : null;
 }
 async function plovdiv(code, S, prev) {
