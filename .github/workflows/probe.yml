@@ -8,7 +8,10 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 https://assets.dm.de/product/2026.1124.1610/product-dm.min.js -o p.js
-          grep -oE '.{0,100}(baseUrl|BASE_URL|apiUrl|productApi|PRODUCT_API)[^;]{0,120}' p.js | head -8
-          grep -oE 'https://[a-z0-9.-]+(\.com|\.de|\.cloud)[^"`]{0,40}' p.js | sort -u | head -20
-          for b in https://products.dm.de https://product.services.dmtech.com https://shopping.services.dmtech.com https://products.services.dmtech.com https://product-api.services.dmtech.com; do echo "## $b $(curl -s -m 20 -A "$UA" -o x -w '%{http_code}' "$b/product/detail/BG/dan/1913393") $(head -c 120 x)"; done
+          B=https://shopping.services.dmtech.com
+          curl -s -m 25 -A "$UA" "$B/product/detail/BG/dan/1913393" -o d.json
+          python3 -c "
+          import json;d=json.load(open('d.json'));print(list(d.keys()))
+          for k in ['gtin','dan','price','title','brand','netQuantityContent','contentUnit','basePrice','metadata','pricing']: print(k, json.dumps(d.get(k),ensure_ascii=False)[:300])"
+          for c in DE AT RO HR; do echo "## $c"; curl -s -m 25 -A "$UA" "$B/product/tiles/$c/dans/1913393,1573082,3020074" | head -c 900; echo; done
+          echo "## BG tiles"; curl -s -m 25 -A "$UA" "$B/product/tiles/BG/dans/1913393,1573082,3020074" | head -c 1200; echo
