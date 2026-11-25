@@ -1,26 +1,465 @@
 {
-  "about": "Еднакви продукти (същата марка, вид и разфасовка) в една и съща верига в България и в чужбина. BG: точното име от данните на КЗП („Колко струва“); AT: артикулът в онлайн магазина на BILLA Австрия.",
-  "items": [
-    { "id": "barilla-spaghetti-5", "label": "Barilla спагети №5", "size": "500 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "500ГР СПАГЕТИ 5 BARILLA" }, "at": { "search": "barilla spaghetti", "sku": "00-703339" } },
-    { "id": "barilla-spaghettini-3", "label": "Barilla спагети №3", "size": "500 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "500ГР СПАГЕТИ 3 BARILLA" }, "at": { "search": "barilla spaghetti", "sku": "00-418998" } },
-    { "id": "barilla-wholewheat", "label": "Barilla пълнозърнести спагети", "size": "500 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "500ГР СПАГЕТИ N5 ИНТЕГРАЛЕ BARILLA" }, "at": { "search": "barilla spaghetti", "sku": "00-501491" } },
-    { "id": "barilla-penne", "label": "Barilla пене ригате", "size": "500 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "500ГР ПЕНЕ РИГАТЕ BARILLA" }, "at": { "search": "barilla penne rigate", "sku": "00-705998" } },
-    { "id": "barilla-fusilli", "label": "Barilla фусили", "size": "500 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "500ГР ФУСИЛИ BARILLA" }, "at": { "search": "barilla fusilli", "sku": "00-775373" } },
-    { "id": "monini-classico", "label": "Зехтин Monini Classico", "size": "1 л", "group": "Основни храни", "bg": { "chain": "Билла", "name": "1Л НЕОБРАБОТЕНО МАСЛ МАСЛО КЛАСИК MONINI" }, "at": { "search": "monini", "sku": "00-793862" } },
-    { "id": "mutti-peeled", "label": "Белени домати Mutti", "size": "400 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "400Г ЦЕЛИ БЕЛЕНИ ДОМАТИ MUTTI" }, "at": { "search": "mutti", "sku": "00-897363" } },
-    { "id": "mutti-chopped", "label": "Нарязани домати Mutti", "size": "400 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "400Г РЯЗАНИ ДОМАТИ MUTTI" }, "at": { "search": "mutti", "sku": "00-897372" } },
-    { "id": "bonduelle-kidney", "label": "Червен фасул Bonduelle", "size": "400 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "400ГР ЧЕРВЕН ФАСУЛ BONDUELLE" }, "at": { "search": "bonduelle", "sku": "00-602789" } },
-    { "id": "bonduelle-white", "label": "Бял фасул Bonduelle", "size": "400 г", "group": "Основни храни", "bg": { "chain": "Билла", "name": "400ГР ЗРЯЛ ФАСУЛ BONDUELLE" }, "at": { "search": "bonduelle", "sku": "00-420859" } },
-    { "id": "lavazza-crema-gusto", "label": "Мляно кафе Lavazza Crema e Gusto", "size": "250 г", "group": "Кафе", "bg": { "chain": "Билла", "name": "250ГР МЛЯНО КАФЕ LAVAZZA CREMA E GUSTO" }, "at": { "search": "lavazza", "sku": "00-4211" } },
-    { "id": "lavazza-crema-aroma", "label": "Кафе на зърна Lavazza Crema e Aroma", "size": "1 кг", "group": "Кафе", "bg": { "chain": "Билла", "name": "1КГ LAVAZZA CREMA E AROMA КАФЕ НА ЗЪРНА" }, "at": { "search": "lavazza", "sku": "00-630177" } },
-    { "id": "elmex-caries", "label": "Паста за зъби Elmex против кариес", "size": "75 мл", "group": "Хигиена", "bg": { "chain": "Билла", "name": "ELMEX ПАСТА ЗА ЗЪБИ ПРОТИВ КАРИЕС 75МЛ" }, "at": { "search": "elmex", "sku": "00-401484" } },
-    { "id": "elmex-sensitive", "label": "Паста за зъби Elmex Sensitive", "size": "75 мл", "group": "Хигиена", "bg": { "chain": "Билла", "name": "ELMEX ПАСТА ЗА ЗЪБИ SENSITIVE 75МЛ" }, "at": { "search": "elmex", "sku": "00-401490" } },
-    { "id": "elmex-sensitive-prof", "label": "Паста за зъби Elmex Sensitive Professional", "size": "75 мл", "group": "Хигиена", "bg": { "chain": "Билла", "name": "ELMEX ПАСТА ЗА ЗЪБИ SENSITIVE PROF 75МЛ" }, "at": { "search": "elmex", "sku": "00-668184" } },
-    { "id": "elmex-junior", "label": "Детска паста за зъби Elmex Junior", "size": "75 мл", "group": "Хигиена", "bg": { "chain": "Билла", "name": "ELMEX ПАСТА ЗА ЗЪБИ JUNIOR 6-12Г. 75МЛ" }, "at": { "search": "elmex", "sku": "00-902771" } },
-    { "id": "colgate-purple", "label": "Паста за зъби Colgate Max White Purple", "size": "75 мл", "group": "Хигиена", "bg": { "chain": "Билла", "name": "COLGATE MAX.WHITE PURPLE П-ТА ЗЪБИ 75МЛ" }, "at": { "search": "colgate max white", "sku": "00-731141" } },
-    { "id": "milka-alpine", "label": "Млечен шоколад Milka", "size": "90 г", "group": "Други", "bg": { "chain": "Билла", "name": "90ГР МЛЕЧЕН ШОКОЛАД MILKA" }, "at": { "search": "milka alpenmilch", "sku": "00-772792" } },
-    { "id": "milka-oreo", "label": "Шоколад Milka Oreo", "size": "100 г", "group": "Други", "bg": { "chain": "Билла", "name": "100ГР ШОКОЛАД MILKA OREO" }, "at": { "search": "milka oreo", "sku": "00-691612" } },
-    { "id": "kinder", "label": "Kinder шоколад", "size": "100 г", "group": "Други", "bg": { "chain": "Билла", "name": "100ГР KINDER ШОКОЛАД" }, "at": { "search": "kinder schokolade", "sku": "00-3437" } },
-    { "id": "lindt-lindor", "label": "Млечен шоколад Lindt Lindor", "size": "100 г", "group": "Други", "bg": { "chain": "Билла", "name": "100ГР МЛЕЧЕН ШОКОЛАД LINDT LINDOR" }, "at": { "search": "lindt lindor", "sku": "00-412404" } }
-  ]
+ "about": "Еднакви продукти (същата марка, вид и разфасовка) в една и съща верига в България и в чужбина. BG: точното име от данните на КЗП („Колко струва“); AT: артикулът в онлайн магазина на BILLA Австрия.",
+ "items": [
+  {
+   "id": "barilla-spaghetti-5",
+   "label": "Barilla спагети №5",
+   "size": "500 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "500ГР СПАГЕТИ 5 BARILLA"
+   },
+   "at": {
+    "search": "barilla spaghetti",
+    "sku": "00-703339"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "BARILLA СПАГЕТИ №5 500 Г"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "СПАГЕТИ BARILLA НОМЕР 5 500 ГР"
+    },
+    {
+     "chain": "T Market",
+     "name": "СПАГЕТИ BARILLA NO5 500Г"
+    }
+   ]
+  },
+  {
+   "id": "barilla-spaghettini-3",
+   "label": "Barilla спагети №3",
+   "size": "500 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "500ГР СПАГЕТИ 3 BARILLA"
+   },
+   "at": {
+    "search": "barilla spaghetti",
+    "sku": "00-418998"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "BARILLA СПАГЕТИНИ №3 500 Г"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "СПАГЕТИ BARILLA НОМЕР 3 500 ГР"
+    }
+   ]
+  },
+  {
+   "id": "barilla-wholewheat",
+   "label": "Barilla пълнозърнести спагети",
+   "size": "500 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "500ГР СПАГЕТИ N5 ИНТЕГРАЛЕ BARILLA"
+   },
+   "at": {
+    "search": "barilla spaghetti",
+    "sku": "00-501491"
+   },
+   "bgMore": [
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "СПАГЕТИ BARILLA 100% ПЪЛНОЗЪРНЕСТИ №5 500 ГР"
+    }
+   ]
+  },
+  {
+   "id": "barilla-penne",
+   "label": "Barilla пене ригате",
+   "size": "500 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "500ГР ПЕНЕ РИГАТЕ BARILLA"
+   },
+   "at": {
+    "search": "barilla penne rigate",
+    "sku": "00-705998"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "BARILLA ПЕНЕ РИГАТЕ №73 500Г"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "МАКАРОНИ BARILLA ПЕНЕ РИГАТЕ НОМЕР 73 500 ГР"
+    },
+    {
+     "chain": "T Market",
+     "name": "МАКАРОНИ BARILLA PENNE RIGATE 500Г"
+    }
+   ]
+  },
+  {
+   "id": "barilla-fusilli",
+   "label": "Barilla фусили",
+   "size": "500 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "500ГР ФУСИЛИ BARILLA"
+   },
+   "at": {
+    "search": "barilla fusilli",
+    "sku": "00-775373"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "BARILLA ФУСИЛИ №98 500Г"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "МАКАРОНИ BARILLA ФУСИЛИ НОМЕР 98 500 ГР КУТИЯ"
+    },
+    {
+     "chain": "T Market",
+     "name": "МАКАРОНИ BARILLA FUSILLI 500Г"
+    }
+   ]
+  },
+  {
+   "id": "monini-classico",
+   "label": "Зехтин Monini Classico",
+   "size": "1 л",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "1Л НЕОБРАБОТЕНО МАСЛ МАСЛО КЛАСИК MONINI"
+   },
+   "at": {
+    "search": "monini",
+    "sku": "00-793862"
+   },
+   "bgMore": []
+  },
+  {
+   "id": "mutti-peeled",
+   "label": "Белени домати Mutti",
+   "size": "400 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "400Г ЦЕЛИ БЕЛЕНИ ДОМАТИ MUTTI"
+   },
+   "at": {
+    "search": "mutti",
+    "sku": "00-897363"
+   },
+   "bgMore": [
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "ДОМАТИ MUTTI ЦЕЛИ БЕЛЕНИ 400 Г КОНСЕРВА"
+    }
+   ]
+  },
+  {
+   "id": "mutti-chopped",
+   "label": "Нарязани домати Mutti",
+   "size": "400 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "400Г РЯЗАНИ ДОМАТИ MUTTI"
+   },
+   "at": {
+    "search": "mutti",
+    "sku": "00-897372"
+   },
+   "bgMore": [
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "ДОМАТИ MUTTI СИТНО НАРЯЗАНИ 400 ГР"
+    }
+   ]
+  },
+  {
+   "id": "bonduelle-kidney",
+   "label": "Червен фасул Bonduelle",
+   "size": "400 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "400ГР ЧЕРВЕН ФАСУЛ BONDUELLE"
+   },
+   "at": {
+    "search": "bonduelle",
+    "sku": "00-602789"
+   },
+   "bgMore": []
+  },
+  {
+   "id": "bonduelle-white",
+   "label": "Бял фасул Bonduelle",
+   "size": "400 г",
+   "group": "Основни храни",
+   "bg": {
+    "chain": "Билла",
+    "name": "400ГР ЗРЯЛ ФАСУЛ BONDUELLE"
+   },
+   "at": {
+    "search": "bonduelle",
+    "sku": "00-420859"
+   },
+   "bgMore": []
+  },
+  {
+   "id": "lavazza-crema-gusto",
+   "label": "Мляно кафе Lavazza Crema e Gusto",
+   "size": "250 г",
+   "group": "Кафе",
+   "bg": {
+    "chain": "Билла",
+    "name": "250ГР МЛЯНО КАФЕ LAVAZZA CREMA E GUSTO"
+   },
+   "at": {
+    "search": "lavazza",
+    "sku": "00-4211"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "LAVAZZA CREMA E GUSTO КАФЕ МЛЯНО 250 Г"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "КАФЕ LAVAZZA CREMA E GUSTO 250 Г МЛЯНО ВАКУУМ 156"
+    },
+    {
+     "chain": "T Market",
+     "name": "КАФЕ LAVAZZA CREMA GUSTO 250 ГР"
+    }
+   ]
+  },
+  {
+   "id": "lavazza-crema-aroma",
+   "label": "Кафе на зърна Lavazza Crema e Aroma",
+   "size": "1 кг",
+   "group": "Кафе",
+   "bg": {
+    "chain": "Билла",
+    "name": "1КГ LAVAZZA CREMA E AROMA КАФЕ НА ЗЪРНА"
+   },
+   "at": {
+    "search": "lavazza",
+    "sku": "00-630177"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "LAVAZZA CREMAAROMA КАФЕ НА ЗЪРНА 1КГ"
+    }
+   ]
+  },
+  {
+   "id": "elmex-caries",
+   "label": "Паста за зъби Elmex против кариес",
+   "size": "75 мл",
+   "group": "Хигиена",
+   "bg": {
+    "chain": "Билла",
+    "name": "ELMEX ПАСТА ЗА ЗЪБИ ПРОТИВ КАРИЕС 75МЛ"
+   },
+   "at": {
+    "search": "elmex",
+    "sku": "00-401484"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "ELMEX ПАСТА ЗА ЗЪБИ CARIESPROTECTION75МЛ"
+    }
+   ]
+  },
+  {
+   "id": "elmex-sensitive",
+   "label": "Паста за зъби Elmex Sensitive",
+   "size": "75 мл",
+   "group": "Хигиена",
+   "bg": {
+    "chain": "Билла",
+    "name": "ELMEX ПАСТА ЗА ЗЪБИ SENSITIVE 75МЛ"
+   },
+   "at": {
+    "search": "elmex",
+    "sku": "00-401490"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "ELMEX ПАСТА ЗА ЗЪБИ SENSITIVE 75 МЛ"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "ПАСТА ЗА ЗЪБИ ELMEX SENSITIVE 75 МЛ"
+    },
+    {
+     "chain": "T Market",
+     "name": "ПАСТА ЗА ЗЪБИ ELMEX SENSITIVE 75 МЛ"
+    }
+   ]
+  },
+  {
+   "id": "elmex-sensitive-prof",
+   "label": "Паста за зъби Elmex Sensitive Professional",
+   "size": "75 мл",
+   "group": "Хигиена",
+   "bg": {
+    "chain": "Билла",
+    "name": "ELMEX ПАСТА ЗА ЗЪБИ SENSITIVE PROF 75МЛ"
+   },
+   "at": {
+    "search": "elmex",
+    "sku": "00-668184"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "ELMEX ПАСТА SENSITIVE PROFESSIONAL 75 МЛ"
+    },
+    {
+     "chain": "T Market",
+     "name": "ПАСТА ЗА ЗЪБИ ELMEX SENSITIVE PROF. 75МЛ"
+    }
+   ]
+  },
+  {
+   "id": "elmex-junior",
+   "label": "Детска паста за зъби Elmex Junior",
+   "size": "75 мл",
+   "group": "Хигиена",
+   "bg": {
+    "chain": "Билла",
+    "name": "ELMEX ПАСТА ЗА ЗЪБИ JUNIOR 6-12Г. 75МЛ"
+   },
+   "at": {
+    "search": "elmex",
+    "sku": "00-902771"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "ELMEX ПАСТА ЗА ЗЪБИ JUNIOR 6-12 Г. 75 МЛ"
+    }
+   ]
+  },
+  {
+   "id": "colgate-purple",
+   "label": "Паста за зъби Colgate Max White Purple",
+   "size": "75 мл",
+   "group": "Хигиена",
+   "bg": {
+    "chain": "Билла",
+    "name": "COLGATE MAX.WHITE PURPLE П-ТА ЗЪБИ 75МЛ"
+   },
+   "at": {
+    "search": "colgate max white",
+    "sku": "00-731141"
+   },
+   "bgMore": []
+  },
+  {
+   "id": "milka-alpine",
+   "label": "Млечен шоколад Milka",
+   "size": "90 г",
+   "group": "Други",
+   "bg": {
+    "chain": "Билла",
+    "name": "90ГР МЛЕЧЕН ШОКОЛАД MILKA"
+   },
+   "at": {
+    "search": "milka alpenmilch",
+    "sku": "00-772792"
+   },
+   "bgMore": [
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "ШОКОЛАД MILKA МЛЕЧЕН 90 ГР"
+    },
+    {
+     "chain": "T Market",
+     "name": "ШОКОЛАД MILKA МЛЕЧЕН 90Г"
+    }
+   ]
+  },
+  {
+   "id": "milka-oreo",
+   "label": "Шоколад Milka Oreo",
+   "size": "100 г",
+   "group": "Други",
+   "bg": {
+    "chain": "Билла",
+    "name": "100ГР ШОКОЛАД MILKA OREO"
+   },
+   "at": {
+    "search": "milka oreo",
+    "sku": "00-691612"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "MILKA ШОКОЛАД OREO 100 Г"
+    }
+   ]
+  },
+  {
+   "id": "kinder",
+   "label": "Kinder шоколад",
+   "size": "100 г",
+   "group": "Други",
+   "bg": {
+    "chain": "Билла",
+    "name": "100ГР KINDER ШОКОЛАД"
+   },
+   "at": {
+    "search": "kinder schokolade",
+    "sku": "00-3437"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "KINDER SCHOKOLADE ШОК. БЛОКЧ. Т8 100Г"
+    },
+    {
+     "chain": "Лидл България",
+     "name": "KINDER ШОКОЛАД 8 БР."
+    }
+   ]
+  },
+  {
+   "id": "lindt-lindor",
+   "label": "Млечен шоколад Lindt Lindor",
+   "size": "100 г",
+   "group": "Други",
+   "bg": {
+    "chain": "Билла",
+    "name": "100ГР МЛЕЧЕН ШОКОЛАД LINDT LINDOR"
+   },
+   "at": {
+    "search": "lindt lindor",
+    "sku": "00-412404"
+   },
+   "bgMore": [
+    {
+     "chain": "Кауфланд България",
+     "name": "LINDT LINDOR MILK ШОКОЛАД МЛЕЧЕН 100 ГР"
+    },
+    {
+     "chain": "ФАНТАСТИКО",
+     "name": "ШОКОЛАД LINDT ЛИНДОР МЛЕЧЕН 100 ГР КАСИ"
+    }
+   ]
+  }
+ ]
 }

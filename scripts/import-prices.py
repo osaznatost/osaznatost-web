@@ -41,7 +41,12 @@ for o in json.load(open("data/places.json"))["oblasts"]:
 IDENT = json.load(open("content/identical-products.json"))["items"] if os.path.exists("content/identical-products.json") else []
 norm = lambda x: re.sub(r"\s+", " ", x).strip().upper()
 WANT = {(i["bg"]["chain"], norm(i["bg"]["name"])): i["id"] for i in IDENT}
-PROD = defaultdict(list)  # id → редовни цени по обекти (последния прочетен ден)
+for i in IDENT:  # същият продукт и в другите вериги (точното му име там)
+    for m in i.get("bgMore", []):
+        WANT[(m["chain"], norm(m["name"]))] = i["id"]
+PROD = defaultdict(list)  # id → редовни цени по обекти (последния прочетен ден), основната верига
+PRODCH = defaultdict(lambda: defaultdict(list))  # id → верига → цени
+MAIN = {i["id"]: i["bg"]["chain"] for i in IDENT}
 
 def num(x):
     try:
@@ -69,7 +74,7 @@ def day(d):
     cat_chain = defaultdict(lambda: defaultdict(list))   # кат → верига → цени
     cat_place = defaultdict(lambda: defaultdict(list))   # кат → ЕКАТТЕ → цени
     stores = defaultdict(set)                            # верига → обекти
-    PROD.clear()
+    PROD.clear(); PRODCH.clear()
     with zipfile.ZipFile(f) as z:
         for name in z.namelist():
             if not name.lower().endswith(".csv"):
@@ -77,7 +82,16 @@ def day(d):
             ch = chain_name(name)
             with z.open(name) as fh:
                 for r in csv.reader(io.TextIOWrapper(fh, encoding="utf-8-sig", errors="replace")):
-                    if len(r) < 6 or not r[4].strip().isdigit():
+                    if len(r) < 6:
+                        continue
+                    pid = WANT.get((ch, norm(r[2])))
+                    if pid:
+                        pp = num(r[5])
+                        if pp is not None:
+                            PRODCH[pid][ch].append(pp)
+                            if ch == MAIN.get(pid):
+                                PROD[pid].append(pp)
+                    if not r[4].strip().isdigit():
                         continue
                     c = int(r[4])
                     if c not in CATS:
@@ -85,9 +99,6 @@ def day(d):
                     p = num(r[5])
                     if p is None:
                         continue
-                    pid = WANT.get((ch, norm(r[2])))
-                    if pid:
-                        PROD[pid].append(p)
                     ek = r[0].strip().lstrip("0").zfill(5)
                     cat_chain[c][ch].append(p)
                     cat_place[c][ek].append(p)
@@ -141,7 +152,8 @@ for d in sorted(set(dates)):
         print(d, "няма файл")
         continue
     summ, places = summarize(d, *got)
-    summ_prod = {"date": d, "items": {pid: {"med": med(xs), "min": round(min(xs), 2), "max": round(max(xs), 2), "stores": len(xs)} for pid, xs in PROD.items()}}
+    summ_prod = {"date": d, "items": {pid: {"med": med(xs), "min": round(min(xs), 2), "max": round(max(xs), 2), "stores": len(xs),
+        "chains": {ch: {"med": med(ys), "stores": len(ys)} for ch, ys in PRODCH[pid].items() if ys}} for pid, xs in PROD.items()}}
     if d not in hist["dates"]:
         hist["dates"].append(d)
         hist["dates"].sort()

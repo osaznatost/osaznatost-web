@@ -8,7 +8,7 @@ import { DmCompare } from "@/components/DmCompare";
 export const metadata = { title: "Надценки и цени спрямо чужбина" };
 
 type Ident = { id: string; label: string; size: string; group: string; bg: { chain: string; name: string }; at: { search: string; sku: string } };
-type Prod = { date: string; items: Record<string, { med: number; min: number; max: number; stores: number }> };
+type Prod = { date: string; items: Record<string, { med: number; min: number; max: number; stores: number; chains?: Record<string, { med: number; stores: number }> }> };
 type Abroad = { date: string; chain: string; items: Record<string, { name: string; price: number; promo: boolean; url: string }> };
 type Whole = { week: string; source: string; url: string; items: Record<string, { eur: number; unit: string }> };
 type Cat = { name: string; med: number; n: number; chains: Record<string, { med: number; min: number; n: number }> };
@@ -40,6 +40,11 @@ export default async function Nadcenki() {
   const dearer = rows.filter((r) => r.diff > 1).length, cheaper = rows.filter((r) => r.diff < -1).length;
   const sumBg = rows.reduce((s, r) => s + r.bg!.med, 0), sumAt = rows.reduce((s, r) => s + r.at!.price, 0);
   const hyg = rows.filter((r) => r.i.group === "Хигиена");
+  // Същите продукти и в другите вериги у нас (по данните на КЗП), ако ги продават.
+  const BGCH: [string, string][] = [["Билла", "BILLA"], ["Кауфланд България", "Kaufland"], ["Лидл България", "Lidl"], ["ФАНТАСТИКО", "Фантастико"], ["T Market", "T Market"]];
+  const bgCh = BGCH.filter(([c]) => rows.some((r) => r.bg!.chains?.[c]));
+  const cheapestBg = (r: (typeof rows)[number]) => Math.min(...Object.values(r.bg!.chains ?? {}).map((x) => x.med), r.bg!.med);
+  const sumCheap = rows.reduce((s, r) => s + cheapestBg(r), 0);
 
   const whole = W && L ? Object.entries(W.items).flatMap(([name, w]) => {
     const m = WHOLE_MAP.find(([re]) => re.test(name));
@@ -60,34 +65,34 @@ export default async function Nadcenki() {
       <Title lead="Три сравнения, изчислени по един и същ начин за всички: еднакви продукти в една и съща верига в България и в Австрия; цената на едро срещу цената в магазина; и колко струва храната у нас спрямо доходите в ЕС. Под всяка цифра стои какво точно сравняваме.">
         Надценки и цени спрямо чужбина
       </Title>
-      <SectionNav items={[["dm", "dm в 5 държави"], ["ednakvi", "BILLA: България и Австрия"], ["edro", "Едро → дребно"], ["evropa", "България в ЕС"], ["metodologiya", "Методология"]]} />
+      <SectionNav items={[["dm", "dm в 5 държави"], ["ednakvi", "5 вериги у нас срещу Австрия"], ["edro", "Едро → дребно"], ["evropa", "България в ЕС"], ["metodologiya", "Методология"]]} />
 
       <Anchor id="dm" title="Един и същ продукт в 5 държави (dm)" lead="Хиляди еднакви продукти (козметика, хигиена, бебешки и домашни стоки, храни) с един и същ баркод в dm България, Германия, Австрия, Румъния и Хърватия. Показваме колко по-скъпо или по-евтино е у нас.">
         <DmCompare />
       </Anchor>
 
-      <Anchor id="ednakvi" title="Един и същ продукт, една и съща верига" lead={`Еднакви артикули (марка, вид и разфасовка) в BILLA България и BILLA Австрия. В България: обичайната цена в магазините на веригата${P ? ` (${dmy(P.date)})` : ""}; в Австрия: онлайн магазинът на BILLA${A ? ` (${dmy(A.date)})` : ""}.`}>
+      <Anchor id="ednakvi" title="Един и същ продукт във веригите у нас и в Австрия" lead={`Еднакви артикули (марка, вид и разфасовка) в BILLA, Kaufland, Lidl, Фантастико и T Market в България и в BILLA Австрия. В България: обичайната цена в магазините на всяка верига по данните на КЗП${P ? ` (${dmy(P.date)})` : ""}; в Австрия: онлайн магазинът на BILLA${A ? ` (${dmy(A.date)})` : ""}. Празно поле: веригата не продава точно този артикул.`}>
         {rows.length === 0 ? <p className="text-muted">Данните се събират. Опитай отново по-късно.</p> : (
           <>
             <div className="grid gap-3 sm:grid-cols-3 mb-5">
               <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">По-скъпо в България</p><p className="display text-[2.4rem] leading-none mt-1">{dearer} от {rows.length}</p><p className="text-xs text-muted mt-1">с повече от 1%</p></div>
               <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">По-евтино в България</p><p className="display text-[2.4rem] leading-none mt-1">{cheaper} от {rows.length}</p><p className="text-xs text-muted mt-1">с повече от 1%</p></div>
-              <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Цялата кошница</p><p className="display text-[2.4rem] leading-none mt-1">{pc((sumBg / sumAt - 1) * 100)}</p><p className="text-xs text-muted mt-1">{eur(sumBg)} у нас срещу {eur(sumAt)} в Австрия</p></div>
+              <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Цялата кошница</p><p className="display text-[2.4rem] leading-none mt-1">{pc((sumBg / sumAt - 1) * 100)}</p><p className="text-xs text-muted mt-1">{eur(sumBg)} в BILLA у нас срещу {eur(sumAt)} в BILLA Австрия. Ако всеки продукт се купи от най-евтината верига у нас: {eur(sumCheap)} ({pc((sumCheap / sumAt - 1) * 100)}).</p></div>
             </div>
             <table className="w-full text-[15px] num">
-              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Продукт</th><th className="text-right px-2 font-normal">BILLA BG</th><th className="text-right px-2 font-normal">BILLA AT</th><th className="text-right px-2 font-normal">Разлика</th></tr></thead>
+              <thead><tr className="text-left border-b border-rule text-sm text-muted"><th className="py-2 pr-3 font-normal">Продукт</th>{bgCh.map(([c, n]) => <th key={c} className="text-right px-2 font-normal">{n}</th>)}<th className="text-right px-2 font-normal">BILLA Австрия</th><th className="text-right px-2 font-normal">BILLA: БГ спрямо AT</th></tr></thead>
               <tbody>{["Основни храни", "Кафе", "Хигиена", "Други"].flatMap((g) => {
                 const rs = rows.filter((r) => r.i.group === g);
-                return rs.length ? [<tr key={g}><td colSpan={4} className="pt-4 pb-1 text-sm font-semibold">{g}</td></tr>, ...rs.map((r) => (
+                return rs.length ? [<tr key={g}><td colSpan={bgCh.length + 3} className="pt-4 pb-1 text-sm font-semibold">{g}</td></tr>, ...rs.map((r) => (
                   <tr key={r.i.id} className="border-b border-rule">
                     <td className="py-1.5 pr-3">{r.i.label}<span className="text-sm text-muted">, {r.i.size}</span></td>
-                    <td className="text-right px-2">{eur(r.bg!.med)}</td>
+                    {bgCh.map(([c]) => { const v = c === "Билла" ? r.bg!.med : r.bg!.chains?.[c]?.med; const low = v != null && v === cheapestBg(r) && Object.keys(r.bg!.chains ?? {}).length > 1; return <td key={c} className={`text-right px-2 ${low ? "font-semibold text-green" : ""}`}>{v != null ? eur(v) : <span className="text-muted">–</span>}</td>; })}
                     <td className="text-right px-2"><a href={r.at!.url} rel="nofollow noopener">{eur(r.at!.price)}</a>{r.at!.promo && <span className="block text-xs text-muted">промоция</span>}</td>
                     <td className={`text-right px-2 font-semibold ${r.diff > 1 ? "text-red" : r.diff < -1 ? "text-green" : ""}`}>{pc(r.diff)}</td>
                   </tr>))] : [];
               })}</tbody>
             </table>
-            <p className="text-sm text-muted mt-3 max-w-3xl">„Разлика“: с колко процента цената в България е над (+) или под (−) цената в Австрия. Цените са крайни, с ДДС. В България ДДС върху храните е 20%, в Австрия 10% за повечето храни и 4,9% за някои основни, затова при храните част от разликата е данъкът. При пастите за зъби ДДС и в двете държави е 20%{hyg.length ? ` — там сравнението е най-чисто: ${hyg.filter((r) => r.diff > 1).length} от ${hyg.length} са по-скъпи у нас` : ""}.</p>
+            <p className="text-sm text-muted mt-3 max-w-3xl">Зелено: най-евтината верига у нас за този продукт. „BILLA: БГ спрямо AT“: с колко процента цената в BILLA България е над (+) или под (−) цената в Австрия. Цените са крайни, с ДДС. В България ДДС върху храните е 20%, в Австрия 10% за повечето храни и 4,9% за някои основни, затова при храните част от разликата е данъкът. При пастите за зъби ДДС и в двете държави е 20%{hyg.length ? ` — там сравнението е най-чисто: ${hyg.filter((r) => r.diff > 1).length} от ${hyg.length} са по-скъпи у нас` : ""}.</p>
           </>
         )}
       </Anchor>
