@@ -4,23 +4,8 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          for c in BLG33 SLV16; do rm -f data/council/$c.json; ONLY=$c MINUTES=3 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "BLG33 SLV16".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-            print("   files:",list(j['files'].items())[:5])
-          PY
+          for u in https://www.gabrovo.bg https://www.gabrovo.bg/bg/page/55 https://obs.kazanlak.bg/page-684.html https://www.kazanlak.bg https://www.karlovo.bg https://www.lom.bg https://www.dupnitsa.bg https://www.samokov.bg https://www.gornaoryahovitsa.bg https://www.goma.bg https://gorna-oryahovitsa.bg; do
+            echo "## $u"; curl -sL -m 30 -A "osaznatost-bot/1.0" "$u" | grep -oiE '[a-z0-9._-]+@[a-z0-9.-]+\.(bg|com|eu)' | sort | uniq -c | sort -rn | head -6
+          done
