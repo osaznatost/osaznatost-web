@@ -1101,7 +1101,9 @@ async function filesGeneric(code, S, prev) {
       if (f.u in prev.files) continue;
       const buf = await get(f.u, true, 2);
       if (!buf) continue;
-      const tx = /\.docx$/i.test(f.u) ? docxText(buf) : /\.doc$/i.test(f.u) ? docText(buf) : pdfText(buf);
+      let tx = /\.docx$/i.test(f.u) ? docxText(buf) : /\.doc$/i.test(f.u) ? docText(buf) : pdfText(buf);
+      // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
+      if (/\.pdf$/i.test(f.u) && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = splitDecisions(tx, f.u, dateOf(f.t));
       prev.files[f.u] = ds.length;
       take(ds);
