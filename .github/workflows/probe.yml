@@ -8,7 +8,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in "https://provadia.bg/list.php?category_id=4" https://www.elinpelin.bg/section-24-content.html https://www.radnevo.bg/section-126-content.html https://www.gotsedelchev.bg/ https://sozopol.bg/bg/obshtinski-savet.html https://obs.septemvri.org/index.php/protokoli-ot-zasedaniyata-na-obshtinski-savet; do
-            rm -f p.html; echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u")"
-            grep -oiE 'href="[^"]+"[^>]*>[^<]{0,80}' p.html | grep -iE 'реш|resh|протокол|protokol|subsection|obs|съвет|savet|\.pdf|\.doc' | grep -viE 'category_id=(129|209|249|291|43|98)|vid1/' | sort -u | head -20
-          done
+          for u in https://sozopol.obs-savet.eu/; do rm -f p.html; echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u")"; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,80}' p.html | sort -u | head -40; grep -oiE '[a-z0-9-]+\.obs-savet\.eu' p.html | sort -u; done
