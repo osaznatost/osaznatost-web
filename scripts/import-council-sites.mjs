@@ -78,6 +78,7 @@ const SITES = {
   LOV19: { name: "Луковит", list: (p) => `https://www.lukovit.bg/bg/reshenia${p ? `/page/${p * 12}` : ""}`, item: /href="(\/?bg\/resheniya\/[^"#]+)"/g, base: "https://www.lukovit.bg/", from: "2023-11-01" },
   SFO26: { name: "Костинброд", linkDate: true, pages: () => ["https://www.obs.kostinbrod.bg/obsr/"], whole: true, fileRe: /РЕШЕНИ|%D0%A0%D0%95%D0%A8%D0%95%D0%9D%D0%98/i, base: "https://www.obs.kostinbrod.bg/", from: "2023-11-01" },
   BGS01: { name: "Айтос", pages: () => ["https://aytos.bg/resheniya-mandat-6391.html"], whole: true, fileRe: /\/files\//i, base: "https://aytos.bg/", from: "2023-11-01" },
+  PAZ29: { name: "Септември", pages: () => ["https://obs.septemvri.org/index.php/protokoli-ot-zasedaniyata-na-obshtinski-savet"], whole: true, fileRe: /protokoli_sesii/i, fileDate: /_(\d{2})(\d{2})(\d{2})\.pdf$/i, base: "https://obs.septemvri.org/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1162,6 +1163,7 @@ async function filesGeneric(code, S, prev) {
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       if (S.linkDate) { const ld = dateOf(f.t); if (ld) for (const d of ds) d.date = ld; }
+      if (S.fileDate) { const m = f.u.match(S.fileDate); if (m) for (const d of ds) d.date = `20${m[3]}-${m[2]}-${m[1]}`; }
       prev.files[f.u] = ds.length;
       take(ds);
     }
