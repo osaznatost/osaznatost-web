@@ -7,20 +7,4 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
-      - run: |
-          for c in PDV01 HKV09 RAZ26; do rm -f data/council/$c.json; ONLY=$c MINUTES=2.5 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "PDV01 HKV09 RAZ26".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-            print("   files:",list(j['files'].items())[:4])
-          PY
+      - run: python3 probe/all.py "https://obs.kazanlak.bg/r-6-2.html|(?i)\.pdf|\.doc|d-|reshen|решение|item|view" "https://www.karlovo.bg/section-493-content.html|(?i)\.pdf|\.doc|assets|uploads|subsection" "https://www.lom.bg/section-254-content.html|202[3-6]" "https://www.petrich.bg/bg/obshinski-svet/zasedaniya/|(?i)zased|\.pdf|\.doc|reshen|202[3-6]" "https://www.gabrovo.bg/bg/page/274|(?i)202[3-6]|reshen|files"
