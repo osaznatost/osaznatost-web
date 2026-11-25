@@ -8,14 +8,8 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 -A "$UA" https://www.dm-drogeriemarkt.bg/product-sitemap.xml -o sm.xml; echo "BG products: $(grep -c '<loc>' sm.xml)"
-          for c in BG DE AT RO HR; do curl -s -m 25 -A "$UA" -o d.json -w "## $c %{http_code} %{size_download}\n" "https://products.dm.de/product/$c/products/detail/dan/1913393"; python3 -c "
-          import json;d=json.load(open('d.json'))
-          def f(o,p=''):
-            if isinstance(o,dict):
-              for k,v in o.items():
-                if any(x in k.lower() for x in ['price','gtin','title','name','brand','currency','content','unit']) and not isinstance(v,(dict,list)): print(' ',p+k,'=',str(v)[:80])
-                f(v,p+k+'.')
-            elif isinstance(o,list):
-              for i,v in enumerate(o[:3]): f(v,p+str(i)+'.')
-          f(d)" 2>&1 | head -25; done
+          curl -s -m 30 -A "$UA" "https://www.dm-drogeriemarkt.bg/p/d/1913393/nivea-izmivasht-mitselaren-gel-za-litse-s-rozova-voda" -o p.html; wc -c p.html
+          grep -oE '(https?:)?//[a-z0-9.-]*(dmtech|dm\.de|dm-drogeriemarkt)[^"'"'"' )]*' p.html | sort -u | head -30
+          grep -oE '"(gtin|price|formattedPrice|value|currency)"[^,]{0,60}' p.html | head -10
+          for js in $(grep -oE 'src="[^"]+\.js"' p.html | sed 's/src="//;s/"//' | head -6); do u=$js; case $u in /*) u="https://www.dm-drogeriemarkt.bg$u";; esac; curl -s -m 40 "$u" >> a.js; done
+          grep -oE '"https://[a-z0-9.-]*dmtech[^"]{0,120}"|`https://[a-z0-9.-]*dmtech[^`]{0,120}`|products\.dm\.de[^"`]{0,120}|/product/[^"`]{0,100}' a.js | sort -u | head -40
