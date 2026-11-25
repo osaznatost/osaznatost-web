@@ -5,17 +5,8 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          set +e
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in "https://www.carrefour.ro/catalogsearch/result/?q=barilla" "https://www.konzum.hr/web/search?q=barilla" "https://www.konzum.hr/pretraga?q=barilla" "https://www.ab.gr/search?q=barilla" "https://www.ab.gr/api/v1/?operationName=GetProductSearch" "https://www.kaufland.ro/cautare.html?q=barilla" "https://www.lidl.de/q/search?q=barilla"; do
-            curl -sL -m 30 -A "$UA" -o p.html -w "## $u %{http_code} %{size_download} %{url_effective}\n" "$u"
-            python3 - <<'PY'
-          import re
-          s=open('p.html',errors='ignore').read()
-          i=[m.start() for m in re.finditer('(?i)spaghetti|barilla',s)][:200]
-          print('  hits',len(i))
-          for k in i[5:200:40]: print('   >',re.sub(r'\s+',' ',s[max(0,k-250):k+250]))
-          print('  ean', re.findall(r'(?:gtin13|ean)["\']?\s*[:=]\s*["\']?(\d{8,13})',s)[:5])
-          PY
-          done
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node probe/ro.mjs
