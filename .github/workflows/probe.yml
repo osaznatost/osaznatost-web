@@ -4,12 +4,11 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - run: |
-          mkdir -p /tmp/r && cd /tmp/r && npm init -y >/dev/null && npm i -s playwright@1 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
-          cp $GITHUB_WORKSPACE/probe/render.mjs /tmp/r/ && node render.mjs "https://bansko.bg/administratsiya/obsthinski-savet/protokoli-i-resheniya/" "https://www.velingrad.bg" "https://www.troyan.bg" "https://panagyurishte.bg/obsthinski-savet/" "https://www.chervenbryag.bg" "https://www.rakovski.bg" "https://www.pomorie.bg" "https://sandanski.bg/%d0%be%d0%b1%d1%89%d0%b8%d0%bd%d1%81%d0%ba%d0%b8-%d1%81%d1%8a%d0%b2%d0%b5%d1%82/" "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-/2754-reshenia-obs-2026.html" "https://www.balchik.bg/bg/posts/index/42"
+          python3 probe/all.py "https://www.balchik.bg/bg/mandat-2023-2027|(?i)\.pdf|\.doc|reshen|page|202[3-6]" "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-/2754-reshenia-obs-2026.html|(?i)files\.popovo|\.pdf" 2>&1 | head -40
+          curl -s "https://sandanski.bg/wp-json/wp/v2/categories?per_page=100&search=%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB" | python3 -c "import json,sys;[print('  C',c['id'],c['name'],c['count']) for c in json.load(sys.stdin)]"
+          curl -s "https://sandanski.bg/wp-json/wp/v2/posts?per_page=2&categories=$(curl -s 'https://sandanski.bg/wp-json/wp/v2/categories?per_page=100&search=%D0%BF%D1%80%D0%BE%D1%82%D0%BE%D0%BA%D0%BE%D0%BB' | python3 -c 'import json,sys;print(max(json.load(sys.stdin),key=lambda c:c["count"])["id"])')" | python3 -c "
+          import json,sys
+          for p in json.load(sys.stdin): print('  P',p['date'],p['title']['rendered'][:100],p['content']['rendered'][:600])"
