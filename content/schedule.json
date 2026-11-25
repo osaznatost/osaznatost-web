@@ -31,6 +31,9 @@
  "update-declarations.yml": [
   "37 2 * * *"
  ],
+ "update-dm.yml": [
+  "37 3 * * 1"
+ ],
  "update-macro.yml": [
   "37 9 * * *"
  ],

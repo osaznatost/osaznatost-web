@@ -1,0 +1,38 @@
+name: Цени в dm (България и Европа)
+
+on:
+  # schedule (Cloudflare):
+    # cf-cron: "37 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Само първите N продукта (проба)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dm
+
+jobs:
+  dm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: dm каталог в 5 държави
+        env:
+          LIMIT: ${{ github.event.inputs.limit }}
+        run: node scripts/import-dm.mjs
+      - name: Запис
+        run: |
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git add data/dm
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "dm: цени в България и Европа"
+          for i in 1 2 3; do git push && break; git pull --rebase -X theirs -q origin main; done
