@@ -74,6 +74,8 @@ const SITES = {
   BGS15: { name: "Несебър", render: true, pages: () => [1, 2, 3, 4, 5].map((p) => `https://os-nessebar.eu/resheniya${p > 1 ? `?page=${p}` : ""}`), sub: /href="(https:\/\/os-nessebar\.eu\/resheniya\/resheniya-ot-protokol-[^"#]+)"/g, inline: true, base: "https://os-nessebar.eu/", from: "2023-11-01" },
   TGV24: { name: "Попово", pages: () => ["https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html"], sub: /href="((?:https?:\/\/www\.popovo\.bg)?\/?bg\/obs-menu\/reshenia-obs-new\/reshenia-obs-2023-2027-\/\d+-reshenia[^"#]*)"/g, whole: true, fileRe: /files\.popovo|Reshenia/i, base: "https://www.popovo.bg/", from: "2023-11-01" },
   DOB03: { name: "Балчик", index: "https://www.balchik.bg/bg/mandat-2023-2027", list: () => "https://www.balchik.bg/bg/mandat-2023-2027", indexRe: /href="(\/?bg\/mandat-2023-2027\/resheniya-ot-zasedanie[^"#]*)"/g, item: /href="(\/?bg\/mandat-2023-2027\/reshenie-\d+[^"#]*)"/g, urlDate: true, mainRe: /<div class="content">[\s\S]*?<\/article>/i, titleRe: /Дата на публикуване:\s*[\d.]+\s*г?\.?\s*([\s\S]{5,600}?)\s*Вносител:\s*([^\n]{3,150}?)\s*(?:В залата|Поименно|Явно|Гласуване|\n)/, base: "https://www.balchik.bg/", from: "2023-11-01" },
+  BGS13: { name: "Царево", reshi: true, pages: () => ["https://tsarevo.bg/obshtinski-savet/resheniya"], whole: true, fileRe: /re6eniq_obs/i, base: "https://tsarevo.bg/", from: "2023-11-01" },
+  LOV19: { name: "Луковит", list: (p) => `https://www.lukovit.bg/bg/reshenia${p ? `/page/${p * 12}` : ""}`, item: /href="(\/?bg\/resheniya\/[^"#]+)"/g, base: "https://www.lukovit.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1100,6 +1102,30 @@ function splitDecisions(text, url, fallbackDate) {
   return out;
 }
 // Страници с файлове (и/или с текста на решенията направо в страницата).
+// Протокол, в който всяка точка завършва с „РЕШИ № N“ и гласуването е след текста (Царево).
+function splitReshi(tx, url) {
+  const t = tx.replace(/\r/g, "");
+  const date = dateOf(t.slice(0, 1500));
+  const session = t.slice(0, 600).match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*№\s*(\d+)/)?.[1] ?? "";
+  if (!date) return [];
+  const out = [];
+  for (const ch of t.split(/\n\s*ПО\s+ТОЧКА\s+\d+\s*\.?/i).slice(1)) {
+    const nm = ch.match(/РЕШИ\s*:?\s*№\s*(\d+)/);
+    if (!nm) continue;
+    const title = flat(ch.match(/относно\s*:?\s*[„"“]([\s\S]{5,600}?)[“”"]\s*(?:\/|\n)/i)?.[1] ?? ch.slice(0, 300)).replace(/^Докладна записка от .{3,120}?относно:?\s*/i, "");
+    const after = ch.slice(nm.index + nm[0].length);
+    const end = after.search(/Гласували\s*[„"“]?за/i);
+    const body = flat(end > 0 ? after.slice(0, end) : after.slice(0, 1500)).replace(/\s*\d+\.\s*[А-Я][а-я]+\s+[А-Я][а-я]+\s+[А-Я][а-я]+\s*[-–]\s*[„"“].*$/, "");
+    const vm = after.match(/Гласували\s*[„"“]?за[“”"]?\s*[-–]?\s*(\d+)\s*,\s*[„"“]?против[“”"]?\s*[-–]?\s*(\d+)\s*,\s*[„"“]?въздържали\s+се[“”"]?\s*[-–]?\s*(\d+)/i);
+    const by = ch.match(/Докладна записка от\s+(.{3,120}?)\s*,?\s*относно/i)?.[1];
+    out.push({ number: nm[1], date, url, title: title.slice(0, 400), session, rapporteur: null, proposedBy: by ? flat(by) : null,
+      tally: vm ? { for: +vm[1], against: +vm[2], abstain: +vm[3], method: /[-–]\s*[„"“]за[“”"]/.test(after.slice(0, end > 0 ? end : 3000)) ? "named" : "open" } : null,
+      result: /^\s*(\S+\.\s*)?(не\s+(приема|одобрява|дава|разрешава|избира)|отхвърля)/i.test(body) ? "rejected" : "adopted",
+      tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
+      text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body });
+  }
+  return out;
+}
 async function filesGeneric(code, S, prev) {
   let added = 0;
   const seenPages = new Set(), queue = [...S.pages()];
@@ -1119,6 +1145,7 @@ async function filesGeneric(code, S, prev) {
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
     const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
       .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]).replace(/#.*$/, ""), S.base).href, t: htmlText2(m[2]) }));
+    if (process.env.DEBUG) console.log("DBG page", pu, html.length, "files", files.length);
     for (const f of files) {
       if (timeUp() || blocked) break;
       if (f.u in prev.files) continue;
@@ -1128,7 +1155,8 @@ async function filesGeneric(code, S, prev) {
       let tx = kind === "docx" ? docxText(buf) : kind === "doc" ? docText(buf) : pdfText(buf);
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
       if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
-      const ds = splitDecisions(tx, f.u, dateOf(f.t));
+      const ds = S.reshi ? splitReshi(tx, f.u) : splitDecisions(tx, f.u, dateOf(f.t));
+      if (process.env.DEBUG) { const k = Math.floor(tx.length * 0.45); console.log("DBG file", kind, ds.length, k, JSON.stringify(tx.slice(k, k + 1800).replace(/ {3,}/g, "  "))); }
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       prev.files[f.u] = ds.length;
