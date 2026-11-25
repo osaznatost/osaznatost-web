@@ -8,8 +8,7 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 20 -A "$UA" https://www.dm-drogeriemarkt.bg/robots.txt; echo; curl -s -m 20 -A "$UA" https://www.dm.de/robots.txt | head -30; echo
-          for c in bg de at ro hr; do
-            curl -s -m 25 -A "$UA" -H 'Accept: application/json' -o s.json -w "## $c %{http_code} %{size_download}\n" "https://product-search.services.dmtech.com/$c/search?query=balea&pageSize=3&currentPage=0"
-            head -c 700 s.json; echo
-          done
+          curl -s -m 20 -A "$UA" -o /dev/null -w "redir %{redirect_url}\n" "https://product-search.services.dmtech.com/de/search?query=balea&pageSize=3"
+          curl -s -m 30 -A "$UA" https://www.dm-drogeriemarkt.bg/sitemap.xml | head -c 1500; echo
+          for sm in $(curl -s -m 30 -A "$UA" https://www.dm-drogeriemarkt.bg/sitemap.xml | grep -oE 'https://[^<]+product[^<]*' | head -2); do echo "SM $sm"; curl -s -m 60 -A "$UA" "$sm" | gunzip -f 2>/dev/null | grep -oE '<loc>[^<]+' | head -3; curl -s -m 60 -A "$UA" "$sm" | grep -oE '<loc>[^<]+' | head -3; done
+          for c in BG DE AT RO HR; do curl -s -m 25 -A "$UA" -o d.json -w "## $c %{http_code} %{size_download}\n" "https://products.dm.de/product/$c/products/detail/gtin/4066447240917"; head -c 400 d.json; echo; done
