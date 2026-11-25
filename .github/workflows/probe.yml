@@ -8,14 +8,15 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          B="https://www.plovdiv.bg/%D0%BE%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8-%D1%81%D1%8A%D0%B2%D0%B5%D1%82/%D0%BD%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B8%D0%B2%D0%BD%D0%B0-%D0%B1%D0%B0%D0%B7%D0%B0/%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F/"
-          curl -sL -m 40 -A "$UA" -o l.html "$B"
-          grep -oE '<iframe[^>]{0,300}' l.html | head; grep -oE '(admin-ajax[^"]{0,200}|wp-json/[a-z0-9_/-]{3,80})' l.html | sort -u | head -20
+          curl -s -m 40 -A "$UA" -D h.txt "https://www.plovdiv.bg/obs/wp-json/wp/v2/categories?per_page=100" -o c.json; grep -i "x-wp-total" h.txt
+          python3 -c "import json;[print('  C',c['id'],c['name'],c['count'],c['parent']) for c in json.load(open('c.json'))]"
+          ID=$(python3 -c "import json;print([c['id'] for c in json.load(open('c.json')) if c['name']=='Решения'][0])")
+          curl -s -m 60 -A "$UA" -D h2.txt "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts?categories=$ID&per_page=3&orderby=date&order=desc" -o p.json; grep -i "x-wp-total" h2.txt
           python3 - <<'PY'
-          import re,html
-          s=html.unescape(open('l.html',errors='ignore').read())
-          m=re.search(r'<main.*?</main>',s,re.S) or re.search(r'<article.*?</article>',s,re.S)
-          t=re.sub(r'<script.*?</script>|<style.*?</style>','',m.group(0) if m else s,flags=re.S)
-          print('  M',re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' | ',t))[:2500])
+          import json,re,html
+          for p in json.load(open('p.json')):
+            print('  P',p['id'],p['date'],html.unescape(p['title']['rendered'])[:200],p['link'][:120])
+            c=html.unescape(re.sub(r'<[^>]+>',' ',p['content']['rendered']))
+            print('    ',re.sub(r'\s+',' ',c)[:1800])
+            print('    links',re.findall(r'href="([^"]+)"',p['content']['rendered'])[:5])
           PY
-          curl -s -m 40 -A "$UA" "https://www.plovdiv.bg/wp-json/wp/v2/pages/2691" | python3 -c "import json,sys,re;d=json.load(sys.stdin);c=d['content']['rendered'];print('  P',len(c),re.sub(r'\s+',' ',c)[:1500])"
