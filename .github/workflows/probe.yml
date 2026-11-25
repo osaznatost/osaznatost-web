@@ -7,27 +7,7 @@ jobs:
     steps:
       - run: |
           set +e
-          for d in $(seq 0 4); do D=$(date -u -d "-$d day" +%F); curl -sSLf -m 300 -A "Mozilla/5.0 (osaznatost.bg; open data)" -o k.zip "https://kolkostruva.bg/opendata_files/$D.zip" && break; done
-          ls -la k.zip; mkdir k && cd k && unzip -q ../k.zip && ls | head -40
-          python3 - <<'PY'
-          import csv,glob,re,os,collections,json
-          brands=["BARILLA","MUTTI","BONDUELLE","LAVAZZA","ELMEX","COLGATE","MILKA","KINDER","LINDT","MONINI","NUTELLA","NESCAFE","JACOBS","COCA","PEPSI","ARIEL","PERSIL","FAIRY","NIVEA","HEINZ","PRINGLES","RED BULL","LENOR","DOVE","GILLETTE","PAMPERS","HEAD","ORAL-B","PALMOLIVE","TCHIBO","DAVIDOFF","HIPP","NESQUIK","DANONE","ACTIVIA"]
-          out=collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
-          for f in glob.glob('*.csv'):
-            ch=re.sub(r"\s*\(.*$","",os.path.basename(f).rsplit("_",1)[0]).strip()
-            for r in csv.reader(open(f,encoding='utf-8-sig',errors='replace')):
-              if len(r)<6: continue
-              n=r[2].upper() if len(r)>2 else ''
-              for b in brands:
-                if b in n: out[b][ch][n]+=1
-          chains=collections.Counter()
-          for b,v in out.items():
-            for ch in v: chains[ch]+=1
-          print("CHAINS",chains.most_common(15))
-          for b in brands:
-            v=out.get(b,{})
-            big=[ch for ch in v if ch in ("Лидл България","Кауфланд България","Билла","ФАНТАСТИКО","T Market")]
-            print("##",b,{ch:len(v[ch]) for ch in big})
-            for ch in big:
-              print("  ",ch,"|", " ; ".join(n for n,_ in v[ch].most_common(6)))
-          PY
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in "https://www.spar.at/produktwelt/suche?q=barilla" "https://shop.rewe.de/productList?search=barilla" "https://www.rewe.de/shop/suche/?search=barilla" "https://www.carrefour.ro/catalogsearch/result/?q=barilla" "https://www.mega-image.ro/search?q=barilla" "https://www.konzum.hr/web/search?q=barilla" "https://shop.billa.cz/vyhledavani?q=barilla" "https://www.kaufland.de/" "https://www.kaufland.ro/" "https://www.lidl.de/q/search?q=barilla" "https://www.auchan.ro/barilla?_q=barilla" "https://www.globus.de/" "https://www.mercator.si/" "https://www.tesco.hu/" "https://www.sklavenitis.gr/apotelesmata-anazitisis/?Query=barilla" "https://www.ab.gr/search?q=barilla"; do
+            curl -sL -m 25 -A "$UA" -o p -w "## $u %{http_code} %{size_download}\n" "$u"; grep -oiE 'barilla[^<"]{0,40}' p | head -2
+          done
