@@ -8,6 +8,13 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in "https://www.spar.at/produktwelt/suche?q=barilla" "https://shop.rewe.de/productList?search=barilla" "https://www.rewe.de/shop/suche/?search=barilla" "https://www.carrefour.ro/catalogsearch/result/?q=barilla" "https://www.mega-image.ro/search?q=barilla" "https://www.konzum.hr/web/search?q=barilla" "https://shop.billa.cz/vyhledavani?q=barilla" "https://www.kaufland.de/" "https://www.kaufland.ro/" "https://www.lidl.de/q/search?q=barilla" "https://www.auchan.ro/barilla?_q=barilla" "https://www.globus.de/" "https://www.mercator.si/" "https://www.tesco.hu/" "https://www.sklavenitis.gr/apotelesmata-anazitisis/?Query=barilla" "https://www.ab.gr/search?q=barilla"; do
-            curl -sL -m 25 -A "$UA" -o p -w "## $u %{http_code} %{size_download}\n" "$u"; grep -oiE 'barilla[^<"]{0,40}' p | head -2
-          done
+          echo "## AUCHAN"; curl -s -m 30 -A "$UA" "https://www.auchan.ro/api/catalog_system/pub/products/search?ft=barilla%20spaghetti&_from=0&_to=4" | python3 -c "
+          import json,sys
+          try:
+            d=json.load(sys.stdin)
+            for p in d[:5]: print(p.get('productName'), '|', p['items'][0].get('ean'), '|', p['items'][0]['sellers'][0]['commertialOffer'].get('Price'), p['items'][0]['sellers'][0]['commertialOffer'].get('ListPrice'))
+          except Exception as e: print('ERR',e)"
+          echo "## BILLA CZ"; curl -s -m 30 -A "$UA" "https://shop.billa.cz/vyhledavani/barilla%20spaghetti" -o b.html; wc -c b.html; grep -c __NUXT_DATA__ b.html
+          echo "## CARREFOUR"; curl -s -m 30 -A "$UA" "https://www.carrefour.ro/catalogsearch/result/?q=barilla+spaghetti" -o c.html; grep -oE 'data-price-amount="[0-9.]+"' c.html | head -3; grep -oE 'class="product-item-link"[^>]*>[^<]{0,80}' c.html | head -3; grep -oE '"gtin13?"\s*:\s*"[0-9]+"' c.html | head -2
+          echo "## KONZUM"; curl -s -m 30 -A "$UA" "https://www.konzum.hr/web/search?q=barilla+spaghetti" -o k.html; grep -oE 'data-ga-[a-z]+="[^"]{0,60}"' k.html | head -8; grep -oE 'product-price[^<]{0,80}' k.html | head -3
+          echo "## AB"; curl -s -m 30 -A "$UA" "https://www.ab.gr/search?q=barilla" -o a.html; grep -oE '"(name|price|formattedValue|code|ean)":"[^"]{0,60}"' a.html | head -12
