@@ -5,14 +5,14 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          set +e
-          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -m 60 -A "$UA" "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts/31095" -o p.json
-          python3 -c "
-          import json,re
-          c=json.load(open('p.json'))['content']['rendered']; i=c.find('РЕЗУЛТАТИ'); print('  RAW',c[i-200:i+600])
-          print('  HREF',re.findall(r'href=\"([^\"]+)\"',c))" 
-          U=$(python3 -c "import json,re;c=json.load(open('p.json'))['content']['rendered'];h=[x for x in re.findall(r'href=\"([^\"]+)\"',c) if 'pdf' in x.lower()];print(h[-1] if h else '')")
-          echo "  U $U"; [ -n "$U" ] && curl -s -m 60 -A "$UA" "$U" -o v.pdf && pdftotext -layout v.pdf - | head -60
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+      - run: ONLY=PDV22 MINUTES=2 node scripts/import-council-sites.mjs
+      - run: python3 -c "
+          import json;d=json.load(open('data/council/PDV22.json'))['decisions']
+          print(len(d))
+          for x in d[:6]: print(json.dumps(x,ensure_ascii=False)[:700])
+          print('tally', sum(1 for x in d if x['tally']), 'rej', sum(1 for x in d if x['result']=='rejected'))"
