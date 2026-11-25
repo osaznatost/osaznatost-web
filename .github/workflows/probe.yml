@@ -6,18 +6,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
-      - run: ONLY=PDV22 MINUTES=2 node scripts/import-council-sites.mjs
-      - run: |
-          python3 - <<'PY'
-          import json;d=json.load(open('data/council/PDV22.json'))['decisions']
-          print(len(d))
-          for x in d[:6]: print(json.dumps(x,ensure_ascii=False)[:700])
-          print('voteUrl', sum(1 for x in d if x.get('voteUrl')));print([x.get('voteUrl') for x in d if not x['tally']][:3]);print('tally', sum(1 for x in d if x['tally']), 'rej', sum(1 for x in d if x['result']=='rejected'))
-          PY
-      - run: |
-          U=$(python3 -c "import json;d=json.load(open('data/council/PDV22.json'))['decisions'];print([x['voteUrl'] for x in d if x.get('voteUrl') and not x['tally']][0].replace('http:','https:'))")
-          curl -sL -A "osaznatost-bot/1.0" "$U" -o v.pdf; pdftotext -layout v.pdf - | sed -n '1,25p;$p' | cat -A | cut -c1-160 | head -40
+      - run: python3 probe/sites.py "https://www.haskovo.bg/bg/mandat-2023-2027" "https://www.dobrich.bg/bg/obshtinski-savet" "https://www.dobrich.bg" "https://www.pernik.bg" "https://gabrovo.bg/bg/obshtinski-savet" "https://www.gabrovo.bg"
