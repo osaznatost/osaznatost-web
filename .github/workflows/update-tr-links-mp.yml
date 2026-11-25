@@ -1,0 +1,44 @@
+name: Свързани лица — депутати (Търговски регистър с история)
+
+on:
+  # schedule (Cloudflare):
+    # cf-cron: "11 2-23/3 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Само тези длъжностни лица (slug, със запетая)"
+        required: false
+      codes:
+        description: "Общини с предимство (код, със запетая)"
+        required: false
+        default: "SFO07"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tr-links
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Търговски регистър: история на фирмите на длъжностните лица"
+        env:
+          MINUTES: "45"
+          ONLY: ${{ github.event.inputs.only }}
+          CODES: ""
+          GROUP: MP
+          FIRM_MINUTES: "0"
+        run: python3 scripts/import-tr-links.py
+      - name: Запис
+        if: always()
+        run: |
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git add scripts/tr-links data/tr-links data/tr-hist
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Свързани лица: Търговски регистър с история"
+          for i in 1 2 3; do git push && break; git pull --rebase -X theirs -q origin main; done

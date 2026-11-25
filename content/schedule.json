@@ -58,6 +58,9 @@
  "update-tender-signals.yml": [
   "37 1 * * *"
  ],
+ "update-tr-links-mp.yml": [
+  "11 2-23/3 * * *"
+ ],
  "update-tr-links.yml": [
   "41 */3 * * *"
  ],

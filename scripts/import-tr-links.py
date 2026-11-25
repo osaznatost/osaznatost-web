@@ -133,6 +133,7 @@ for m in json.load(open("data/parliament-ns52.json"))["mps"]:
 rank = {"Кмет": 0, "Заместник кмет": 1, "Народен представител": 2, "Председател на ОбС": 3, "Главен архитект": 4}
 order = sorted(PEOPLE.items(), key=lambda kv: (kv[1][0] not in FIRST, rank.get(kv[1][2], 5), kv[1][0]))
 cutoff = (date.today() - timedelta(days=REFRESH)).isoformat()
+if os.environ.get("GROUP"): order = [(s, p) for s, p in order if p[0] == os.environ["GROUP"]]  # напр. GROUP=MP: само депутатите
 if os.environ.get("ONLY"): order = [(s, PEOPLE[s]) for s in os.environ["ONLY"].split(",") if s in PEOPLE]
 todo = [(s, p) for s, p in order if DONE.get(s, "") < cutoff or os.environ.get("ONLY")]
 print("Длъжностни лица за обработка:", len(todo))
