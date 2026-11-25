@@ -17,8 +17,11 @@ export function nuxtDecode(arr) {
   };
   return res(0);
 }
-export async function billaAtSearch(term) {
-  const r = await fetch(`https://shop.billa.at/suche/${encodeURIComponent(term)}`, { headers: UA, signal: AbortSignal.timeout(40000) });
+export const billaAtSearch = (term) => billaSearch(`https://shop.billa.at/suche/${encodeURIComponent(term)}`);
+/** Същата платформа и за BILLA Чехия. */
+export const billaCzSearch = (term) => billaSearch(`https://shop.billa.cz/vyhledavani?q=${encodeURIComponent(term)}`);
+export async function billaSearch(url) {
+  const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(40000) });
   if (!r.ok) return null;
   const html = await r.text();
   const m = html.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
