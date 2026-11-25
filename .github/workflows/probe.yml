@@ -4,12 +4,26 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
+      - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - run: |
-          mkdir -p /tmp/r && cd /tmp/r && npm init -y >/dev/null && npm i -s playwright@1 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
-          cp $GITHUB_WORKSPACE/probe/render.mjs /tmp/r/ && node render.mjs "https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet" "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html" "https://www.gabrovo.bg/bg/page/274" "https://obs.kazanlak.bg/r-6-1.html" "https://www.karlovo.bg/section-493-content.html" "https://os-nessebar.eu/resheniya" "https://www.balchik.bg/bg/posts/index/42" "https://www.aksakovo.bg/section-4167-content.html"
+          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=3 node scripts/import-council-sites.mjs; done
+        env:
+          CODES: "SZR12 HKV28 TGV24 BGS15 VAR02"
+      - run: |
+          python3 - <<'PY'
+          import json,os
+          for c in "SZR12 HKV28 TGV24 BGS15 VAR02".split():
+            f=f'data/council/{c}.json'
+            if not os.path.exists(f): print("X",c,"нищо"); continue
+            j=json.load(open(f)); d=j['decisions']
+            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
+            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:140],"|",x['text'][:90])
+            print("   files:",list(j['files'].items())[:3])
+          PY
