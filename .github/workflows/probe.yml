@@ -7,7 +7,9 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: |
-          F='(?i)\.pdf|\.docx?|reshen|решени|protokol|протокол|202[3-6]|posts/view|page='
-          python3 probe/all.py "https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet|$F" "https://os-nessebar.eu/resheniya|." "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html|." "https://www.aksakovo.bg/section-4167-content.html|$F" "https://www.balchik.bg/bg/posts/index/42|$F" 2>&1 | cut -c1-200
-          for u in https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet https://os-nessebar.eu/resheniya https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html https://www.balchik.bg/bg/posts/index/42 https://bansko.bg/administratsiya/obsthinski-savet/protokoli-i-resheniya/; do echo "## RAW $u"; curl -sL -m 30 -A "osaznatost-bot/1.0" "$u" | grep -oiE '(iframe[^>]{0,200}|data-src="[^"]{0,150}|ajax[^"'"'"' ]{0,120}|\.pdf[^"]{0,5})' | sort | uniq -c | sort -rn | head -8; done
+          mkdir -p /tmp/r && cd /tmp/r && npm init -y >/dev/null && npm i -s playwright@1 >/dev/null && npx playwright install --with-deps chromium >/dev/null 2>&1
+          cp $GITHUB_WORKSPACE/probe/render.mjs /tmp/r/ && node render.mjs "https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet" "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html" "https://www.gabrovo.bg/bg/page/274" "https://obs.kazanlak.bg/r-6-1.html" "https://www.karlovo.bg/section-493-content.html" "https://os-nessebar.eu/resheniya" "https://www.balchik.bg/bg/posts/index/42" "https://www.aksakovo.bg/section-4167-content.html"
