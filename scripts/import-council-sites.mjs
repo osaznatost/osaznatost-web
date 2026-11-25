@@ -972,8 +972,8 @@ function dateOf(s) {
 }
 function parseGeneric(text, fb) {
   const t = ws(text);
-  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)\s*([\d\s]{1,7})/i);
-  const number = (nm ? nm[1].replace(/\s+/g, "") : null) || fb.number;
+  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)\s*(\d+)/i);
+  const number = fb.number || (nm ? nm[1] : null);
   const pm = t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*(?:№|N)\s*(\d+)[^\n]{0,80}/i);
   const date = (pm && dateOf(pm[0])) || (nm && dateOf(t.slice(t.indexOf(nm[0]), t.indexOf(nm[0]) + 160))) || fb.date;
   if (!number || !date) return null;
@@ -981,7 +981,9 @@ function parseGeneric(text, fb) {
   const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
   const reshi = after.split(/Р\s*Е\s*Ш\s*И\s*:?/);
   const body = ws((reshi.length > 1 ? reshi.slice(1).join(" ") : after.replace(/^[\s\S]*?На\s+основание[^\n]*\n/, "")).split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател\s+на|Мотиви\s*:|МОТИВИ|Гласували|ГЛАСУВАЛИ|Резултати от гласуването|РАЗГЛАСЯВАНЕ)/)[0]);
-  let title = om ? flat(om[1]) : flat(body.split(/(?<=[.;])\s/)[0] ?? "");
+  // Без „Относно“: заглавие от началото на решението, без правното основание („На основание …, Общински съвет – X …“).
+  const lead = flat(body).replace(/^[\s\S]{0,700}?Общинск\S*\s+съвет\S*\s*[–-]?\s*[А-Я][а-я]+(?:\s+[А-Я][а-я]+)?\s*,?\s*/, "").replace(/^\d+\.\s*/, "");
+  let title = om ? flat(om[1]) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
   title = title.replace(/^[:\s–-]+/, "").replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
   const vm = t.match(/(?:„?за“?\s*[–:-]?\s*(\d+)[\s,;]+„?против“?\s*[–:-]?\s*(\d+)[\s,;]+„?въздърж\S*(?:\s+се)?“?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без))/i);
@@ -1012,13 +1014,38 @@ async function wpGeneric(code, S, prev) {
       if (post.link in prev.files) continue;
       fresh++;
       const ttl = unent(post.title?.rendered ?? "");
-      const d = parseGeneric(htmlText2(post.content?.rendered ?? ""), { number: ttl.match(/(\d+)/)?.[1], date: dateOf(ttl) ?? post.date.slice(0, 10), url: post.link });
-      prev.files[post.link] = d ? 1 : 0;
-      if (d && d.date >= S.from) { prev.decisions.push(d); added++; }
+      const html = post.content?.rendered ?? "", txt = htmlText2(html);
+      let ds = [];
+      if (/Р\s*Е\s*Ш\s*И|РЕШЕНИЕ\s*№[\s\S]{40,}/.test(txt) && txt.length > 400) {
+        const d = parseGeneric(txt, { number: /решение/i.test(ttl) ? ttl.match(/(\d+)/)?.[1] : null, date: dateOf(ttl) ?? post.date.slice(0, 10), url: post.link });
+        if (d) ds = [d];
+      } else {
+        // Публикацията е само връзки към файлове: четем PDF-ите (едно решение или целия протокол).
+        for (const m of [...html.matchAll(/href="([^"]+\.pdf)"/gi)].slice(0, 40)) {
+          if (timeUp()) break;
+          const buf = await get(new URL(unent(m[1]), S.wp).href, true, 2);
+          if (buf) ds.push(...splitDecisions(pdfText(buf), new URL(unent(m[1]), S.wp).href, post.date.slice(0, 10)));
+        }
+      }
+      prev.files[post.link] = ds.length;
+      for (const d of ds) if (d.date >= S.from) { prev.decisions.push(d); added++; }
     }
     if (fresh === 0 && prev.complete) break;
   }
   return added;
+}
+// Файл с едно или много решения (протокол): разделяме по „Р Е Ш Е Н И Е №“; датата е от протокола, ако решението не я съдържа.
+function splitDecisions(text, url, fallbackDate) {
+  const t = text.replace(/\f/g, "\n");
+  const head = dateOf((t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л[\s\S]{0,200}/i) ?? [""])[0]) ?? fallbackDate;
+  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N)\s*\d)/);
+  const out = [], seen = new Set();
+  for (const ch of parts) {
+    if (!/^Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/.test(ch)) continue;
+    const d = parseGeneric(ch, { number: null, date: head, url });
+    if (d && !seen.has(d.number)) { seen.add(d.number); out.push(d); }
+  }
+  return out;
 }
 // Списък със страници на решения (по една страница на решение).
 async function listGeneric(code, S, prev) {
