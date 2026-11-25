@@ -8,12 +8,7 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for c in BG DE AT RO HR; do curl -s -m 25 -A "$UA" -o t.json -w "## $c %{http_code} %{size_download}\n" "https://products.dm.de/product/tiles/$c/dans/1913393,1573082,3020074"; python3 -c "
-          import json
-          try: d=json.load(open('t.json'))
-          except Exception as e: print(open('t.json').read()[:200]); raise SystemExit
-          L=d if isinstance(d,list) else d.get('products') or d.get('tiles') or [d]
-          print(type(d).__name__, (list(d.keys())[:10] if isinstance(d,dict) else len(d)))
-          for p in L[:3]: print('  ', json.dumps(p,ensure_ascii=False)[:600])
-          "; done
-          curl -s -m 25 -A "$UA" "https://products.dm.de/product/detail/BG/dan/1913393" | head -c 1500; echo
+          curl -s -m 60 https://assets.dm.de/product/2026.1124.1610/product-dm.min.js -o p.js
+          grep -oE '.{0,100}(baseUrl|BASE_URL|apiUrl|productApi|PRODUCT_API)[^;]{0,120}' p.js | head -8
+          grep -oE 'https://[a-z0-9.-]+(\.com|\.de|\.cloud)[^"`]{0,40}' p.js | sort -u | head -20
+          for b in https://products.dm.de https://product.services.dmtech.com https://shopping.services.dmtech.com https://products.services.dmtech.com https://product-api.services.dmtech.com; do echo "## $b $(curl -s -m 20 -A "$UA" -o x -w '%{http_code}' "$b/product/detail/BG/dan/1913393") $(head -c 120 x)"; done
