@@ -68,6 +68,10 @@ const SITES = {
   SLV16: { name: "Нова Загора", pages: () => [0, 1, 2].map((p) => `https://www.nova-zagora.bg/bg/zasedania-i-reshenia?page=${p}`), sub: /href="(\/bg\/node\/\d+)"[^>]*>\s*Заседание/g, whole: true, fileRe: /Протокол|\/p\d+\.pdf/i, base: "https://www.nova-zagora.bg/", from: "2023-11-01" },
   HKV33: { name: "Харманли", pages: () => ["https://www.harmanli.bg/bg/resheniya-na-obshtinski-savet-mandat-2023-2027"], whole: true, fileRe: /resheniya/i, base: "https://www.harmanli.bg/", from: "2023-11-01" },
   KRZ21: { name: "Момчилград", pages: () => ["https://www.momchilgrad.bg/resheniya.html"], whole: true, fileRe: /2023-2027/, base: "https://www.momchilgrad.bg/", from: "2023-11-01" },
+  // Сайтове, които показват списъка чрез JavaScript (render: true → браузър без екран).
+  SZR12: { name: "Казанлък", render: true, list: (p) => `https://obs.kazanlak.bg/r-6-${p + 1}.html`, item: /href="((?:https:\/\/obs\.kazanlak\.bg)?\/?page-\d+\.html)"[^>]*>\s*РЕШЕНИЕ/g, base: "https://obs.kazanlak.bg/", from: "2023-11-01" },
+  HKV28: { name: "Свиленград", render: true, pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet${p ? `/page/${p * 10}` : ""}`), sub: /href="((?:https:\/\/www\.svilengrad\.bg)?\/?bg\/resheniya-na-obshtinski-savet\/[^"?#]*zasedanie[^"?#]*)"/g, inline: true, base: "https://www.svilengrad.bg/", from: "2023-11-01" },
+  BGS15: { name: "Несебър", render: true, pages: () => [1, 2, 3, 4, 5].map((p) => `https://os-nessebar.eu/resheniya${p > 1 ? `?page=${p}` : ""}`), sub: /href="(https:\/\/os-nessebar\.eu\/resheniya\/resheniya-ot-protokol-[^"#]+)"/g, inline: true, base: "https://os-nessebar.eu/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -89,6 +93,19 @@ const get = async (u, bin = false, tries = 3) => {
   }
   return null;
 };
+// Сайтове, които зареждат списъка с решения чрез JavaScript: отваряме страницата в браузър без екран (Playwright, Chromium),
+// със същия честен User-Agent, и взимаме готовия HTML. Само за обекти с render: true.
+let browser = null;
+const render = async (u) => {
+  if (blocked) return null;
+  try {
+    if (!browser) { const { chromium } = await import("playwright"); browser = await (await chromium.launch()).newContext({ userAgent: UA["User-Agent"] }); }
+    await new Promise((r) => setTimeout(r, 2500));
+    const pg = await browser.newPage();
+    try { await pg.goto(u, { waitUntil: "networkidle", timeout: 60000 }); return await pg.content(); } finally { await pg.close(); }
+  } catch (e) { console.log("Браузър:", String(e).slice(0, 120)); return null; }
+};
+const fileKind = (buf) => { const h = buf.subarray(0, 4).toString("binary"); return h.startsWith("%PDF") ? "pdf" : h.startsWith("PK") ? "docx" : h === "\xD0\xCF\x11\xE0" ? "doc" : "pdf"; };
 const ws = (s) => s.replace(/[ \t ]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
 const flat = (s) => s.replace(/\s+/g, " ").trim();
 
@@ -1092,22 +1109,23 @@ async function filesGeneric(code, S, prev) {
     seenPages.add(pu);
     const isSub = !S.pages().includes(pu);
     if (isSub && pu in prev.files && !S.recheckSubs) continue;
-    const html = await get(pu, false, 2);
+    const html = S.render ? await render(pu) : await get(pu, false, 2);
     if (!html) continue;
     if (S.sub) for (const m of html.matchAll(S.sub)) queue.push(new URL(unent(m[1]), S.base).href);
     const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
-    const files = [...main.matchAll(/href="([^"]+\.(?:pdf|docx?))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
+    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
       .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]), S.base).href, t: htmlText2(m[2]) }));
     for (const f of files) {
       if (timeUp() || blocked) break;
       if (f.u in prev.files) continue;
       const buf = await get(f.u, true, 2);
       if (!buf) continue;
-      let tx = /\.docx$/i.test(f.u) ? docxText(buf) : /\.doc$/i.test(f.u) ? docText(buf) : pdfText(buf);
+      const kind = /\.docx$/i.test(f.u) ? "docx" : /\.doc$/i.test(f.u) ? "doc" : /\.pdf$/i.test(f.u) ? "pdf" : fileKind(buf);
+      let tx = kind === "docx" ? docxText(buf) : kind === "doc" ? docText(buf) : pdfText(buf);
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
-      if (/\.pdf$/i.test(f.u) && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
+      if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = splitDecisions(tx, f.u, dateOf(f.t));
       prev.files[f.u] = ds.length;
       take(ds);
@@ -1121,16 +1139,17 @@ async function listGeneric(code, S, prev) {
   let added = 0;
   for (let p = 0; p < 200; p++) {
     if (timeUp() || blocked) break;
-    const list = await get(S.list(p), false, 2);
+    const list = S.render ? await render(S.list(p)) : await get(S.list(p), false, 2);
     if (!list) break;
-    const links = [...new Set([...list.matchAll(S.item)].map((m) => new URL(m[1], S.base).href))];
+    const links = [...new Set([...list.matchAll(S.item)].map((m) => new URL(unent(m[1]), S.base).href))];
     if (!links.length) { prev.complete = true; break; }
     let fresh = 0, old = 0;
     for (const u of links) {
       if (timeUp() || blocked) break;
       if (u in prev.files) continue;
       fresh++;
-      const page = await get(u);
+      let page = await get(u);
+      if (S.render && (!page || !/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/i.test(htmlText2(page)))) page = await render(u);
       if (!page) continue;
       const main = page.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? page;
       const d = parseGeneric(htmlText2(main), { number: u.match(/reshenie-(\d+)/)?.[1], date: dateOf(u.replace(/.*-ot-(\d{2})(\d{2})(\d{4}).*/, "$1.$2.$3")), url: u });
@@ -1155,7 +1174,7 @@ for (const [code, S] of Object.entries(SITES)) {
     const added = S.pages ? await filesGeneric(code, S, prev) : S.wp ? await wpGeneric(code, S, prev) : S.list ? await listGeneric(code, S, prev) : S.wpApi ? await plovdiv(code, S, prev) : S.vidin ? await vidin(code, S, prev) : S.knl ? await knl(code, S, prev) : S.blgDir ? await blgDir(code, S, prev) : S.vratza ? await vratza(code, S, prev) : S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
-    for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
+    for (const d of prev.decisions) { d.title = d.title.replace(/^ОС_\d+\/[\d.]+\s*[–-]\s*/, "").replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
     if (!decisions.length && !existsSync(f)) continue; // нищо прочетено (напр. свърши времето) — не пишем празен файл
     writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.pages ? S.pages()[0] : S.wp ? S.wp : S.list ? S.list(0) : S.wpApi ? "https://www.plovdiv.bg/общински-съвет/нормативна-база/решения/" : S.vidin ? "https://vidinobs.com/resheniq" : S.knl ? "https://obs.kyustendil.bg/reshenia-obs" : S.blgDir ? "https://blagoevgrad.bg/header-menu/resheniia-na-obshtinski-suvet" : S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : S.vratza ? S.vratza(1) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
@@ -1197,3 +1216,4 @@ for (const [code, S] of Object.entries(SITES)) {
   writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.index, updated: new Date().toISOString().slice(0, 10), files: prev.files, decisions }));
   console.log(`${S.name}: ${files.length} файла, ${added} нови решения, общо ${decisions.length}; с гласуване ${decisions.filter((d) => d.tally).length}`);
 }
+if (browser) await browser.browser()?.close().catch(() => {});
