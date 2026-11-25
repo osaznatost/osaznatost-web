@@ -7,6 +7,19 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          python3 probe/look.py "https://www.dobrich.bg/bg/resheniya-mandat-2023-2027-g/resheniya-ot-zasedaniya-na-obshtinski-savet-prez-2026-g" "https://www.sevlievo.bg/bg/resheniya-na-obshtinski-savet-sevlievo/resheniya-na-obshtinskiya-savet-s-protokol-12-ot-21-oktomvri-2026-g" "https://obs.kazanlak.bg/r-6-1.html" "https://www.svishtov.bg/reshenia" "https://kameno.bg/bg/page/resheniya-2024-godina-514" "https://www.dimitrovgrad.bg/bg/mandati" 2>&1 | cut -c1-700
-          curl -sL -m 30 -A "osaznatost-bot/1.0" https://www.gabrovo.bg/bg/page/274 | grep -oE 'href="[^"]*"[^>]*>\s*202[3-6] г' | head
+          for c in DOB28 BGS08 VTR28 GAB29; do rm -f data/council/$c.json; ONLY=$c MINUTES=2 node scripts/import-council-sites.mjs; done
+      - run: |
+          python3 - <<'PY'
+          import json,os
+          for c in "DOB28 BGS08 VTR28 GAB29".split():
+            f=f'data/council/{c}.json'
+            if not os.path.exists(f): print("X",c,"нищо"); continue
+            j=json.load(open(f)); d=j['decisions']
+            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
+            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
+          PY
