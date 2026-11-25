@@ -41,7 +41,8 @@ jobs:
         run: node scripts/import-council-sites.mjs
       - name: Запис
         run: |
-          git fetch -q origin main && node scripts/merge-council.mjs origin/main
+          git fetch -q origin main && node scripts/merge-council.mjs origin/main ${{ matrix.code }}
+          git status --short | grep -v "data/council/${{ matrix.code }}.json" | awk '{print $2}' | xargs -r git checkout -- 2>/dev/null || true
           git add data/council/${{ matrix.code }}.json || exit 0
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "osaznatost-bot"

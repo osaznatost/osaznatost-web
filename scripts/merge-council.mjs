@@ -2,8 +2,8 @@
 // първоначалното събиране) могат да пишат един и същ файл; пазим всички решения и всички прочетени файлове от двете версии.
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
-const ref = process.argv[2] ?? "origin/main";
-for (const f of readdirSync("data/council").filter((x) => x.endsWith(".json"))) {
+const ref = process.argv[2] ?? "origin/main", only = process.argv[3]; // only: код на една община (иначе всички)
+for (const f of readdirSync("data/council").filter((x) => x.endsWith(".json") && (!only || x === `${only}.json`))) {
   const p = `data/council/${f}`;
   let theirs; try { theirs = JSON.parse(execFileSync("git", ["show", `${ref}:${p}`], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString()); } catch { continue; }
   const mine = JSON.parse(readFileSync(p, "utf8"));
