@@ -7,19 +7,10 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          for c in PER32 SZR22 HKV11 VID16 HKV34; do rm -f data/council/$c.json; ONLY=$c MINUTES=2 node scripts/import-council-sites.mjs; done
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "PER32 SZR22 HKV11 VID16 HKV34".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            d=json.load(open(f))['decisions']
-            print("X",c,len(d),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:120])
-          PY
+          python3 probe/look.py "https://www.dobrich.bg/bg/resheniya-mandat-2023-2027-g" "https://www.gabrovo.bg/bg/page/274" "https://obs.kazanlak.bg/" "https://www.dimitrovgrad.bg/bg/obshtinski-savet" "https://www.petrich.bg/bg/obshinski-svet/zasedaniya/" "https://www.sevlievo.bg/bg/resheniya-na-obshtinski-savet-sevlievo" "https://www.nova-zagora.bg/bg/zasedania-i-reshenia" "https://www.kameno.bg/bg/page/482" "https://www.svishtov.bg/obshtinski" 2>&1 | cut -c1-600
+          for S in https://sandanski.bg https://panagyurishte.bg https://www.razgrad.bg https://www.asenovgrad.bg https://www.troyan.bg https://www.pomorie.bg https://www.velingrad.bg https://www.chervenbryag.bg https://www.harmanli.bg https://www.svilengrad.bg; do
+            echo "## WP $S"; curl -s -m 30 -A "osaznatost-bot/1.0" "$S/wp-json/wp/v2/categories?per_page=100" | python3 -c "import json,sys
+          try: [print('  C',c['id'],c['name'],c['count']) for c in json.load(sys.stdin) if c['count']>5]
+          except Exception as e: print('  no wp')" | head -25
+          done
