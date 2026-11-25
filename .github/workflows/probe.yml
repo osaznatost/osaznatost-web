@@ -8,15 +8,12 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          curl -s -m 40 -A "$UA" "https://www.plovdiv.bg/wp-json/wp/v2/types" | python3 -c "import json,sys;d=json.load(sys.stdin);[print('  T',k,v.get('rest_base'),v.get('name')) for k,v in d.items()]"
           B="https://www.plovdiv.bg/%D0%BE%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8-%D1%81%D1%8A%D0%B2%D0%B5%D1%82/%D0%BD%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D0%B8%D0%B2%D0%BD%D0%B0-%D0%B1%D0%B0%D0%B7%D0%B0/%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F/"
-          curl -sL -m 40 -A "$UA" -o l.html -w "## list %{http_code} %{size_download} %{url_effective}\n" "$B"
+          curl -sL -m 40 -A "$UA" -o l.html "$B"
           python3 - <<'PY'
           import re,html
-          s=open('l.html',errors='ignore').read()
-          links=re.findall(r'href="([^"]+)"[^>]*>([^<]{0,160})',s)
-          for h,t in links:
-            if re.search(r'(?i)решени|page|страниц|/\d+/?$',html.unescape(h+t)): print('  L',html.unescape(h)[:150],'|',html.unescape(t).strip()[:100])
-          i=s.find('Решение'); print('  SNIP',re.sub(r'\s+',' ',s[i-500:i+1500]) if i>0 else 'none')
+          s=html.unescape(open('l.html',errors='ignore').read())
+          for w in ['РЕШЕНИЕ','Протокол','протокол','Резултати','gravity','decision']:
+            i=s.find(w); print('  S',w,i, re.sub(r'\s+',' ',s[max(0,i-300):i+900]) if i>0 else '')
           PY
-          curl -sL -m 40 -A "$UA" -o p2.html -w "## page2 %{http_code} %{size_download} %{url_effective}\n" "${B}page/2/"
-          grep -oE 'href="[^"]*(pdf|reshenie|%D1%80%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D0%B5)[^"]*"' p2.html | head -10
