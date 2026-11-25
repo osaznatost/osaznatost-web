@@ -66,6 +66,8 @@ const SITES = {
   BLG33: { name: "Петрич", pages: () => ["https://www.petrich.bg/bg/obshinski-svet/zasedaniya/zasedaniya-na-obs/"], sub: /href="(\/bg\/council\/obshinski-svet\/zasedaniya\/zasedaniya-na-obs\/\d+\/)"/g, fileRe: /реш|resh/i, base: "https://www.petrich.bg/", from: "2023-11-01" },
   PDV01: { name: "Асеновград", pages: () => ["https://www.asenovgrad.bg/bg/resheniya/mandat-2023-g-2027-g"], whole: true, fileRe: /reshenie/i, base: "https://www.asenovgrad.bg/", from: "2023-11-01" },
   SLV16: { name: "Нова Загора", pages: () => [0, 1, 2].map((p) => `https://www.nova-zagora.bg/bg/zasedania-i-reshenia?page=${p}`), sub: /href="(\/bg\/node\/\d+)"[^>]*>\s*Заседание/g, whole: true, fileRe: /Протокол|\/p\d+\.pdf/i, base: "https://www.nova-zagora.bg/", from: "2023-11-01" },
+  HKV33: { name: "Харманли", pages: () => ["https://www.harmanli.bg/bg/resheniya-na-obshtinski-savet-mandat-2023-2027"], whole: true, fileRe: /resheniya/i, base: "https://www.harmanli.bg/", from: "2023-11-01" },
+  KRZ21: { name: "Момчилград", pages: () => ["https://www.momchilgrad.bg/resheniya.html"], whole: true, fileRe: /2023-2027/, base: "https://www.momchilgrad.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -980,7 +982,7 @@ function dateOf(s) {
 }
 function parseGeneric(text, fb) {
   const t = ws(text);
-  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)?\s*(\d+(?:\s*[–-]\s*\d+)?)/i);
+  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*:?\s*(?:№|N|No)?\s*(\d+(?:\s*[–-]\s*\d+)?)/i);
   const pt = !nm && t.match(/Решение\s+по\s+т\.\s*(\d+)[\s\S]{0,40}?Протокол\s*№\s*(\d+)/i); // „Решение по т.1 от Протокол №10/…“
   const number = fb.number || (nm ? nm[1].replace(/\s*[–-]\s*/, "-") : pt ? `${pt[2]}-${pt[1]}` : null);
   const pm = t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*(?:№|N)\s*(\d+)[^\n]{0,80}/i);
@@ -999,11 +1001,15 @@ function parseGeneric(text, fb) {
   let title = om ? flat(om[1]) : fb.title ? flat(fb.title) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|(?<!(?:^|[\s(])(?:чл|ал|т|гр|с|ул|бл|вх|ет|ап|д|г|лв|кв|м|пл|бул|р-н|ж\.к|№|ПИ|УПИ|ид|изм|доп|бр|ДВ|стр|пр|кв\.м))[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
   title = title.replace(/^[:\s–-]+/, "").replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
-  const vm = t.match(/(?:„?за“?\s*[–:-]?\s*(\d+)[\s,;]+„?против“?\s*[–:-]?\s*(\d+)[\s,;]+„?въздърж\S*(?:\s+се)?“?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без))/i);
+  // Гласуването може да е преди решението („Гласували 20: „за“ – 20 …“, в края на предходния откъс) или след него.
+  // Ако в края на този откъс вече започва увод към следващото решение, не го броим за това решение.
+  const own = t.replace(/(?<=[\s\S]{80})\n[^\n]*(?:Присъствали|Гласували)\s+\d+\s*:[\s\S]*$/, "");
+  const vt = own + "\n" + (fb.pre ?? "").split(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/).pop();
+  const vm = vt.match(/(?:[„“"”]?за[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?против[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?въздърж\S*(?:\s+се)?[“”"]?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*[„“"”]?за[“”"]?,?\s*(\d+|без)\s*(?:глас\S*\s*)?[„“"”]?против[“”"]?\s*и\s*(\d+|без))/i);
   const nn = (x) => (/без/i.test(x) ? 0 : +x);
-  const vk = !vm && t.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
+  const vk = !vm && vt.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
   const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
-  if (tally) tally.method = /поименно/i.test(t) ? "named" : "open";
+  if (tally) tally.method = /поименно/i.test(vt) ? "named" : "open";
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
   return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,
     result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава|разрешава|избира)|отхвърля)/i.test(body) ? "rejected" : "adopted",
@@ -1062,14 +1068,14 @@ async function wpGeneric(code, S, prev) {
 function splitDecisions(text, url, fallbackDate) {
   const t = text.replace(/\f/g, "\n");
   const head = dateOf((t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л[\s\S]{0,200}/i) ?? [""])[0]) ?? fallbackDate;
-  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N)?\s*\d)|(?=Решение\s+по\s+т\.\s*\d)/);
+  const parts = t.split(/(?=Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*:?\s*(?:№|N)?\s*\d)|(?=Решение\s+по\s+т\.\s*\d)/);
   const out = [], seen = new Set();
   for (let i = 0; i < parts.length; i++) {
     const ch = parts[i];
     if (!/^(Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е|Решение\s+по\s+т\.)/.test(ch)) continue;
     // Заглавието често е точката от дневния ред точно преди решението („ПО ПЪРВА ТОЧКА ОТ ДНЕВНИЯ РЕД / …“).
     const ag = i > 0 ? [...parts[i - 1].matchAll(/ТОЧКА\s+ОТ\s+ДНЕВНИЯ\s+РЕД\s*:?\s*\n([\s\S]{5,700}?)\n\s*\n/g)].pop()?.[1] : null;
-    const d = parseGeneric(ch, { number: null, date: head, url, title: ag });
+    const d = parseGeneric(ch, { number: null, date: head, url, title: ag, pre: i > 0 ? parts[i - 1].slice(-700) : "" });
     if (d && !seen.has(d.number)) { seen.add(d.number); out.push(d); }
   }
   return out;
@@ -1099,7 +1105,9 @@ async function filesGeneric(code, S, prev) {
       if (f.u in prev.files) continue;
       const buf = await get(f.u, true, 2);
       if (!buf) continue;
-      const tx = /\.docx$/i.test(f.u) ? docxText(buf) : /\.doc$/i.test(f.u) ? docText(buf) : pdfText(buf);
+      let tx = /\.docx$/i.test(f.u) ? docxText(buf) : /\.doc$/i.test(f.u) ? docText(buf) : pdfText(buf);
+      // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
+      if (/\.pdf$/i.test(f.u) && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = splitDecisions(tx, f.u, dateOf(f.t));
       prev.files[f.u] = ds.length;
       take(ds);
