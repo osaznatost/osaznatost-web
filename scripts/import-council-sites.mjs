@@ -64,6 +64,8 @@ const SITES = {
   HKV09: { name: "Димитровград", pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.dimitrovgrad.bg/bg/resheniya-na-obs${p ? `/page/${p * 10}` : ""}`), sub: /href="\/?(bg\/resheniya-na-obs\/zasedanie-na-obshtinski-savet[^"?#]+)"/g, inline: true, base: "https://www.dimitrovgrad.bg/", from: "2023-11-01" },
   RAZ26: { name: "Разград", pages: () => [0, 1, 2, 3, 4].map((p) => `https://www.razgrad.bg/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet${p ? `?start=${p * 10}` : ""}`), sub: /href="(\/protokoli-i-zapisi-na-zasedania-na-obsinski-s-vet\/protokol-no\d+)"/g, fileRe: /Protokol/i, base: "https://www.razgrad.bg/", from: "2023-11-01" },
   BLG33: { name: "Петрич", pages: () => ["https://www.petrich.bg/bg/obshinski-svet/zasedaniya/zasedaniya-na-obs/"], sub: /href="(\/bg\/council\/obshinski-svet\/zasedaniya\/zasedaniya-na-obs\/\d+\/)"/g, fileRe: /реш|resh/i, base: "https://www.petrich.bg/", from: "2023-11-01" },
+  PDV01: { name: "Асеновград", pages: () => ["https://www.asenovgrad.bg/bg/resheniya/mandat-2023-g-2027-g"], whole: true, fileRe: /reshenie/i, base: "https://www.asenovgrad.bg/", from: "2023-11-01" },
+  SLV16: { name: "Нова Загора", pages: () => [0, 1, 2].map((p) => `https://www.nova-zagora.bg/bg/zasedania-i-reshenia?page=${p}`), sub: /href="(\/bg\/node\/\d+)"[^>]*>\s*Заседание/g, whole: true, fileRe: /Протокол|\/p\d+\.pdf/i, base: "https://www.nova-zagora.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -986,12 +988,15 @@ function parseGeneric(text, fb) {
   if (!number || !date) return null;
   const hd = nm ?? pt;
   const after = hd ? t.slice(t.indexOf(hd[0]) + hd[0].length) : t;
-  const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.|(?:^|\n)\s*Относно)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет)|$)/);
+  const om = after.match(/(?:О\s*Т\s*Н\s*О\s*С\s*Н\s*О|ОТН\.|(?:^|\n)\s*Относно)\s*:?\s*([\s\S]{5,600}?)(?:\n\s*(?:ПО\s+ПРЕДЛОЖЕНИЕ|ПО\s+ДОКЛАД|На\s+основание|Общинск\S+\s+съвет|ОБЩИНСКИЯТ?\s+СЪВЕТ)|\s+След\s+направеното|\s+[Сс]ъс?\s+\d+\s+глас|$)/);
   const reshi = after.split(/Р\s*Е\s*Ш\s*И\s*:?/);
   const body = ws((reshi.length > 1 ? reshi.slice(1).join(" ") : after).split(/\n\s*(?:ПРЕДСЕДАТЕЛ|Председател\s+на|Мотиви\s*:|МОТИВИ|Гласували|ГЛАСУВАЛИ|Резултати от гласуването|РАЗГЛАСЯВАНЕ)/)[0]);
   // Без „Относно“: заглавие от началото на решението, без правното основание („На основание …, Общински съвет – X …“).
-  const lead = flat(body).replace(/^\s*На\s+основание[\s\S]{0,700}?Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\s*Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\d+\.\s*/, "");
-  let title = om ? flat(om[1]) : fb.title ? flat(fb.title) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
+  const lead = flat(body).replace(/^\d+\.\s*/, "")
+    .replace(/^(?:Ha|На)\s+основание[\s\S]{0,900}?(?:Р\s*Е\s*Ш\s*И\s*:?|реши\s*:|Общинск\S*\s+съвет\S*(?:\s*[–-]\s*|\s+)(?:гр(?:ад)?\.?\s*)?[А-Я][а-я]+(?:\s+[А-Я][а-я]+)?)\s*,?\s*:?\s*/, "")
+    .replace(/^\s*Общинск\S*\s+съвет\S*\s*[–-]?\s*(?:[А-Я][а-я]+\s*)?,?\s*/, "").replace(/^\s*реши\s*:?\s*/i, "").replace(/^\d+\.\s*/, "");
+  // Край на заглавието: първата точка/точка и запетая, която не е след съкращение (чл., ал., т., гр., ул. …).
+  let title = om ? flat(om[1]) : fb.title ? flat(fb.title) : (lead.match(/^[\s\S]{10,300}?(?=\s\d+\.\d*\s|(?<!(?:^|[\s(])(?:чл|ал|т|гр|с|ул|бл|вх|ет|ап|д|г|лв|кв|м|пл|бул|р-н|ж\.к|№|ПИ|УПИ|ид|изм|доп|бр|ДВ|стр|пр|кв\.м))[.;:](?:\s|$))/)?.[0] ?? lead.slice(0, 300));
   title = title.replace(/^[:\s–-]+/, "").replace(/^./, (c) => c.toUpperCase());
   if (!title) return null;
   const vm = t.match(/(?:„?за“?\s*[–:-]?\s*(\d+)[\s,;]+„?против“?\s*[–:-]?\s*(\d+)[\s,;]+„?въздърж\S*(?:\s+се)?“?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*„?за“?,?\s*(\d+|без)\s*(?:глас\S*\s*)?„?против“?\s*и\s*(\d+|без))/i);
@@ -1084,7 +1089,7 @@ async function filesGeneric(code, S, prev) {
     const html = await get(pu, false, 2);
     if (!html) continue;
     if (S.sub) for (const m of html.matchAll(S.sub)) queue.push(new URL(unent(m[1]), S.base).href);
-    const main = html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
+    const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
     const files = [...main.matchAll(/href="([^"]+\.(?:pdf|docx?))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
