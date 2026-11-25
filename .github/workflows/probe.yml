@@ -5,8 +5,12 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: node probe/cz.mjs
+      - run: |
+          set +e
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in "https://shop.billa.cz/api/product-discovery/search?searchTerm=barilla&page=0&pageSize=5" "https://shop.billa.cz/api/product-discovery/products?searchTerm=barilla&pageSize=5" "https://shop.billa.cz/api/search/full?searchTerm=barilla&storeId=00-10" "https://shop.billa.at/api/product-discovery/search?searchTerm=barilla&pageSize=5" "https://shop.billa.cz/api/products?q=barilla"; do
+            curl -s -m 30 -A "$UA" -o r.txt -w "## $u %{http_code} %{content_type}\n" "$u"; head -c 400 r.txt; echo; done
+          curl -s -m 30 -A "$UA" "https://shop.billa.cz/vyhledavani?q=barilla" -o b.html
+          grep -oE '"/api/[a-zA-Z0-9/_-]{3,80}' b.html | sort -u | head -30
+          grep -oE '_nuxt/[a-zA-Z0-9_.-]+\.js' b.html | sort -u | head -3 > js.txt
+          for j in $(cat js.txt); do curl -s -A "$UA" "https://shop.billa.cz/$j" | grep -oE '"/api/[a-zA-Z0-9/_${}.-]{3,80}' | sort -u | head -40; done
