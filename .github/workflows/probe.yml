@@ -7,10 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          for h in maritsa.bg rodopi.bg dulovo.bg primorsko.bg obs.kostinbrod.bg; do
-            echo "## $h"; curl -s -m 30 -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" "https://$h/wp-json/wp/v2/categories?per_page=100" | python3 -c "import json,sys
-          try:
-            [print('  C',c['id'],c['name'],c['count']) for c in json.load(sys.stdin) if c['count']>3]
-          except Exception as e: print('  err',e)" | head -30
-          done
-          for u in https://www.isperih.bg/bg/meetings https://www.lukovit.bg/bg/obshtinski-savet https://www.tsarevo.bg/obshtinski-savet https://www.radnevo.bg/section-126-content.html; do echo "## $u"; curl -sL -m 30 -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" "$u" | grep -oiE 'href="[^"]+"[^>]*>[^<]{0,70}' | grep -iE 'реш|resh|reshen|pdf|zased|заседан|meeting' | sort -u | head -15; done
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          curl -s -m 30 -A "$UA" "https://primorsko.bg/wp-json/wp/v2/posts?categories=20&per_page=2" | python3 -c "import json,sys
+          for p in json.load(sys.stdin): print('  P',p['date'],p['title']['rendered'][:90],p['content']['rendered'][:700].replace('\n',' '))"
+          for u in https://www.isperih.bg/decisions https://www.lukovit.bg/bg/reshenia https://tsarevo.bg/obshtinski-savet/resheniya; do echo "## $u"; curl -sL -m 30 -A "$UA" "$u" > p.html; wc -c < p.html; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,70}' p.html | grep -viE 'facebook|\.css|favicon|#' | grep -iE 'реш|resh|pdf|doc|zased|заседан|page|202[3-6]' | sort -u | head -25; done
