@@ -72,6 +72,7 @@ const SITES = {
   SZR12: { name: "Казанлък", render: true, list: (p) => `https://obs.kazanlak.bg/r-6-${p + 1}.html`, item: /href="((?:https:\/\/obs\.kazanlak\.bg)?\/?page-\d+\.html)"[^>]*>\s*РЕШЕНИЕ/g, base: "https://obs.kazanlak.bg/", from: "2023-11-01" },
   HKV28: { name: "Свиленград", render: true, pages: () => [0, 1, 2, 3, 4, 5].map((p) => `https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet${p ? `/page/${p * 10}` : ""}`), sub: /href="((?:https:\/\/www\.svilengrad\.bg)?\/?bg\/resheniya-na-obshtinski-savet\/[^"?#]*zasedanie[^"?#]*)"/g, inline: true, base: "https://www.svilengrad.bg/", from: "2023-11-01" },
   BGS15: { name: "Несебър", render: true, pages: () => [1, 2, 3, 4, 5].map((p) => `https://os-nessebar.eu/resheniya${p > 1 ? `?page=${p}` : ""}`), sub: /href="(https:\/\/os-nessebar\.eu\/resheniya\/resheniya-ot-protokol-[^"#]+)"/g, inline: true, base: "https://os-nessebar.eu/", from: "2023-11-01" },
+  TGV24: { name: "Попово", pages: () => ["https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html"], sub: /href="((?:https?:\/\/www\.popovo\.bg)?\/?bg\/obs-menu\/reshenia-obs-new\/reshenia-obs-2023-2027-\/\d+-reshenia[^"#]*)"/g, whole: true, fileRe: /files\.popovo|Reshenia/i, base: "https://www.popovo.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -1115,18 +1116,20 @@ async function filesGeneric(code, S, prev) {
     const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
-    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
-      .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]), S.base).href, t: htmlText2(m[2]) }));
+    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
+      .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]).replace(/#.*$/, ""), S.base).href, t: htmlText2(m[2]) }));
     for (const f of files) {
       if (timeUp() || blocked) break;
       if (f.u in prev.files) continue;
       const buf = await get(f.u, true, 2);
       if (!buf) continue;
-      const kind = /\.docx$/i.test(f.u) ? "docx" : /\.doc$/i.test(f.u) ? "doc" : /\.pdf$/i.test(f.u) ? "pdf" : fileKind(buf);
+      const kind = /\.docx(\?|$)/i.test(f.u) ? "docx" : /\.doc(\?|$)/i.test(f.u) ? "doc" : /\.pdf(\?|$)/i.test(f.u) ? "pdf" : fileKind(buf);
       let tx = kind === "docx" ? docxText(buf) : kind === "doc" ? docText(buf) : pdfText(buf);
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
       if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = splitDecisions(tx, f.u, dateOf(f.t));
+      // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
+      if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       prev.files[f.u] = ds.length;
       take(ds);
     }
