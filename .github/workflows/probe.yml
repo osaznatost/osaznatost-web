@@ -8,9 +8,14 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in "https://shop.billa.cz/api/product-discovery/search?searchTerm=barilla&page=0&pageSize=5" "https://shop.billa.cz/api/product-discovery/products?searchTerm=barilla&pageSize=5" "https://shop.billa.cz/api/search/full?searchTerm=barilla&storeId=00-10" "https://shop.billa.at/api/product-discovery/search?searchTerm=barilla&pageSize=5" "https://shop.billa.cz/api/products?q=barilla"; do
-            curl -s -m 30 -A "$UA" -o r.txt -w "## $u %{http_code} %{content_type}\n" "$u"; head -c 400 r.txt; echo; done
-          curl -s -m 30 -A "$UA" "https://shop.billa.cz/vyhledavani?q=barilla" -o b.html
-          grep -oE '"/api/[a-zA-Z0-9/_-]{3,80}' b.html | sort -u | head -30
-          grep -oE '_nuxt/[a-zA-Z0-9_.-]+\.js' b.html | sort -u | head -3 > js.txt
-          for j in $(cat js.txt); do curl -s -A "$UA" "https://shop.billa.cz/$j" | grep -oE '"/api/[a-zA-Z0-9/_${}.-]{3,80}' | sort -u | head -40; done
+          for u in "https://www.carrefour.ro/catalogsearch/result/?q=barilla" "https://www.konzum.hr/web/search?q=barilla" "https://www.konzum.hr/pretraga?q=barilla" "https://www.ab.gr/search?q=barilla" "https://www.ab.gr/api/v1/?operationName=GetProductSearch" "https://www.kaufland.ro/cautare.html?q=barilla" "https://www.lidl.de/q/search?q=barilla"; do
+            curl -sL -m 30 -A "$UA" -o p.html -w "## $u %{http_code} %{size_download} %{url_effective}\n" "$u"
+            python3 - <<'PY'
+          import re
+          s=open('p.html',errors='ignore').read()
+          i=[m.start() for m in re.finditer('(?i)spaghetti|barilla',s)][:200]
+          print('  hits',len(i))
+          for k in i[5:200:40]: print('   >',re.sub(r'\s+',' ',s[max(0,k-250):k+250]))
+          print('  ean', re.findall(r'(?:gtin13|ean)["\']?\s*[:=]\s*["\']?(\d{8,13})',s)[:5])
+          PY
+          done
