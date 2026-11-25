@@ -4,6 +4,7 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
-      - run: python3 probe/sites.py "https://www.haskovo.bg/bg/mandat-2023-2027" "https://www.dobrich.bg/bg/obshtinski-savet" "https://www.dobrich.bg" "https://www.pernik.bg" "https://gabrovo.bg/bg/obshtinski-savet" "https://www.gabrovo.bg"
+      - run: python3 probe/finder.py
