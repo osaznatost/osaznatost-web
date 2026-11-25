@@ -7,19 +7,12 @@ jobs:
     steps:
       - run: |
           set +e
+          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
           curl -s -m 60 -A "$UA" "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts/31095" -o p.json
-          python3 - <<'PY'
-          import json,re,html
-          p=json.load(open('p.json'))
-          print('  K',list(p.keys()))
-          for k in ['acf','meta','metadata','class_list']: print('  ',k,str(p.get(k))[:800])
-          c=p['content']['rendered']; t=html.unescape(re.sub(r'<[^>]+>','\n',c)); t=re.sub(r'\n\s*\n+','\n',t)
-          print('  TAIL',t[-2500:])
-          PY
-          curl -s -m 60 -A "$UA" "https://www.plovdiv.bg/obs/wp-json/wp/v2/posts?categories=22&per_page=1&after=2023-11-01T00:00:00&order=asc" -D h.txt -o q.json; grep -i x-wp-total h.txt; python3 -c "import json,html;p=json.load(open('q.json'))[0];print('  FIRST',p['date'],html.unescape(p['title']['rendered']))"
-          curl -sL -m 60 -A "$UA" "$(python3 -c "import json;print(json.load(open('p.json'))['link'])")" -o page.html; python3 - <<'PY'
-          import re,html
-          s=html.unescape(open('page.html',errors='ignore').read()); i=s.find('Резултати')
-          print('  PAGE',re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',s[i-200:i+3000])) if i>0 else 'none')
-          PY
+          python3 -c "
+          import json,re
+          c=json.load(open('p.json'))['content']['rendered']; i=c.find('РЕЗУЛТАТИ'); print('  RAW',c[i-200:i+600])
+          print('  HREF',re.findall(r'href=\"([^\"]+)\"',c))" 
+          U=$(python3 -c "import json,re;c=json.load(open('p.json'))['content']['rendered'];h=[x for x in re.findall(r'href=\"([^\"]+)\"',c) if 'pdf' in x.lower()];print(h[-1] if h else '')")
+          echo "  U $U"; [ -n "$U" ] && curl -s -m 60 -A "$UA" "$U" -o v.pdf && pdftotext -layout v.pdf - | head -60
