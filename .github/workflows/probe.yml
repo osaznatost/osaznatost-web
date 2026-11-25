@@ -9,4 +9,4 @@ jobs:
       - run: |
           curl -sL -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" https://www.balchik.bg/bg/mandat-2023-2027/reshenie-750-protokol-42-ot-22102026-g > p.html
           grep -oE '<(main|article|div class="[^"]*(content|post|body)[^"]*")[^>]*>' p.html | head
-          python3 -c "import re;t=open('p.html').read();i=t.find('Решение 750');t=re.sub(r'<script[\s\S]*?</script>','',t);print(re.sub(r'\s+',' ',re.sub(r'<[^>]+>','\n',t))[:200]); j=t.find('ОТНОСНО');j=j if j>0 else t.find('Относно');print('>>>',re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',t[j-1500:j+1500])))"
+          python3 -c "import re;t=open('p.html').read();i=t.find('<div class=\"content\">');print('>>>',re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',t[i:i+5000])))"
