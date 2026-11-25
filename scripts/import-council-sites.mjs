@@ -55,7 +55,6 @@ const SITES = {
   PER32: { name: "Перник", wp: "https://www.obs-pernik.bg", wpCat: /^Решения$/, from: "2023-11-01" },
   SZR22: { name: "Мъглиж", wp: "https://www.maglizh.bg", wpCat: /^Решения$/, from: "2023-11-01" },
   HKV11: { name: "Ивайловград", wp: "https://www.ivaylovgrad.bg", wpCat: /^Решения$/, from: "2023-11-01" },
-  VID16: { name: "Димово", wp: "https://www.dimovo.bg", wpCat: /Решения на ОбС/, from: "2023-11-01" },
   VID06: { name: "Брегово", wp: "https://www.bregovo.bg", wpCat: /Решения на Общински съвет/, from: "2023-11-01" },
   BLG53: { name: "Якоруда", wp: "https://www.yakoruda.bg", wpCat: /Решения и протоколи/, from: "2023-11-01" },
   HKV34: { name: "Хасково", list: (p) => `https://www.haskovo.bg/bg/mandat-2023-2027${p ? `/page/${p * 18}` : ""}`, item: /href="\/?(bg\/mandat-2023-2027\/reshenie-\d+-ot-[\d-]+g?)"/g, base: "https://www.haskovo.bg/", from: "2023-11-01" },

@@ -1,0 +1,49 @@
+name: Общински съвети (първоначално събиране, паралелно)
+# Пуска се ръчно за нови общини: всяка община в отделна задача, едновременно, за да се събере историята по-бързо.
+on:
+  workflow_dispatch:
+    inputs:
+      codes:
+        description: "Кодове на общини, разделени с интервал (напр. PER32 HKV34)"
+        required: true
+      minutes:
+        default: "50"
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      codes: ${{ steps.c.outputs.codes }}
+    steps:
+      - id: c
+        env:
+          CODES: ${{ inputs.codes }}
+        run: echo "codes=$(python3 -c 'import os,json;print(json.dumps(os.environ["CODES"].split()))')" >> $GITHUB_OUTPUT
+  council:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        code: ${{ fromJson(needs.plan.outputs.codes) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null
+      - name: Четене
+        env:
+          MINUTES: ${{ inputs.minutes }}
+          ONLY: ${{ matrix.code }}
+        run: node scripts/import-council-sites.mjs
+      - name: Запис
+        run: |
+          git add data/council/${{ matrix.code }}.json || exit 0
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "osaznatost-bot"
+          git config user.email "osaznatost-bot@users.noreply.github.com"
+          git commit -m "Общински съвети: ${{ matrix.code }}"
+          for i in 1 2 3 4 5; do git pull --rebase -X theirs && git push && break; sleep $((RANDOM % 20 + 5)); done
