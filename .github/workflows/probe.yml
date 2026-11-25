@@ -5,7 +5,7 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - run: |
-          for u in https://www.samokov.bg/kontakti https://www.samokov.bg/web/samokov/kontakti https://www.samokov.bg/web/samokov/home https://samokov.bg https://www.gornaoryahovitsa.bg/kontakti https://gornaoryahovitsa.bg https://www.gornaoryahovitsa.bg/bg/kontakti https://www.gornaoryahovitsa.bg/obshtinski-savet https://www.dupnitsa.bg/section-85-content.html https://www.karlovo.bg/section-5-content.html https://www.gabrovo.bg/bg/page/1729; do
-            echo "## $u"; curl -sL -m 30 -A "osaznatost-bot/1.0" "$u" | grep -oiE '[a-z0-9._-]+@[a-z0-9.-]+\.(bg|com|eu)' | sort | uniq -c | sort -rn | head -6
-          done
+          python3 probe/all.py "https://www.nova-zagora.bg/bg/node/2677|(?i)\.pdf|\.doc|files|реш" 
+          for u in https://www.asenovgrad.bg/bg/resheniya/mandat-2023-g-2027-g https://www.nova-zagora.bg/bg/node/2677; do echo "## $u"; curl -sL -m 30 -A "osaznatost-bot/1.0" "$u" | grep -oE '<(main|article)[^>]{0,80}' | head -3; done
