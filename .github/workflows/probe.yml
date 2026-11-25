@@ -8,6 +8,8 @@ jobs:
       - run: |
           set +e
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://www.dm-drogeriemarkt.bg/ https://www.dm.de/ https://www.dm.ro/ https://www.dm.hr/ https://www.ikea.bg/ https://www.ikea.com/ro/ro/ https://www.ikea.com/de/de/ https://www.lidl.bg/ https://www.lidl.de/ https://www.kaufland.bg/ https://www.kaufland.ro/ https://www.billa.cz/ https://www.lilly.bg/ https://www.dm.at/robots.txt https://www.dm-drogeriemarkt.bg/robots.txt https://www.ikea.bg/robots.txt; do
-            curl -sL -m 25 -A "$UA" -o p -w "## $u %{http_code} %{size_download}\n" "$u"
+          curl -s -m 20 -A "$UA" https://www.dm-drogeriemarkt.bg/robots.txt; echo; curl -s -m 20 -A "$UA" https://www.dm.de/robots.txt | head -30; echo
+          for c in bg de at ro hr; do
+            curl -s -m 25 -A "$UA" -H 'Accept: application/json' -o s.json -w "## $c %{http_code} %{size_download}\n" "https://product-search.services.dmtech.com/$c/search?query=balea&pageSize=3&currentPage=0"
+            head -c 700 s.json; echo
           done
