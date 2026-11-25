@@ -4,24 +4,10 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
       - run: |
-          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=2.5 node scripts/import-council-sites.mjs; done
-        env:
-          CODES: "HKV33 KRZ21 DOB28"
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "HKV33 KRZ21 DOB28".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:150],"|",x['text'][:100])
-          PY
+          F='(?i)\.pdf|\.docx?|reshen|решени|protokol|протокол|202[3-6]|posts/view|page='
+          python3 probe/all.py "https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet|$F" "https://os-nessebar.eu/resheniya|." "https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html|." "https://www.aksakovo.bg/section-4167-content.html|$F" "https://www.balchik.bg/bg/posts/index/42|$F" 2>&1 | cut -c1-200
+          for u in https://www.svilengrad.bg/bg/resheniya-na-obshtinski-savet https://os-nessebar.eu/resheniya https://www.popovo.bg/bg/obs-menu/reshenia-obs-new/reshenia-obs-2023-2027-.html https://www.balchik.bg/bg/posts/index/42 https://bansko.bg/administratsiya/obsthinski-savet/protokoli-i-resheniya/; do echo "## RAW $u"; curl -sL -m 30 -A "osaznatost-bot/1.0" "$u" | grep -oiE '(iframe[^>]{0,200}|data-src="[^"]{0,150}|ajax[^"'"'"' ]{0,120}|\.pdf[^"]{0,5})' | sort | uniq -c | sort -rn | head -8; done
