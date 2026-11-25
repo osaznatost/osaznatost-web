@@ -7,11 +7,27 @@ jobs:
     steps:
       - run: |
           set +e
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          B=https://shopping.services.dmtech.com
-          curl -s -m 25 -A "$UA" "$B/product/detail/BG/dan/1913393" -o d.json
-          python3 -c "
-          import json;d=json.load(open('d.json'));print(list(d.keys()))
-          for k in ['gtin','dan','price','title','brand','netQuantityContent','contentUnit','basePrice','metadata','pricing']: print(k, json.dumps(d.get(k),ensure_ascii=False)[:300])"
-          for c in DE AT RO HR; do echo "## $c"; curl -s -m 25 -A "$UA" "$B/product/tiles/$c/dans/1913393,1573082,3020074" | head -c 900; echo; done
-          echo "## BG tiles"; curl -s -m 25 -A "$UA" "$B/product/tiles/BG/dans/1913393,1573082,3020074" | head -c 1200; echo
+          for d in $(seq 0 4); do D=$(date -u -d "-$d day" +%F); curl -sSLf -m 300 -A "Mozilla/5.0 (osaznatost.bg; open data)" -o k.zip "https://kolkostruva.bg/opendata_files/$D.zip" && break; done
+          ls -la k.zip; mkdir k && cd k && unzip -q ../k.zip && ls | head -40
+          python3 - <<'PY'
+          import csv,glob,re,os,collections,json
+          brands=["BARILLA","MUTTI","BONDUELLE","LAVAZZA","ELMEX","COLGATE","MILKA","KINDER","LINDT","MONINI","NUTELLA","NESCAFE","JACOBS","COCA","PEPSI","ARIEL","PERSIL","FAIRY","NIVEA","HEINZ","PRINGLES","RED BULL","LENOR","DOVE","GILLETTE","PAMPERS","HEAD","ORAL-B","PALMOLIVE","TCHIBO","DAVIDOFF","HIPP","NESQUIK","DANONE","ACTIVIA"]
+          out=collections.defaultdict(lambda: collections.defaultdict(collections.Counter))
+          for f in glob.glob('*.csv'):
+            ch=re.sub(r"\s*\(.*$","",os.path.basename(f).rsplit("_",1)[0]).strip()
+            for r in csv.reader(open(f,encoding='utf-8-sig',errors='replace')):
+              if len(r)<6: continue
+              n=r[2].upper() if len(r)>2 else ''
+              for b in brands:
+                if b in n: out[b][ch][n]+=1
+          chains=collections.Counter()
+          for b,v in out.items():
+            for ch in v: chains[ch]+=1
+          print("CHAINS",chains.most_common(15))
+          for b in brands:
+            v=out.get(b,{})
+            big=[ch for ch in v if ch in ("Лидл България","Кауфланд България","Билла","ФАНТАСТИКО","T Market")]
+            print("##",b,{ch:len(v[ch]) for ch in big})
+            for ch in big:
+              print("  ",ch,"|", " ; ".join(n for n,_ in v[ch].most_common(6)))
+          PY
