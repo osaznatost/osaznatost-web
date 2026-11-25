@@ -20,7 +20,7 @@ async function List() {
           const ctx = CONTEXT.filter((c) => c.re.test(x.title)).slice(0, 2);
           return (
             <li key={x.url} className={`py-3 grid gap-x-4 gap-y-1 ${x.image ? "grid-cols-[1fr_6rem] sm:grid-cols-[8rem_1fr_9rem]" : "sm:grid-cols-[8rem_1fr]"}`}>
-              <span className="text-sm text-muted">{OUT[x.outlet]?.name}<br className="hidden sm:block" /> {new Date(x.date).toLocaleString("bg-BG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Sofia" })}</span>
+              <span className="text-sm text-muted">{OUT[x.outlet]?.name}<br className="hidden sm:block" /* parity-ok: само нов ред */ /> {new Date(x.date).toLocaleString("bg-BG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Sofia" })}</span>
               <span>
                 <a href={x.url} target="_blank" rel="noreferrer" className="text-[16px] text-ink">{x.title}</a>
                 {ctx.length > 0 && <span className="block text-sm mt-0.5">Данните: {ctx.map((c, i) => <span key={c.href}>{i > 0 && " · "}<Link href={c.href}>{c.label}</Link></span>)}</span>}

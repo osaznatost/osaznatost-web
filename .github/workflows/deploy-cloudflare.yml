@@ -35,7 +35,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           NODE_OPTIONS: --max-old-space-size=8192
-        run: node scripts/build-schedule.mjs && node scripts/build-changes.mjs && npx opennextjs-cloudflare build && node scripts/cf-assets.mjs
+        run: node scripts/check-parity.mjs && node scripts/build-schedule.mjs && node scripts/build-changes.mjs && npx opennextjs-cloudflare build && node scripts/cf-assets.mjs
       - name: Качване
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
