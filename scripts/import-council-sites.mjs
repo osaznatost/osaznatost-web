@@ -58,6 +58,8 @@ const SITES = {
   VID06: { name: "Брегово", wp: "https://www.bregovo.bg", wpCat: /Решения на Общински съвет/, from: "2023-11-01" },
   BLG53: { name: "Якоруда", wp: "https://www.yakoruda.bg", wpCat: /Решения и протоколи/, from: "2023-11-01" },
   HKV34: { name: "Хасково", list: (p) => `https://www.haskovo.bg/bg/mandat-2023-2027${p ? `/page/${p * 18}` : ""}`, item: /href="\/?(bg\/mandat-2023-2027\/reshenie-\d+-ot-[\d-]+g?)"/g, base: "https://www.haskovo.bg/", from: "2023-11-01" },
+  // „Страници с файлове“: страниците (по години/заседания) съдържат връзки към PDF/Word с решенията; всеки файл се чете веднъж.
+  VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
 };
@@ -971,7 +973,7 @@ function dateOf(s) {
 }
 function parseGeneric(text, fb) {
   const t = ws(text);
-  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)\s*(\d+)/i);
+  const nm = t.match(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е\s*(?:№|N|No)\s*(\d+(?:-\d+)?)/i);
   const number = fb.number || (nm ? nm[1] : null);
   const pm = t.match(/П\s*Р\s*О\s*Т\s*О\s*К\s*О\s*Л\s*(?:№|N)\s*(\d+)[^\n]{0,80}/i);
   const date = (pm && dateOf(pm[0])) || (nm && dateOf(t.slice(t.indexOf(nm[0]), t.indexOf(nm[0]) + 160))) || fb.date;
@@ -1056,6 +1058,39 @@ function splitDecisions(text, url, fallbackDate) {
   }
   return out;
 }
+// Страници с файлове (и/или с текста на решенията направо в страницата).
+async function filesGeneric(code, S, prev) {
+  let added = 0;
+  const seenPages = new Set(), queue = [...S.pages()];
+  const take = (ds) => { for (const d of ds) if (d.date >= S.from) { prev.decisions.push(d); added++; } };
+  while (queue.length) {
+    if (timeUp() || blocked) break;
+    const pu = queue.shift();
+    if (seenPages.has(pu)) continue;
+    seenPages.add(pu);
+    const isSub = !S.pages().includes(pu);
+    if (isSub && pu in prev.files && !S.recheckSubs) continue;
+    const html = await get(pu, false, 2);
+    if (!html) continue;
+    if (S.sub) for (const m of html.matchAll(S.sub)) queue.push(new URL(unent(m[1]), S.base).href);
+    const main = html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
+    if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
+    const files = [...main.matchAll(/href="([^"]+\.(?:pdf|docx?))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
+      .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]), S.base).href, t: htmlText2(m[2]) }));
+    for (const f of files) {
+      if (timeUp() || blocked) break;
+      if (f.u in prev.files) continue;
+      const buf = await get(f.u, true, 2);
+      if (!buf) continue;
+      const tx = /\.docx$/i.test(f.u) ? docxText(buf) : /\.doc$/i.test(f.u) ? docText(buf) : pdfText(buf);
+      const ds = splitDecisions(tx, f.u, dateOf(f.t));
+      prev.files[f.u] = ds.length;
+      take(ds);
+    }
+  }
+  prev.complete = !timeUp();
+  return added;
+}
 // Списък със страници на решения (по една страница на решение).
 async function listGeneric(code, S, prev) {
   let added = 0;
@@ -1091,13 +1126,13 @@ for (const [code, S] of Object.entries(SITES)) {
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
   if (S.blgDir && !process.env.BLG_DIR) continue; // чете се само от council-mac.yml
-  if (S.wp || S.list || S.wpApi || S.vidin || S.knl || S.blgDir || S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart || S.yambol || S.vratza) {
-    const added = S.wp ? await wpGeneric(code, S, prev) : S.list ? await listGeneric(code, S, prev) : S.wpApi ? await plovdiv(code, S, prev) : S.vidin ? await vidin(code, S, prev) : S.knl ? await knl(code, S, prev) : S.blgDir ? await blgDir(code, S, prev) : S.vratza ? await vratza(code, S, prev) : S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
+  if (S.pages || S.wp || S.list || S.wpApi || S.vidin || S.knl || S.blgDir || S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart || S.yambol || S.vratza) {
+    const added = S.pages ? await filesGeneric(code, S, prev) : S.wp ? await wpGeneric(code, S, prev) : S.list ? await listGeneric(code, S, prev) : S.wpApi ? await plovdiv(code, S, prev) : S.vidin ? await vidin(code, S, prev) : S.knl ? await knl(code, S, prev) : S.blgDir ? await blgDir(code, S, prev) : S.vratza ? await vratza(code, S, prev) : S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);
     const seen = new Map();
     if (S.yearFiles) prev.decisions = prev.decisions.filter((d) => d.title);
     for (const d of prev.decisions) { d.title = d.title.replace(/^(?:Доклад|Докладна записка|Проект на решение|Предложение)\s+от\s+.{3,160}?,\s*относно\s*:?\s*/i, "").replace(/^./, (c) => c.toUpperCase()).replace(/^[А-ЯA-Z]\s+За\s+(.)/, (_, c) => c.toUpperCase()); seen.set(`${d.date.slice(0, 4)}-${d.number}`, d); }
     const decisions = [...seen.values()].sort((a, b) => b.date.localeCompare(a.date) || +b.number - +a.number);
-    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.wp ? S.wp : S.list ? S.list(0) : S.wpApi ? "https://www.plovdiv.bg/общински-съвет/нормативна-база/решения/" : S.vidin ? "https://vidinobs.com/resheniq" : S.knl ? "https://obs.kyustendil.bg/reshenia-obs" : S.blgDir ? "https://blagoevgrad.bg/header-menu/resheniia-na-obshtinski-suvet" : S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : S.vratza ? S.vratza(1) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
+    writeFileSync(f, JSON.stringify({ version: VERSION, code, name: S.name, source: S.pages ? S.pages()[0] : S.wp ? S.wp : S.list ? S.list(0) : S.wpApi ? "https://www.plovdiv.bg/общински-съвет/нормативна-база/решения/" : S.vidin ? "https://vidinobs.com/resheniq" : S.knl ? "https://obs.kyustendil.bg/reshenia-obs" : S.blgDir ? "https://blagoevgrad.bg/header-menu/resheniia-na-obshtinski-suvet" : S.numbered ? "https://council.sofia.bg" : S.yearFiles ? S.yearFiles(new Date().getFullYear()) : S.sessionNodes ? S.sessionNodes(0) : S.sessionList ? S.sessionList : S.protocolDocx ? S.protocolDocx(0) : S.docList ? S.docList : S.montana ? S.montana : S.nkList ? S.nkList(0) : S.pzStart ? S.pzStart[0] : S.yambol ? S.yambol : S.vratza ? S.vratza(1) : new URL(S.wpList?.(1) ?? S.sessionPdfs ?? S.listPages(0)).origin, updated: new Date().toISOString().slice(0, 10), files: prev.files, done: prev.done ?? {}, complete: prev.complete ?? false, decisions }));
     console.log(`${S.name}: ${added} нови решения, общо ${decisions.length}`);
     continue;
   }
