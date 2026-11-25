@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Page, Title } from "@/components/ui";
 import IDENT from "@/content/identical-products.json";
+import { DmCompare } from "@/components/DmCompare";
 
 export const metadata = { title: "Надценки и цени спрямо чужбина" };
 
@@ -59,7 +60,11 @@ export default async function Nadcenki() {
       <Title lead="Три сравнения, изчислени по един и същ начин за всички: еднакви продукти в една и съща верига в България и в Австрия; цената на едро срещу цената в магазина; и колко струва храната у нас спрямо доходите в ЕС. Под всяка цифра стои какво точно сравняваме.">
         Надценки и цени спрямо чужбина
       </Title>
-      <SectionNav items={[["ednakvi", "Еднакви продукти"], ["edro", "Едро → дребно"], ["evropa", "България в ЕС"], ["metodologiya", "Методология"]]} />
+      <SectionNav items={[["dm", "dm в 5 държави"], ["ednakvi", "BILLA: България и Австрия"], ["edro", "Едро → дребно"], ["evropa", "България в ЕС"], ["metodologiya", "Методология"]]} />
+
+      <Anchor id="dm" title="Един и същ продукт в 5 държави (dm)" lead="Хиляди еднакви продукти (козметика, хигиена, бебешки и домашни стоки, храни) с един и същ баркод в dm България, Германия, Австрия, Румъния и Хърватия. Показваме колко по-скъпо или по-евтино е у нас.">
+        <DmCompare />
+      </Anchor>
 
       <Anchor id="ednakvi" title="Един и същ продукт, една и съща верига" lead={`Еднакви артикули (марка, вид и разфасовка) в BILLA България и BILLA Австрия. В България: обичайната цена в магазините на веригата${P ? ` (${dmy(P.date)})` : ""}; в Австрия: онлайн магазинът на BILLA${A ? ` (${dmy(A.date)})` : ""}.`}>
         {rows.length === 0 ? <p className="text-muted">Данните се събират. Опитай отново по-късно.</p> : (
