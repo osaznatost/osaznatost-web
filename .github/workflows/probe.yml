@@ -3,9 +3,10 @@ on:
   workflow_dispatch:
 jobs:
   probe:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://erik.bulnao.government.bg/ https://erik.bulnao.government.bg/Reports https://erik.bulnao.government.bg/Donations; do echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u") $(wc -c < p.html)"; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,70}' p.html | grep -iE 'дар|donat|регист|report|export|xls|csv|json|api' | sort -u | head -25; done
+          for u in https://erik.bulnao.government.bg/ https://erik.bulnao.government.bg/Reports https://erik.bulnao.government.bg/Donations; do echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u") $(wc -c < p.html | tr -d " ")"; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,70}' p.html | grep -iE 'дар|donat|регист|report|export|xls|csv|json|api' | sort -u | head -25; done
