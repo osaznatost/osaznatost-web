@@ -83,6 +83,7 @@ const SITES = {
   VAR09: { name: "Вълчидол", rawFileRe: /\/uploads\/[\w.\/-]+?\.(?:pdf|docx?)(?![\w.])/g, whole: true, pages: () => ["https://valchidol.obs-savet.eu/obs/%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%20%D1%81%D1%8A%D0%B2%D0%B5%D1%82", ...[2, 3, 4, 5, 6, 7, 8].map((n) => "https://valchidol.obs-savet.eu/obs/%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%20%D1%81%D1%8A%D0%B2%D0%B5%D1%82?page=" + n)], sub: /href="((?:https:\/\/valchidol\.obs-savet\.eu)?\/blog\/[^"#]+)"/g, fileRe: /file-download|\.pdf/i, base: "https://valchidol.obs-savet.eu/", from: "2023-11-01" },
   VAR14: { name: "Девня", rawFileRe: /\/uploads\/[\w.\/-]+?\.(?:pdf|docx?)(?![\w.])/g, whole: true, pages: () => ["https://devnya.obs-savet.eu/obs/%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%20%D1%81%D1%8A%D0%B2%D0%B5%D1%82", ...[2, 3, 4, 5, 6, 7, 8].map((n) => "https://devnya.obs-savet.eu/obs/%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%20%D1%81%D1%8A%D0%B2%D0%B5%D1%82?page=" + n)], sub: /href="((?:https:\/\/devnya\.obs-savet\.eu)?\/blog\/[^"#]+)"/g, fileRe: /file-download|\.pdf/i, base: "https://devnya.obs-savet.eu/", from: "2023-11-01" },
   VAR26: { name: "Суворово", rawFileRe: /\/uploads\/[\w.\/-]+?\.(?:pdf|docx?)(?![\w.])/g, whole: true, pages: () => ["https://suvorovo.obs-savet.eu/obs/%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%20%D1%81%D1%8A%D0%B2%D0%B5%D1%82", ...[2, 3, 4, 5, 6, 7, 8].map((n) => "https://suvorovo.obs-savet.eu/obs/%D0%A0%D0%B5%D1%88%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BD%D0%B0%20%D0%9E%D0%B1%D1%89%D0%B8%D0%BD%D1%81%D0%BA%D0%B8%20%D1%81%D1%8A%D0%B2%D0%B5%D1%82?page=" + n)], sub: /href="((?:https:\/\/suvorovo\.obs-savet\.eu)?\/blog\/[^"#]+)"/g, fileRe: /file-download|\.pdf/i, base: "https://suvorovo.obs-savet.eu/", from: "2023-11-01" },
+  VAR24: { name: "Провадия", toc: true, pages: () => ["https://provadia.bg/list.php?category_id=4"], whole: true, fileRe: /vid2\/.*(?:202[3-6])|202[3-6]\s*-\s*Решени/i, linkDate: true, base: "https://provadia.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
@@ -851,6 +852,20 @@ function parseBlg(text, url) {
 }
 // Сканиран PDF без текстов слой: страниците → изображения → tesseract (български). Бавно, затова само при нужда.
 const ocrPdf = (file) => { try { execFileSync("pdftoppm", ["-r", "200", "-gray", "-png", file, "/tmp/ocr"]); return execFileSync("sh", ["-c", "for f in /tmp/ocr*.png; do tesseract \"$f\" - -l bul --psm 6 2>/dev/null; rm -f \"$f\"; done"], { maxBuffer: 1 << 28 }).toString(); } catch { return ""; } };
+// Архив (rar/zip/7z) с решения: разархивира се и текстовете на файловете се слепват по ред на имената.
+const archiveText = (buf) => {
+  writeFileSync("/tmp/c.arc", buf);
+  try {
+    execFileSync("rm", ["-rf", "/tmp/arc"]); mkdirSync("/tmp/arc");
+    let ok = false;
+    for (const [bin, args] of [["7zz", ["x", "-y", "-o/tmp/arc", "/tmp/c.arc"]], ["unrar", ["x", "-y", "-o+", "/tmp/c.arc", "/tmp/arc/"]], ["7z", ["x", "-y", "-o/tmp/arc", "/tmp/c.arc"]]]) {
+      try { execFileSync(bin, args, { stdio: "ignore" }); ok = true; break; } catch { /* следващата програма */ }
+    }
+    if (!ok) return "";
+    const list = execFileSync("find", ["/tmp/arc", "-type", "f"]).toString().trim().split("\n").filter(Boolean).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return list.map((f) => { const b = readFileSync(f); return /\.docx$/i.test(f) ? docxText(b) : /\.doc$/i.test(f) ? docText(b) : /\.pdf$/i.test(f) ? pdfText(b) : ""; }).join("\n\f\n");
+  } catch { return ""; }
+};
 const docText = (buf) => { writeFileSync("/tmp/c.doc", buf); try { return execFileSync("antiword", ["-w", "0", "/tmp/c.doc"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
 async function blgDir(code, S, prev) {
   const dir = `${process.env.BLG_DIR}/${code}`;
@@ -1151,7 +1166,7 @@ async function filesGeneric(code, S, prev) {
     const main = S.whole ? html : html.match(/<main[\s\S]*?<\/main>/i)?.[0] ?? html.match(/<article[\s\S]*?<\/article>/i)?.[0] ?? html;
     if (S.inline && isSub) { const tx = htmlText2(main); take(splitDecisions(tx, pu, dateOf(tx.slice(0, 600)))); prev.files[pu] = 1; }
     if (S.pagePdf && isSub) { const buf = await get(`${pu}?pdf=1`, true, 2); if (buf) { const ds = splitDecisions(pdfText(buf), pu, null); take(ds); prev.files[pu] = ds.length; } }
-    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?)(?:[?#][^"]*)?|download-file\.php[^"]*|\/api\/file-download\/[\w-]+))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
+    const files = [...main.matchAll(/href="([^"]+(?:\.(?:pdf|docx?|rar|zip|7z)(?:[?#][^"]*)?|download-file\.php[^"]*|\/api\/file-download\/[\w-]+))"[^>]*>([\s\S]{0,200}?)<\/a>/gi)]
       .filter((m) => !S.fileRe || S.fileRe.test(m[1] + " " + m[2])).map((m) => ({ u: new URL(unent(m[1]).replace(/#.*$/, ""), S.base).href, t: htmlText2(m[2]) }));
     if (S.rawFileRe) for (const m of html.matchAll(S.rawFileRe)) { const u = new URL(unent(m[0]), S.base).href; if (!files.some((x) => x.u === u)) files.push({ u, t: "" }); }
     if (process.env.DEBUG) console.log("DBG page", pu, html.length, "files", files.length);
@@ -1160,14 +1175,15 @@ async function filesGeneric(code, S, prev) {
       if (f.u in prev.files) continue;
       const buf = await get(f.u, true, 2);
       if (!buf) continue;
-      const kind = /\.docx(\?|$)/i.test(f.u) ? "docx" : /\.doc(\?|$)/i.test(f.u) ? "doc" : /\.pdf(\?|$)/i.test(f.u) ? "pdf" : fileKind(buf);
-      let tx = kind === "docx" ? docxText(buf) : kind === "doc" ? docText(buf) : pdfText(buf);
+      const kind = /\.(rar|zip|7z)(\?|$)/i.test(f.u) ? "arc" : /\.docx(\?|$)/i.test(f.u) ? "docx" : /\.doc(\?|$)/i.test(f.u) ? "doc" : /\.pdf(\?|$)/i.test(f.u) ? "pdf" : fileKind(buf);
+      let tx = kind === "arc" ? archiveText(buf) : kind === "docx" ? docxText(buf) : kind === "doc" ? docText(buf) : pdfText(buf);
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
       if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = S.reshi ? splitReshi(tx, f.u) : splitDecisions(tx, f.u, dateOf(f.t));
       if (process.env.DEBUG) { const k = Math.max(0, tx.search(/\s(?:-|–|в|0|П|В)\s*\n/) - 1200); console.log("DBG file", kind, ds.length, k, JSON.stringify(tx.slice(k, k + 1800).replace(/ {3,}/g, "  "))); }
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
+      if (S.toc) { const toc = new Map([...tx.matchAll(/Решение\s*№\s*(\d+)\s*[–-]\s*(\d+)[\s\S]{0,300}?относно\s+([\s\S]{5,400}?)\s*[–-]\s*стр\./g)].map((m) => [`${m[1]}-${m[2]}`, flat(m[3]).replace(/[;,.]$/, "")])); for (const d of ds) if (toc.has(d.number)) d.title = toc.get(d.number); }
       if (S.linkDate) { const ld = dateOf(f.t); if (ld) for (const d of ds) d.date = ld; }
       if (S.fileDate) { const m = f.u.match(S.fileDate); if (m) for (const d of ds) d.date = `20${m[3]}-${m[2]}-${m[1]}`; }
       prev.files[f.u] = ds.length;
