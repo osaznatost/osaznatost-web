@@ -91,6 +91,7 @@ const SITES = {
   SHU23: { name: "Велики Преслав", pages: () => ["https://velikipreslav.bg/wp/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d1%8f"], whole: true, fileRe: /./, base: "https://velikipreslav.bg/", from: "2023-11-01" },
   MON02: { name: "Берковица", pages: () => ["https://www.berkovitsa.bg/protocols/"], whole: true, fileRe: /./, base: "https://www.berkovitsa.bg/", from: "2023-11-01" },
   VAR16: { name: "Дългопол", pages: () => ["https://www.dalgopol.bg/list.php?category_id=5"], whole: true, fileRe: /./, base: "https://www.dalgopol.bg/", from: "2023-11-01" },
+  JAM25: { name: "Тунджа", pages: () => ["https://tundzha.bg/obshtinski-savet/protokoli-i-resheniya/"], whole: true, fileRe: /./, base: "https://tundzha.bg/", from: "2023-11-01" },
   VTR28: { name: "Свищов", pages: () => [2023, 2024, 2025, 2026, 2027].map((y) => `https://www.svishtov.bg/reshenia-na-obshtinski-savet-za-${y}-g`), fileRe: /./, base: "https://www.svishtov.bg/", from: "2023-11-01" },
   // Последна, защото чете бавно (по един PDF на решение) и изразходва остатъка от времето. Столичен общински съвет: https://council.sofia.bg/documents/d/guest/r-<номер>-<година>. Без докладчик и гласуване в текста.
   SOF46: { name: "Столична община", numbered: (n, y) => `https://council.sofia.bg/documents/d/guest/r-${n}-${y}`, from: "2024-01-01", parse: "sofia" },
