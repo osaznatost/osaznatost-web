@@ -108,6 +108,7 @@ for (const [code, S] of Object.entries(SRC)) {
     if (!fresh.length) break;
     sessions.push(...fresh);
   }
+  if (process.env.DEBUG) console.log("DBG sessions", sessions.length, JSON.stringify(sessions.slice(0, 2)));
   let added = 0;
   for (const s of sessions) {
     if (timeUp()) break;
@@ -116,6 +117,7 @@ for (const [code, S] of Object.entries(SRC)) {
     if (!dec.length) continue;
     const page = await get(s.url);
     const fu = page?.match(S.file)?.[1];
+    if (process.env.DEBUG) console.log("DBG", s.n, dec.length, fu, page?.length);
     if (!fu) { C.votesFrom[s.url] = 0; continue; }
     const buf = await get(new URL(fu, S.base).href, true);
     if (!buf) continue;
