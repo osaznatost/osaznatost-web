@@ -32,7 +32,7 @@ jobs:
           CODES: ""
           GROUP: MP
           FIRM_MINUTES: "0"
-        run: python3 scripts/import-tr-links.py
+        run: python3 scripts/import-tr-links.py && node scripts/build-tr-index.mjs
       - name: Запис
         if: always()
         run: |

@@ -30,7 +30,7 @@ jobs:
           MINUTES: "45"
           ONLY: ${{ github.event.inputs.only }}
           CODES: ${{ github.event.inputs.codes || 'SFO07' }}
-        run: python3 scripts/import-tr-links.py
+        run: python3 scripts/import-tr-links.py && node scripts/build-tr-index.mjs
       - name: Запис
         if: always()
         run: |

@@ -6,6 +6,12 @@ import {
   PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, placeSuppliersAll, politicalLinks, singleOfferBig,
 } from "@/lib/procurement";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
+import { data } from "@/lib/data";
+import { MPS, partyName } from "@/lib/parliament";
+
+type TrHit = { s: string; k: "own" | "partner"; how?: string; now?: boolean; partner?: string; via?: string[]; roles?: string[] };
+type TrIndex = { people: Record<string, [string, string, string]>; byEik: Record<string, TrHit[]> };
+const tc = (s: string) => s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
 
 // Червеното каре „Сигнали за риск“ в началото на страницата на област, община и населено място.
 // Само правила върху публични данни; всеки сигнал е повод за въпрос, не доказателство. Всяко число води към източника.
@@ -33,18 +39,53 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
       singleOfferBig(since(), f).catch(() => []),
       biggestAnnexes(since(), f).catch(() => []),
     ]);
-    // 2. Конфликт на интереси: фирма от декларацията на длъжностно лице печели поръчки в общината (съвпадение по име)
-    if (one && sup.length) {
-      const byNorm = new Map(sup.map((s) => [normFirm(s.name), s]));
-      for (const L of locals) for (const o of L.officials) for (const st of o.decl?.stakes ?? []) {
-        const s = byNorm.get(normFirm(st.company));
-        if (s) sigs.push({ level: "high", title: `${o.name} (${o.roleRaw.toLowerCase()}) има дял във фирма, която печели поръчки тук`, body: <><Link href={firmUrl(s.eik)}>{s.name}</Link>: {s.contracts} договора за {fmtEur(s.total_eur)}. Съвпадение по име (декларациите са без ЕИК). <Link href={personHref(o.slug)}>Профил</Link></> });
+    // 2–3. Свързани лица по Търговския регистър (с историята): фирми на длъжностните лица и на техните
+    // настоящи и бивши съдружници, които печелят поръчки тук; плюс декларациите и връзките с депутати.
+    const sups = one ? sup : (await Promise.all(codes.map((c) => placeSuppliersAll(c).catch(() => [])))).flat();
+    if (sups.length) {
+      const TR = (await data<TrIndex>("tr-links/eik-index.json")) ?? { people: {}, byEik: {} };
+      const local = new Map<string, { name: string; role: string; code: string; own: React.ReactNode[]; partner: React.ReactNode[]; total: number }>();
+      const other = new Map<string, { who: string; items: React.ReactNode[] }>();
+      const seen = new Set<string>();
+      for (const sp of sups) {
+        if (seen.has(sp.eik)) continue; seen.add(sp.eik);
+        for (const h of TR.byEik[sp.eik.slice(0, 9)] ?? []) {
+          const [pc, pn, pr] = TR.people[h.s] ?? ["", h.s, ""];
+          const firm = <Link href={firmUrl(sp.eik)}>{sp.name}</Link>;
+          if (codes.includes(pc)) {
+            const x = local.get(h.s) ?? { name: pn, role: pr, code: pc, own: [], partner: [], total: 0 };
+            if (h.k === "own") x.own.push(<li key={`o${sp.eik}`}>{firm}: {sp.contracts} договора за {fmtEur(sp.total_eur)} · <b>{h.now ? "негова/нейна фирма" : "бивша негова/нейна фирма"}</b> ({h.how})</li>);
+            else x.partner.push(<li key={`p${sp.eik}`}>{firm}: {sp.contracts} договора за {fmtEur(sp.total_eur)} · фирма на <b>{tc(h.partner ?? "")}</b>{h.roles?.length ? ` (${h.roles.join(", ")})` : ""}, бивш или настоящ съдружник/управител заедно с {pn.split(" ")[0]}{h.via?.length ? ` в ${h.via.join(", ")}` : ""}</li>);
+            x.total += sp.total_eur ?? 0;
+            local.set(h.s, x);
+          } else {
+            const mp = pc === "MP" ? MPS.find((m) => `mp-${m.id}` === h.s) : null;
+            const who = `${pn} (${mp ? `депутат, ${partyName(mp.party)}` : `${pr.toLowerCase()}, ${IX.munis[pc]?.name ?? pc}`})`;
+            const y = other.get(h.s) ?? { who, items: [] };
+            y.items.push(<li key={sp.eik}>{firm} ({fmtEur(sp.total_eur)}) – {h.k === "own" ? (h.now ? "негова/нейна фирма" : "бивша негова/нейна фирма") : `фирма на съдружника му/ѝ ${tc(h.partner ?? "")}`}</li>);
+            other.set(h.s, y);
+          }
+        }
       }
-    }
-    // 3. Изпълнители, свързани с политици (Търговски регистър)
-    if (one && sup.length) {
-      const linked = sup.map((s) => ({ s, l: politicalLinks(s.eik) })).filter((x) => x.l.length).slice(0, 6);
-      if (linked.length) sigs.push({ level: "mid", title: `${linked.length} изпълнител${linked.length > 1 ? "и" : ""} на поръчки тук, свързан${linked.length > 1 ? "и" : ""} с политици`, body: <ul className="mt-1 space-y-0.5">{linked.map(({ s, l }) => <li key={s.eik}><Link href={firmUrl(s.eik)}>{s.name}</Link> ({fmtEur(s.total_eur)}) – {l.slice(0, 2).map((x) => `${x.who}${x.party ? `, ${x.party}` : x.position ? `, ${x.position}` : ""}`).join("; ")}</li>)}</ul> });
+      for (const [slug, x] of local) sigs.push({
+        level: x.own.length || x.total >= 50000 ? "high" : "mid",
+        title: `${x.name} (${x.role.toLowerCase()}${one ? "" : `, ${IX.munis[x.code]?.name ?? ""}`}): ${x.own.length + x.partner.length} свързани фирми печелят поръчки тук за ${fmtEur(x.total)}`,
+        body: <><ul className="mt-1 space-y-0.5">{[...x.own, ...x.partner].slice(0, 8)}</ul><p className="text-sm mt-1"><Link href={personHref(slug)}>Всички връзки и схемата</Link> · по Търговския регистър, с историята; по три имена, без ЕГН</p></>,
+      });
+      // декларирани дялове, които не са хванати от регистъра (съвпадение по име)
+      const byNorm = new Map(sups.map((x) => [normFirm(x.name), x]));
+      for (const L of locals) for (const o of L.officials) for (const st of o.decl?.stakes ?? []) {
+        const x = byNorm.get(normFirm(st.company));
+        if (x && !(TR.byEik[x.eik.slice(0, 9)] ?? []).some((h) => h.s === o.slug)) sigs.push({ level: "high", title: `${o.name} (${o.roleRaw.toLowerCase()}) е декларирал дял във фирма, която печели поръчки тук`, body: <><Link href={firmUrl(x.eik)}>{x.name}</Link>: {x.contracts} договора за {fmtEur(x.total_eur)}. <Link href={personHref(o.slug)}>Профил</Link></> });
+      }
+      const others = [...other.values()];
+      const nay = [...seen].map((e) => ({ s: sups.find((x) => x.eik === e)!, l: politicalLinks(e) })).filter((x) => x.l.length);
+      if (others.length || nay.length) sigs.push({ level: "mid", title: `Изпълнители на поръчки тук, свързани с депутати и други политици (${others.length + nay.length})`, body: (
+        <ul className="mt-1 space-y-1">
+          {others.slice(0, 8).map((o) => <li key={o.who}><b>{o.who}</b><ul className="ml-4">{o.items.slice(0, 4)}</ul></li>)}
+          {nay.slice(0, 6).map(({ s, l }) => <li key={s.eik}><Link href={firmUrl(s.eik)}>{s.name}</Link> ({fmtEur(s.total_eur)}) – {l.slice(0, 2).map((x) => `${x.who}${x.party ? `, ${x.party}` : x.position ? `, ${x.position}` : ""}`).join("; ")}</li>)}
+        </ul>
+      ) });
     }
     // 4. Големи договори само с една оферта
     const big1 = single.filter((c) => (c.contract_value_eur ?? 0) >= 100000).slice(0, 5);
@@ -67,7 +108,7 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
     <section className="ring-2 ring-red rounded-sm bg-white p-4 md:p-5 mb-12">
       <p className="text-sm font-semibold text-red">Сигнали за риск · {scope}</p>
       <h2 className="display text-[1.6rem] leading-tight mb-1">{sigs.length ? `${sigs.length} сигнала${high ? `, ${high} сериозни` : ""}` : "Няма автоматично открити сигнали"}</h2>
-      <p className="text-sm text-muted mb-3 max-w-3xl">Свързани лица и фирми, конфликт на интереси, поръчки с една оферта, оскъпяване с анекси, одити, санкции и присъди. Сигналът е повод за въпрос, не доказателство за нарушение. <Link href="/metodologiya">Как ги откриваме</Link></p>
+      <p className="text-sm text-muted mb-3 max-w-3xl">Свързани лица и фирми по Търговския регистър (и бивши съдружници), конфликт на интереси, поръчки с една оферта, оскъпяване с анекси, одити, санкции и присъди. Сигналът е повод за въпрос, не доказателство за нарушение. <Link href="/metodologiya">Как ги откриваме</Link></p>
       {sigs.length > 0 && (
         <ul className="space-y-3">{[...sigs.filter((s) => s.level === "high"), ...sigs.filter((s) => s.level !== "high")].map((s, i) => (
           <li key={i} className={`border-l-4 pl-3 text-[15px] ${s.level === "high" ? "border-red" : "border-[#e08a2e]"}`}>
