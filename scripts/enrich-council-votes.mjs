@@ -29,6 +29,31 @@ const SRC = {
   },
 };
 
+/** Гласуване от PDF на отделно решение (препис-извлечение или протокол за гласуване на точката). */
+export function tallyAny(raw) {
+  const t = raw.replace(/\r/g, "");
+  const nn = (x) => (/^\d+$/.test(x) ? +x : 0); // „няма“, „без“ → 0
+  // Русе: „ПРОТОКОЛ ЗА ГЛАСУВАНЕ … • ЗА: 43 • ПРОТИВ: 0 • ВЪЗДЪРЖАЛ СЕ: 2“ + таблица „Име  Група  Гласувал“
+  const ru = t.match(/•\s*ЗА:\s*(\d+)[\s\S]{0,200}?•\s*ПРОТИВ:\s*(\d+)[\s\S]{0,200}?•\s*ВЪЗДЪРЖАЛ\s*СЕ:\s*(\d+)/);
+  if (ru) {
+    const votes = [];
+    const tbl = t.split(/\n\s*Име\s{2,}Група\s{2,}Гласувал\s*\n/)[1] ?? "";
+    for (const l of tbl.split("\n")) {
+      if (/Общо:/.test(l)) break;
+      const m = l.match(/^\s*([А-ЯЁ][А-ЯЁ\- ]+?)\s{2,}(.+?)(?:\s{2,}(ЗА|ПРОТИВ|ВЪЗДЪРЖАЛ СЕ))?\s*$/);
+      if (!m) continue;
+      const name = m[1].trim().toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase());
+      votes.push([name, m[3] ? VOTE[m[3].toLowerCase()] : "absent"]);
+    }
+    return { tally: { for: +ru[1], against: +ru[2], abstain: +ru[3], method: votes.length ? "named" : "open" }, votes: votes.filter((v) => v[1] !== "absent") };
+  }
+  // Стара Загора: „Гласуване: за – 37, против – няма и въздържали се – 5“
+  const sz = t.match(/Гласуване\s*:\s*за\s*[–-]\s*(\d+|няма|без)\s*,?\s*против\s*[–-]\s*(\d+|няма|без)\s*,?\s*(?:и\s*)?въздържали\s+се\s*[–-]\s*(\d+|няма|без)/i);
+  if (sz) return { tally: { for: nn(sz[1]), against: nn(sz[2]), abstain: nn(sz[3]), method: /поименно/i.test(t) ? "named" : "open" }, votes: [] };
+  const b = parseProtocol(raw)[0];
+  return b ? { tally: { for: b.for, against: b.against, abstain: b.abstain, method: b.method }, votes: b.votes } : null;
+}
+
 /** Варна: PDF с електронните гласувания — блок за всяко гласуване. Връща решение № → гласуване (последното за номера). */
 export function parseEvote(raw) {
   const t = raw.replace(/\r/g, "").replace(/\f/g, "\n");
@@ -120,6 +145,9 @@ export function attach(blocks, decisions) {
   return n;
 }
 
+// Общини, при които гласуването е в PDF-а на всяко решение (а importer-ът чете само HTML страницата).
+const PER_DECISION = { SZR31: "Стара Загора", RSE27: "Русе" };
+
 const ONLY = process.env.ONLY?.split(/[\s,]+/).filter(Boolean);
 for (const [code, S] of Object.entries(SRC)) {
   if (ONLY && !ONLY.includes(code)) continue;
@@ -168,4 +196,26 @@ for (const [code, S] of Object.entries(SRC)) {
   }
   writeFileSync(f, JSON.stringify(C));
   console.log(`${code} ${C.name}: +${added} гласувания; с гласуване ${C.decisions.filter((d) => d.tally).length} от ${C.decisions.length}`);
+}
+
+for (const code of Object.keys(PER_DECISION)) {
+  if (ONLY && !ONLY.includes(code)) continue;
+  const f = `data/council/${code}.json`;
+  if (!existsSync(f)) continue;
+  const C = JSON.parse(readFileSync(f, "utf8"));
+  C.votesFrom ??= {};
+  let n = 0, seen = 0;
+  for (const d of C.decisions.sort((a, b) => b.date.localeCompare(a.date))) {
+    if (timeUp()) break;
+    if (d.tally || !/\.pdf$/i.test(d.url ?? "") || d.url in C.votesFrom) continue;
+    const buf = await get(d.url, true);
+    seen++;
+    if (!buf) continue;
+    const r = tallyAny(pdfText(buf));
+    C.votesFrom[d.url] = r ? 1 : 0;
+    if (r) { d.tally = r.tally; if (r.votes.length) d.votes = r.votes; n++; }
+    await sleep(800);
+  }
+  writeFileSync(f, JSON.stringify(C));
+  console.log(`${code} ${C.name}: прочетени ${seen} решения, +${n} гласувания; с гласуване ${C.decisions.filter((d) => d.tally).length} от ${C.decisions.length}`);
 }
