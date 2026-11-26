@@ -6,12 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full >/dev/null 2>&1
       - run: |
-          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=$MIN node scripts/import-council-sites.mjs 2>&1 | tail -2; done
-          python3 probe/stat.py $CODES
-        env:
-          CODES: "HKV32"
-          MIN: "2"
+          curl -s -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" "https://topolovgrad.bg/notices/%d1%80%d0%b5%d1%88%d0%b5%d0%bd%d0%b8%d0%b5-%e2%84%96507-%d0%be%d1%82-29-10-2026-%d0%b3/" > a.html
+          grep -oE '<(article|div)[^>]*class="[^"]*(content|entry|notice|post)[^"]*"' a.html | sort -u | head
+          python3 -c "
+          import re;t=open('a.html').read();i=t.find('post__content');print('RAW',re.sub(r'\s+',' ',t[i:i+2500]))
+          import re;t=open('a.html').read();i=t.find('РЕШЕНИЕ',t.find('<article'));print('>>>',re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',t[i-300:i+1500])))"
