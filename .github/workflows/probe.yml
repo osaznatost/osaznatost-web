@@ -4,26 +4,8 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
-      - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - run: |
-          for c in $CODES; do rm -f data/council/$c.json; DEBUG=1 ONLY=$c MINUTES=5 node scripts/import-council-sites.mjs; done
-        env:
-          CODES: "VAR14 VAR09"
-      - run: |
-          python3 - <<'PY'
-          import json,os
-          for c in "VAR14 VAR09".split():
-            f=f'data/council/{c}.json'
-            if not os.path.exists(f): print("X",c,"нищо"); continue
-            j=json.load(open(f)); d=j['decisions']
-            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
-            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:140],"|",x['text'][:90])
-            print("   files:",list(j['files'].items())[:3])
-          PY
+          curl -s https://devnya.obs-savet.eu/blog/resheniya-ot-zasedanie-na-ob-s-devnya-ot-30102026-g > a.html
+          grep -oE '(uploads|file-download|drive\.google|\.pdf|\.docx?)[^"\\ ]{0,120}' a.html | sort -u | head; python3 -c "import re;t=open('a.html').read();i=t.find('РЕШЕНИЕ');print('>>>',i,re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',t[i:i+800])))"
