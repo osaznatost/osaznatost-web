@@ -19,7 +19,35 @@ const SRC = {
     file: /href="([^"]*(?:protokol|%D0%BF%D1%80%D0%BE%D1%82)[^"]*\.pdf)"/i,
     base: "https://www.burgascouncil.org",
   },
+  VAR06: {
+    // Отделен PDF „Електронно гласуване“ за всяко заседание: всяко гласуване с „Гласуване на Решение № N-…“ и поименния списък.
+    evote: true,
+    index: (p) => (p ? null : "https://varnacouncil.bg/zasedanija-na-obshtinski-savet-mandat-2023-2027/"),
+    session: /href="(https:\/\/varnacouncil\.bg\/[^"]+)"[^>]*>(?:\s|<[^>]+>)*Заседание\s*№\s*(\d+)\s*от\s*([\d.]+)/gi,
+    file: /href="([^"]*(?:Електронно-гласуване|%D0%95%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%BE%D0%BD%D0%BD%D0%BE-%D0%B3%D0%BB%D0%B0%D1%81)[^"]*\.pdf)"/i,
+    base: "https://varnacouncil.bg",
+  },
 };
+
+/** Варна: PDF с електронните гласувания — блок за всяко гласуване. Връща решение № → гласуване (последното за номера). */
+export function parseEvote(raw) {
+  const t = raw.replace(/\r/g, "").replace(/\f/g, "\n");
+  const out = new Map();
+  for (const b of t.split(/\n\s*Гласуване\s*№\s*\d+/).slice(1)) {
+    const n = b.match(/Гласуване на Решение\s*№\s*(\d+)/)?.[1];
+    if (!n) continue; // процедурно гласуване
+    const c = (k) => +(b.match(new RegExp(`\\n\\s*${k}:\\s*(\\d+)`))?.[1] ?? NaN);
+    const f = c("За"), a = c("Против"), ab = c("Въздържали се");
+    if ([f, a, ab].some(Number.isNaN)) continue;
+    const votes = [];
+    for (const v of b.matchAll(/^\s*([А-ЯЁ][А-Яа-яЁё\- ]{4,70}?)\s*:\s*(За|Против|Въздържал(?:а)?\s+се|Не\s+гласувал(?:а)?)\s*$/gm)) {
+      const k = VOTE[v[2].toLowerCase().replace(/\s+/g, " ")];
+      if (k) votes.push([v[1].trim().replace(/\s+/g, " "), k]);
+    }
+    out.set(n, { for: f, against: a, abstain: ab, method: votes.length ? "named" : "open", votes });
+  }
+  return out;
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function get(u, bin = false) {
@@ -101,7 +129,9 @@ for (const [code, S] of Object.entries(SRC)) {
   C.votesFrom ??= {}; // протокол → брой свързани решения (вече прочетени)
   const sessions = [];
   for (let p = 0; p < 20; p++) {
-    const h = await get(S.index(p));
+    const iu = S.index(p);
+    if (!iu) break;
+    const h = await get(iu);
     if (process.env.DEBUG && !p) console.log("DBG index", h?.length, h?.match(/[^\n]{0,200}ВИДЕОАРХИВ[^\n]{0,120}/)?.[0]);
     if (!h) break;
     const ss = [...h.matchAll(S.session)].map((m) => ({ url: S.base + m[1], n: m[2], date: m[3] }));
@@ -114,7 +144,7 @@ for (const [code, S] of Object.entries(SRC)) {
   for (const s of sessions) {
     if (timeUp()) break;
     if (s.url in C.votesFrom) continue;
-    const dec = C.decisions.filter((d) => d.session === s.n || d.number.startsWith(`${s.n}-`));
+    const dec = S.evote ? C.decisions.filter((d) => d.session === s.n || d.date === s.date.split(".").reverse().join("-")) : C.decisions.filter((d) => d.session === s.n || d.number.startsWith(`${s.n}-`));
     if (!dec.length) continue;
     const page = await get(s.url);
     const fu = page?.match(S.file)?.[1] ?? page?.match(/href="([^"]*\.pdf)"/i)?.[1];
@@ -122,8 +152,15 @@ for (const [code, S] of Object.entries(SRC)) {
     if (!fu) { C.votesFrom[s.url] = 0; continue; }
     const buf = await get(new URL(fu, S.base).href, true);
     if (!buf) continue;
-    const blocks = parseProtocol(pdfText(buf));
-    const k = attach(blocks, dec);
+    let k = 0, blocks = [];
+    if (S.evote) {
+      const ev = parseEvote(pdfText(buf));
+      blocks = [...ev.values()];
+      for (const d of dec) { const v = ev.get(String(d.number).match(/^\d+/)?.[0]); if (v) { d.tally = { for: v.for, against: v.against, abstain: v.abstain, method: v.method }; if (v.votes.length) d.votes = v.votes; k++; } }
+    } else {
+      blocks = parseProtocol(pdfText(buf));
+      k = attach(blocks, dec);
+    }
     C.votesFrom[s.url] = k;
     added += k;
     console.log(`  ${code} заседание ${s.n} (${s.date}): ${blocks.length} гласувания, свързани ${k} от ${dec.length} решения`);

@@ -6,13 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -A "$UA" "https://varnacouncil.bg/wp-content/uploads/2026/01/Електронно-гласуване-№32-от-29.01.2026-г.-.pdf" -o e.pdf; pdftotext e.pdf e.txt
+          git fetch -q origin main && git checkout -q origin/main -- data/council/VAR06.json
+          DEBUG=1 ONLY=VAR06 MINUTES=7 node scripts/enrich-council-votes.mjs
           python3 -c "
-          import re;t=open('e.txt').read()
-          for m in re.finditer(r'Гласуване №(\d+)\s*/([\s\S]*?)/\s*\n\s*Дата/час:[^\n]*?(Гласуване на Решение[^\n]*)',t): print('V',m.group(1),'|',re.sub(r'\s+',' ',m.group(2))[:230],'|',m.group(3))
-          " | head -60
-          curl -s -A "$UA" "https://varnacouncil.bg/wp-content/uploads/2026/01/РЕШЕНИЯ-№-32-ОТ-29.01.2026-г..pdf" -o r.pdf; pdftotext r.pdf r.txt; python3 -c "
-          import re;t=open('r.txt').read();i=t.find('РЕШЕНИЕ');print('R>>>',re.sub(r'[ \t]+',' ',t[i:i+1500]))"
+          import json;d=json.load(open('data/council/VAR06.json'))
+          xs=[x for x in d['decisions'] if x.get('votes')]
+          print('VOTES',len(xs))
+          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
