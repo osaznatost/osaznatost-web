@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PlaceProcurement } from "@/components/PlaceProcurement";
+import { RiskPanel } from "@/components/RiskPanel";
 import { ContractList } from "@/components/proc";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { Page, Title } from "@/components/ui";
@@ -50,7 +51,8 @@ async function Body({ params }: { params: Promise<{ obl: string; muni: string; m
         lead={<>Всичко, което данните казват за {label}: кой управлява, какво решава общинският съвет за мястото, кои проекти и поръчки го засягат. За хората, бюджета и изборите виж <Link href={placeHref.muni(s.code)}>общината</Link>.</>}>
         {label}
       </Title>
-      <SectionNav items={[["vlast", "Кой управлява"], ["resheniya", `Решения на съвета (${res.length})`], ["proekti", "Проекти"], ["porachki", "Поръчки"]]} />
+      <SectionNav items={[["riskove", "Рискове"], ["vlast", "Кой управлява"], ["resheniya", `Решения на съвета (${res.length})`], ["proekti", "Проекти"], ["porachki", "Поръчки"]]} />
+      <div id="riskove" className="scroll-mt-32 lg:scroll-mt-20"><Suspense fallback={<p className="text-muted mb-12">Проверка за сигнали…</p>}><RiskPanel codes={[s.code]} f={{ oblast: s.oblast, obshtina: s.code, mesto: s.ekatte }} scope={`${s.name ?? "населеното място"} и община ${s.municipality}`} /></Suspense></div>
 
       <Anchor id="vlast" title="Кой управлява">
         <ul className="text-[15px] space-y-1">

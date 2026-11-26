@@ -1,3 +1,4 @@
+import { RiskPanel } from "@/components/RiskPanel";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Page, SectionTitle, Title } from "@/components/ui";
@@ -41,7 +42,8 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
   return (
     <Page>
       <Title back={{ href: "/mesta", label: "Всички области" }} kicker="Област" lead={`${o.municipalities.length} общини, ${s.pop ? s.pop.toLocaleString("bg-BG") : "–"} жители.`}>{o.name}</Title>
-      <SectionNav items={[["obshtini", "Общините"], ["savet", "Общински съвети"], ["hora", "Хората"], ["ikonomika", "Икономика"], ["izbori", "Избори"], ["porachki", "Поръчки"]]} />
+      <SectionNav items={[["riskove", "Рискове"], ["obshtini", "Общините"], ["savet", "Общински съвети"], ["hora", "Хората"], ["ikonomika", "Икономика"], ["izbori", "Избори"], ["porachki", "Поръчки"]]} />
+      <div id="riskove" className="scroll-mt-32 lg:scroll-mt-20"><Suspense fallback={<p className="text-muted mb-12">Проверка за сигнали…</p>}><RiskPanel codes={o.municipalities.map((x) => x.code)} f={{ oblast: o.name }} scope={`област ${o.name}`} /></Suspense></div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">БВП на човек{ s.gdpPc ? `, ${s.gdpPc.year}` : ""}</p><p className="display text-[2.2rem]">{s.gdpPc ? `${Math.round(s.gdpPc.value).toLocaleString("bg-BG")} €` : "–"}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Добавена стойност{gy ? `, ${gy}` : ""}</p><p className="display text-[2.2rem]">{tot ? `${fmt(tot / 1000, 1)} млрд. €` : "–"}</p></div>

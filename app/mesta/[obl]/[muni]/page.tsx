@@ -1,3 +1,4 @@
+import { RiskPanel } from "@/components/RiskPanel";
 import { MuniTaxes } from "@/components/MuniTaxes";
 import { MuniElections } from "@/components/MuniElections";
 import Link from "next/link";
@@ -53,7 +54,8 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     <Page>
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
-      <SectionNav items={[["pari", "Пари"], ["savet", "Общински съвет"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ...(audits.length ? [["oditi", "Одити"] as [string, string]] : []), ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
+      <SectionNav items={[["riskove", "Рискове"], ["pari", "Пари"], ["savet", "Общински съвет"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ...(audits.length ? [["oditi", "Одити"] as [string, string]] : []), ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
+      <div id="riskove" className="scroll-mt-32 lg:scroll-mt-20"><Suspense fallback={<p className="text-muted mb-12">Проверка за сигнали…</p>}><RiskPanel codes={[m.code]} f={{ oblast: o.name, obshtina: m.code }} scope={`община ${m.name}`} /></Suspense></div>
       <div id="pari" className="scroll-mt-32 lg:scroll-mt-20" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
