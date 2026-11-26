@@ -132,7 +132,7 @@ for (const [code, S] of Object.entries(SRC)) {
     const iu = S.index(p);
     if (!iu) break;
     const h = await get(iu);
-    if (process.env.DEBUG && !p) console.log("DBG index", h?.length, h?.match(/[^\n]{0,200}ВИДЕОАРХИВ[^\n]{0,120}/)?.[0]);
+    if (process.env.DEBUG && !p) console.log("DBG index", h?.length, h?.replace(/\s+/g, " ").slice(0, 600));
     if (!h) break;
     const ss = [...h.matchAll(S.session)].map((m) => ({ url: new URL(m[1], S.base).href, n: m[2], date: m[3] }));
     const fresh = ss.filter((s) => !sessions.some((x) => x.url === s.url));
