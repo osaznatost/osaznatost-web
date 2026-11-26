@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { MultiLine } from "@/components/Charts";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import MPH from "@/data/mp-history.json";
-import { localPeople, normFirm, personBySlug, personHref, type Official } from "@/lib/local";
+import { localPeople, normFirm, personBySlug, personHref, VOTE_BG, type Official } from "@/lib/local";
 import { firmUrl, fmtEur, placeSuppliersAll } from "@/lib/procurement";
 import { muniSlug, oblastSlug } from "@/lib/regions";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
@@ -96,6 +96,12 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
   const colleagues = L.officials.filter((x) => x.slug !== o.slug && ["mayor", "deputy_mayor", "council_chair", "chief_architect"].includes(x.role));
   const d = o.decl;
   const proposed = (L.resolutions ?? []).filter((r) => r.rapporteur?.slug === o.slug);
+  // Поименни гласувания: в протоколите името е с две или три имена — сравняваме първото и последното.
+  const nm = (s: string) => { const w = s.toUpperCase().replace(/[^А-ЯЁA-Z\s-]/g, "").split(/\s+/).filter(Boolean); return `${w[0]} ${w.at(-1)}`; };
+  const me = nm(o.name);
+  const myVotes = (L.resolutions ?? []).flatMap((r) => { const v = r.votes.find(([n]) => nm(n) === me); return v && r.tally ? [{ r, v: v[1] }] : []; });
+  const notWithMajority = myVotes.filter(({ r, v }) => (v === "for" || v === "against") && v !== (r.tally!.for >= r.tally!.against ? "for" : "against"));
+  const notFor = myVotes.filter(({ v }) => v !== "for");
   const [runs, ownFirms] = await Promise.all([tendersByContact(L.code, o.name), firmsOfPerson(o.name)]);
   return (
     <Page>
@@ -157,6 +163,17 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
             <li key={r.id}><span className="text-sm text-muted num">{r.date.split("-").reverse().join(".")} · № {r.number}</span> {r.title}{r.tally && <span className="text-sm num text-muted"> ({r.tally.for} за, <span className={r.tally.against ? "text-red" : ""}>{r.tally.against} против</span>, {r.tally.abstain} въздържали се)</span>}{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer" className="text-sm">PDF</a></>}</li>
           ))}</ul>
           {proposed.length > 25 && <p className="text-sm mt-2"><Link href={`${muniHref}#resheniya`}>Всички решения на съвета</Link></p>}
+        </section>
+      )}
+
+      {myVotes.length > 0 && (
+        <section className="mb-10">
+          <SectionTitle>Как гласува в общинския съвет ({myVotes.length} поименни гласувания)</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">От протоколите с поименно гласуване. „За“ {myVotes.filter((x) => x.v === "for").length}, „против“ {myVotes.filter((x) => x.v === "against").length}, „въздържал(а) се“ {myVotes.filter((x) => x.v === "abstain").length}. Срещу мнозинството: {notWithMajority.length}. Различното гласуване е повод за въпрос, не доказателство за нещо.</p>
+          {notFor.length > 0 && <ul className="space-y-1.5 text-[15px]">{notFor.slice(0, 30).map(({ r, v }) => (
+            <li key={r.id}><span className="text-sm text-muted num">{r.date.split("-").reverse().join(".")} · № {r.number}</span> <b className={v === "against" ? "text-red" : ""}>{VOTE_BG[v] ?? v}</b> · {r.title}<span className="text-sm num text-muted"> (общо: {r.tally!.for} за, {r.tally!.against} против, {r.tally!.abstain} въздържали се)</span>{r.url && <> · <a href={r.url} target="_blank" rel="noreferrer" className="text-sm">източник</a></>}</li>
+          ))}</ul>}
+          {notFor.length > 30 && <p className="text-sm mt-2 text-muted">Показани са първите 30 от {notFor.length}.</p>}
         </section>
       )}
 
