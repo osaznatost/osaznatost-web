@@ -225,6 +225,9 @@ export function attach(blocks, decisions) {
 }
 
 // Общини, при които гласуването е в PDF-а на всяко решение (а importer-ът чете само HTML страницата).
+// Общини, при които решенията са прочетени от протокола на заседанието (url на решението = протоколът),
+// а поименният списък стои точно преди „РЕШЕНИЕ № N“.
+const PER_PROTOCOL = { KNL29: "Кюстендил" };
 const PER_DECISION = { SZR31: "Стара Загора", RSE27: "Русе", PAZ19: "Пазарджик", VRC10: "Враца", VTR28: "Свищов" };
 
 if (process.argv[1]?.endsWith("enrich-council-votes.mjs")) await main();
@@ -303,5 +306,28 @@ for (const code of Object.keys(PER_DECISION)) {
   }
   writeFileSync(f, JSON.stringify(C));
   console.log(`${code} ${C.name}: прочетени ${seen} решения, +${n} гласувания; с гласуване ${C.decisions.filter((d) => d.tally).length} от ${C.decisions.length}`);
+}
+
+for (const code of Object.keys(PER_PROTOCOL)) {
+  if (ONLY && !ONLY.includes(code)) continue;
+  const f = `data/council/${code}.json`;
+  if (!existsSync(f)) continue;
+  const C = JSON.parse(readFileSync(f, "utf8"));
+  C.votesFrom ??= {};
+  const urls = [...new Set(C.decisions.filter((d) => !d.votes?.length && d.url).map((d) => d.url))].filter((u) => !(u in C.votesFrom));
+  let n = 0;
+  for (const u of urls) {
+    if (timeUp()) break;
+    const buf = await get(u, true);
+    if (!buf) continue;
+    const ev = parseNamedBefore(docText(buf));
+    let k = 0;
+    for (const d of C.decisions.filter((x) => x.url === u)) { const v = ev.get(String(d.number)); if (v) { d.tally = { for: v.for, against: v.against, abstain: v.abstain, method: "named" }; d.votes = v.votes; k++; } }
+    C.votesFrom[u] = k; n += k;
+    console.log(`  ${code} ${u.split("/").pop()}: ${ev.size} поименни, свързани ${k}`);
+    await sleep(1000);
+  }
+  writeFileSync(f, JSON.stringify(C));
+  console.log(`${code} ${C.name}: +${n} поименни; с гласуване ${C.decisions.filter((d) => d.tally).length} от ${C.decisions.length}`);
 }
 }
