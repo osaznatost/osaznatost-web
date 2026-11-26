@@ -6,14 +6,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1; pip install -q python-docx >/dev/null 2>&1 || true
       - run: |
-          git fetch -q origin main && git checkout -q origin/main -- data/council/VAR06.json
-          DEBUG=1 ONLY=VAR06 MINUTES=7 node scripts/enrich-council-votes.mjs
-          python3 -c "
-          import json;d=json.load(open('data/council/VAR06.json'))
-          xs=[x for x in d['decisions'] if x.get('votes')]
-          print('VOTES',len(xs))
-          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in https://obs.pleven.bg/uploads/posts/protokol-511.docx https://www.starazagora.bg/uploads/posts/2026/prepis_2183.pdf https://obs.ruse-bg.eu/wp-content/uploads/2026/11/1114.pdf https://obs.sliven.bg/uploads/D15EF28F5DD9A922F04AC1A4932E5160 https://council.sofia.bg/documents/d/guest/r-722-2024; do
+            echo "##### $u"; curl -sL -A "$UA" "$u" -o f; file -b f | cut -c1-60
+            case "$(file -b f)" in PDF*) pdftotext -layout f t.txt;; Microsoft\ Word\ 2007*|Zip*) python3 -c "import docx;print('\n'.join(p.text for p in docx.Document('f').paragraphs))" > t.txt;; *) antiword f > t.txt 2>/dev/null || cp f t.txt;; esac
+            python3 -c "
+          import re;t=open('t.txt',errors='ignore').read()
+          ms=list(re.finditer(r'(?i)гласува|„за“|\"за\"|: за\b',t))
+          print('N',len(ms))
+          for m in ms[:3]: print('>>>',re.sub(r'\s+',' ',t[max(0,m.start()-250):m.start()+300]))
+          "
+          done
