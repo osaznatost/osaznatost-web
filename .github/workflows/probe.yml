@@ -8,13 +8,17 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           cat > x.py <<'X'
-          import re,sys,urllib.request
+          import re,urllib.request,html
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
           g=lambda u: urllib.request.urlopen(urllib.request.Request(u,headers={"User-Agent":UA}),timeout=40).read().decode("utf-8","ignore")
-          for u in sys.argv[1:]:
-            h=g(u); print("##",u,len(h))
-            for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',h):
-              t=re.sub(r'<[^>]+>|\s+',' ',t).strip()
-              if re.search(r'202[3-6]|сеси|заседан|session|Решени|reshen|\.pdf|\.doc|page',a+" "+t,re.I): print("  L",a[:150],"|",t[:80])
+          h=g("https://www.samokov.bg/bg/web/council/sessions-2023-2027")
+          pg=[html.unescape(a) for a in re.findall(r'href="([^"]*INSTANCE_ihev[^"]*)"',h)]
+          print("PAG",pg[:2])
+          w=[html.unescape(a) for a in re.findall(r'href="(https://www\.samokov\.bg/web/council/w/[^"]+)"',h)]
+          print("W",len(w),w[0])
+          s=g(w[0])
+          for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',s):
+            if re.search(r'documents|\.pdf|\.doc',a,re.I): print("  F",a[:200],"|",re.sub(r'<[^>]+>|\s+',' ',t)[:80])
+          i=s.find("РЕШЕНИЕ"); print("TXT",i,re.sub(r'\s+',' ',re.sub(r'<[^>]+>',' ',s[i:i+600])))
           X
-          curl -s -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" https://www.samokov.bg/bg/web/council/sessions-2023-2027 > a.html; grep -oE "href=\"[^\"]*(INSTANCE_ihev[^\"]*cur=2|/w/[^\"]+)\"" a.html | head -3; u=$(grep -oE "https://www.samokov.bg/web/council/w/[^\"]+" a.html | head -1); echo "
+          python3 x.py
