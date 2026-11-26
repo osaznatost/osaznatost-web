@@ -6,19 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
-          cat > x.py <<'X'
-          import re,sys,urllib.request,html
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          def g(u):
-            try: return urllib.request.urlopen(urllib.request.Request(u,headers={"User-Agent":UA}),timeout=40).read().decode("utf-8","ignore")
-            except Exception as e: return "ERR "+str(e)
-          for u in sys.argv[1:]:
-            h=g(u); print("##",u,len(h))
-            seen=set()
-            for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',h):
-              t=re.sub(r'<[^>]+>|\s+',' ',t).strip(); a=html.unescape(a)
-              if a in seen: continue
-              if re.search(r'глас|vot|протокол|protokol|поименн|stenogr|стеногр|xls|csv',a+" "+t,re.I): seen.add(a); print("  L",a[:160],"|",t[:70])
-          X
-          python3 x.py https://varnacouncil.bg/reshenija-na-obshtinski-savet-varna-mandat-2023-2027/ https://varnacouncil.bg/protokoli/ https://varnacouncil.bg/?s=%D0%B3%D0%BB%D0%B0%D1%81%D1%83%D0%B2%D0%B0%D0%BD%D0%B5 https://www.burgascouncil.org/protokoli 2>&1 | head -120
+          curl -s -A "$UA" https://www.burgascouncil.org/node/3663 > n.html
+          grep -oE 'href="[^"]+\.(pdf|docx?)"' n.html | head
+          u=$(grep -oE 'href="[^"]*protokol[^"]*\.pdf"' n.html | head -1 | sed 's/href="//; s/"$//'); case "$u" in http*) ;; *) u="https://www.burgascouncil.org$u";; esac; echo "## $u"
+          curl -s -A "$UA" "$u" -o p.pdf; pdftotext -layout p.pdf p.txt; wc -c p.txt
+          python3 -c "
+          import re;t=open('p.txt').read()
+          for m in list(re.finditer(r'(?i)(гласувал|поименно|„за“|\"за\")',t))[:3]: print('>>>',re.sub(r'[ \t]+',' ',t[max(0,m.start()-700):m.start()+900]))
+          "
