@@ -6,19 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          cat > x.py <<'X'
-          import re,sys,urllib.request,html
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          def g(u):
-            try: return urllib.request.urlopen(urllib.request.Request(u,headers={"User-Agent":UA}),timeout=40).read().decode("utf-8","ignore")
-            except Exception as e: return "ERR "+str(e)
-          for u in sys.argv[1:]:
-            h=g(u); print("##",u,len(h))
-            seen=set()
-            for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',h):
-              t=re.sub(r'<[^>]+>|\s+',' ',t).strip(); a=html.unescape(a)
-              if a in seen: continue
-              if re.search(r'глас|vot|glas|протокол|protokol|zasedan|заседан|session|стеногр|решени|reshen',a+" "+t,re.I): seen.add(a); print("  L",a[:170],"|",t[:70])
-          X
-          python3 x.py https://council.sofia.bg/ https://council.sofia.bg/sessions https://council.sofia.bg/web/guest/zasedaniya 2>&1 | grep -viE "uploads|pdf" | head -80
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
+      - run: node probe/probe-tally.mjs
