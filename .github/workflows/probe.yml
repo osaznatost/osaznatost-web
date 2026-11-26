@@ -19,6 +19,6 @@ jobs:
             for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',h):
               t=re.sub(r'<[^>]+>|\s+',' ',t).strip(); a=html.unescape(a)
               if a in seen: continue
-              if re.search(r'заседан|zasedan|глас|glas|протокол|protokol|2026|2025',a+" "+t,re.I): seen.add(a); print("  L",a[:170],"|",t[:70])
+              if re.search(r'заседан|zasedan|глас|glas|протокол|protokol|2026|2025|pdf|xls',a+" "+t,re.I): seen.add(a); print("  L",a[:170],"|",t[:70])
           X
-          python3 x.py https://varnacouncil.bg/zasedaniya-na-obshtinski-savet/ 2>&1 | head -60
+          python3 x.py https://varnacouncil.bg/zasedanija-na-obshtinski-savet-mandat-2023-2027/ 2>&1 | head -30; u=$(python3 x.py https://varnacouncil.bg/zasedanija-na-obshtinski-savet-mandat-2023-2027/ | grep -oE "https://varnacouncil.bg/[^ ]*zasedanie[^ ]*2026[^ ]*" | head -1); echo "SUB $u"; python3 x.py "$u" | head -40; curl -s "$u" -A x | grep -oiE "href=\"[^\"]+\.(pdf|xlsx?|docx?)\"" | head -20
