@@ -17,4 +17,4 @@ jobs:
               t=re.sub(r'<[^>]+>|\s+',' ',t).strip()
               if re.search(r'202[3-6]|сеси|заседан|session|Решени|reshen|\.pdf|\.doc|page',a+" "+t,re.I): print("  L",a[:150],"|",t[:80])
           X
-          python3 x.py https://www.samokov.bg/bg/web/council/sessions-2023-2027 2>&1 | head -60
+          curl -s -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" https://www.samokov.bg/bg/web/council/sessions-2023-2027 > a.html; grep -oE "href=\"[^\"]*(INSTANCE_ihev[^\"]*cur=2|/w/[^\"]+)\"" a.html | head -3; u=$(grep -oE "https://www.samokov.bg/web/council/w/[^\"]+" a.html | head -1); echo "
