@@ -80,6 +80,7 @@ export default async function Vlast() {
               <li><Link href="/vlast/sadebna-vlast">Съдебната власт: кой е избран във ВСС и коя група как е гласувала</Link></li>
               <li><Link href="/vlast/ministerstva">Министерствата: кой ги ръководи, колко хора работят, какви поръчки възлагат</Link></li>
               <li><Link href="/vlast/deklaracii">Декларирани фирми на лицата на власт и обществените поръчки</Link></li>
+              <li><Link href="/vlast/obshtinski-savet">Общинските съвети: решения и гласувания по общини</Link></li>
               <li><Link href="/byudzhet">Бюджетът: какво харчи държавата</Link></li>
               <li><Link href="/porachki">Обществените поръчки: кой взема парите</Link></li>
             </ul>

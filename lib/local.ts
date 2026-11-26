@@ -19,7 +19,7 @@ export type Resolution = {
 export type LocalData = { code: string; name: string | null; generatedAt: string | null; officials: Official[]; resolutions: Resolution[] | null };
 
 export const localData = (code: string) => data<LocalData>(`local/${code}.json`);
-type LocalIndex = { updated: string; source: string; tags: Record<string, { bg: string }>; munis: Record<string, { name: string; officials: number; stakes: number; resolutions: number }> };
+type LocalIndex = { updated: string; source: string; tags: Record<string, { bg: string }>; munis: Record<string, { name: string; officials: number; stakes: number; resolutions: number; tallied?: number; named?: number; unanimous?: number; contested?: number; first?: string | null; last?: string | null; source?: string | null }> };
 export const localIndex = async () => (await data<LocalIndex>("local/index.json"))!;
 
 /** Нормализира име на фирма за сравнение: без правна форма, кавички и разлики между латиница и кирилица. */

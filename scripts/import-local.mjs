@@ -89,7 +89,16 @@ await pool(codes, 4, async (code) => {
   const name = o?.registryName ?? null;
   writeFileSync(`data/local/${code}.json`, JSON.stringify({ code, name, generatedAt: o?.generatedAt ?? null, officials, resolutions }));
   for (const x of officials) people[x.slug] = [code, x.name, x.roleRaw];
-  summary[code] = { name, officials: officials.length, stakes: officials.filter((x) => x.decl?.stakes?.length).length, resolutions: resolutions?.length ?? 0 };
+  const R = resolutions ?? [];
+  summary[code] = {
+    name, officials: officials.length, stakes: officials.filter((x) => x.decl?.stakes?.length).length, resolutions: R.length,
+    // за страницата „Общинските съвети в страната“: колко решения имат резултат, поименно гласуване, единодушие
+    tallied: R.filter((r) => r.tally).length, named: R.filter((r) => r.votes?.length).length,
+    unanimous: R.filter((r) => r.tally && !r.tally.against && !r.tally.abstain).length,
+    contested: R.filter((r) => r.tally && r.tally.against > 0).length,
+    first: R.length ? R.reduce((a, r) => (r.date < a ? r.date : a), R[0].date) : null, last: R.length ? R.reduce((a, r) => (r.date > a ? r.date : a), R[0].date) : null,
+    source: existsSync(`data/council/${code}.json`) ? JSON.parse(readFileSync(`data/council/${code}.json`, "utf8")).source ?? null : null,
+  };
 });
 writeFileSync("data/local/people.json", JSON.stringify(people));
 writeFileSync("data/local/index.json", JSON.stringify({ updated: new Date().toISOString().slice(0, 10), source: "„Наясно“ (github.com/atanasster/electionsbg): декларации от регистъра на Сметната палата, протоколи на общинските съвети", tags: council?.tags ?? {}, munis: summary }));
