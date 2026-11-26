@@ -12,6 +12,9 @@ export const strongestLink = (eiks: string[]) => Math.max(0, ...eiks.map(persona
 /** Същото, но и по Търговския регистър с историята (кметове, съветници, депутати, министри):
  *  лицето е вписано във фирмата → 2; фирмата е на негов бивш или настоящ съдружник → 1. */
 export async function linkStrength(eiks: string[]) {
+  try { return await linkInner(eiks); } catch { return strongestLink(eiks); }
+}
+async function linkInner(eiks: string[]) {
   const M = await trHitsMany(eiks);
   const tr = Math.max(0, ...[...M.values()].flat().map((h) => (h.k === "own" ? 2 : 1)));
   return Math.max(strongestLink(eiks), tr);
@@ -27,6 +30,9 @@ const NO_COMPETITION = /договаряне без|пряко договаря�
  *  и фирми с общи хора сред другите изпълнители на възложителя (симулирана конкуренция). Тежко: само на страницата на договора. */
 export type Ctx = { depShare: number; depTotal: number; buyerShare: number; buyerTotal: number; shared: { name: string; firms: string[] }[] };
 export async function contractContext(c: Contract): Promise<Ctx | null> {
+  try { return await ctxInner(c); } catch { return null; }
+}
+async function ctxInner(c: Contract): Promise<Ctx | null> {
   const e = c.supplier_eiks[0];
   if (!e) return null;
   const [sc, bc] = await Promise.all([supplierContracts(e, 400).catch(() => []), buyerContracts(c.buyer_eik, 400).catch(() => [])]);

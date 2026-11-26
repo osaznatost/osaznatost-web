@@ -23,7 +23,8 @@ function Tiles({ rows }: { rows: M[] }) {
 
 /** Голямо каре за страницата „Властта“ и началото на „Места“. */
 export async function CouncilBanner() {
-  const IX = await localIndex();
+  const IX = await localIndex().catch(() => null);
+  if (!IX) return null;
   const rows = Object.entries(IX.munis).filter(([, m]) => m.resolutions > 0).map(([code, m]) => ({ code, ...m }));
   return (
     <section className="bg-surface rounded-sm p-5 md:p-6 mb-12 ring-2 ring-green">
@@ -38,7 +39,8 @@ export async function CouncilBanner() {
 
 /** Каре за община или област. */
 export async function CouncilCoverage({ codes, title }: { codes: string[]; title: string }) {
-  const IX = await localIndex();
+  const IX = await localIndex().catch(() => null);
+  if (!IX) return null;
   const rows = codes.map((code) => ({ code, ...(IX.munis[code] ?? { name: code, officials: 0, stakes: 0, resolutions: 0 }) }));
   const have = rows.filter((r) => r.resolutions > 0);
   const one = codes.length === 1;

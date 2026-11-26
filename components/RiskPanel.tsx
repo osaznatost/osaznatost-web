@@ -21,7 +21,15 @@ type Sig = { level: "high" | "mid"; title: string; body: React.ReactNode };
 const within = <T,>(p: Promise<T>, fallback: T, ms = 4000) => Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
 const since = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 3); return d.toISOString().slice(0, 10); };
 
-export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: PlaceFilter; scope: string }) {
+export async function RiskPanel(props: { codes: string[]; f: PlaceFilter; scope: string }) {
+  // Грешка в сигналите не бива да спира цялата страница.
+  try { return await RiskPanelInner(props); } catch (e) {
+    console.error("RiskPanel", e);
+    return <section className="ring-2 ring-red rounded-sm bg-white p-4 mb-12 text-[15px]"><p className="text-sm font-semibold text-red">Сигнали за риск · {props.scope}</p><p>Проверката не успя да се зареди. Опитайте след малко.</p></section>;
+  }
+}
+
+async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFilter; scope: string }) {
   await connection();
   const sigs: Sig[] = [];
   const IX = await localIndex();
