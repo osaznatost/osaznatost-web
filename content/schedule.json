@@ -8,6 +8,9 @@
  "council-mac.yml": [
   "23 9 * * *"
  ],
+ "council-votes.yml": [
+  "17 2,14 * * *"
+ ],
  "council.yml": [
   "41 */4 * * *"
  ],
