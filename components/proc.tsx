@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { powerHref, powerLinks } from "@/lib/tr";
 import { peopleLinks } from "@/lib/people";
 import { type Annex, type Contract, buyerUrl, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
 import { isPublicFirm, politicalStrength } from "@/lib/politicalFlag.mjs";
@@ -89,10 +90,21 @@ function AnnexRows({ items }: { items: Annex[] }) {
 export async function LinksBox({ eik }: { eik: string }) {
   const { localPage } = await peopleLinks();
   const l = politicalLinks(eik);
+  const tr = await powerLinks(eik);
+  const trBox = tr.length ? (
+    <ul className="space-y-2 mb-3">{tr.slice(0, 12).map((h, i) => { const href = powerHref(h.code, h.s); return (
+      <li key={i} className="border-l-4 pl-3 border-red">
+        <p className="font-semibold">{href ? <Link href={href}>{h.name}</Link> : h.name} <span className="text-sm font-normal text-muted">· {h.code === "MP" ? "народен представител" : h.role.toLowerCase()}</span></p>
+        <p className="text-sm">{h.k === "own" ? `${h.now ? "вписан(а) във фирмата" : "бил(а) вписан(а) във фирмата"}: ${h.how ?? ""}` : `фирмата е на ${h.partner}, който е бил съдружник или управител заедно с ${h.name.split(" ")[0]}${h.via?.length ? ` в ${h.via.join(", ")}` : ""}`}</p>
+      </li>); })}
+    </ul>
+  ) : null;
+  if (!l.length && trBox) return <><p className="text-[15px] mb-3">По Търговския регистър с историята (бивши и настоящи управители и съдружници). Съвпадението е по три имена, без ЕГН.</p>{trBox}</>;
   if (!l.length) return <p className="text-[15px]">По Търговския регистър и декларациите не открихме връзка на фирмата с депутат или длъжностно лице. Това не изключва връзки чрез роднини или посредници.</p>;
   const pub = isPublicFirm(l), st = politicalStrength(l);
   return (
     <>
+    {trBox}
     <p className="text-[15px] mb-3">{pub ? "Държавно или общинско дружество: управителите и „действителният собственик“ по закон са назначени лица, затова не броим това за личен интерес. Списъкът показва кой е бил в ръководството." : st === 1 ? "Съвпадение само по три имена (без ЕГН): възможно е да е съименник. Проверете в Търговския регистър." : "По Търговския регистър и декларациите (обработени от „Наясно“). Съвпадението е по три имена."}</p>
     <ul className="space-y-2">
       {l.map((x) => (

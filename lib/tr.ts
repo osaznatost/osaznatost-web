@@ -83,3 +83,14 @@ export async function sharedAddress(eiks: string[]) {
   }
   return [...by.values()].filter((x) => x.firms.size > 1).map((x) => ({ address: x.address, firms: [...x.firms] }));
 }
+
+/** Обратен индекс от scripts/build-tr-index.mjs: ЕИК → лица на власт (длъжностни лица в общините, депутати, министри),
+ *  свързани с фирмата пряко (own, с периода) или през свой бивш или настоящ съдружник (partner). */
+export type TrHit = { s: string; k: "own" | "partner"; how?: string; now?: boolean; partner?: string; via?: string[]; roles?: string[] };
+type TrIndex = { people: Record<string, [string, string, string]>; byEik: Record<string, TrHit[]> };
+export const trIndex = async () => (await data<TrIndex>("tr-links/eik-index.json")) ?? { people: {}, byEik: {} };
+export async function powerLinks(eik: string) {
+  const I = await trIndex();
+  return (I.byEik[eik.slice(0, 9)] ?? []).map((h) => { const [code, name, role] = I.people[h.s] ?? ["", h.s, ""]; return { ...h, code, name, role }; });
+}
+export const powerHref = (code: string, slug: string) => (code === "MP" ? `/parlament/deputat/${slug.slice(3)}` : code === "GOV" ? null : `/lica/${slug}#svarzani`);

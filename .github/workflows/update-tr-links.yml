@@ -2,7 +2,7 @@ name: Свързани лица (Търговски регистър с исто
 
 on:
   # schedule (Cloudflare):
-    # cf-cron: "41 */3 * * *"
+    # cf-cron: "41 * * * *"   # всеки час: кметове → министри и депутати → съветници; после историята на всички изпълнители
   workflow_dispatch:
     inputs:
       only:
@@ -27,7 +27,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: "Търговски регистър: история на фирмите на длъжностните лица"
         env:
-          MINUTES: "45"
+          MINUTES: "50"
+          FIRM_MINUTES: "20"
           ONLY: ${{ github.event.inputs.only }}
           CODES: ${{ github.event.inputs.codes || 'SFO07' }}
         run: python3 scripts/import-tr-links.py && node scripts/build-tr-index.mjs
