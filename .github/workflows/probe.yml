@@ -4,7 +4,26 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
-      - run: cd probe && python3 fp2.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full >/dev/null 2>&1; sudo apt-get install -y -qq 7zip unrar >/dev/null 2>&1 || true
+      - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: |
+          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=4 node scripts/import-council-sites.mjs; done
+        env:
+          CODES: "SFO43 KRZ15 BLG42 SLV24 SHU23 MON02 VAR16"
+      - run: |
+          python3 - <<'PY'
+          import json,os
+          for c in "SFO43 KRZ15 BLG42 SLV24 SHU23 MON02 VAR16".split():
+            f=f'data/council/{c}.json'
+            if not os.path.exists(f): print("X",c,"нищо"); continue
+            j=json.load(open(f)); d=j['decisions']
+            print("X",c,len(d),"files",len(j['files']),"tally",sum(1 for x in d if x['tally']),"rej",sum(1 for x in d if x['result']=='rejected'))
+            for x in d[:3]: print("  ",x['number'],x['date'],x['session'],x['tally'],"|",x['title'][:140],"|",x['text'][:90])
+            print("   files:",list(j['files'].items())[:3])
+          PY
