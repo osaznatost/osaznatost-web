@@ -3,10 +3,15 @@ on:
   workflow_dispatch:
 jobs:
   probe:
-    runs-on: [self-hosted, macOS, ARM64]
-    timeout-minutes: 10
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://erik.bulnao.government.bg/ https://erik.bulnao.government.bg/Reports https://erik.bulnao.government.bg/Donations; do echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u") $(wc -c < p.html | tr -d " ")"; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,70}' p.html | grep -iE 'дар|donat|регист|report|export|xls|csv|json|api' | sort -u | head -25; done
+      - name: Страници на живо
+        env:
+          PW: ${{ secrets.SITE_PASSWORD }}
+        run: |
+          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
+          B=https://osaznatost.pavlin140.workers.dev
+          for p in / /vlast /vlast/obshtinski-savet /mesta /mesta/sfo /mesta/sfo/sfo07 /mesta/bgs/bgs04 /lica/ivan-aleksandrov-gavalyugov-537220 /porachki; do
+            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
+            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) risk=$(grep -o 'Сигнали за риск[^<]\{0,60\}' p.html | head -1)"
+          done
