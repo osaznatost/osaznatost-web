@@ -9,6 +9,7 @@ export default function Mesta() {
   return (
     <Page>
       <Title lead="Всяка област и община на една страница: икономика, бюджет и дълг на общината, европейски средства, обществени поръчки и как е гласувала.">Области и общини</Title>
+      <p className="text-[15px] mb-4"><Link href="/vlast/obshtinski-savet" className="font-semibold">Общинските съвети в страната: решения и гласувания по общини →</Link></p>
       <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
         <table className="w-full text-[15px]">
           <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Област</th><th className="p-3 num">Общини</th><th className="p-3 num">Население</th><th className="p-3 num">БВП на човек</th><th className="p-3 num">Евросредства на човек</th></tr></thead>

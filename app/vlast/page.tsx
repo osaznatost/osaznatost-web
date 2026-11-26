@@ -9,6 +9,7 @@ import { lawIndex } from "@/lib/lawIndex";
 import { MPS, currentSeats, formatDate } from "@/lib/parliament";
 import { firmsOfMp } from "@/lib/people";
 import { data as readData } from "@/lib/data";
+import { localIndex } from "@/lib/local";
 import { BAD, GOOD, data as PROMISES, govSlug } from "@/lib/promises";
 import { SANCTIONS } from "@/lib/sanctions";
 
@@ -41,6 +42,9 @@ export default async function Vlast() {
   const promises = PROMISES.parties.flatMap((g) => g.promises.map((p) => ({ g, p })));
   const good = promises.filter((x) => GOOD.includes(x.p.status)).length, bad = promises.filter((x) => BAD.includes(x.p.status)).length;
 
+  const LI = await localIndex();
+  const councilM = Object.values(LI.munis).filter((m) => m.resolutions > 0).length;
+  const councilN = Object.values(LI.munis).reduce((a, m) => a + m.resolutions, 0);
   const tiles: [string, string | number, string, string][] = [
     ["Закони със сериозен сигнал", high.length, `от ${laws.length} гласувани закона`, "#signali"],
     ["Нови текстове в заключителните разпоредби", trans.length, "закона, променени така на второ четене", "/parlament/signali"],
@@ -49,6 +53,7 @@ export default async function Vlast() {
     ["Неизпълнени обещания", bad, `при ${good} изпълнени, ${PROMISES.parties.length} правителства`, "/obeshtaniya"],
     ["Подвеждащи или неверни твърдения", false_.length, "проверени с източници", "/proverki"],
     ["Санкционирани по „Магнитски“ и др.", SANCTIONS.people.length, "български политици и длъжностни лица", "/proverki/sankcii"],
+    ["Решения на общинските съвети", councilN.toLocaleString("bg-BG"), `в ${councilM} общини; кой как гласува`, "/vlast/obshtinski-savet"],
   ];
 
   return (
