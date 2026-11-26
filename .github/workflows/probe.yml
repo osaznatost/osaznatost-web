@@ -10,7 +10,8 @@ jobs:
         with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full >/dev/null 2>&1
       - run: |
-          for c in HKV32; do rm -f data/council/$c.json; ONLY=$c MINUTES=2 node scripts/import-council-sites.mjs 2>&1 | tail -4; python3 -c "
-          import json;d=json.load(open('data/council/$c.json'));ds=d['decisions']
-          print('X','$c',len(ds),sum(1 for x in ds if x.get('tally')),sum(1 for x in ds if x.get('votes')))
-          for x in ds[:2]: print("   ",x["number"],x.get("tally"),x["title"][:100])" 2>&1 | tail -3; done
+          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=$MIN node scripts/import-council-sites.mjs 2>&1 | tail -2; done
+          python3 probe/stat.py $CODES
+        env:
+          CODES: "HKV32"
+          MIN: "2"
