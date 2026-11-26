@@ -6,19 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1; pip install -q python-docx >/dev/null 2>&1
       - run: |
-          cat > x.py <<'X'
-          import re,sys,urllib.request,html
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          def g(u):
-            try: return urllib.request.urlopen(urllib.request.Request(u,headers={"User-Agent":UA}),timeout=40).read().decode("utf-8","ignore")
-            except Exception as e: return "ERR "+str(e)
-          for u in sys.argv[1:]:
-            h=g(u); print("##",u,len(h))
-            seen=set()
-            for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',h):
-              t=re.sub(r'<[^>]+>|\s+',' ',t).strip(); a=html.unescape(a)
-              if a in seen: continue
-              if re.search(r'глас|vot|glas|протокол|protokol|uploads|\.pdf|\.docx?|\.xls|zasedan|заседан',a+" "+t,re.I): seen.add(a); print("  L",a[:170],"|",t[:70])
-          X
-          python3 x.py https://obs.pleven.bg/bg/protokoli-i-resheniya https://obs.sliven.bg/decisions http://www.obspazardzhik.com/p/2185 https://council.sofia.bg/ 2>&1 | head -120
+          curl -sL -A "$UA" https://obs.pleven.bg/uploads/posts/protokol-51_.pdf -o p.pdf; pdftotext -layout p.pdf p.txt; wc -c p.txt
+          python3 -c "
+          import re;t=open('p.txt').read()
+          ms=[m.start() for m in re.finditer(r'РЕШЕНИЕ\s*№|Р Е Ш Е Н И Е',t)]
+          print('N',len(ms))
+          for i in ms[2:4]: print('PL>>>',re.sub(r'[ \t]+',' ',t[i-1200:i+200]))
+          "
+          curl -sL -A "$UA" https://obs.sliven.bg/protokoli-ot-zasedaniyata | grep -oE 'href="[^"]+"[^>]*>[^<]{0,90}' | grep -iE 'uploads|протокол' | head -8
