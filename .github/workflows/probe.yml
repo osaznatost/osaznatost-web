@@ -9,4 +9,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
-      - run: node probe/around.mjs "https://obs.kyustendil.bg/uploads/mandat2023-2027/protokoli/40_Prototkol_40_29.10.2026%20.pdf" "Р\\s*Е\\s*Ш\\s*Е\\s*Н\\s*И\\s*Е\\s*№" 2 900 200
+      - run: |
+          git fetch -q origin main && git checkout -q origin/main -- data/council/KNL29.json
+          DEBUG=1 ONLY=KNL29 MINUTES=5 node scripts/enrich-council-votes.mjs
+          python3 -c "
+          import json;d=json.load(open('data/council/KNL29.json'))
+          xs=[x for x in d['decisions'] if x.get('votes')]
+          print('VOTES',len(xs))
+          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
