@@ -15,7 +15,7 @@ const yr = (d) => (d ? d.slice(0, 4) : "");
 const per = (rs) => rs.map((r) => `${r.role}${r.from || r.to ? ` ${yr(r.from)}–${r.to ? yr(r.to) : "досега"}` : ""}`).join(", ");
 
 let people = 0;
-for (const f of readdirSync(DIR).filter((f) => /^([A-Z]{3}\d{2}|MP)\.json$/.test(f))) {
+for (const f of readdirSync(DIR).filter((f) => /^([A-Z]{3}\d{2}|MP|GOV)\.json$/.test(f))) {
   const code = f.replace(".json", "");
   const D = JSON.parse(readFileSync(`${DIR}/${f}`, "utf8"));
   for (const [slug, p] of Object.entries(D)) {

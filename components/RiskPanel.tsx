@@ -59,8 +59,8 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
             x.total += sp.total_eur ?? 0;
             local.set(h.s, x);
           } else {
-            const mp = pc === "MP" ? MPS.find((m) => `mp-${m.id}` === h.s) : null;
-            const who = `${pn} (${mp ? `депутат, ${partyName(mp.party)}` : `${pr.toLowerCase()}, ${IX.munis[pc]?.name ?? pc}`})`;
+            const mp = pc === "MP" ? MPS.find((m) => `mp-${m.id}` === h.s) : null; // „GOV“: министри и заместник-министри
+            const who = `${pn} (${mp ? `депутат, ${partyName(mp.party)}` : pc === "GOV" ? pr.toLowerCase() : `${pr.toLowerCase()}, ${IX.munis[pc]?.name ?? pc}`})`;
             const y = other.get(h.s) ?? { who, items: [] };
             y.items.push(<li key={sp.eik}>{firm} ({fmtEur(sp.total_eur)}) – {h.k === "own" ? (h.now ? "негова/нейна фирма" : "бивша негова/нейна фирма") : `фирма на съдружника му/ѝ ${tc(h.partner ?? "")}`}</li>);
             other.set(h.s, y);

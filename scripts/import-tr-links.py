@@ -130,7 +130,16 @@ PEOPLE = json.load(open("data/local/people.json"))
 # Народните представители: код „MP“, slug „mp-<id>“.
 for m in json.load(open("data/parliament-ns52.json"))["mps"]:
     PEOPLE[f"mp-{m['id']}"] = ["MP", m["name"], "Народен представител"]
+# Министър-председателят, министрите и заместник-министрите (сегашните, по ИИСДА): код „GOV“.
+import hashlib
+for mn in json.load(open("data/ministries.json")).get("ministries", []):
+    for l in mn.get("leaders", []):
+        who, role = (l.get("person") or "").strip(), l.get("role") or ""
+        if len(who.split()) < 3 or not re.search(r"министър|председател на министерския", role, re.I): continue
+        PEOPLE["gov-" + hashlib.md5(who.encode()).hexdigest()[:10]] = ["GOV", who, role]
 rank = {"Кмет": 0, "Заместник кмет": 1, "Народен представител": 2, "Председател на ОбС": 3, "Главен архитект": 4}
+for k, v in PEOPLE.items():
+    if v[0] == "GOV": rank.setdefault(v[2], 1 if re.search(r"^(министър|министър-председател)", v[2], re.I) else 2)
 order = sorted(PEOPLE.items(), key=lambda kv: (kv[1][0] not in FIRST, rank.get(kv[1][2], 5), kv[1][0]))
 cutoff = (date.today() - timedelta(days=REFRESH)).isoformat()
 if os.environ.get("GROUP"): order = [(s, p) for s, p in order if p[0] == os.environ["GROUP"]]  # напр. GROUP=MP: само депутатите
