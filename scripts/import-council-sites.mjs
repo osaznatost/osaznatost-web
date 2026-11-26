@@ -815,7 +815,9 @@ async function numbered(code, S, prev) {
       if (timeUp() || blocked) return added;
       const u = S.numbered(n, y);
       if (u in prev.files && (prev.files[u] > 0 || y < thisYear || n < max)) { miss = prev.files[u] > 0 ? 0 : miss + (n > max ? 1 : 0); continue; }
-      const buf = await get(u, true, 1);
+      let buf = await get(u, true, 1);
+      // от 2025 г. малките номера са с водещи нули: r-026-2026
+      if (!(buf && buf.slice(0, 5).toString() === "%PDF-") && n < 100) buf = await get(S.numbered(String(n).padStart(3, "0"), y), true, 1);
       const ok = buf && buf.slice(0, 5).toString() === "%PDF-";
       const ds = ok ? parseSofia(pdfText(buf), u) : [];
       prev.files[u] = ds.length;

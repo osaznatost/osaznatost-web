@@ -187,7 +187,7 @@ const PER_DECISION = { SZR31: "Стара Загора", RSE27: "Русе" };
 
 if (process.argv[1]?.endsWith("enrich-council-votes.mjs")) await main();
 async function main() {
-const ONLY = process.env.ONLY?.split(/[\s,]+/).filter(Boolean);
+const ONLY = process.env.ONLY?.trim() ? process.env.ONLY.split(/[\s,]+/).filter(Boolean) : null;
 for (const [code, S] of Object.entries(SRC)) {
   if (ONLY && !ONLY.includes(code)) continue;
   const f = `data/council/${code}.json`;
