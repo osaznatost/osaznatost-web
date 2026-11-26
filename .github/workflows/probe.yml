@@ -11,7 +11,7 @@ jobs:
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
           git fetch -q origin main && git checkout -q origin/main -- data/council/BGS04.json
-          ONLY=BGS04 MINUTES=7 node probe/enrich.mjs
+          DEBUG=1 ONLY=BGS04 MINUTES=7 node probe/enrich.mjs
           python3 -c "
           import json;d=json.load(open('data/council/BGS04.json'))
           xs=[x for x in d['decisions'] if x.get('votes')]
