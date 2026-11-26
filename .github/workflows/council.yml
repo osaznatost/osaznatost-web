@@ -26,9 +26,13 @@ jobs:
         run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - name: Четене от сайтовете на съветите
         env:
-          MINUTES: ${{ inputs.minutes || '45' }}
+          MINUTES: ${{ inputs.minutes || '38' }}
           ONLY: ${{ inputs.only || '' }}
         run: node scripts/import-council-sites.mjs
+      - name: Гласувания от протоколите на заседанията (Бургас и др.)
+        env:
+          MINUTES: "12"
+        run: node scripts/enrich-council-votes.mjs
       - name: Пример
         run: node -e 'const d=require("./data/council/SOF46.json");console.log(JSON.stringify(d.decisions.slice(0,3),null,1).slice(0,3000))' || true
       - name: Запис (data/council не се публикува сам; влиза в сайта при дневното обновяване)
