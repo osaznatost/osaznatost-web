@@ -1,6 +1,7 @@
 // Решения на общински съвети, четени директно от сайтовете им (за общини, които „Наясно“ не покрива).
 // Засега: Ботевград (годишни PDF-и с всички решения) и Столична община (по един PDF на решение, номериран). Всяко решение: номер, дата, кой докладва, по какъв въпрос, гласуване (за/против/въздържал се,
 // дали е поименно) и текстът на решението. Нужен е pdftotext (poppler-utils).
+import { flexTally } from "./enrich-council-votes.mjs";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 
@@ -1066,9 +1067,11 @@ function parseGeneric(text, fb) {
   const vk = !vm && vt.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
   const vs = !vm && !vk && vt.match(/(\d+)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?(?:\s*,?\s*(\d+)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?)?(?:\s*,?\s*и?\s*(\d+)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ)?/i);
   const tally = !vm && !vk && vs ? { for: +vs[1], against: vs[2] ? +vs[2] : 0, abstain: vs[3] ? +vs[3] : 0 } : vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
+  const fx = !vm && !vk && !vs ? flexTally(vt) : null; // „Против – няма“, „за – 2 9“, имена след „ЗА – 21:“ и др.
   if (tally) tally.method = /поименно/i.test(vt) ? "named" : "open";
+  const tally2 = tally ?? fx?.tally ?? null;
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
-  return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,
+  return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally: tally2, votes: fx?.votes?.length ? fx.votes : undefined,
     result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава|разрешава|избира)|отхвърля)/i.test(body) ? "rejected" : "adopted",
     tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
     text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body };

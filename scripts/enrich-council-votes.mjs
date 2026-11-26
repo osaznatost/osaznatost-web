@@ -59,6 +59,37 @@ export function parseNamedBefore(raw) {
   return out;
 }
 
+/** Гъвкаво разчитане на резултата: „Гласували: „За” – 21; „Против” – няма; „Въздържали се” – няма“,
+ *  „за – 2 9, против – няма, въздържали се – няма“, „РЕЗУЛТАТИ ОТ ПРОВЕДЕНО ГЛАСУВАНЕ: ЗА – 21: имена; ПРОТИВ – 0 …“,
+ *  таблицата на Пазарджик „Общо гласували За Против Въздържали се 41 32 32 0 0“. Връща първото пълно гласуване. */
+export function flexTally(raw) {
+  const t = raw.replace(/\r/g, "").replace(/[“”„«»’`]/g, '"').replace(/([–-]\s*)(\d)\s(\d)(?!\d)/g, "$1$2$3");
+  const nn = (x) => (/^\d+$/.test(x) ? +x : 0);
+  const pz = t.match(/Общо\s+гласували\s+За\s+Против\s+Въздържали\s+се\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/i);
+  if (pz) return { tally: { for: +pz[3], against: +pz[4], abstain: +pz[5], method: "open" }, votes: [] };
+  const V = "(\\d+|няма|без|нула)";
+  for (const a of t.matchAll(/гласува\S*|резултат\S*\s+от\s+(?:проведено(?:то)?\s+)?гласуване|при\s+гласували/gi)) {
+    const r = t.slice(a.index, a.index + 900);
+    const f = r.match(new RegExp(`(?<![а-яА-Я])за"?\\s*[–:-]?\\s*${V}(?![\\d.,]\\d)`, "i"));
+    if (!f) continue;
+    const both = r.match(new RegExp(`против"?\\s+и\\s+"?въздържал\\S*(?:\\s+се)?"?\\s*[–:-]?\\s*${V}`, "i"));
+    const ag = both ?? r.match(new RegExp(`против"?\\s*[–:-]?\\s*${V}`, "i"));
+    const ab = both ?? r.match(new RegExp(`въздържал\\S*(?:\\s+се)?"?\\s*[–:-]?\\s*${V}`, "i"));
+    if (!ag && !ab) continue;
+    if (ag && ag.index < f.index) continue; // „против“ преди „за“ — не е резултат
+    // Враца: „ЗА – 21: Адр.Тодоров, В.Врачовски, …; ПРОТИВ – 0“
+    const votes = [];
+    const grab = (re, k) => { const m = r.match(re); if (m) for (const n of m[1].split(/[,;]\s*/)) { const x = n.trim().replace(/\.$/, ""); if (/^[А-ЯЁ][А-Яа-яЁё.\- ]{2,40}$/.test(x)) votes.push([x, k]); } };
+    grab(/(?<![а-яА-Я])за"?\s*[–-]\s*\d+\s*:\s*([^]*?)(?=против|въздърж|$)/i, "for");
+    grab(/против"?\s*[–-]\s*\d+\s*:\s*([^]*?)(?=въздърж|$)/i, "against");
+    grab(/въздърж\S*(?:\s+се)?"?\s*[–-]\s*\d+\s*:\s*([^]*?)(?=\n\s*\n|ПРЕДСЕДАТЕЛ|$)/i, "abstain");
+    const tally = { for: nn(f[1]), against: ag ? nn(ag[1]) : 0, abstain: ab ? nn(ab[1]) : 0 };
+    const ok = votes.length && Math.abs(votes.length - tally.for - tally.against - tally.abstain) <= 2;
+    return { tally: { ...tally, method: ok || /поименно/i.test(r) ? "named" : "open" }, votes: ok ? votes : [] };
+  }
+  return null;
+}
+
 /** Гласуване от PDF на отделно решение (препис-извлечение или протокол за гласуване на точката). */
 export function tallyAny(raw) {
   const t = raw.replace(/\r/g, "");
@@ -88,7 +119,7 @@ export function tallyAny(raw) {
     if (f) return { tally: { for: nn(f[1]), against: a ? nn(a[1]) : 0, abstain: ab ? nn(ab[1]) : 0, method: /поименно/i.test(t) ? "named" : "open" }, votes: [] };
   }
   const b = parseProtocol(raw)[0];
-  return b ? { tally: { for: b.for, against: b.against, abstain: b.abstain, method: b.method }, votes: b.votes } : null;
+  return b ? { tally: { for: b.for, against: b.against, abstain: b.abstain, method: b.method }, votes: b.votes } : flexTally(raw);
 }
 
 /** Варна: PDF с електронните гласувания — блок за всяко гласуване. Връща решение № → гласуване (последното за номера). */
@@ -124,6 +155,17 @@ async function get(u, bin = false) {
   return null;
 }
 const pdfText = (buf) => { writeFileSync("/tmp/v.pdf", buf); try { return execFileSync("pdftotext", ["-layout", "/tmp/v.pdf", "-"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
+/** Текст от PDF, DOC, DOCX или HTML (по първите байтове). */
+function docText(buf) {
+  const k = buf.slice(0, 5).toString();
+  if (k === "%PDF-") return pdfText(buf);
+  writeFileSync("/tmp/v.bin", buf);
+  try {
+    if (k.startsWith("PK")) return execFileSync("sh", ["-c", "unzip -p /tmp/v.bin word/document.xml | sed -e 's/<\\/w:p>/\\n/g' -e 's/<[^>]*>//g'"], { maxBuffer: 1 << 28 }).toString();
+    if (buf[0] === 0xd0 && buf[1] === 0xcf) return execFileSync("antiword", ["-w", "0", "/tmp/v.bin"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString();
+  } catch { return ""; }
+  return buf.toString("utf8").replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&[a-z]+;/g, " ");
+}
 const norm = (s) => s.toLowerCase().replace(/ⅰ/g, "i").replace(/[^а-яa-z0-9]/g, "");
 const VOTE = { "за": "for", "против": "against", "въздържал се": "abstain", "въздържала се": "abstain", "не гласувал": "absent", "не гласувала": "absent" };
 
@@ -183,7 +225,7 @@ export function attach(blocks, decisions) {
 }
 
 // Общини, при които гласуването е в PDF-а на всяко решение (а importer-ът чете само HTML страницата).
-const PER_DECISION = { SZR31: "Стара Загора", RSE27: "Русе" };
+const PER_DECISION = { SZR31: "Стара Загора", RSE27: "Русе", PAZ19: "Пазарджик", VRC10: "Враца", VTR28: "Свищов" };
 
 if (process.argv[1]?.endsWith("enrich-council-votes.mjs")) await main();
 async function main() {
@@ -247,11 +289,12 @@ for (const code of Object.keys(PER_DECISION)) {
   const until = Date.now() + Math.max(0, MINUTES * 60e3 - (Date.now() - T0)) / Object.keys(PER_DECISION).length;
   for (const d of C.decisions.sort((a, b) => b.date.localeCompare(a.date))) {
     if (timeUp() || Date.now() > until) break;
-    if (d.tally || !/\.pdf$/i.test(d.url ?? "") || d.url in C.votesFrom) continue;
+    if (d.tally || !d.url || d.url in C.votesFrom) continue;
+    if (C.decisions.filter((x) => x.url === d.url).length > 1) { C.votesFrom[d.url] = 0; continue; } // файлът е общ за много решения
     const buf = await get(d.url, true);
     seen++;
     if (!buf) continue;
-    const tx = pdfText(buf);
+    const tx = docText(buf);
     const r = tallyAny(tx);
     if (process.env.DEBUG && !r && seen < 4) console.log("DBG", d.url, tx.length, JSON.stringify(tx.slice(Math.max(0, tx.search(/Гласув/i) - 100), tx.search(/Гласув/i) + 250)));
     C.votesFrom[d.url] = r ? 1 : 0;
