@@ -10,7 +10,8 @@ for (const f of readdirSync("data/council").filter((x) => x.endsWith(".json") &&
   if (theirs.version !== mine.version) continue;
   const key = (d) => `${d.date.slice(0, 4)}-${d.number}`;
   const m = new Map(theirs.decisions.map((d) => [key(d), d]));
-  for (const d of mine.decisions) m.set(key(d), d);
+  // При съвпадение пазим версията с отчетено гласуване (по-новото разчитане може да е в която и да е от двете).
+  for (const d of mine.decisions) { const t = m.get(key(d)); if (!t || d.tally || !t.tally) m.set(key(d), d); }
   const n0 = mine.decisions.length;
   mine.decisions = [...m.values()].sort((a, b) => b.date.localeCompare(a.date) || String(b.number).localeCompare(String(a.number), undefined, { numeric: true }));
   mine.files = { ...theirs.files, ...mine.files };
