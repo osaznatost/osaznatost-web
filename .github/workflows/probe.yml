@@ -8,5 +8,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
-      - run: node probe/grepvotes.mjs https://shumen.bg/uploads/posts/2026/26678.pdf https://obs.kyustendil.bg/uploads/mandat2023-2027/protokoli/40_Prototkol_40_29.10.2026%20.pdf https://www.haskovo.bg/bg/mandat-2023-2027/reshenie-742-ot-16112026-g https://www.obs-pernik.bg/wp-content/uploads/2026/11/1241.doc https://obs.kazanlak.bg/page-9520.html https://savet.veliko-tarnovo.bg/uploads/posts/2026/2026_11_02_1188.pdf https://www.montana.bg/os/R727-P36-29.10.26.pdf
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+      - run: node probe/around.mjs "https://obs.kyustendil.bg/uploads/mandat2023-2027/protokoli/40_Prototkol_40_29.10.2026%20.pdf" "Р\\s*Е\\s*Ш\\s*Е\\s*Н\\s*И\\s*Е\\s*№" 2 900 200
