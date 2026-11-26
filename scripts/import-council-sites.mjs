@@ -1031,10 +1031,11 @@ function parseGeneric(text, fb) {
   // Ако в края на този откъс вече започва увод към следващото решение, не го броим за това решение.
   const own = t.replace(/(?<=[\s\S]{80})\n[^\n]*(?:Присъствали|Гласували)\s+\d+\s*:[\s\S]*$/, "");
   const vt = own + "\n" + (fb.pre ?? "").split(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/).pop();
-  const vm = vt.match(/(?:[„“"”]?за[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?против[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?въздърж\S*(?:\s+се)?[“”"]?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*[„“"”]?за[“”"]?,?\s*(\d+|без)\s*(?:глас\S*\s*)?[„“"”]?против[“”"]?\s*и\s*(\d+|без))/i);
+  const vm = vt.match(/(?:[„“"”]?за[“”"]?\s*[–:-]?\s*(\d+)[\s,;–-]+[„“"”]?против[“”"]?\s*[–:-]?\s*(\d+)[\s,;–-]+[„“"”]?въздърж\S*(?:\s+се)?[“”"]?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*[„“"”]?за[“”"]?,?\s*(\d+|без)\s*(?:глас\S*\s*)?[„“"”]?против[“”"]?\s*и\s*(\d+|без))/i);
   const nn = (x) => (/без/i.test(x) ? 0 : +x);
   const vk = !vm && vt.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
-  const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
+  const vs = !vm && !vk && vt.match(/(\d+)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?(?:\s*,?\s*(\d+)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?)?(?:\s*,?\s*и?\s*(\d+)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ)?/i);
+  const tally = !vm && !vk && vs ? { for: +vs[1], against: vs[2] ? +vs[2] : 0, abstain: vs[3] ? +vs[3] : 0 } : vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
   if (tally) tally.method = /поименно/i.test(vt) ? "named" : "open";
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
   return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,
@@ -1162,7 +1163,7 @@ async function filesGeneric(code, S, prev) {
       // Сканиран PDF (почти без текст): разпознаване на текста от изображенията.
       if (kind === "pdf" && tx.replace(/\s/g, "").length < 200 * Math.max(1, (tx.match(/\f/g) ?? []).length) / 4) { writeFileSync("/tmp/s.pdf", buf); tx = ocrPdf("/tmp/s.pdf") || tx; }
       const ds = S.reshi ? splitReshi(tx, f.u) : splitDecisions(tx, f.u, dateOf(f.t));
-      if (process.env.DEBUG) { const k = Math.floor(tx.length * 0.45); console.log("DBG file", kind, ds.length, k, JSON.stringify(tx.slice(k, k + 1800).replace(/ {3,}/g, "  "))); }
+      if (process.env.DEBUG) { const k = Math.max(0, tx.search(/\s(?:-|–|в|0|П|В)\s*\n/) - 1200); console.log("DBG file", kind, ds.length, k, JSON.stringify(tx.slice(k, k + 1800).replace(/ {3,}/g, "  "))); }
       // Един файл = едно решение, а номерът е само във връзката („Решение 331“).
       if (!ds.length) { const n = f.t.match(/Решение\s*№?\s*(\d+)/i)?.[1]; const d = n && parseGeneric(tx, { number: n, date: dateOf(f.t) ?? dateOf(tx.slice(0, 1500)), url: f.u }); if (d) ds.push(d); }
       if (S.linkDate) { const ld = dateOf(f.t); if (ld) for (const d of ds) d.date = ld; }
