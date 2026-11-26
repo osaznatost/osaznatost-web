@@ -4,7 +4,7 @@
 //   own     — лицето е било или е управител, съдружник, собственик или член на съвет на фирмата (с периода);
 //   partner — фирмата е на човек, който е бил съдружник или управител заедно с лицето в друга фирма.
 // По три имена, без ЕГН: възможни са съвпадения. Повод за въпрос, не доказателство.
-import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const DIR = "data/tr-links";
 const idx = {};
@@ -33,6 +33,12 @@ for (const f of readdirSync(DIR).filter((f) => /^([A-Z]{3}\d{2}|MP|GOV)\.json$/.
     }
   }
 }
-writeFileSync(`${DIR}/eik-index.json`, JSON.stringify({ people: P, byEik: idx }));
+// Разделено по първите две цифри на ЕИК, за да не се зарежда целият индекс (паметта в Workers е 128 MB).
+mkdirSync(`${DIR}/eik`, { recursive: true });
+const sh = {};
+for (const [e, v] of Object.entries(idx)) (sh[e.slice(0, 2)] ??= {})[e] = v;
+for (const [k, v] of Object.entries(sh)) writeFileSync(`${DIR}/eik/${k}.json`, JSON.stringify(v));
+writeFileSync(`${DIR}/eik/people.json`, JSON.stringify(P));
+if (existsSync(`${DIR}/eik-index.json`)) rmSync(`${DIR}/eik-index.json`);
 console.log(`Индекс на свързаните фирми: ${Object.keys(idx).length} фирми, ${people} лица`);
 if (!existsSync(`${DIR}/MP.json`)) console.log("(няма MP.json)");

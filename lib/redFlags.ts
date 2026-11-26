@@ -1,7 +1,7 @@
 import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
 import { buyerContracts, politicalLinks, supplierContracts } from "@/lib/procurement";
-import { foundedDate, sharedPeople, trIndex, trMany } from "@/lib/tr";
+import { foundedDate, sharedPeople, trHitsMany, trMany } from "@/lib/tr";
 import { legalException } from "@/lib/legalException.mjs";
 
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
@@ -12,8 +12,8 @@ export const strongestLink = (eiks: string[]) => Math.max(0, ...eiks.map(persona
 /** Същото, но и по Търговския регистър с историята (кметове, съветници, депутати, министри):
  *  лицето е вписано във фирмата → 2; фирмата е на негов бивш или настоящ съдружник → 1. */
 export async function linkStrength(eiks: string[]) {
-  const I = await trIndex();
-  const tr = Math.max(0, ...eiks.flatMap((e) => (I.byEik[e.slice(0, 9)] ?? []).map((h) => (h.k === "own" ? 2 : 1))));
+  const M = await trHitsMany(eiks);
+  const tr = Math.max(0, ...[...M.values()].flat().map((h) => (h.k === "own" ? 2 : 1)));
   return Math.max(strongestLink(eiks), tr);
 }
 
@@ -29,11 +29,11 @@ export type Ctx = { depShare: number; depTotal: number; buyerShare: number; buye
 export async function contractContext(c: Contract): Promise<Ctx | null> {
   const e = c.supplier_eiks[0];
   if (!e) return null;
-  const [sc, bc] = await Promise.all([supplierContracts(e, 1000).catch(() => []), buyerContracts(c.buyer_eik, 1000).catch(() => [])]);
+  const [sc, bc] = await Promise.all([supplierContracts(e, 400).catch(() => []), buyerContracts(c.buyer_eik, 400).catch(() => [])]);
   const sum = (xs: Contract[]) => xs.reduce((a, x) => a + (x.contract_value_eur ?? 0), 0);
   const depTotal = sum(sc), withBuyer = sum(sc.filter((x) => x.buyer_eik === c.buyer_eik));
   const buyerTotal = sum(bc), mine = sum(bc.filter((x) => x.supplier_eiks.includes(e)));
-  const others = [...new Set(bc.flatMap((x) => x.supplier_eiks))].slice(0, 60);
+  const others = [...new Set(bc.flatMap((x) => x.supplier_eiks))].slice(0, 25);
   const shared = (await sharedPeople(others).catch(() => [])).filter((x) => x.firms.includes(e.slice(0, 9)));
   return { depShare: depTotal ? withBuyer / depTotal : 0, depTotal, buyerShare: buyerTotal ? mine / buyerTotal : 0, buyerTotal, shared };
 }

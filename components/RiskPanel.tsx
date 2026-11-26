@@ -7,11 +7,10 @@ import {
 } from "@/lib/procurement";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { data } from "@/lib/data";
-import { foundedDate, sharedPeople, trMany } from "@/lib/tr";
+import { foundedDate, sharedPeople, trHitsMany, trMany, trPeople } from "@/lib/tr";
 import { MPS, partyName } from "@/lib/parliament";
 
 type TrHit = { s: string; k: "own" | "partner"; how?: string; now?: boolean; partner?: string; via?: string[]; roles?: string[] };
-type TrIndex = { people: Record<string, [string, string, string]>; byEik: Record<string, TrHit[]> };
 const tc = (s: string) => s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b) => a + b.toUpperCase());
 
 // Червеното каре „Сигнали за риск“ в началото на страницата на област, община и населено място.
@@ -19,14 +18,16 @@ const tc = (s: string) => s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b
 
 type Sig = { level: "high" | "mid"; title: string; body: React.ReactNode };
 
+const within = <T,>(p: Promise<T>, fallback: T, ms = 4000) => Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
 const since = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 3); return d.toISOString().slice(0, 10); };
 
 export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: PlaceFilter; scope: string }) {
   await connection();
   const sigs: Sig[] = [];
   const IX = await localIndex();
-  const locals = (await Promise.all(codes.map((c) => localData(c)))).filter((x): x is NonNullable<typeof x> => !!x);
   const one = codes.length === 1;
+  // за област: само хората (малки файлове), без решенията — иначе паметта на сървъра не стига
+  const locals = (await Promise.all(codes.map((c) => (one ? localData(c) : data<Awaited<ReturnType<typeof localData>>>(`local/officials/${c}.json`))))).filter((x): x is NonNullable<typeof x> => !!x);
 
   // 1. Санкции, обвинения и присъди на хора от местната власт
   for (const L of locals) for (const o of L.officials) {
@@ -35,16 +36,17 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
   }
 
   if (PROC_READY) {
-    const [sup, single, annexes] = await Promise.all([
+    const [sup, single, annexes] = await within(Promise.all([
       one ? placeSuppliersAll(codes[0]).catch(() => []) : Promise.resolve([] as Awaited<ReturnType<typeof placeSuppliersAll>>),
       singleOfferBig(since(), f).catch(() => []),
       biggestAnnexes(since(), f).catch(() => []),
-    ]);
+    ] as const), [[], [], []] as unknown as [Awaited<ReturnType<typeof placeSuppliersAll>>, Awaited<ReturnType<typeof singleOfferBig>>, Awaited<ReturnType<typeof biggestAnnexes>>], 6000);
     // 2–3. Свързани лица по Търговския регистър (с историята): фирми на длъжностните лица и на техните
     // настоящи и бивши съдружници, които печелят поръчки тук; плюс декларациите и връзките с депутати.
     const sups = one ? sup : (await Promise.all(codes.map((c) => placeSuppliersAll(c).catch(() => [])))).flat();
     if (sups.length) {
-      const TR = (await data<TrIndex>("tr-links/eik-index.json")) ?? { people: {}, byEik: {} };
+      const [TRP, TRH] = await Promise.all([trPeople(), trHitsMany(sups.map((x) => x.eik))]);
+      const TR = { people: TRP, byEik: Object.fromEntries(TRH) as Record<string, TrHit[]> };
       const local = new Map<string, { name: string; role: string; code: string; own: React.ReactNode[]; partner: React.ReactNode[]; total: number }>();
       const other = new Map<string, { who: string; items: React.ReactNode[] }>();
       const seen = new Set<string>();
@@ -90,17 +92,18 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
     }
     // Нови фирми, зависимост от един възложител, концентрация и фирми с общи хора (симулирана конкуренция).
     if (one && sups.length) {
-      const top = [...sups].sort((a, b) => (b.total_eur ?? 0) - (a.total_eur ?? 0)).slice(0, 40);
+      const top = [...sups].sort((a, b) => (b.total_eur ?? 0) - (a.total_eur ?? 0)).slice(0, 20);
       const T = sups.reduce((a, x) => a + (x.total_eur ?? 0), 0);
       const lead = top[0];
       if (lead && T >= 1e6 && (lead.total_eur ?? 0) / T >= 0.2) sigs.push({ level: (lead.total_eur ?? 0) / T >= 0.35 ? "high" : "mid", title: `Една фирма взима ${Math.round((100 * (lead.total_eur ?? 0)) / T)}% от парите по поръчките тук`, body: <><Link href={firmUrl(lead.eik)}>{lead.name}</Link>: {lead.contracts} договора за {fmtEur(lead.total_eur)} от общо {fmtEur(T)}. Силната концентрация при един изпълнител е рисков фактор по методиката на ЕК.</> });
+      // всичко с краен срок: ако базата е бавна, карето излиза без тези сигнали, а не спира страницата
       const [stats, tr, mc, shared] = await Promise.all([
-        Promise.all(top.slice(0, 25).map((x) => supplierStats(x.eik).catch(() => null))),
-        trMany(top.map((x) => x.eik)),
-        muniContracts(codes[0], since()).catch(() => []),
-        sharedPeople(top.map((x) => x.eik)).catch(() => []),
+        within(Promise.all(top.slice(0, 12).map((x) => supplierStats(x.eik).catch(() => null))), [] as (Awaited<ReturnType<typeof supplierStats>> | null)[]),
+        within(trMany(top.map((x) => x.eik)), new Map()),
+        within(muniContracts(codes[0], since()).catch(() => []), []),
+        within(sharedPeople(top.map((x) => x.eik)).catch(() => []), []),
       ]);
-      const dep = top.slice(0, 25).map((x, i) => ({ x, st: stats[i] })).filter(({ x, st }) => st && (st.total_eur ?? 0) >= 100000 && (x.total_eur ?? 0) / (st.total_eur ?? 1) >= 0.8);
+      const dep = top.slice(0, 12).map((x, i) => ({ x, st: stats[i] })).filter(({ x, st }) => st && (st.total_eur ?? 0) >= 100000 && (x.total_eur ?? 0) / (st.total_eur ?? 1) >= 0.8);
       if (dep.length) sigs.push({ level: "mid", title: `${dep.length} фирм${dep.length > 1 ? "и" : "а"} живе${dep.length > 1 ? "ят" : "е"} почти само от поръчките на тази община`, body: <ul className="mt-1 space-y-0.5">{dep.slice(0, 6).map(({ x, st }) => <li key={x.eik}><Link href={firmUrl(x.eik)}>{x.name}</Link> – {Math.round((100 * (x.total_eur ?? 0)) / (st!.total_eur ?? 1))}% от всичките ѝ поръчки ({fmtEur(x.total_eur)} от {fmtEur(st!.total_eur)})</li>)}</ul> });
       const young = new Map<string, { name: string; founded: string; first: string; v: number }>();
       for (const c of mc) for (const e of c.supplier_eiks) {

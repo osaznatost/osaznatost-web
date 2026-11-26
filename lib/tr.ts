@@ -87,10 +87,20 @@ export async function sharedAddress(eiks: string[]) {
 /** Обратен индекс от scripts/build-tr-index.mjs: ЕИК → лица на власт (длъжностни лица в общините, депутати, министри),
  *  свързани с фирмата пряко (own, с периода) или през свой бивш или настоящ съдружник (partner). */
 export type TrHit = { s: string; k: "own" | "partner"; how?: string; now?: boolean; partner?: string; via?: string[]; roles?: string[] };
-type TrIndex = { people: Record<string, [string, string, string]>; byEik: Record<string, TrHit[]> };
-export const trIndex = async () => (await data<TrIndex>("tr-links/eik-index.json")) ?? { people: {}, byEik: {} };
+export const trPeople = async () => (await data<Record<string, [string, string, string]>>("tr-links/eik/people.json")) ?? {};
+/** Връзките за една фирма (чете само нужния дял от индекса). */
+export async function trHits(eik: string): Promise<TrHit[]> {
+  const e = eik.slice(0, 9);
+  return (await data<Record<string, TrHit[]>>(`tr-links/eik/${e.slice(0, 2)}.json`))?.[e] ?? [];
+}
+/** Връзките за много фирми наведнъж: ЕИК → връзки. */
+export async function trHitsMany(eiks: string[]) {
+  const u = [...new Set(eiks.map((e) => e.slice(0, 9)))];
+  const r = await Promise.all(u.map(trHits));
+  return new Map(u.map((e, i) => [e, r[i]]));
+}
 export async function powerLinks(eik: string) {
-  const I = await trIndex();
-  return (I.byEik[eik.slice(0, 9)] ?? []).map((h) => { const [code, name, role] = I.people[h.s] ?? ["", h.s, ""]; return { ...h, code, name, role }; });
+  const [P, hits] = await Promise.all([trPeople(), trHits(eik)]);
+  return hits.map((h) => { const [code, name, role] = P[h.s] ?? ["", h.s, ""]; return { ...h, code, name, role }; });
 }
 export const powerHref = (code: string, slug: string) => (code === "MP" ? `/parlament/deputat/${slug.slice(3)}` : code === "GOV" ? null : `/lica/${slug}#svarzani`);

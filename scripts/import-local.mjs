@@ -88,6 +88,9 @@ await pool(codes, 4, async (code) => {
   } else if (!resolutions) resolutions = own;
   const name = o?.registryName ?? null;
   writeFileSync(`data/local/${code}.json`, JSON.stringify({ code, name, generatedAt: o?.generatedAt ?? null, officials, resolutions }));
+  // само хората (без решенията): за страниците на областите, които иначе зареждат десетки MB
+  mkdirSync("data/local/officials", { recursive: true });
+  writeFileSync(`data/local/officials/${code}.json`, JSON.stringify({ code, name, generatedAt: o?.generatedAt ?? null, officials, resolutions: [] }));
   for (const x of officials) people[x.slug] = [code, x.name, x.roleRaw];
   const R = resolutions ?? [];
   summary[code] = {
