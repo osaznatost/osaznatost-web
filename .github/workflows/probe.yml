@@ -9,10 +9,10 @@ jobs:
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -A "$UA" "https://varnacouncil.bg/wp-content/uploads/2026/01/Електронно-гласуване-№32-от-29.01.2026-г.-.pdf" -o e.pdf; pdfinfo e.pdf | grep Pages; pdftotext -layout e.pdf e.txt; wc -c e.txt; head -c 3500 e.txt
-          echo; echo =====PROT
-          curl -s -A "$UA" "https://varnacouncil.bg/wp-content/uploads/2026/01/ПРОТОКОЛ-№32-от-29.01.2026-г..pdf" -o p.pdf; pdftotext -layout p.pdf p.txt; wc -c p.txt
+          curl -s -A "$UA" "https://varnacouncil.bg/wp-content/uploads/2026/01/Електронно-гласуване-№32-от-29.01.2026-г.-.pdf" -o e.pdf; pdftotext e.pdf e.txt
           python3 -c "
-          import re;t=open('p.txt').read()
-          for m in list(re.finditer(r'(?i)гласувал|РЕШИ',t))[3:5]: print('>>>',re.sub(r'[ \t]+',' ',t[max(0,m.start()-900):m.start()+700]))
-          "
+          import re;t=open('e.txt').read()
+          for m in re.finditer(r'Гласуване №(\d+)\s*/([\s\S]*?)/\s*\n\s*Дата/час:[^\n]*?(Гласуване на Решение[^\n]*)',t): print('V',m.group(1),'|',re.sub(r'\s+',' ',m.group(2))[:230],'|',m.group(3))
+          " | head -60
+          curl -s -A "$UA" "https://varnacouncil.bg/wp-content/uploads/2026/01/РЕШЕНИЯ-№-32-ОТ-29.01.2026-г..pdf" -o r.pdf; pdftotext r.pdf r.txt; python3 -c "
+          import re;t=open('r.txt').read();i=t.find('РЕШЕНИЕ');print('R>>>',re.sub(r'[ \t]+',' ',t[i:i+1500]))"
