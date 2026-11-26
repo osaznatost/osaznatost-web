@@ -1253,6 +1253,9 @@ for (const [code, S] of Object.entries(SITES)) {
   const f = `data/council/${code}.json`;
   let prev = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
   if (!prev || prev.version !== VERSION) prev = { files: {}, decisions: [] };
+  // Четене наново с по-добри правила, без да губим старото, ако сайтът ни спре: файловете се четат пак,
+  // а новите версии на решенията заместват старите (същата година и номер).
+  if (process.env.REPARSE === "1") { prev.files = {}; prev.done = {}; prev.complete = false; }
   if (S.blgDir && !process.env.BLG_DIR) continue; // чете се само от council-mac.yml
   if (S.pages || S.wp || S.list || S.wpApi || S.vidin || S.knl || S.blgDir || S.numbered || S.wpList || S.sessionPdfs || S.listPages || S.yearFiles || S.sessionNodes || S.sessionList || S.protocolDocx || S.docList || S.montana || S.nkList || S.pzStart || S.yambol || S.vratza) {
     const added = S.pages ? await filesGeneric(code, S, prev) : S.wp ? await wpGeneric(code, S, prev) : S.list ? await listGeneric(code, S, prev) : S.wpApi ? await plovdiv(code, S, prev) : S.vidin ? await vidin(code, S, prev) : S.knl ? await knl(code, S, prev) : S.blgDir ? await blgDir(code, S, prev) : S.vratza ? await vratza(code, S, prev) : S.yambol ? await yambol(code, S, prev) : S.pzStart ? await pazardzhik(code, S, prev) : S.nkList ? await nkList(code, S, prev) : S.montana ? await montana(code, S, prev) : S.docList ? await docList(code, S, prev) : S.protocolDocx ? await protocolDocx(code, S, prev) : S.sessionList ? await sessionList(code, S, prev) : S.sessionNodes ? await sessionNodes(code, S, prev) : S.yearFiles ? await yearFiles(code, S, prev) : S.numbered ? await numbered(code, S, prev) : S.wpList ? await wordpress(code, S, prev) : S.sessionPdfs ? await sessionPdfs(code, S, prev) : await protocolPages(code, S, prev);

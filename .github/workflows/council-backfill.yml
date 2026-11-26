@@ -8,6 +8,9 @@ on:
         required: true
       minutes:
         default: "50"
+      reparse:
+        description: "1 = прочети наново всички файлове (старите решения остават, докато не се заменят)"
+        default: "0"
 permissions:
   contents: write
 jobs:
@@ -39,6 +42,7 @@ jobs:
       - name: Четене
         env:
           MINUTES: ${{ inputs.minutes }}
+          REPARSE: ${{ inputs.reparse }}
           ONLY: ${{ matrix.code }}
         run: node scripts/import-council-sites.mjs
       - name: Запис
