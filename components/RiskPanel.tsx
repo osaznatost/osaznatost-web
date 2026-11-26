@@ -3,10 +3,11 @@ import { connection } from "next/server";
 import { auditsOfMuni } from "@/lib/audits";
 import { localData, localIndex, normFirm, personHref } from "@/lib/local";
 import {
-  PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, placeSuppliersAll, politicalLinks, singleOfferBig,
+  PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, muniContracts, placeSuppliersAll, politicalLinks, singleOfferBig, supplierStats,
 } from "@/lib/procurement";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { data } from "@/lib/data";
+import { foundedDate, sharedPeople, trMany } from "@/lib/tr";
 import { MPS, partyName } from "@/lib/parliament";
 
 type TrHit = { s: string; k: "own" | "partner"; how?: string; now?: boolean; partner?: string; via?: string[]; roles?: string[] };
@@ -87,12 +88,47 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
         </ul>
       ) });
     }
+    // Нови фирми, зависимост от един възложител, концентрация и фирми с общи хора (симулирана конкуренция).
+    if (one && sups.length) {
+      const top = [...sups].sort((a, b) => (b.total_eur ?? 0) - (a.total_eur ?? 0)).slice(0, 40);
+      const T = sups.reduce((a, x) => a + (x.total_eur ?? 0), 0);
+      const lead = top[0];
+      if (lead && T >= 1e6 && (lead.total_eur ?? 0) / T >= 0.2) sigs.push({ level: (lead.total_eur ?? 0) / T >= 0.35 ? "high" : "mid", title: `Една фирма взима ${Math.round((100 * (lead.total_eur ?? 0)) / T)}% от парите по поръчките тук`, body: <><Link href={firmUrl(lead.eik)}>{lead.name}</Link>: {lead.contracts} договора за {fmtEur(lead.total_eur)} от общо {fmtEur(T)}. Силната концентрация при един изпълнител е рисков фактор по методиката на ЕК.</> });
+      const [stats, tr, mc, shared] = await Promise.all([
+        Promise.all(top.slice(0, 25).map((x) => supplierStats(x.eik).catch(() => null))),
+        trMany(top.map((x) => x.eik)),
+        muniContracts(codes[0], since()).catch(() => []),
+        sharedPeople(top.map((x) => x.eik)).catch(() => []),
+      ]);
+      const dep = top.slice(0, 25).map((x, i) => ({ x, st: stats[i] })).filter(({ x, st }) => st && (st.total_eur ?? 0) >= 100000 && (x.total_eur ?? 0) / (st.total_eur ?? 1) >= 0.8);
+      if (dep.length) sigs.push({ level: "mid", title: `${dep.length} фирм${dep.length > 1 ? "и" : "а"} живе${dep.length > 1 ? "ят" : "е"} почти само от поръчките на тази община`, body: <ul className="mt-1 space-y-0.5">{dep.slice(0, 6).map(({ x, st }) => <li key={x.eik}><Link href={firmUrl(x.eik)}>{x.name}</Link> – {Math.round((100 * (x.total_eur ?? 0)) / (st!.total_eur ?? 1))}% от всичките ѝ поръчки ({fmtEur(x.total_eur)} от {fmtEur(st!.total_eur)})</li>)}</ul> });
+      const young = new Map<string, { name: string; founded: string; first: string; v: number }>();
+      for (const c of mc) for (const e of c.supplier_eiks) {
+        const fd = foundedDate(tr.get(e.slice(0, 9)) ?? null);
+        if (!fd || !c.contract_date || (c.contract_value_eur ?? 0) < 30000) continue;
+        const gap = Date.parse(c.contract_date) - Date.parse(fd);
+        if (gap >= 0 && gap < 365 * 864e5) { const y = young.get(e) ?? { name: c.supplier_names[c.supplier_eiks.indexOf(e)] ?? e, founded: fd, first: c.contract_date, v: 0 }; y.v += c.contract_value_eur ?? 0; if (c.contract_date < y.first) y.first = c.contract_date; young.set(e, y); }
+      }
+      if (young.size) sigs.push({ level: [...young.values()].some((y) => y.v >= 200000) ? "high" : "mid", title: `${young.size} нов${young.size > 1 ? "и фирми" : "а фирма"}: договор до година след създаването`, body: <ul className="mt-1 space-y-0.5">{[...young.entries()].sort((a, b) => b[1].v - a[1].v).slice(0, 6).map(([e, y]) => <li key={e}><Link href={firmUrl(e)}>{y.name}</Link> – създадена {y.founded.endsWith("-01-01") ? y.founded.slice(0, 4) : y.founded.split("-").reverse().join(".")}, първи договор тук {y.first.split("-").reverse().join(".")}, общо {fmtEur(y.v)}</li>)}</ul> });
+      if (shared.length) sigs.push({ level: "mid", title: `${shared.length} души са управители или собственици в повече от една фирма, които печелят поръчки тук`, body: <><ul className="mt-1 space-y-0.5">{shared.slice(0, 6).map((x) => <li key={x.name}><b>{tc(x.name)}</b>: {x.firms.map((e) => top.find((t) => t.eik.slice(0, 9) === e)?.name ?? e).join(", ")}</li>)}</ul><p className="text-sm mt-1 text-muted">Ако тези фирми участват в едни и същи търгове, конкуренцията може да е привидна.</p></> });
+    }
+
     // 4. Големи договори само с една оферта
     const big1 = single.filter((c) => (c.contract_value_eur ?? 0) >= 100000).slice(0, 5);
     if (big1.length) sigs.push({ level: big1.length >= 3 ? "high" : "mid", title: `${single.length >= 20 ? "20+" : single.length} договора с една-единствена оферта за последните 3 години`, body: <ul className="mt-1 space-y-0.5">{big1.map((c) => <li key={c.id}><Link href={contractUrl(c.id)}>{c.tender_name.slice(0, 110)}</Link> – {fmtEur(c.contract_value_eur)}, {c.supplier_names.join(", ")}</li>)}</ul> });
     // 5. Оскъпяване с анекси
     const up = annexes.filter((a) => a.last_value_eur && a.value_difference_eur && a.value_difference_eur / a.last_value_eur >= 0.1).slice(0, 5);
     if (up.length) sigs.push({ level: up.some((a) => a.value_difference_eur! / a.last_value_eur! >= 0.3) ? "high" : "mid", title: `${up.length} договора, оскъпени с анекс с над 10%`, body: <ul className="mt-1 space-y-0.5">{up.map((a) => <li key={a.id}><Link href={contractUrl(contractRef(a.buyer_eik, a.contract_number))}>{a.tender_name.slice(0, 110)}</Link> – +{fmtEur(a.value_difference_eur)} ({Math.round((100 * a.value_difference_eur!) / a.last_value_eur!)}%), {a.supplier_names.join(", ")}</li>)}</ul> });
+  }
+
+  // Бързо забогатяване: пари в банки и вземания минус задълженията растат много повече от декларирания доход.
+  for (const L of locals) for (const o of L.officials) {
+    const H = [...(o.history ?? [])].sort((a, b) => a.year - b.year);
+    for (let i = 1; i < H.length; i++) {
+      const w = (h: typeof H[number]) => h.bankEur + h.receivableEur - h.debtEur;
+      const d = w(H[i]) - w(H[i - 1]), inc = H[i].income + H[i].incomeSpouse;
+      if (d >= 50000 && d > 2 * Math.max(inc, 1)) { sigs.push({ level: d >= 150000 ? "high" : "mid", title: `${o.name} (${o.roleRaw.toLowerCase()}${one ? "" : `, ${L.name ?? ""}`}): имуществото расте повече от доходите`, body: <>За {H[i].fiscalYear ?? H[i].year - 1} г. парите в банки и вземанията минус задълженията растат с {fmtEur(d)}, а декларираният доход (със съпруг/а) е {fmtEur(inc)}. Може да има законно обяснение (наследство, продажба на имот). <Link href={personHref(o.slug)}>Декларациите</Link></> }); break; }
+    }
   }
 
   // 6. Одити на Сметната палата и АДФИ, в които се споменава общината

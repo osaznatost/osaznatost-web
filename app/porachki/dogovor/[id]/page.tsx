@@ -7,7 +7,7 @@ import { AnnexList, LinksBox, SignalList } from "@/components/proc";
 import { ProjectPath } from "@/components/ProjectPath";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { tenderSignal } from "@/lib/tenderSignal";
-import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
+import { contractFlags, linkStrength, riskLabel, riskScore } from "@/lib/redFlags";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
 import { Term } from "@/components/Term";
 
@@ -40,7 +40,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
   const ts = (await tenderSignal(c.tender_id)) as [number | null, string[], number, string | null] | null;
-  const flags = await contractFlags(c, annexes, strongestLink(c.supplier_eiks));
+  const flags = await contractFlags(c, annexes, await linkStrength(c.supplier_eiks));
   const risk = riskScore(flags), rl = riskLabel(risk);
   const value = c.contract_value_eur ?? 0;
   const added = annexes.reduce((s, a) => s + (a.value_difference_eur ?? 0), 0);

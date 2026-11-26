@@ -10,7 +10,7 @@ import { placeHref } from "@/lib/regions";
 import { sharedPeople, sharedAddress } from "@/lib/tr";
 import { PaidByBuyer } from "@/components/PaidBox";
 import { buyerAnnexes, buyerContracts, buyerPlace, contractRef, firmUrl, fmtEur } from "@/lib/procurement";
-import { contractFlags, strongestLink, riskLabel, riskScore } from "@/lib/redFlags";
+import { contractFlags, linkStrength, riskLabel, riskScore } from "@/lib/redFlags";
 import { byCategory, hhi, possibleSplits, repeatedWork, rotatingWinners, THRESHOLDS } from "@/lib/buyerAnalysis";
 
 export const metadata = { title: "Възложител" };
@@ -32,7 +32,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   const top = [...bySup.entries()].sort((a, b) => b[1].sum - a[1].sum).slice(0, 15);
   const share = top[0] && total ? top[0][1].sum / total : 0;
   const repeats = repeatedWork(contracts).slice(0, 12);
-  const risky = (await Promise.all(contracts.map(async (c) => { const fl = await contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), strongestLink(c.supplier_eiks)); return { c, fl, score: riskScore(fl) }; })))
+  const risky = (await Promise.all(contracts.map(async (c) => { const fl = await contractFlags(c, annexes.filter((a) => a.contract_number === c.contract_number), await linkStrength(c.supplier_eiks)); return { c, fl, score: riskScore(fl) }; })))
     .filter((x) => x.score >= 20).sort((a, b) => b.score - a.score || (b.c.contract_value_eur ?? 0) - (a.c.contract_value_eur ?? 0));
   const allEiks = contracts.flatMap((c) => c.supplier_eiks);
   const [SH, SA] = await Promise.all([sharedPeople(allEiks), sharedAddress(allEiks)]);

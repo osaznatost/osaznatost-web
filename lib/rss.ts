@@ -1,5 +1,5 @@
 // RSS: известия без регистрация — читателят се абонира в приложение за новини (Feedly, Inoreader, Outlook, телефона).
-import { contractFlags, strongestLink, riskScore } from "@/lib/redFlags";
+import { contractFlags, linkStrength, riskScore } from "@/lib/redFlags";
 import type { Contract } from "@/lib/procurement";
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -7,7 +7,7 @@ const eur = (v: number | null) => (v == null ? "" : `${Math.round(v).toLocaleStr
 
 export async function contractsFeed(origin: string, title: string, link: string, items: Contract[]) {
   const rows = await Promise.all(items.slice(0, 60).map(async (c) => {
-    const f = await contractFlags(c, [], strongestLink(c.supplier_eiks));
+    const f = await contractFlags(c, [], await linkStrength(c.supplier_eiks));
     const s = riskScore(f);
     const t = `${s >= 45 ? "⚠ висок риск · " : ""}${eur(c.contract_value_eur)} · ${c.tender_name.slice(0, 160)}`;
     const d = `${c.buyer_name} → ${c.supplier_names.join(", ")}. ${f.length ? `Сигнали: ${f.map((x) => x.label.toLowerCase()).join(", ")}.` : "Без сигнали."}`;
