@@ -11,7 +11,7 @@ jobs:
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
           git fetch -q origin main && git checkout -q origin/main -- data/council/SZR31.json data/council/RSE27.json
-          DEBUG=1 ONLY="SZR31 RSE27" MINUTES=5 node scripts/enrich-council-votes.mjs
+          DEBUG=1 ONLY="SZR31" MINUTES=2 node scripts/enrich-council-votes.mjs
           python3 -c "
           import json;d=json.load(open('data/council/RSE27.json'))
           xs=[x for x in d['decisions'] if x.get('votes')]

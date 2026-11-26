@@ -211,7 +211,9 @@ for (const code of Object.keys(PER_DECISION)) {
     const buf = await get(d.url, true);
     seen++;
     if (!buf) continue;
-    const r = tallyAny(pdfText(buf));
+    const tx = pdfText(buf);
+    const r = tallyAny(tx);
+    if (process.env.DEBUG && !r && seen < 4) console.log("DBG", d.url, tx.length, JSON.stringify(tx.slice(Math.max(0, tx.search(/Гласув/i) - 100), tx.search(/Гласув/i) + 250)));
     C.votesFrom[d.url] = r ? 1 : 0;
     if (r) { d.tally = r.tally; if (r.votes.length) d.votes = r.votes; n++; }
     await sleep(800);
