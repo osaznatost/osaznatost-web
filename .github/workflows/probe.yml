@@ -6,14 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -s -A "$UA" https://www.burgascouncil.org/node/3663 > n.html
-          grep -oE 'href="[^"]+\.(pdf|docx?)"' n.html | head
-          u=$(grep -oE 'href="[^"]*protokol[^"]*\.pdf"' n.html | head -1 | sed 's/href="//; s/"$//'); case "$u" in http*) ;; *) u="https://www.burgascouncil.org$u";; esac; echo "## $u"
-          curl -s -A "$UA" "$u" -o p.pdf; pdftotext -layout p.pdf p.txt; wc -c p.txt
+          git fetch -q origin main && git checkout -q origin/main -- data/council/BGS04.json
+          ONLY=BGS04 MINUTES=7 node probe/enrich.mjs
           python3 -c "
-          import re;t=open('p.txt').read()
-          for m in list(re.finditer(r'(?i)(гласувал|поименно|„за“|\"за\")',t))[:3]: print('>>>',re.sub(r'[ \t]+',' ',t[max(0,m.start()-700):m.start()+900]))
-          "
+          import json;d=json.load(open('data/council/BGS04.json'))
+          xs=[x for x in d['decisions'] if x.get('votes')]
+          print('VOTES',len(xs))
+          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
