@@ -7,7 +7,7 @@ import { AnnexList, LinksBox, SignalList } from "@/components/proc";
 import { ProjectPath } from "@/components/ProjectPath";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { tenderSignal } from "@/lib/tenderSignal";
-import { contractFlags, linkStrength, riskLabel, riskScore } from "@/lib/redFlags";
+import { contractContext, contractFlags, linkStrength, riskLabel, riskScore } from "@/lib/redFlags";
 import { annexesByRef, buyerUrl, contractAnnexes, firmUrl, fmtDate, fmtEur, getContract, signals, supplierStats } from "@/lib/procurement";
 import { Term } from "@/components/Term";
 
@@ -40,7 +40,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
   const stats = await Promise.all(c.supplier_eiks.map((e) => supplierStats(e)));
   const sig = signals(c, annexes);
   const ts = (await tenderSignal(c.tender_id)) as [number | null, string[], number, string | null] | null;
-  const flags = await contractFlags(c, annexes, await linkStrength(c.supplier_eiks));
+  const flags = await contractFlags(c, annexes, await linkStrength(c.supplier_eiks), await contractContext(c));
   const risk = riskScore(flags), rl = riskLabel(risk);
   const value = c.contract_value_eur ?? 0;
   const added = annexes.reduce((s, a) => s + (a.value_difference_eur ?? 0), 0);
@@ -82,7 +82,7 @@ async function Content({ params }: { params: Promise<{ id: string }> }) {
         {flags.length > 0 ? (
           <ul className="mt-3 grid gap-2 md:grid-cols-2 text-[15px]">{flags.map((x) => <li key={x.id} className="border-l-4 border-red pl-3"><b>{x.label}</b> <span className="text-sm text-muted">+{x.weight}</span><br />{x.why}</li>)}</ul>
         ) : <p className="text-[15px] mt-2">Не открихме червени флагове в данните за този договор.</p>}
-        <p className="text-xs text-muted mt-3">Флагът е повод за въпрос, не доказателство за нарушение. Някои рискове (например фирма, създадена малко преди търга, или съвпадащи адреси на участниците) още не се проверяват, защото данните не са публични в машинно четим вид.</p>
+        <p className="text-xs text-muted mt-3">Флагът е повод за въпрос, не доказателство за нарушение. Проверяваме: конкуренция, процедура, цена спрямо прогнозата, анекси, отстранени участници, прагове, подизпълнители, нова фирма, кратък срок и промени в условията, зависимост от възложителя, дял при възложителя, общи хора с други изпълнители и връзки с кметове, съветници, депутати и министри (и през бивши съдружници). <Link href="/porachki/metodologiya">Методология</Link></p>
       </section>
 
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">

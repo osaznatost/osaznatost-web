@@ -1,7 +1,7 @@
 import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
-import { politicalLinks } from "@/lib/procurement";
-import { foundedDate, trIndex, trMany } from "@/lib/tr";
+import { buyerContracts, politicalLinks, supplierContracts } from "@/lib/procurement";
+import { foundedDate, sharedPeople, trIndex, trMany } from "@/lib/tr";
 import { legalException } from "@/lib/legalException.mjs";
 
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
@@ -23,7 +23,22 @@ export type Flag = { id: string; label: string; why: string; weight: number };
 
 const NO_COMPETITION = /договаряне без|пряко договаряне|без предварително обявление|без публикуване/i;
 
-export async function contractFlags(c: Contract, annexes: Annex[] = [], political: number | boolean = 0): Promise<Flag[]> {
+/** Контекст за договора: зависимост на фирмата от този възложител, дял на фирмата при възложителя
+ *  и фирми с общи хора сред другите изпълнители на възложителя (симулирана конкуренция). Тежко: само на страницата на договора. */
+export type Ctx = { depShare: number; depTotal: number; buyerShare: number; buyerTotal: number; shared: { name: string; firms: string[] }[] };
+export async function contractContext(c: Contract): Promise<Ctx | null> {
+  const e = c.supplier_eiks[0];
+  if (!e) return null;
+  const [sc, bc] = await Promise.all([supplierContracts(e, 1000).catch(() => []), buyerContracts(c.buyer_eik, 1000).catch(() => [])]);
+  const sum = (xs: Contract[]) => xs.reduce((a, x) => a + (x.contract_value_eur ?? 0), 0);
+  const depTotal = sum(sc), withBuyer = sum(sc.filter((x) => x.buyer_eik === c.buyer_eik));
+  const buyerTotal = sum(bc), mine = sum(bc.filter((x) => x.supplier_eiks.includes(e)));
+  const others = [...new Set(bc.flatMap((x) => x.supplier_eiks))].slice(0, 60);
+  const shared = (await sharedPeople(others).catch(() => [])).filter((x) => x.firms.includes(e.slice(0, 9)));
+  return { depShare: depTotal ? withBuyer / depTotal : 0, depTotal, buyerShare: buyerTotal ? mine / buyerTotal : 0, buyerTotal, shared };
+}
+
+export async function contractFlags(c: Contract, annexes: Annex[] = [], political: number | boolean = 0, ctx: Ctx | null = null): Promise<Flag[]> {
   const f: Flag[] = [];
   const v = c.contract_value_eur ?? 0, est = c.estimated_value_eur ?? 0;
   const ex = legalException(c.tender_name);
@@ -45,6 +60,11 @@ export async function contractFlags(c: Contract, annexes: Annex[] = [], politica
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push({ id: "sub", label: "Голям дял на подизпълнители", why: `Подизпълнителите поемат ${c.subcontracting_percent}% от работата.`, weight: 8 });
   const young = c.contract_date ? (await (async () => { const tr = await trMany(c.supplier_eiks); return c.supplier_eiks.map((e) => ({ e, d: foundedDate(tr.get(e.slice(0, 9)) ?? null) })); })()).find(({ d }) => d && Date.parse(c.contract_date!) >= Date.parse(d) && Date.parse(c.contract_date!) - Date.parse(d) < 365 * 864e5) : undefined;
   if (young) f.push({ id: "new", label: "Нова фирма", why: `Изпълнителят е създаден по-малко от година преди договора (${young.d!.endsWith("-01-01") ? `${young.d!.slice(0, 4)} г.` : young.d!.split("-").reverse().join(".")}, по Търговския регистър).`, weight: 15 });
+  if (ctx) {
+    if (ctx.depTotal >= 100000 && ctx.depShare >= 0.8) f.push({ id: "dependent", label: "Зависима от един възложител", why: `${Math.round(ctx.depShare * 100)}% от всички поръчки на фирмата са от този възложител.`, weight: 10 });
+    if (ctx.buyerTotal >= 1e6 && ctx.buyerShare >= 0.2) f.push({ id: "concentration", label: "Голям дял при възложителя", why: `Фирмата е получила ${Math.round(ctx.buyerShare * 100)}% от парите по поръчките на този възложител.`, weight: ctx.buyerShare >= 0.35 ? 12 : 8 });
+    if (ctx.shared.length) f.push({ id: "shared", label: "Общи хора с други изпълнители", why: `${ctx.shared.slice(0, 2).map((x) => x.name).join(", ")} ${ctx.shared.length > 1 ? "са" : "е"} и в друга фирма, която печели поръчки от същия възложител. Конкуренцията може да е привидна.`, weight: 12 });
+  }
   const LABEL: Record<string, string> = { short: "Кратък срок за оферти", changes: "Чести промени в условията" };
   for (const [id, w, why] of signalFlags(await tenderSignal(c.tender_id)) as [string, number, string][]) f.push({ id, label: LABEL[id], why, weight: w });
   return f;
