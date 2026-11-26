@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full p7zip-rar >/dev/null 2>&1
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full >/dev/null 2>&1; sudo apt-get install -y -qq 7zip unrar >/dev/null 2>&1 || true
       - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - run: |
           for c in $CODES; do rm -f data/council/$c.json; DEBUG=1 ONLY=$c MINUTES=4 node scripts/import-council-sites.mjs; done

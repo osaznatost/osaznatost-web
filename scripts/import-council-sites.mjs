@@ -857,7 +857,11 @@ const archiveText = (buf) => {
   writeFileSync("/tmp/c.arc", buf);
   try {
     execFileSync("rm", ["-rf", "/tmp/arc"]); mkdirSync("/tmp/arc");
-    execFileSync("7z", ["x", "-y", "-o/tmp/arc", "/tmp/c.arc"], { stdio: "ignore" });
+    let ok = false;
+    for (const [bin, args] of [["7zz", ["x", "-y", "-o/tmp/arc", "/tmp/c.arc"]], ["unrar", ["x", "-y", "-o+", "/tmp/c.arc", "/tmp/arc/"]], ["7z", ["x", "-y", "-o/tmp/arc", "/tmp/c.arc"]]]) {
+      try { execFileSync(bin, args, { stdio: "ignore" }); ok = true; break; } catch { /* следващата програма */ }
+    }
+    if (!ok) return "";
     const list = execFileSync("find", ["/tmp/arc", "-type", "f"]).toString().trim().split("\n").filter(Boolean).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
     return list.map((f) => { const b = readFileSync(f); return /\.docx$/i.test(f) ? docxText(b) : /\.doc$/i.test(f) ? docText(b) : /\.pdf$/i.test(f) ? pdfText(b) : ""; }).join("\n\f\n");
   } catch { return ""; }
