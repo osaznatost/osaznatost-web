@@ -8,5 +8,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
-      - run: node probe/grepvotes.mjs https://vidinobs.com/storage/protocols/mqlXxnnE0z6lvFNTzozBOR6LmXe96SzJbChZUHiL.doc https://yambol.bg/uploads/A5DACBF0E27762DE131BF59E112E2FFA https://os-nessebar.eu/resheniya/resheniya-ot-protokol-3612092023-g
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
+      - run: |
+          git fetch -q origin main && git checkout -q origin/main -- data/council/VAR06.json
+          DEBUG=1 ONLY=VAR06 MINUTES=4 node scripts/enrich-council-votes.mjs
+          python3 -c "
+          import json;d=json.load(open('data/council/VAR06.json'))
+          xs=[x for x in d['decisions'] if x.get('votes')]
+          print('VOTES',len(xs))
+          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
