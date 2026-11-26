@@ -1031,10 +1031,11 @@ function parseGeneric(text, fb) {
   // Ако в края на този откъс вече започва увод към следващото решение, не го броим за това решение.
   const own = t.replace(/(?<=[\s\S]{80})\n[^\n]*(?:Присъствали|Гласували)\s+\d+\s*:[\s\S]*$/, "");
   const vt = own + "\n" + (fb.pre ?? "").split(/Р\s*Е\s*Ш\s*Е\s*Н\s*И\s*Е/).pop();
-  const vm = vt.match(/(?:[„“"”]?за[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?против[“”"]?\s*[–:-]?\s*(\d+)[\s,;]+[„“"”]?въздърж\S*(?:\s+се)?[“”"]?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*[„“"”]?за[“”"]?,?\s*(\d+|без)\s*(?:глас\S*\s*)?[„“"”]?против[“”"]?\s*и\s*(\d+|без))/i);
+  const vm = vt.match(/(?:[„“"”]?за[“”"]?\s*[–:-]?\s*(\d+)[\s,;–-]+[„“"”]?против[“”"]?\s*[–:-]?\s*(\d+)[\s,;–-]+[„“"”]?въздърж\S*(?:\s+се)?[“”"]?\s*[–:-]?\s*(\d+))|(?:с\s+(\d+)\s+глас\S*\s*[„“"”]?за[“”"]?,?\s*(\d+|без)\s*(?:глас\S*\s*)?[„“"”]?против[“”"]?\s*и\s*(\d+|без))/i);
   const nn = (x) => (/без/i.test(x) ? 0 : +x);
   const vk = !vm && vt.match(/(\d+|без)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?\s*,?\s*(\d+|без)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?\s*,?\s*и?\s*(\d+|без)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ/i);
-  const tally = vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
+  const vs = !vm && !vk && vt.match(/(\d+)\s+глас\S*\s*„?\s*ЗА\s*[”“"]?(?:\s*,?\s*(\d+)\s+глас\S*\s*„?\s*ПРОТИВ\s*[”“"]?)?(?:\s*,?\s*и?\s*(\d+)\s+глас\S*\s*„?\s*ВЪЗДЪРЖ)?/i);
+  const tally = !vm && !vk && vs ? { for: +vs[1], against: vs[2] ? +vs[2] : 0, abstain: vs[3] ? +vs[3] : 0 } : vm ? (vm[1] ? { for: +vm[1], against: +vm[2], abstain: +vm[3] } : { for: +vm[4], against: nn(vm[5]), abstain: nn(vm[6]) }) : vk ? { for: nn(vk[1]), against: nn(vk[2]), abstain: nn(vk[3]) } : null;
   if (tally) tally.method = /поименно/i.test(vt) ? "named" : "open";
   const by = t.match(/(?:ПО\s+ПРЕДЛОЖЕНИЕ\s+НА|ВНОСИТЕЛ|Вносител)\s*:?\s*([^\n]{3,140})/)?.[1];
   return { number, date, url: fb.url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null, proposedBy: by ? flat(by) : null, tally,

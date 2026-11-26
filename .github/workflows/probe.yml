@@ -13,13 +13,13 @@ jobs:
       - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul >/dev/null 2>&1
       - run: npm i --no-save --no-package-lock --ignore-scripts playwright@1 >/dev/null 2>&1 && npx playwright install --with-deps chromium >/dev/null 2>&1
       - run: |
-          for c in $CODES; do rm -f data/council/$c.json; DEBUG=1 ONLY=$c MINUTES=1 node scripts/import-council-sites.mjs; done
+          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=4 node scripts/import-council-sites.mjs; done
         env:
-          CODES: "PAZ29"
+          CODES: "PAZ29 BGS21"
       - run: |
           python3 - <<'PY'
           import json,os
-          for c in "PAZ29".split():
+          for c in "PAZ29 BGS21".split():
             f=f'data/council/{c}.json'
             if not os.path.exists(f): print("X",c,"нищо"); continue
             j=json.load(open(f)); d=j['decisions']
