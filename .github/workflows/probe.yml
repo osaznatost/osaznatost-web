@@ -7,5 +7,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
+          cat > x.py <<'X'
+          import re,sys,urllib.request
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://www.etropole.bg/bg/resheniya https://topolovgrad.bg/obs-reshenia/ https://rodopi.bg/obshtinski-savet/resheniya/ https://omurtag.bg/?page_id=412 https://tundzha.bg/obshtinski-savet/drugi-dokumenti/; do echo "## $u"; curl -sL -m 30 -A "$UA" "$u" | grep -oE 'href="[^"]+"[^>]*>[^<]{0,80}' | grep -viE 'facebook|\.css|favicon|wp-json|xmlrpc|feed' | grep -iE 'реш|resh|pdf|doc|page|202[3-6]|zased|protok' | sort -u | head -14; done
+          g=lambda u: urllib.request.urlopen(urllib.request.Request(u,headers={"User-Agent":UA}),timeout=30).read().decode("utf-8","ignore")
+          for u in sys.argv[1:]:
+            h=g(u); print("##",u)
+            for a,t in re.findall(r'<a\s[^>]*?href="([^"]+)"[^>]*>([\s\S]{0,200}?)</a>',h):
+              t=re.sub(r'<[^>]+>|\s+',' ',t).strip()
+              if re.search(r'202[3-6]|Решение|reshen|\.pdf|\.doc|page',a+" "+t,re.I) and not re.search('facebook|wp-content/themes',a): print("  L",a[:150],"|",t[:80])
+          X
+          python3 x.py https://topolovgrad.bg/obs-reshenia/ https://rodopi.bg/obshtinski-savet/resheniya/ https://tundzha.bg/obshtinski-savet/ 2>&1 | head -90
