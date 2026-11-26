@@ -16,7 +16,7 @@ const SRC = {
     // Списъкът „Видеоархив и протокол на заседание №N от дата …“ → страница → PDF на протокола.
     index: (p) => `https://www.burgascouncil.org/protokoli${p ? `?page=${p}` : ""}`,
     session: /href="(\/node\/\d+)"[^>]*>(?:\s|<[^>]+>)*ВИДЕОАРХИВ[^<]{0,40}?ЗАСЕДАНИЕ\s*(?:№|&#8470;|N)?\s*(\d+)\s*ОТ\s+ДАТА\s*([\d.]+)/gi,
-    file: /href="([^"]*protokol[^"]*\.pdf)"/i,
+    file: /href="([^"]*(?:protokol|%D0%BF%D1%80%D0%BE%D1%82)[^"]*\.pdf)"/i,
     base: "https://www.burgascouncil.org",
   },
 };
@@ -117,7 +117,7 @@ for (const [code, S] of Object.entries(SRC)) {
     const dec = C.decisions.filter((d) => d.session === s.n || d.number.startsWith(`${s.n}-`));
     if (!dec.length) continue;
     const page = await get(s.url);
-    const fu = page?.match(S.file)?.[1];
+    const fu = page?.match(S.file)?.[1] ?? page?.match(/href="([^"]*\.pdf)"/i)?.[1];
     if (process.env.DEBUG) console.log("DBG", s.n, dec.length, fu, page?.length);
     if (!fu) { C.votesFrom[s.url] = 0; continue; }
     const buf = await get(new URL(fu, S.base).href, true);
