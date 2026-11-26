@@ -9,11 +9,11 @@ jobs:
       - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1; pip install -q python-docx >/dev/null 2>&1
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" https://obs.pleven.bg/uploads/posts/protokol-51_.pdf -o p.pdf; pdftotext -layout p.pdf p.txt; wc -c p.txt
-          python3 -c "
-          import re;t=open('p.txt').read()
-          ms=[m.start() for m in re.finditer(r'РЕШЕНИЕ\s*№|Р Е Ш Е Н И Е',t)]
+          curl -sL -A "$UA" https://obs.pleven.bg/uploads/posts/protokol-511.docx -o p.docx; python3 -c "import docx;print('\n'.join(p.text for p in docx.Document('p.docx').paragraphs))" > p.txt
+          curl -sL -A "$UA" https://obs.sliven.bg/uploads/237F5058B303AE3A8D406EC39B8C7B71 -o s.pdf; file -b s.pdf; pdftotext -layout s.pdf s.txt
+          for f in p.txt s.txt; do python3 -c "
+          import re,sys;t=open('$f').read();print('##','$f',len(t))
+          ms=[m.start() for m in re.finditer(r'(?i)РЕШИ|гласувал',t)]
           print('N',len(ms))
-          for i in ms[2:4]: print('PL>>>',re.sub(r'[ \t]+',' ',t[i-1200:i+200]))
-          "
-          curl -sL -A "$UA" https://obs.sliven.bg/protokoli-ot-zasedaniyata | grep -oE 'href="[^"]+"[^>]*>[^<]{0,90}' | grep -iE 'uploads|протокол' | head -8
+          for i in ms[4:6]: print('>>>',re.sub(r'[ \t]+',' ',t[max(0,i-900):i+300]))
+          "; done
