@@ -8,7 +8,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" https://www.balchik.bg/bg/mandat-2023-2027 > a.html
-          grep -oE 'href="[^"]*(page|\?p=|mandat-2023-2027/[^"]*202[345])[^"]*"' a.html | sort -u | head -20
-          curl -sL -A "$UA" "https://www.balchik.bg/bg/mandat-2023-2027?page=2" | grep -oE 'resheniya-ot-zasedanie[^"]+' | sort -u | head -5
-          curl -sL -A "$UA" "https://www.balchik.bg/bg/mandat-2023-2027/page/2" | grep -oE 'resheniya-ot-zasedanie[^"]+' | sort -u | head -5
+          for u in https://www.balchik.bg/bg/posts/index/42 "https://www.balchik.bg/bg/posts/index/42?page=2"; do echo "## $u"; curl -sL -A "$UA" "$u" | grep -oE 'href="[^"]+"[^>]*>[^<]{0,90}' | grep -iE 'reshen|resheniya|page|mandat' | sort -u | head -25; done
