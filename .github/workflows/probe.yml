@@ -6,14 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
       - run: |
-          git fetch -q origin main && git checkout -q origin/main -- data/council/VRC10.json
-          DEBUG=1 ONLY=VRC10 MINUTES=2 node scripts/enrich-council-votes.mjs
-          python3 -c "
-          import json;d=json.load(open('data/council/VRC10.json'))
-          xs=[x for x in d['decisions'] if x.get('votes')]
-          print('VOTES',len(xs))
-          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in https://erik.bulnao.government.bg/ https://erik.bulnao.government.bg/Reports https://erik.bulnao.government.bg/Donations; do echo "## $u $(curl -sL -m 30 -o p.html -w '%{http_code}' -A "$UA" "$u") $(wc -c < p.html)"; grep -oiE 'href="[^"]+"[^>]*>[^<]{0,70}' p.html | grep -iE 'дар|donat|регист|report|export|xls|csv|json|api' | sort -u | head -25; done
