@@ -8,10 +8,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full >/dev/null 2>&1
-      - run: |
-          for c in $CODES; do rm -f data/council/$c.json; ONLY=$c MINUTES=$MIN node scripts/import-council-sites.mjs 2>&1 | tail -2; done
-          python3 probe/stat.py $CODES
-        env:
-          CODES: "HKV32"
-          MIN: "3"
+      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
+      - run: node probe/grepvotes.mjs https://vidinobs.com/storage/protocols/mqlXxnnE0z6lvFNTzozBOR6LmXe96SzJbChZUHiL.doc https://yambol.bg/uploads/A5DACBF0E27762DE131BF59E112E2FFA https://os-nessebar.eu/resheniya/resheniya-ot-protokol-3612092023-g
