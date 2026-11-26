@@ -15,7 +15,7 @@ const SRC = {
   BGS04: {
     // Списъкът „Видеоархив и протокол на заседание №N от дата …“ → страница → PDF на протокола.
     index: (p) => `https://www.burgascouncil.org/protokoli${p ? `?page=${p}` : ""}`,
-    session: /href="(\/node\/\d+)"[^>]*>\s*ВИДЕОАРХИВ И ПРОТОКОЛ (?:НА|ОТ) ЗАСЕДАНИЕ\s*№\s*(\d+)\s*ОТ ДАТА\s*([\d.]+)/gi,
+    session: /href="(\/node\/\d+)"[^>]*>(?:\s|<[^>]+>)*ВИДЕОАРХИВ[^<]{0,40}?ЗАСЕДАНИЕ\s*(?:№|&#8470;|N)?\s*(\d+)\s*ОТ\s+ДАТА\s*([\d.]+)/gi,
     file: /href="([^"]*protokol[^"]*\.pdf)"/i,
     base: "https://www.burgascouncil.org",
   },
@@ -102,6 +102,7 @@ for (const [code, S] of Object.entries(SRC)) {
   const sessions = [];
   for (let p = 0; p < 20; p++) {
     const h = await get(S.index(p));
+    if (process.env.DEBUG && !p) console.log("DBG index", h?.length, h?.match(/[^\n]{0,200}ВИДЕОАРХИВ[^\n]{0,120}/)?.[0]);
     if (!h) break;
     const ss = [...h.matchAll(S.session)].map((m) => ({ url: S.base + m[1], n: m[2], date: m[3] }));
     const fresh = ss.filter((s) => !sessions.some((x) => x.url === s.url));
