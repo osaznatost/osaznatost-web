@@ -10,6 +10,7 @@ import { MPS, currentSeats, formatDate } from "@/lib/parliament";
 import { firmsOfMp } from "@/lib/people";
 import { data as readData } from "@/lib/data";
 import { localIndex } from "@/lib/local";
+import { CouncilBanner } from "@/components/CouncilCoverage";
 import { BAD, GOOD, data as PROMISES, govSlug } from "@/lib/promises";
 import { SANCTIONS } from "@/lib/sanctions";
 
@@ -61,7 +62,7 @@ export default async function Vlast() {
       <Title kicker="Власт" lead="Кой взема решенията, как се приемат законите и къде има особености, които заслужават внимание. Всяко число води към подробностите и първоизточника.">
         Властта: кой решава и как
       </Title>
-      <SectionNav items={[["koy", "Кой управлява"], ["signali", "Сигнали"], ["kak", "Как се приема закон"], ["zakoni", "Законите"], ["firmi", "Депутати и фирми"], ["proverka", "Как да проверите"]]} />
+      <SectionNav items={[["koy", "Кой управлява"], ["signali", "Сигнали"], ["kak", "Как се приема закон"], ["zakoni", "Законите"], ["firmi", "Депутати и фирми"], ["obshtini", "Общински съвети"], ["proverka", "Как да проверите"]]} />
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-14">
         {tiles.map(([l, v, n, href]) => (
@@ -72,6 +73,8 @@ export default async function Vlast() {
           </Link>
         ))}
       </section>
+
+      <div id="obshtini" className="scroll-mt-32 lg:scroll-mt-20"><CouncilBanner /></div>
 
       <Anchor id="koy" title="Кой управлява сега" lead={gov ? `${gov.role} (${gov.period}).` : undefined}>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] items-start">

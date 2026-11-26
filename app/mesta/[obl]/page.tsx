@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Page, SectionTitle, Title } from "@/components/ui";
 import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
+import { CouncilCoverage } from "@/components/CouncilCoverage";
 import { PlaceProcurement } from "@/components/PlaceProcurement";
 import { REGIONAL_SECTORS, val } from "@/lib/economy";
 import { findOblastBySlug, muniElection, muniFinance, muniFunds, muniSlug, oblastList, oblastStats } from "@/lib/regions";
@@ -40,7 +41,7 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
   return (
     <Page>
       <Title back={{ href: "/mesta", label: "Всички области" }} kicker="Област" lead={`${o.municipalities.length} общини, ${s.pop ? s.pop.toLocaleString("bg-BG") : "–"} жители.`}>{o.name}</Title>
-      <SectionNav items={[["obshtini", "Общините"], ["hora", "Хората"], ["ikonomika", "Икономика"], ["izbori", "Избори"], ["porachki", "Поръчки"]]} />
+      <SectionNav items={[["obshtini", "Общините"], ["savet", "Общински съвети"], ["hora", "Хората"], ["ikonomika", "Икономика"], ["izbori", "Избори"], ["porachki", "Поръчки"]]} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">БВП на човек{ s.gdpPc ? `, ${s.gdpPc.year}` : ""}</p><p className="display text-[2.2rem]">{s.gdpPc ? `${Math.round(s.gdpPc.value).toLocaleString("bg-BG")} €` : "–"}</p></div>
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Добавена стойност{gy ? `, ${gy}` : ""}</p><p className="display text-[2.2rem]">{tot ? `${fmt(tot / 1000, 1)} млрд. €` : "–"}</p></div>
@@ -105,6 +106,10 @@ export default async function OblastPage({ params }: { params: Promise<{ obl: st
           <p className="text-xs text-muted mt-2">В червено: над 30% възрастни над 65 г. или над 15% безработни. Държавни инвестиции: договорени по Инвестиционната програма за общински проекти (МРРБ).</p>
         </section>
       )}
+
+      <section id="savet" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
+        <CouncilCoverage codes={o.municipalities.map((x) => x.code)} title={`Общинските съвети в област ${o.name}: решения и гласувания`} />
+      </section>
 
       <section id="obshtini" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Общините</SectionTitle>

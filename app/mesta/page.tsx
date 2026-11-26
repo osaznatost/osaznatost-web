@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { Page, Title } from "@/components/ui";
+import { CouncilBanner } from "@/components/CouncilCoverage";
 import { oblastList, oblastStats } from "@/lib/regions";
 
 export const metadata = { title: "Области и общини" };
 
-export default function Mesta() {
+export default async function Mesta() {
   const rows = oblastList().map((o) => ({ o, s: oblastStats(o.prefix, o.municipalities) })).sort((a, b) => a.o.name.localeCompare(b.o.name, "bg"));
   return (
     <Page>
       <Title lead="Всяка област и община на една страница: икономика, бюджет и дълг на общината, европейски средства, обществени поръчки и как е гласувала.">Области и общини</Title>
-      <p className="text-[15px] mb-4"><Link href="/vlast/obshtinski-savet" className="font-semibold">Общинските съвети в страната: решения и гласувания по общини →</Link></p>
+      <CouncilBanner />
       <div className="overflow-x-auto ring-1 ring-rule rounded-sm bg-white">
         <table className="w-full text-[15px]">
           <thead><tr className="text-left text-sm text-muted border-b border-rule"><th className="p-3">Област</th><th className="p-3 num">Общини</th><th className="p-3 num">Население</th><th className="p-3 num">БВП на човек</th><th className="p-3 num">Евросредства на човек</th></tr></thead>

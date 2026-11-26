@@ -15,6 +15,7 @@ import { Anchor, SectionNav } from "@/components/SectionNav";
 import { AuditsList } from "@/components/AuditsList";
 import { auditsOfMuni } from "@/lib/audits";
 import { MuniPower } from "@/components/MuniPower";
+import { CouncilCoverage } from "@/components/CouncilCoverage";
 import { MuniLinks } from "@/components/PersonLinks";
 import { Changes } from "@/components/Changes";
 import { MuniProjects } from "@/components/MuniProjects";
@@ -52,7 +53,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     <Page>
       <Title back={{ href: `/mesta/${o.slug}`, label: `Област ${o.name}` }} kicker="Община" lead={`${towns.length ? `Градове: ${towns.map((t) => t[1]).join(", ")}. ` : ""}${villages} села.${f?.pop ? ` ${f.pop.toLocaleString("bg-BG")} жители.` : ""}`}>{m.name}</Title>
 
-      <SectionNav items={[["pari", "Пари"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ...(audits.length ? [["oditi", "Одити"] as [string, string]] : []), ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
+      <SectionNav items={[["pari", "Пари"], ["savet", "Общински съвет"], ["danaci", "Местни данъци"], ["hora", "Хората"], ["naseleni", "Населени места"], ["vlast", "Местна власт"], ["proekti", "Проекти"], ...(audits.length ? [["oditi", "Одити"] as [string, string]] : []), ["porachki", "Поръчки"], ["izbori", "Избори"], ["mestni-izbori", "Местни избори"]]} />
       <div id="pari" className="scroll-mt-32 lg:scroll-mt-20" />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-12">
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Собствени приходи на общината</p><p className="display text-[2.2rem]">{mn(fin?.revenue)}</p><p className="text-xs text-muted">{fin ? quarterLabel(fin.period) : ""}</p></div>
@@ -61,6 +62,10 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
         <div className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">Евросредства на човек</p><p className="display text-[2.2rem]">{f ? `${Math.round(f.perCapita).toLocaleString("bg-BG")} €` : "–"}</p></div>
       </div>
 
+
+      <section id="savet" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
+        <CouncilCoverage codes={[m.code]} title={`Общински съвет – ${m.name}: решения и гласувания`} />
+      </section>
 
       <MuniTaxes code={m.code} />
 
