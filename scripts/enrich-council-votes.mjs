@@ -19,6 +19,14 @@ const SRC = {
     file: /href="([^"]*(?:protokol|%D0%BF%D1%80%D0%BE%D1%82)[^"]*\.pdf)"/i,
     base: "https://www.burgascouncil.org",
   },
+  SLV20: {
+    // Връзките в списъка са направо към протоколите (PDF без разширение).
+    named: true,
+    index: (p) => (p ? null : "https://obs.sliven.bg/protokoli-ot-zasedaniyata"),
+    session: /href="(https:\/\/obs\.sliven\.bg\/uploads\/[A-F0-9]+)"[^>]*>\s*Протокол от[^<]*?заседание[^<]*?проведено на\s*([\d.]+)()/gi,
+    direct: true,
+    base: "https://obs.sliven.bg",
+  },
   VAR06: {
     // Отделен PDF „Електронно гласуване“ за всяко заседание: всяко гласуване с „Гласуване на Решение № N-…“ и поименния списък.
     evote: true,
@@ -28,6 +36,28 @@ const SRC = {
     base: "https://varnacouncil.bg",
   },
 };
+
+/** Сливен: в протокола поименният списък („12. ИМЕ ФАМИЛИЯ: За“) е точно преди „РЕШЕНИЕ № N“. */
+export function parseNamedBefore(raw) {
+  const t = raw.replace(/\r/g, "").replace(/\f/g, "\n");
+  const parts = t.split(/\n\s*РЕШЕНИЕ\s*\n?\s*№\s*(\d+)/);
+  const out = new Map();
+  for (let i = 1; i < parts.length; i += 2) {
+    const before = parts[i - 1].slice(-6000);
+    let votes = [];
+    for (const v of before.matchAll(/^\s*(\d+)\.\s+([А-ЯЁA-Z][А-ЯЁA-Z\- ]{4,70}?)\s*:\s*(За|Против|Въздържал(?:а)?\s+се|Не\s+гласувал(?:а)?)\s*$/gim)) {
+      if (v[1] === "1") votes = [];
+      const k = VOTE[v[3].toLowerCase().replace(/\s+/g, " ")];
+      if (k) votes.push([v[2].trim().toLowerCase().replace(/(^|[\s-])\S/g, (c) => c.toUpperCase()), k]);
+    }
+    // списъкът трябва да свършва точно преди решението (иначе е от друго гласуване)
+    const tail = before.slice(before.lastIndexOf(":") + 1);
+    if (votes.length < 5 || tail.replace(/\s|\d|\./g, "").length > 60) continue;
+    const c = (k) => votes.filter((v) => v[1] === k).length;
+    out.set(parts[i], { for: c("for"), against: c("against"), abstain: c("abstain"), method: "named", votes });
+  }
+  return out;
+}
 
 /** Гласуване от PDF на отделно решение (препис-извлечение или протокол за гласуване на точката). */
 export function tallyAny(raw) {
@@ -171,7 +201,7 @@ for (const [code, S] of Object.entries(SRC)) {
     const h = await get(iu);
     if (process.env.DEBUG && !p) console.log("DBG index", h?.length, h?.replace(/\s+/g, " ").slice(0, 600));
     if (!h) break;
-    const ss = [...h.matchAll(S.session)].map((m) => ({ url: new URL(m[1], S.base).href, n: m[2], date: m[3] }));
+    const ss = [...h.matchAll(S.session)].map((m) => (S.direct ? { url: new URL(m[1], S.base).href, n: m[2], date: m[2] } : { url: new URL(m[1], S.base).href, n: m[2], date: m[3] }));
     const fresh = ss.filter((s) => !sessions.some((x) => x.url === s.url));
     if (!fresh.length) break;
     sessions.push(...fresh);
@@ -181,17 +211,17 @@ for (const [code, S] of Object.entries(SRC)) {
   for (const s of sessions) {
     if (timeUp()) break;
     if (s.url in C.votesFrom) continue;
-    const dec = S.evote ? C.decisions.filter((d) => d.session === s.n || d.date === s.date.split(".").reverse().join("-")) : C.decisions.filter((d) => d.session === s.n || d.number.startsWith(`${s.n}-`));
+    const dec = S.named ? C.decisions : S.evote ? C.decisions.filter((d) => d.session === s.n || d.date === s.date.split(".").reverse().join("-")) : C.decisions.filter((d) => d.session === s.n || d.number.startsWith(`${s.n}-`));
     if (!dec.length) continue;
-    const page = await get(s.url);
-    const fu = page?.match(S.file)?.[1] ?? page?.match(/href="([^"]*\.pdf)"/i)?.[1];
+    const page = S.direct ? "" : await get(s.url);
+    const fu = S.direct ? s.url : page?.match(S.file)?.[1] ?? page?.match(/href="([^"]*\.pdf)"/i)?.[1];
     if (process.env.DEBUG) console.log("DBG", s.n, dec.length, fu, page?.length);
     if (!fu) { C.votesFrom[s.url] = 0; continue; }
     const buf = await get(new URL(fu, S.base).href, true);
     if (!buf) continue;
     let k = 0, blocks = [];
-    if (S.evote) {
-      const ev = parseEvote(pdfText(buf));
+    if (S.evote || S.named) {
+      const ev = S.named ? parseNamedBefore(pdfText(buf)) : parseEvote(pdfText(buf));
       blocks = [...ev.values()];
       for (const d of dec) { const v = ev.get(String(d.number).match(/^\d+/)?.[0]); if (v) { d.tally = { for: v.for, against: v.against, abstain: v.abstain, method: v.method }; if (v.votes.length) d.votes = v.votes; k++; } }
     } else {

@@ -457,9 +457,11 @@ function parsePleven(text, url) {
     if (!title || !rest) continue;
     const body = ws(rest.split(/\n\s*(?:Мотиви\s*:|Г\s*Л\s*А\s*С\s*У\s*В\s*А\s*Л\s*И|ПО\s+[А-Я]+\s+ТОЧКА)/)[0]);
     const vote = (rest.split(/Г\s*Л\s*А\s*С\s*У\s*В\s*А\s*Л\s*И\s*:?/)[1] ?? "").slice(0, 400);
-    const vm = vote.match(/За\s*[–:-]?\s*(\d+)[\s\S]{0,80}?Против\s*[–:-]?\s*(\d+)[\s\S]{0,80}?Въздърж\S*\s*[–:-]?\s*(\d+)/i);
+    // „За – 34 общински съветници / Против – няма / Въздържали се – 1 общински съветник“
+    const vm = vote.match(/За\s*[–:-]?\s*(\d+|няма)[\s\S]{0,80}?Против\s*[–:-]?\s*(\d+|няма)[\s\S]{0,80}?Въздърж\S*(?:\s+се)?\s*[–:-]?\s*(\d+|няма)/i);
+    const nv = (x) => (/^\d+$/.test(x) ? +x : 0);
     out.push({ number: parts[i], date, url, title: title.slice(0, 400), session: pm ? pm[1] : "", rapporteur: null,
-      tally: vm ? { for: +vm[1], against: +vm[2], abstain: +vm[3], method: /поименно/i.test(vote) ? "named" : "open" } : null,
+      tally: vm ? { for: nv(vm[1]), against: nv(vm[2]), abstain: nv(vm[3]), method: /поименно/i.test(vote) ? "named" : "open" } : null,
       result: /^\s*(1\.\s*)?(не\s+(приема|одобрява|дава)|отхвърля)/i.test(body) ? "rejected" : "adopted",
       tags: TAGS.filter(([, re]) => re.test(title + " " + body.slice(0, 300))).map(([k]) => k).slice(0, 2),
       text: body.length > 900 ? body.slice(0, 900).replace(/\s+\S*$/, "") + " …" : body });

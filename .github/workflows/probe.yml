@@ -6,14 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1; pip install -q python-docx >/dev/null 2>&1
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" https://obs.pleven.bg/uploads/posts/protokol-511.docx -o p.docx; python3 -c "import docx;print('\n'.join(p.text for p in docx.Document('p.docx').paragraphs))" > p.txt
-          curl -sL -A "$UA" https://obs.sliven.bg/uploads/237F5058B303AE3A8D406EC39B8C7B71 -o s.pdf; file -b s.pdf; pdftotext -layout s.pdf s.txt
-          for f in p.txt s.txt; do python3 -c "
-          import re,sys;t=open('$f').read();print('##','$f',len(t))
-          ms=[m.start() for m in re.finditer(r'(?i)РЕШИ|гласувал',t)]
-          print('N',len(ms))
-          for i in ms[4:6]: print('>>>',re.sub(r'[ \t]+',' ',t[max(0,i-900):i+300]))
-          "; done
+          git fetch -q origin main && git checkout -q origin/main -- data/council/SLV20.json
+          DEBUG=1 ONLY=SLV20 MINUTES=6 node scripts/enrich-council-votes.mjs
+          python3 -c "
+          import json;d=json.load(open('data/council/SLV20.json'))
+          xs=[x for x in d['decisions'] if x.get('votes')]
+          print('VOTES',len(xs))
+          for x in xs[:2]: print(x['number'],x['tally'],len(x['votes']),x['votes'][:3])"
