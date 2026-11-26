@@ -8,5 +8,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
-      - run: sudo apt-get install -y -qq poppler-utils antiword >/dev/null 2>&1
-      - run: node probe/probe-tally.mjs
+      - run: sudo apt-get install -y -qq poppler-utils antiword tesseract-ocr-bul p7zip-full >/dev/null 2>&1
+      - run: |
+          for c in JAM25 KRZ15 VAR16 VTR28; do rm -f data/council/$c.json; ONLY=$c MINUTES=2 node scripts/import-council-sites.mjs >/dev/null 2>&1; python3 -c "
+          import json;d=json.load(open('data/council/$c.json'));ds=d['decisions']
+          print('X','$c',len(ds),sum(1 for x in ds if x.get('tally')),sum(1 for x in ds if x.get('votes')))
+          for x in ds[:2]: print('   ',x['number'],x.get('tally'))" 2>&1 | tail -3; done
