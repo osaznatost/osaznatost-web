@@ -131,6 +131,26 @@ export async function RiskPanel({ codes, f, scope }: { codes: string[]; f: Place
     }
   }
 
+  // Гласувал(а) за решение, в което се споменава фирма, свързана с него/нея (по Търговския регистър).
+  for (const L of locals) {
+    const links = await data<Record<string, { name: string; firms: { eik: string; name: string; mine: { to?: string | null }[] }[]; co: { n: string; firms: { eik: string; name: string }[] }[] }>>(`tr-links/${L.code}.json`);
+    if (!links || !L.resolutions?.length) continue;
+    const key = (n: string) => { const w = n.toUpperCase().replace(/[^А-ЯЁA-Z\s-]/g, "").split(/\s+/).filter(Boolean); return `${w[0]} ${w.at(-1)}`; };
+    const core = (f: string) => normFirm(f).replace(/^(ЕТ|СД|КД)\s+/, "");
+    for (const [slug, p] of Object.entries(links)) {
+      const firms = [...p.firms.map((f) => ({ n: core(f.name), how: "негова/нейна фирма" })), ...p.co.flatMap((c) => c.firms.map((f) => ({ n: core(f.name), how: `фирма на съдружника му/ѝ ${tc(c.n)}` })))].filter((f) => f.n.replace(/\s/g, "").length >= 5);
+      if (!firms.length) continue;
+      const me = key(p.name);
+      for (const r of L.resolutions) {
+        const v = r.votes.find(([n]) => key(n) === me);
+        if (!v || v[1] !== "for") continue;
+        const hay = normFirm(`${r.title} ${r.text ?? ""}`);
+        const hit = firms.find((f) => new RegExp(`(^|\\s)${f.n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`).test(hay));
+        if (hit) sigs.push({ level: "high", title: `${tc(p.name)} е гласувал(а) „за“ решение, в което се споменава свързана с него/нея фирма`, body: <>Решение № {r.number} от {r.date.split("-").reverse().join(".")}: {r.title.slice(0, 160)} · <b>{hit.n}</b> ({hit.how}). {r.url && <a href={r.url} target="_blank" rel="noreferrer">Източник</a>} · <Link href={personHref(slug)}>Профил</Link></> });
+      }
+    }
+  }
+
   // 6. Одити на Сметната палата и АДФИ, в които се споменава общината
   const audits = (await Promise.all(codes.map((c) => auditsOfMuni(c).catch(() => [])))).flat();
   if (audits.length) sigs.push({ level: "mid", title: `${audits.length} одитни доклада за ${one ? "общината" : "общини в областта"}`, body: <ul className="mt-1 space-y-0.5">{audits.slice(0, 4).map((a) => <li key={a.id}><a href={a.url} target="_blank" rel="noreferrer">{a.title.slice(0, 120)}</a> ({a.year})</li>)}</ul> });
