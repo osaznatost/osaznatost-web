@@ -38,13 +38,13 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         # Пълен преглед на таблицата: веднъж на ден (първото пускане след полунощ UTC), за да пазим дисковия бюджет на базата.
-        run: if [ "$(date -u +%H)" -lt 3 ] || [ "${{ github.event_name }}" = push ]; then node scripts/build-buyers.mjs; else echo "Възложителите се преглеждат веднъж на ден"; fi
+        run: if [ "$(date -u +%H)" -lt 3 ] || [ "${{ github.event_name }}" = push ]; then node scripts/build-buyers.mjs && node scripts/build-place-suppliers.mjs; else echo "Възложителите се преглеждат веднъж на ден"; fi
       - name: Запис на промените
         if: always()
         run: |
           git config user.name "osaznatost-bot"
           git config user.email "osaznatost-bot@users.noreply.github.com"
-          git add data/changes/proc.json 2>/dev/null || exit 0
+          git add data/changes/proc.json data/proc/place-suppliers 2>/dev/null || true
           if git diff --cached --quiet; then exit 0; fi
           git commit -m "Поръчки: какво се промени"
           for i in 1 2 3; do git push && break; git pull --rebase -X theirs -q origin main; done

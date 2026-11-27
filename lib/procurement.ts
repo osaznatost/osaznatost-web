@@ -1,5 +1,6 @@
 import { HOUR, memo } from "@/lib/memo";
 import { kvCached } from "@/lib/kvcache";
+import { data } from "@/lib/data";
 import links from "@/data/political-links.json";
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
 
@@ -134,8 +135,11 @@ export const fmtEur = (n: number | null | undefined) =>
 export const fmtDate = (d: string | null | undefined) =>
   d ? new Date(d).toLocaleDateString("bg-BG", { day: "numeric", month: "long", year: "numeric" }) : "—";
 /** Всички изпълнители на възложители от общината (за проверка на конфликт на интереси). */
-export const placeSuppliersAll = (code: string) =>
-  q<{ eik: string; name: string; contracts: number; total_eur: number | null }>(`proc_place_suppliers?municipality_code=eq.${code}&order=total_eur.desc.nullslast&limit=2000`);
+// Първо от готовия файл (сборът се прави веднъж на ден, scripts/build-place-suppliers.mjs); изгледът в базата е бавен за големите общини.
+type PlaceSupplier = { eik: string; name: string; contracts: number; total_eur: number | null };
+export const placeSuppliersAll = async (code: string): Promise<PlaceSupplier[]> =>
+  (await data<PlaceSupplier[]>(`proc/place-suppliers/${code}.json`))?.slice(0, 2000) ??
+  q<PlaceSupplier>(`proc_place_suppliers?municipality_code=eq.${code}&order=total_eur.desc.nullslast&limit=2000`);
 /** Всички договори и анекси на възложителите в една община от дадена дата (за „Проекти“). */
 export const muniContracts = (code: string, since: string) =>
   q<Contract>(`proc_contracts_geo?municipality_code=eq.${code}&contract_date=gte.${since}&order=contract_date.desc&limit=2000`);
