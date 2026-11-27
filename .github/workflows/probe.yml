@@ -9,5 +9,5 @@ jobs:
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
           curl -sL -A "$UA" -m 60 https://obs.kazanlak.bg/ -o p.html -w "GET %{http_code} %{size_download} %{url_effective}\n"
           grep -c "One moment" p.html | sed 's/^/CH /'
-          grep -oE 'href="[^"]+"' p.html | sed 's/href=//' | sort -u | grep -iE 'normativ|reshen|protokol|akt|zased' | head -40 | sed 's/^/L /'
+          grep -oE '<a [^>]*href="[^"]+"[^>]*>[^<]{0,60}' p.html | grep -iE 'Решения|Протоколи' | sed 's/^/L /'
           grep -oiE '>[^<]{0,40}(Решения|Протоколи|Нормативни)[^<]{0,40}<' p.html | head -20 | sed 's/^/T /'
