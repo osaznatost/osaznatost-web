@@ -1,20 +1,23 @@
 name: Проба
 on:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - name: Supabase
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Сбор
         env:
-          U: ${{ secrets.SUPABASE_URL }}
-          K: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: node scripts/build-place-suppliers.mjs && ls data/proc/place-suppliers | wc -l && ls -la data/proc/place-suppliers/BGS04.json data/proc/place-suppliers/SFO07.json
+      - name: Запис
         run: |
-          S=$(date -d '3 years ago' +%F)
-          for q in "proc_place_suppliers?municipality_code=eq.BGS04&order=total_eur.desc.nullslast&limit=2000" \
-                   "proc_contracts_geo?contract_date=gte.$S&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20&municipality_code=eq.BGS04" \
-                   "proc_annexes_geo?published_at=gte.$S&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20&municipality_code=eq.BGS04" \
-                   "proc_contracts_geo?municipality_code=eq.BGS04&contract_date=gte.$S&order=contract_date.desc&limit=2000" \
-                   "proc_contracts_geo?select=contract_date,contract_value_eur,supplier_eiks,supplier_names&municipality_code=eq.BGS04&contract_date=gte.$S&contract_value_eur=gte.30000&order=contract_date.desc&limit=2000"; do
-            curl -s -m 60 -o r.json -w "SB %{http_code} %{time_total}s %{size_download}B ${q:0:50}\n" -H "apikey: $K" "$U/rest/v1/$q"; head -c 160 r.json | grep -i "message\|code" | sed 's/^/   /'
-          done
+          git config user.name "osaznatost-bot"; git config user.email "osaznatost-bot@users.noreply.github.com"
+          git add data/proc/place-suppliers && git commit -qm "Изпълнители по община (първо пълнене)" && for i in 1 2 3; do git push origin HEAD:main && break; git pull --rebase -q origin main; done
