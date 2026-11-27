@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import Link from "next/link";
 import { connection } from "next/server";
 import { auditsOfMuni } from "@/lib/audits";
@@ -23,6 +24,7 @@ const since = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 3); 
 export async function RiskPanel(props: { codes: string[]; f: PlaceFilter; scope: string }) {
   // Грешка в сигналите не бива да спира цялата страница.
   try { return await RiskPanelInner(props); } catch (e) {
+    unstable_rethrow(e); // вътрешните сигнали на Next (динамична страница и т.н.) не са грешки
     console.error("RiskPanel", e);
     return <section className="ring-2 ring-red rounded-sm bg-white p-4 mb-12 text-[15px]"><p className="text-sm font-semibold text-red">Сигнали за риск · {props.scope}</p><p>Проверката не успя да се зареди. Опитайте след малко.</p><span hidden data-osz-partial="1" /></section>;
   }

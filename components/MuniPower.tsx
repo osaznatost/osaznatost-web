@@ -181,7 +181,7 @@ export async function MuniPower({ code }: { code: string }) {
               <p className="text-[15px] bg-surface rounded-sm p-4 max-w-3xl">За тази община още не четем протоколите на съвета. Засега ги имаме за {Object.values(IX.munis).filter((x) => x.resolutions).length} общини. Протоколите на общината се публикуват на сайта на общинския съвет, обикновено като PDF.</p>
             ) : (
               <>
-                <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">{res.length} решения{res.some((r) => r.text) ? ` от ${res.at(-1)?.date.slice(0, 4)} г. насам, прочетени директно от сайта на общинския съвет` : " от последните заседания"}. Показваме първо спорните: с гласове против или много въздържали се.</p>
+                <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">{res.length} решения{res.some((r) => r.text) ? ` от ${res.at(-1)?.date?.slice(0, 4)} г. насам, прочетени директно от сайта на общинския съвет` : " от последните заседания"}. Показваме първо спорните: с гласове против или много въздържали се.</p>
                 {res.some((r) => r.rapporteur) && <CouncilSummary res={res} />}
                 {stats.length > 0 && (
                   <details className="mb-6" open>
