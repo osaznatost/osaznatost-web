@@ -9,5 +9,6 @@ jobs:
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
           for u in https://obs-silistra.com/mandat-2023-2027/zasedaniya/resheniya/ https://obs-silistra.com/mandat-2023-2027/zasedaniya/protokoli/; do
             curl -sL -A "$UA" -m 60 "$u" -o p.html -w "GET %{http_code} %{size_download} $u\n"
-            sed 's/<[^>]*>/ /g' p.html | tr -s ' \n' | head -c 1500 | sed 's/^/T /'; echo; grep -oE '(src|action)="[^"]*"' p.html | head -20 | sed 's/^/S /'
+            grep -oE 'href="[^"]+"' p.html | sed 's/href=//' | sort -u | grep -iE 'upload|zasedan|reshen|protokol|\.(pdf|docx?)' | grep -viE '\.(png|jpg|jpeg)' | head -60 | sed 's/^/L /'; echo "N $(grep -oiE 'href="[^"]+\.(pdf|docx?)"' p.html | wc -l)"
+            grep -oiE 'Решени[ея][^<]{0,80}' p.html | head -8 | sed 's/^/R /'
           done
