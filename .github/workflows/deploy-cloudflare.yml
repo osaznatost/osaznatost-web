@@ -58,17 +58,3 @@ jobs:
           node -e 'const k=["SITE_PASSWORD","SUPABASE_SECRET_KEY","NEXT_PUBLIC_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY","VOTE_PEPPER","RESEND_API_KEY","EMAIL_FROM","GH_DISPATCH_TOKEN"];const o={};for(const x of k)if(process.env[x])o[x]=process.env[x];require("fs").writeFileSync(process.env.RUNNER_TEMP+"/s.json",JSON.stringify(o))'
           npx wrangler secret bulk "$RUNNER_TEMP/s.json"
           rm -f "$RUNNER_TEMP/s.json"
-      - name: Затопляне на кеша (областите и общините се отварят веднага)
-        continue-on-error: true
-        timeout-minutes: 20
-        env:
-          PW: ${{ secrets.SITE_PASSWORD }}
-        run: |
-          sleep 20
-          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
-          B=https://osaznatost.pavlin140.workers.dev
-          curl -s -m 60 -H "Cookie: osz_auth=$H" "$B/sitemap.xml" | grep -o '<loc>[^<]*</loc>' | sed 's/<\/\?loc>//g' | sed "s#^https\?://[^/]*##" \
-            | grep -E '^/($|vlast$|porachki$|mesta(/[a-z]{3}(/[a-z]{3}[0-9]{2})?)?$)' | sort -u > paths.txt
-          echo "страници: $(wc -l < paths.txt)"
-          < paths.txt xargs -P 2 -I{} sh -c 'curl -s -m 60 -o /dev/null -w "%{http_code} %{time_total} {}\n" -H "Cookie: osz_auth='"$H"'" "'"$B"'{}"' | awk '{n++; if($1!=200)bad++; t+=$2} END {print n" затоплени, неуспешни: "bad+0", средно "t/n"s"}'
-          < paths.txt xargs -P 2 -I{} sh -c 'curl -s -m 60 -o /dev/null -w "%{http_code} %{time_total} {}\n" -H "Cookie: osz_auth='"$H"'" "'"$B"'{}"' | awk '{n++; if($1!=200)bad++; t+=$2} END {print n" при втори опит (непълните се допълват), неуспешни: "bad+0", средно "t/n"s"}'

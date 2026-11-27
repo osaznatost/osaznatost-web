@@ -25,6 +25,6 @@ async function worker() {
     } catch (e) { stats.bad.push(`ERR ${u} ${e.message}`); }
   }
 }
-await Promise.all(Array.from({ length: 6 }, worker));
+await Promise.all(Array.from({ length: Number(process.env.WORKERS ?? 2) }, worker));
 console.log(`Загряване: ${stats.ok} OK, ${stats.slow} бавни, ${stats.bad.length} грешки, неминати ${urls.length}`);
 for (const b of stats.bad.slice(0, 40)) console.log(" ", b);
