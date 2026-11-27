@@ -6,8 +6,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
+          sudo apt-get install -y -q antiword poppler-utils >/dev/null 2>&1
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in /r-6-1.html /cat-92.html; do
+          for u in /page-9520.html /page-9495.html; do
             curl -sL -A "$UA" -m 60 "https://obs.kazanlak.bg$u" -o p.html -w "GET %{http_code} %{size_download} $u\n"
-            grep -oE '<a [^>]*href="[^"]+"[^>]*>[^<]{0,90}' p.html | sed 's/<a [^>]*href="\([^"]*\)"[^>]*>/\1 | /' | grep -vE '^(#|javascript)|\.(css|js|png|jpg)' | awk 'NR>25' | head -45 | sed 's/^/L /'
+            python3 - <<'PY'
+          import re,html
+          s=open('p.html',encoding='utf-8',errors='ignore').read()
+          i=s.find('<h1'); 
+          body=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
+          t=html.unescape(re.sub(r'<[^>]+>',' ',body)); t=re.sub(r'\s+',' ',t)
+          k=t.find('Решение'); 
+          print('T', t[max(0,k-200):k+1500])
+          for m in re.findall(r'href="([^"]+\.(?:pdf|docx?|odt|rtf|zip))"', s, re.I)[:10]: print('F', m)
+          PY
           done
