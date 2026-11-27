@@ -21,4 +21,4 @@ jobs:
       - run: node scripts/cf-warm.mjs
         env:
           SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
-          MINUTES: "0"  # временно спряно, докато базата се възстанови
+          MINUTES: "20"
