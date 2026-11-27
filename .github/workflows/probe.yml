@@ -16,7 +16,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: node scripts/build-place-suppliers.mjs && ls data/proc/place-suppliers | wc -l && ls -la data/proc/place-suppliers/BGS04.json data/proc/place-suppliers/SFO07.json
+        run: ONLY="VRC10 SML31 SOF46" node scripts/build-place-suppliers.mjs && ls -la data/proc/place-suppliers/SOF46.json data/proc/place-suppliers/VRC10.json
       - name: Запис
         run: |
           git config user.name "osaznatost-bot"; git config user.email "osaznatost-bot@users.noreply.github.com"
