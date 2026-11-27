@@ -70,4 +70,5 @@ jobs:
           curl -s -m 60 -H "Cookie: osz_auth=$H" "$B/sitemap.xml" | grep -o '<loc>[^<]*</loc>' | sed 's/<\/\?loc>//g' | sed "s#^https\?://[^/]*##" \
             | grep -E '^/($|vlast$|porachki$|mesta(/[a-z]{3}(/[a-z]{3}[0-9]{2})?)?$)' | sort -u > paths.txt
           echo "страници: $(wc -l < paths.txt)"
-          < paths.txt xargs -P 6 -I{} sh -c 'curl -s -m 60 -o /dev/null -w "%{http_code} %{time_total} {}\n" -H "Cookie: osz_auth='"$H"'" "'"$B"'{}"' | awk '{n++; if($1!=200)bad++; t+=$2} END {print n" затоплени, неуспешни: "bad+0", средно "t/n"s"}'
+          < paths.txt xargs -P 2 -I{} sh -c 'curl -s -m 60 -o /dev/null -w "%{http_code} %{time_total} {}\n" -H "Cookie: osz_auth='"$H"'" "'"$B"'{}"' | awk '{n++; if($1!=200)bad++; t+=$2} END {print n" затоплени, неуспешни: "bad+0", средно "t/n"s"}'
+          < paths.txt xargs -P 2 -I{} sh -c 'curl -s -m 60 -o /dev/null -w "%{http_code} %{time_total} {}\n" -H "Cookie: osz_auth='"$H"'" "'"$B"'{}"' | awk '{n++; if($1!=200)bad++; t+=$2} END {print n" при втори опит (непълните се допълват), неуспешни: "bad+0", средно "t/n"s"}'

@@ -18,19 +18,21 @@ const tc = (s: string) => s.toLowerCase().replace(/(^|[\s-])(\p{L})/gu, (_, a, b
 
 type Sig = { level: "high" | "mid"; title: string; body: React.ReactNode };
 
-const within = <T,>(p: Promise<T>, fallback: T, ms = 4000) => Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
 const since = () => { const d = new Date(); d.setFullYear(d.getFullYear() - 3); return d.toISOString().slice(0, 10); };
 
 export async function RiskPanel(props: { codes: string[]; f: PlaceFilter; scope: string }) {
   // Грешка в сигналите не бива да спира цялата страница.
   try { return await RiskPanelInner(props); } catch (e) {
     console.error("RiskPanel", e);
-    return <section className="ring-2 ring-red rounded-sm bg-white p-4 mb-12 text-[15px]"><p className="text-sm font-semibold text-red">Сигнали за риск · {props.scope}</p><p>Проверката не успя да се зареди. Опитайте след малко.</p></section>;
+    return <section className="ring-2 ring-red rounded-sm bg-white p-4 mb-12 text-[15px]"><p className="text-sm font-semibold text-red">Сигнали за риск · {props.scope}</p><p>Проверката не успя да се зареди. Опитайте след малко.</p><span hidden data-osz-partial="1" /></section>;
   }
 }
 
 async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFilter; scope: string }) {
   await connection();
+  // Ако някоя проверка не отговори навреме, отбелязваме страницата като непълна: тогава не се пази в кеша.
+  const part = { v: false };
+  const within = <T,>(p: Promise<T>, fallback: T, ms = 8000) => Promise.race([p, new Promise<T>((r) => setTimeout(() => { part.v = true; r(fallback); }, ms))]);
   const sigs: Sig[] = [];
   const IX = await localIndex();
   const one = codes.length === 1;
@@ -45,13 +47,13 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
 
   if (PROC_READY) {
     const [sup, single, annexes] = await within(Promise.all([
-      one ? placeSuppliersAll(codes[0]).catch(() => []) : Promise.resolve([] as Awaited<ReturnType<typeof placeSuppliersAll>>),
-      singleOfferBig(since(), f).catch(() => []),
-      biggestAnnexes(since(), f).catch(() => []),
-    ] as const), [[], [], []] as unknown as [Awaited<ReturnType<typeof placeSuppliersAll>>, Awaited<ReturnType<typeof singleOfferBig>>, Awaited<ReturnType<typeof biggestAnnexes>>], 6000);
+      one ? placeSuppliersAll(codes[0]).catch(() => { part.v = true; return []; }) : Promise.resolve([] as Awaited<ReturnType<typeof placeSuppliersAll>>),
+      singleOfferBig(since(), f).catch(() => { part.v = true; return []; }),
+      biggestAnnexes(since(), f).catch(() => { part.v = true; return []; }),
+    ] as const), [[], [], []] as unknown as [Awaited<ReturnType<typeof placeSuppliersAll>>, Awaited<ReturnType<typeof singleOfferBig>>, Awaited<ReturnType<typeof biggestAnnexes>>], 12000);
     // 2–3. Свързани лица по Търговския регистър (с историята): фирми на длъжностните лица и на техните
     // настоящи и бивши съдружници, които печелят поръчки тук; плюс декларациите и връзките с депутати.
-    const sups = one ? sup : (await Promise.all(codes.map((c) => placeSuppliersAll(c).catch(() => [])))).flat();
+    const sups = one ? sup : (await Promise.all(codes.map((c) => placeSuppliersAll(c).catch(() => { part.v = true; return []; })))).flat();
     if (sups.length) {
       const [TRP, TRH] = await Promise.all([trPeople(), trHitsMany(sups.map((x) => x.eik))]);
       const TR = { people: TRP, byEik: Object.fromEntries(TRH) as Record<string, TrHit[]> };
@@ -108,8 +110,8 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
       const [stats, tr, mc, shared] = await Promise.all([
         within(Promise.all(top.slice(0, 12).map((x) => supplierStats(x.eik).catch(() => null))), [] as (Awaited<ReturnType<typeof supplierStats>> | null)[]),
         within(trMany(top.map((x) => x.eik)), new Map()),
-        within(muniContracts(codes[0], since()).catch(() => []), []),
-        within(sharedPeople(top.map((x) => x.eik)).catch(() => []), []),
+        within(muniContracts(codes[0], since()).catch(() => { part.v = true; return []; }), []),
+        within(sharedPeople(top.map((x) => x.eik)).catch(() => { part.v = true; return []; }), []),
       ]);
       const dep = top.slice(0, 12).map((x, i) => ({ x, st: stats[i] })).filter(({ x, st }) => st && (st.total_eur ?? 0) >= 100000 && (x.total_eur ?? 0) / (st.total_eur ?? 1) >= 0.8);
       if (dep.length) sigs.push({ level: "mid", title: `${dep.length} фирм${dep.length > 1 ? "и" : "а"} живе${dep.length > 1 ? "ят" : "е"} почти само от поръчките на тази община`, body: <ul className="mt-1 space-y-0.5">{dep.slice(0, 6).map(({ x, st }) => <li key={x.eik}><Link href={firmUrl(x.eik)}>{x.name}</Link> – {Math.round((100 * (x.total_eur ?? 0)) / (st!.total_eur ?? 1))}% от всичките ѝ поръчки ({fmtEur(x.total_eur)} от {fmtEur(st!.total_eur)})</li>)}</ul> });
@@ -163,7 +165,7 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
   }
 
   // 6. Одити на Сметната палата и АДФИ, в които се споменава общината
-  const audits = (await Promise.all(codes.map((c) => auditsOfMuni(c).catch(() => [])))).flat();
+  const audits = (await Promise.all(codes.map((c) => auditsOfMuni(c).catch(() => { part.v = true; return []; })))).flat();
   if (audits.length) sigs.push({ level: "mid", title: `${audits.length} одитни доклада за ${one ? "общината" : "общини в областта"}`, body: <ul className="mt-1 space-y-0.5">{audits.slice(0, 4).map((a) => <li key={a.id}><a href={a.url} target="_blank" rel="noreferrer">{a.title.slice(0, 120)}</a> ({a.year})</li>)}</ul> });
 
   // 7. Решения на съвета, приети с гласове „против“
@@ -174,6 +176,7 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
   return (
     <section className="ring-2 ring-red rounded-sm bg-white p-4 md:p-5 mb-12">
       <p className="text-sm font-semibold text-red">Сигнали за риск · {scope}</p>
+      {part.v && <p className="text-sm text-muted mb-1" data-osz-partial="1">Част от проверките не отговориха навреме — презаредете след малко за пълния списък.</p>}
       <h2 className="display text-[1.6rem] leading-tight mb-1">{sigs.length ? `${sigs.length} сигнала${high ? `, ${high} сериозни` : ""}` : "Няма автоматично открити сигнали"}</h2>
       <p className="text-sm text-muted mb-3 max-w-3xl">Свързани лица и фирми по Търговския регистър (и бивши съдружници), конфликт на интереси, поръчки с една оферта, оскъпяване с анекси, одити, санкции и присъди. Сигналът е повод за въпрос, не доказателство за нарушение. <Link href="/metodologiya">Как ги откриваме</Link></p>
       {sigs.length > 0 && (

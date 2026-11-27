@@ -79,7 +79,7 @@ export default {
     if (res.status !== 200 || res.headers.has("set-cookie") || !/text\/html|text\/x-component/.test(type) || !res.body) return res;
     const [a, b] = res.body.tee();
     const keep: [string, string][] = [...res.headers].filter(([k]) => !/^(set-cookie|content-length|content-encoding|transfer-encoding|x-osz-cache)$/i.test(k));
-    ctx.waitUntil(new Response(b).arrayBuffer().then((buf) => (buf.byteLength < 20e6 ? kv.put(key, buf, { expirationTtl: TTL, metadata: { s: 200, h: keep } }) : undefined)).catch(() => {}));
+    ctx.waitUntil(new Response(b).arrayBuffer().then((buf) => (buf.byteLength < 20e6 && !new TextDecoder().decode(buf).includes("osz-partial") ? kv.put(key, buf, { expirationTtl: TTL, metadata: { s: 200, h: keep } }) : undefined)).catch(() => {}));
     const out = new Response(a, res);
     out.headers.set("x-osz-cache", "miss");
     return out;
