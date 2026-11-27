@@ -27,6 +27,17 @@ const SRC = {
     direct: true,
     base: "https://obs.sliven.bg",
   },
+  SZR12: {
+    // „Протоколи от проведени заседания на ОбС“ → страница page-N.html → PDF; поименният списък е точно преди реда „№964“.
+    named: true,
+    bareNo: true,
+    noLayout: true, // в режим „layout“ поименният списък излиза на две колони
+    index: (p) => (p > 12 ? null : p ? `https://obs.kazanlak.bg/index.php?p=c&r=92&page=${p + 1}` : "https://obs.kazanlak.bg/cat-92.html"),
+    session: /href="\/?(page-\d{4}\.html)"()()/gi,
+    file: /href="([^"]*common\/docs\/[^"]*[Pp]rotokol[^"]*\.pdf)"/,
+    strictFile: true,
+    base: "https://obs.kazanlak.bg/",
+  },
   VAR06: {
     // Отделен PDF „Електронно гласуване“ за всяко заседание: всяко гласуване с „Гласуване на Решение № N-…“ и поименния списък.
     evote: true,
@@ -38,9 +49,10 @@ const SRC = {
 };
 
 /** Сливен: в протокола поименният списък („12. ИМЕ ФАМИЛИЯ: За“) е точно преди „РЕШЕНИЕ № N“. */
-export function parseNamedBefore(raw) {
+export function parseNamedBefore(raw, bareNo = false) {
   const t = raw.replace(/\r/g, "").replace(/\f/g, "\n");
-  const parts = t.split(/\n\s*РЕШЕНИЕ\s*\n?\s*№\s*(\d+)/);
+  // Казанлък: номерът е сам на ред („№964“), без думата „РЕШЕНИЕ“
+  const parts = t.split(bareNo ? /\n\s*(?:РЕШЕНИЕ\s*\n?\s*)?№\s*(\d{2,5})\s*(?=\n)/ : /\n\s*РЕШЕНИЕ\s*\n?\s*№\s*(\d+)/);
   const out = new Map();
   for (let i = 1; i < parts.length; i += 2) {
     const before = parts[i - 1].slice(-6000);
@@ -154,7 +166,7 @@ async function get(u, bin = false) {
   }
   return null;
 }
-const pdfText = (buf) => { writeFileSync("/tmp/v.pdf", buf); try { return execFileSync("pdftotext", ["-layout", "/tmp/v.pdf", "-"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
+const pdfText = (buf, layout = true) => { writeFileSync("/tmp/v.pdf", buf); try { return execFileSync("pdftotext", [...(layout ? ["-layout"] : []), "/tmp/v.pdf", "-"], { maxBuffer: 1 << 28, stdio: ["ignore", "pipe", "ignore"] }).toString(); } catch { return ""; } };
 /** Текст от PDF, DOC, DOCX или HTML (по първите байтове). */
 function docText(buf) {
   const k = buf.slice(0, 5).toString();
@@ -259,14 +271,14 @@ for (const [code, S] of Object.entries(SRC)) {
     const dec = S.named ? C.decisions : S.evote ? C.decisions.filter((d) => d.session === s.n || d.date === s.date.split(".").reverse().join("-")) : C.decisions.filter((d) => d.session === s.n || d.number.startsWith(`${s.n}-`));
     if (!dec.length) continue;
     const page = S.direct ? "" : await get(s.url);
-    const fu = S.direct ? s.url : page?.match(S.file)?.[1] ?? page?.match(/href="([^"]*\.pdf)"/i)?.[1];
+    const fu = S.direct ? s.url : page?.match(S.file)?.[1] ?? (S.strictFile ? null : page?.match(/href="([^"]*\.pdf)"/i)?.[1]);
     if (process.env.DEBUG) console.log("DBG", s.n, dec.length, fu, page?.length);
     if (!fu) { C.votesFrom[s.url] = 0; continue; }
     const buf = await get(new URL(fu, S.base).href, true);
     if (!buf) continue;
     let k = 0, blocks = [];
     if (S.evote || S.named) {
-      const ev = S.named ? parseNamedBefore(pdfText(buf)) : parseEvote(pdfText(buf));
+      const ev = S.named ? parseNamedBefore(pdfText(buf, !S.noLayout), S.bareNo) : parseEvote(pdfText(buf));
       blocks = [...ev.values()];
       for (const d of dec) { const v = ev.get(String(d.number).match(/^\d+/)?.[0]); if (v) { d.tally = { for: v.for, against: v.against, abstain: v.abstain, method: v.method }; if (v.votes.length) d.votes = v.votes; k++; } }
     } else {
