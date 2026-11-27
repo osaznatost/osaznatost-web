@@ -9,5 +9,5 @@ jobs:
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
           for u in https://obs-silistra.com/mandat-2023-2027/zasedaniya/resheniya/ https://obs-silistra.com/mandat-2023-2027/zasedaniya/protokoli/; do
             curl -sL -A "$UA" -m 60 "$u" -o p.html -w "GET %{http_code} %{size_download} $u\n"
-            grep -o 'href="[^"]*"' p.html | sed 's/href=//' | sort -u | grep -viE "\.(css|js|png|jpg|svg|woff)|wp-json|xmlrpc|feed" | head -80 | sed 's/^/L /'
+            sed 's/<[^>]*>/ /g' p.html | tr -s ' \n' | head -c 1500 | sed 's/^/T /'; echo; grep -oE '(src|action)="[^"]*"' p.html | head -20 | sed 's/^/S /'
           done
