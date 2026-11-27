@@ -7,7 +7,7 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" -m 60 https://obs.kazanlak.bg/ -o p.html -w "GET %{http_code} %{size_download} %{url_effective}\n"
-          grep -c "One moment" p.html | sed 's/^/CH /'
-          grep -oE '<a [^>]*href="[^"]+"[^>]*>[^<]{0,60}' p.html | grep -iE 'Решения|Протоколи' | sed 's/^/L /'
-          grep -oiE '>[^<]{0,40}(Решения|Протоколи|Нормативни)[^<]{0,40}<' p.html | head -20 | sed 's/^/T /'
+          for u in /r-6-1.html /cat-92.html; do
+            curl -sL -A "$UA" -m 60 "https://obs.kazanlak.bg$u" -o p.html -w "GET %{http_code} %{size_download} $u\n"
+            grep -oE '<a [^>]*href="[^"]+"[^>]*>[^<]{0,90}' p.html | sed 's/<a [^>]*href="\([^"]*\)"[^>]*>/\1 | /' | grep -vE '^(#|javascript)|\.(css|js|png|jpg)' | awk 'NR>25' | head -45 | sed 's/^/L /'
+          done
