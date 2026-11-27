@@ -5,13 +5,16 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Страници на живо
+      - name: Supabase
         env:
-          PW: ${{ secrets.SITE_PASSWORD }}
+          U: ${{ secrets.SUPABASE_URL }}
+          K: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
-          B=https://osaznatost.pavlin140.workers.dev
-          for p in /mesta/sfo/sfo07 /mesta/sfo/sfo07 /mesta/bgs/bgs04 /mesta/sfo; do
-            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
-            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -c osz-partial p.html) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
+          S=$(date -d '3 years ago' +%F)
+          for q in "proc_place_suppliers?municipality_code=eq.BGS04&order=total_eur.desc.nullslast&limit=2000" \
+                   "proc_contracts_geo?contract_date=gte.$S&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20&municipality_code=eq.BGS04" \
+                   "proc_annexes_geo?published_at=gte.$S&value_difference_eur=gt.0&order=value_difference_eur.desc.nullslast&limit=20&municipality_code=eq.BGS04" \
+                   "proc_contracts_geo?municipality_code=eq.BGS04&contract_date=gte.$S&order=contract_date.desc&limit=2000" \
+                   "proc_contracts_geo?select=contract_date,contract_value_eur,supplier_eiks,supplier_names&municipality_code=eq.BGS04&contract_date=gte.$S&contract_value_eur=gte.30000&order=contract_date.desc&limit=2000"; do
+            curl -s -m 60 -o r.json -w "SB %{http_code} %{time_total}s %{size_download}B ${q:0:50}\n" -H "apikey: $K" "$U/rest/v1/$q"; head -c 160 r.json | grep -i "message\|code" | sed 's/^/   /'
           done
