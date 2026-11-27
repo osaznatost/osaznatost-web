@@ -56,6 +56,15 @@ export const contractAnnexes = (c: Contract) =>
 export const supplierContracts = (eik: string, limit = 200) =>
   q<Contract>(`proc_contracts?supplier_eiks=cs.{${eik}}&order=contract_date.desc.nullslast&limit=${limit}`);
 export const supplierAnnexes = (eik: string) => q<Annex>(`proc_annexes?supplier_eiks=cs.{${eik}}&order=published_at.desc&limit=100`);
+/** Брой договори и обща сума на фирмата в цялата страна — от готовите файлове (бързо), иначе от базата. */
+export async function supplierTotal(eik: string): Promise<{ contracts: number; total_eur: number } | null> {
+  const sh = await data<Record<string, [number, number]>>(`proc/supplier-totals/${eik.slice(0, 2).padEnd(2, "_")}.json`);
+  const x = sh?.[eik];
+  if (x) return { contracts: x[0], total_eur: x[1] };
+  if (sh) return null;
+  const s = await supplierStats(eik).catch(() => null);
+  return s ? { contracts: s.contracts, total_eur: s.total_eur ?? 0 } : null;
+}
 export const supplierStats = async (eik: string) => (await q<SupplierStats>(`proc_supplier_stats?eik=eq.${eik}`))[0];
 export const buyerContracts = (eik: string, limit = 200) =>
   q<Contract>(`proc_contracts?buyer_eik=eq.${eik}&order=contract_date.desc.nullslast&limit=${limit}`);

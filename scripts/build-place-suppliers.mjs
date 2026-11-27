@@ -55,6 +55,30 @@ async function one(code, eiks) {
 }
 
 const ONLY = process.env.ONLY?.trim() ? new Set(process.env.ONLY.split(/[ ,]+/)) : null;
-const queue = [...buyers.entries()].filter(([c]) => !ONLY || ONLY.has(c));
+const queue = process.env.TOTALS_ONLY ? [] : [...buyers.entries()].filter(([c]) => !ONLY || ONLY.has(c));
 await Promise.all(Array.from({ length: 3 }, async () => { while (queue.length) { const [c, e] = queue.shift(); try { await one(c, e); } catch (err) { console.log("грешка", c, err.message); } } }));
 console.log(`Готово: ${done} общини`);
+
+// Общо по фирма за цялата страна (за „зависима от един възложител“ в червеното каре), на дялове по първите 2 цифри на ЕИК.
+if (!process.env.ONLY) {
+  const tot = new Map();
+  let last = "", n = 0;
+  for (;;) {
+    const rows = await get(`proc_contracts?select=id,supplier_eiks,contract_value_eur${last ? `&id=gt.${encodeURIComponent(last)}` : ""}&order=id&limit=1000`);
+    for (const c of rows) for (const e of new Set(c.supplier_eiks ?? [])) {
+      if (!e) continue;
+      const x = tot.get(e) ?? [0, 0];
+      x[0]++; x[1] += c.contract_value_eur ?? 0;
+      tot.set(e, x);
+    }
+    n += rows.length;
+    if (rows.length < 1000) break;
+    last = rows.at(-1).id;
+  }
+  const D = "data/proc/supplier-totals";
+  mkdirSync(D, { recursive: true });
+  const shards = {};
+  for (const [e, [c, t]] of tot) ((shards[String(e).slice(0, 2).padEnd(2, "_")] ??= {})[e] = [c, Math.round(t)]);
+  for (const [k, v] of Object.entries(shards)) writeFileSync(`${D}/${k}.json`, JSON.stringify(v));
+  console.log(`Общо по фирма: ${tot.size} фирми от ${n} договора`);
+}

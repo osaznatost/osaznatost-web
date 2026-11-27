@@ -9,7 +9,7 @@ import { Network, type NetNode } from "@/components/Network";
 import { firmUrl, politicalLinks } from "@/lib/procurement";
 import { sanctionsFor } from "@/lib/sanctions";
 import { FUNDS, mpHref } from "@/lib/funds";
-import { contractFlags, personalLink, riskScore } from "@/lib/redFlags";
+import { contractContext, contractFlags, linkStrength, riskScore } from "@/lib/redFlags";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { TrBox } from "@/components/TrBox";
 import { FirmHistory, FirmOfficials, officialHref, officialLinks, viaText } from "@/components/PersonLinks";
@@ -58,11 +58,19 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
     ...pl.map((l, i) => ({ id: `l${i}`, label: l.who, sub: [l.kind === "mp" ? `депутат${l.party ? `, ${l.party}` : ""}` : l.position, l.roles.join(", ")].filter(Boolean).join(" · "), href: l.kind === "mp" && l.mpId ? mpHref(l.mpId, l.who) : localPage(l.who) ?? undefined, group: (sanctionsFor(l.who) ? "sanction" : "politician") as NetNode["group"] })),
   ];
   for (const [i, r] of offs.slice(0, 8).entries()) net.push({ id: `o${i}`, label: r.n, sub: `${r.r.toLowerCase()} · ${r.via ? `през ${r.via.toLowerCase().replace(/(^|\s)(\p{L})/gu, (_, a, b) => a + b.toUpperCase())}` : "пряко"}`, href: officialHref(r), group: "politician" });
-  const political = personalLink(eik);
-  const scored = await Promise.all(contracts.map(async (c) => {
+  // Същата сметка като на страницата на договора: връзки по Търговския регистър и контекст (зависимост, дял, общи хора).
+  // Контекстът е по-тежък, затова се смята за първите 20 договора по предварителна оценка.
+  const political = await linkStrength([eik]);
+  const pre = await Promise.all(contracts.map(async (c) => {
     const ax = annexes.filter((a) => a.buyer_eik === c.buyer_eik && a.contract_number === c.contract_number);
     const f = await contractFlags(c, ax, political);
-    return { c, f, score: riskScore(f) };
+    return { c, ax, f, score: riskScore(f) };
+  }));
+  const top = new Set([...pre].sort((a, b) => b.score - a.score).slice(0, 20));
+  const scored = await Promise.all(pre.map(async (x) => {
+    if (!top.has(x)) return { c: x.c, f: x.f, score: x.score };
+    const f = await contractFlags(x.c, x.ax, political, await contractContext(x.c));
+    return { c: x.c, f, score: riskScore(f) };
   }));
   const high = scored.filter((x) => x.score >= 45);
   const eu = FUNDS.mpConnected.filter((x) => x.eik === eik);

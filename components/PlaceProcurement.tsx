@@ -2,7 +2,6 @@ import { connection } from "next/server";
 // Обществените поръчки на едно място (страна, област, община, град или село). Ползва се от страницата на мястото
 // и от „Поръчки“, за да е една и съща информация навсякъде.
 import Link from "next/link";
-import { PolDot } from "@/components/proc";
 import { AnnexList, ContractList, NOT_READY } from "@/components/proc";
 import { findMunicipality, findOblast, findSettlement } from "@/lib/places";
 import {
@@ -10,6 +9,7 @@ import {
   placeMunicipalities, placeMunicipality, placeOblast, placeOblasts, placeSettlement, placeSettlements, placeSuppliers, singleOfferBig,
 } from "@/lib/procurement";
 import { placeHref } from "@/lib/regions";
+import { linkMap } from "@/lib/redFlags";
 
 const minus = (d: string, days: number) => new Date(Date.parse(d) - days * 864e5).toISOString().slice(0, 10);
 export const pctOf = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "—");
@@ -69,6 +69,7 @@ export async function PlaceProcurement({ f, showBreakdown = true }: { f: PlaceFi
     mu && !se ? placeSuppliers(mu.code) : Promise.resolve([]),
     biggestAnnexes(since, f), singleOfferBig(since, f), biggestContracts(since, f), latestContracts(f),
   ]);
+  const lk = await linkMap(suppliers.map((s) => s.eik));
   return (
     <>
       <p className="text-sm text-muted mb-4">{mu && !se ? <><a href={`/rss/obshtina/${mu.code}`} className="font-semibold">Абонирайте се за новите поръчки (RSS)</a> · </> : null}Договорите на възложители със седалище тук (общината, училищата, болниците, дружествата и др.). Данните са до {fmtDate(last)}, обновяват се на всеки 3 часа.</p>
@@ -96,12 +97,12 @@ export async function PlaceProcurement({ f, showBreakdown = true }: { f: PlaceFi
           <ul className="divide-y divide-rule border-y border-rule text-[15px]">
             {suppliers.map((s) => (
               <li key={s.eik} className="py-2 grid grid-cols-[1fr_auto] gap-3">
-                <span className="truncate"><Link href={firmUrl(s.eik)}>{s.name}</Link><PolDot eik={s.eik} /></span>
+                <span className="truncate"><Link href={firmUrl(s.eik)}>{s.name}</Link>{lk.get(s.eik) === 2 ? <span title="Фирма на длъжностно лице или депутат, или в декларация" className="text-red font-bold"> ●</span> : lk.get(s.eik) === 1 ? <span title="Връзка през бивш или настоящ съдружник, или съименник — проверете" className="text-[#e08a2e] font-bold"> ●</span> : null}</span>
                 <span className="num whitespace-nowrap">{s.contracts} дог. · {fmtEur(s.total_eur)}</span>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-muted mt-2">● Връзка с депутат или длъжностно лице по Търговския регистър.</p>
+          <p className="text-xs text-muted mt-2"><span className="text-red">●</span> фирма на длъжностно лице или депутат · <span className="text-[#e08a2e]">●</span> връзка през съдружник (бивш или настоящ) или съименник — по Търговския регистър.</p>
         </More>
       )}
       <More title={`Най-голямо оскъпяване с анекси, последните 90 дни (${annexes.length})`}>

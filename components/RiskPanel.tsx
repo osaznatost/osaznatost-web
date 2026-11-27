@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { auditsOfMuni } from "@/lib/audits";
 import { localData, localIndex, normFirm, personHref } from "@/lib/local";
 import {
-  PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, muniContractsLite, placeSuppliersAll, politicalLinks, singleOfferBig, supplierStats,
+  PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, muniContractsLite, supplierTotal, placeSuppliersAll, politicalLinks, singleOfferBig,
 } from "@/lib/procurement";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { data } from "@/lib/data";
@@ -108,7 +108,7 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
       if (lead && T >= 1e6 && (lead.total_eur ?? 0) / T >= 0.2) sigs.push({ level: (lead.total_eur ?? 0) / T >= 0.35 ? "high" : "mid", title: `Една фирма взима ${Math.round((100 * (lead.total_eur ?? 0)) / T)}% от парите по поръчките тук`, body: <><Link href={firmUrl(lead.eik)}>{lead.name}</Link>: {lead.contracts} договора за {fmtEur(lead.total_eur)} от общо {fmtEur(T)}. Силната концентрация при един изпълнител е рисков фактор по методиката на ЕК.</> });
       // всичко с краен срок: ако базата е бавна, карето излиза без тези сигнали, а не спира страницата
       const [stats, tr, mc, shared] = await Promise.all([
-        within(Promise.all(top.slice(0, 12).map((x) => supplierStats(x.eik).catch(() => null))), [] as (Awaited<ReturnType<typeof supplierStats>> | null)[], 8000, "stats"),
+        within(Promise.all(top.slice(0, 12).map((x) => supplierTotal(x.eik).catch(() => null))), [] as (Awaited<ReturnType<typeof supplierTotal>> | null)[], 8000, "stats"),
         within(trMany(top.map((x) => x.eik)), new Map(), 8000, "tr"),
         within(muniContractsLite(codes[0], since()).catch(() => { part.v = true; part.why.push("mc!"); return []; }), [], 8000, "mc"),
         within(sharedPeople(top.map((x) => x.eik)).catch(() => { part.v = true; part.why.push("sh!"); return []; }), [], 8000, "shared"),

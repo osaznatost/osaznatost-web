@@ -1,7 +1,7 @@
 import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
 import { buyerContracts, politicalLinks, supplierContracts } from "@/lib/procurement";
-import { foundedDate, sharedPeople, trHitsMany, trMany } from "@/lib/tr";
+import { foundedDate, sharedPeople, trHitsMany, trMany, type TrHit } from "@/lib/tr";
 import { legalException } from "@/lib/legalException.mjs";
 
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
@@ -13,6 +13,11 @@ export const strongestLink = (eiks: string[]) => Math.max(0, ...eiks.map(persona
  *  лицето е вписано във фирмата → 2; фирмата е на негов бивш или настоящ съдружник → 1. */
 export async function linkStrength(eiks: string[]) {
   try { return await linkInner(eiks); } catch { return strongestLink(eiks); }
+}
+/** Силата на връзката за всяка фирма поотделно (2 = собствена или депутат/декларация, 1 = през съдружник или съименник). */
+export async function linkMap(eiks: string[]): Promise<Map<string, number>> {
+  const M = await trHitsMany(eiks).catch(() => new Map<string, TrHit[]>());
+  return new Map(eiks.map((e) => [e, Math.max(strongestLink([e]), ...((M.get(e) ?? M.get(e.slice(0, 9)) ?? []) as TrHit[]).map((h) => (h.k === "own" ? 2 : 1)), 0)]));
 }
 async function linkInner(eiks: string[]) {
   const M = await trHitsMany(eiks);
