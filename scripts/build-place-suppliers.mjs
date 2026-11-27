@@ -34,7 +34,7 @@ async function one(code, eiks) {
   const by = new Map();
   // по възложители на групи (индекс по buyer_eik), на страници по id
   for (let i = 0; i < eiks.length; i += 40) {
-    const inq = `buyer_eik=in.(${eiks.slice(i, i + 40).join(",")})`;
+    const inq = `buyer_eik=in.(${eiks.slice(i, i + 40).map((e) => encodeURIComponent(`"${String(e).replace(/"/g, '\\"')}"`)).join(",")})`;
     let last = "";
     for (;;) {
       const rows = await get(`proc_contracts?select=id,supplier_eiks,supplier_names,contract_value_eur&${inq}${last ? `&id=gt.${encodeURIComponent(last)}` : ""}&order=id&limit=1000`);
@@ -54,6 +54,7 @@ async function one(code, eiks) {
   if (++done % 25 === 0) console.log(`${done}/${buyers.size}`);
 }
 
-const queue = [...buyers.entries()];
+const ONLY = process.env.ONLY?.trim() ? new Set(process.env.ONLY.split(/[ ,]+/)) : null;
+const queue = [...buyers.entries()].filter(([c]) => !ONLY || ONLY.has(c));
 await Promise.all(Array.from({ length: 3 }, async () => { while (queue.length) { const [c, e] = queue.shift(); try { await one(c, e); } catch (err) { console.log("грешка", c, err.message); } } }));
 console.log(`Готово: ${done} общини`);
