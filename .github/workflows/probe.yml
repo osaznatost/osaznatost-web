@@ -5,10 +5,13 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" -m 60 -o p.odt -w "GET %{http_code} %{size_download} %{content_type}\n" https://obs-silistra.com/wp-content/uploads/2026/11/protokol_45-29.10.2026.odt
-          file p.odt
-          unzip -p p.odt content.xml | sed 's#</text:p>#\n#g; s/<[^>]*>//g' > t.txt; wc -l t.txt
-          grep -n -i -m6 -B2 -A8 "гласувал\|„за“\|поименно" t.txt | head -70 | sed 's/^/T /'
-          grep -n -i -m5 "РЕШЕНИЕ №\|Решение №" t.txt | sed 's/^/R /'
+      - name: Страници на живо
+        env:
+          PW: ${{ secrets.SITE_PASSWORD }}
+        run: |
+          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
+          B=https://osaznatost.pavlin140.workers.dev
+          for p in /mesta/sls/sls31 /mesta/sfo/sfo07; do
+            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
+            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -o "data-osz-partial=.[^ ]\{0,30\}" p.html | head -1) dots=$(grep -o "Фирма на длъжностно лице или депутат, или в декларация" p.html | wc -l)/$(grep -o "Връзка през бивш или настоящ съдружник" p.html | wc -l) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
+          done
