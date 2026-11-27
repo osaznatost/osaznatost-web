@@ -7,9 +7,8 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://obs-silistra.com/mandat-2023-2027/zasedaniya/resheniya/ https://obs-silistra.com/mandat-2023-2027/zasedaniya/protokoli/; do
-            curl -sL -A "$UA" -m 60 "$u" -o p.html -w "GET %{http_code} %{size_download} $u\n"
-            grep -oE 'href="[^"]+"' p.html | sed 's/href=//' | sort -u | grep -iE 'upload|zasedan|reshen|protokol|\.(pdf|docx?)' | grep -viE '\.(png|jpg|jpeg)' | head -60 | sed 's/^/L /'; echo "N $(grep -oiE 'href="[^"]+\.(pdf|docx?)"' p.html | wc -l)"
-            [ $(wc -c < p.html) -lt 50000 ] && sed 's/<[^>]*>/ /g' p.html | tr -s ' \n' ' ' | grep -v "^ *$" | head -c 700 | sed 's/^/X /'; echo
-            grep -oiE 'Решени[ея][^<]{0,80}' p.html | head -8 | sed 's/^/R /'
-          done
+          curl -sL -A "$UA" -m 60 -o p.odt -w "GET %{http_code} %{size_download} %{content_type}\n" https://obs-silistra.com/wp-content/uploads/2026/11/protokol_45-29.10.2026.odt
+          file p.odt
+          unzip -p p.odt content.xml | sed 's#</text:p>#\n#g; s/<[^>]*>//g' > t.txt; wc -l t.txt
+          grep -n -i -m6 -B2 -A8 "гласувал\|„за“\|поименно" t.txt | head -70 | sed 's/^/T /'
+          grep -n -i -m5 "РЕШЕНИЕ №\|Решение №" t.txt | sed 's/^/R /'
