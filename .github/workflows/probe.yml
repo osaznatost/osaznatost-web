@@ -11,7 +11,7 @@ jobs:
         run: |
           H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
           B=https://osaznatost.pavlin140.workers.dev
-          for p in / /vlast /vlast/obshtinski-savet /mesta /mesta/sfo /mesta/sfo/sfo07 /mesta/bgs/bgs04 /lica/ivan-aleksandrov-gavalyugov-537220 /porachki; do
+          for p in /mesta/sfo/sfo07 /mesta/sfo/sfo07 /mesta/bgs/bgs04 /mesta/sfo; do
             s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
-            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) risk=$(grep -o 'Сигнали за риск[^<]\{0,60\}' p.html | head -1)"
+            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -c osz-partial p.html) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
           done
