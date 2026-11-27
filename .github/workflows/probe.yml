@@ -11,5 +11,7 @@ jobs:
           curl -sL -A "$UA" -m 120 "https://obs.kazanlak.bg/common/docs/2026-10/Protokol_67_sait.pdf" -o p.pdf -w "GET %{http_code} %{size_download}\n"
           pdfinfo p.pdf | grep -E "Pages|Producer" | sed 's/^/I /'
           pdftotext -layout p.pdf t.txt; wc -c t.txt | sed 's/^/I /'
-          grep -n -i -m3 -A14 "гласувал\|„за“\|поименно\|Резултат" t.txt | head -60 | sed 's/^/T /'
-          grep -n -m4 -B2 -A3 "Р Е Ш Е Н И Е\|РЕШЕНИЕ №\|Решение №" t.txt | head -30 | sed 's/^/R /'
+          sed -n '330,362p' t.txt | sed 's/^/T /'
+          grep -n -i "гласува явно\|явно гласуване\|с [0-9]* гласа" t.txt | head -8 | sed 's/^/O /'
+          grep -n -E "^\s*(Р Е Ш Е Н И Е\s*)?№\s*[0-9]{3,4}\s*$" t.txt | head -20 | sed 's/^/N /'
+          for u in "index.php?p=c&r=92&page=2" "index.php?p=c&r=92&page=4"; do curl -sL -A "$UA" "https://obs.kazanlak.bg/$u" | grep -oE 'href="page-[0-9]+\.html"[^>]*>[^<]{0,80}' | sed 's/^/P /' | head -30; done
