@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { auditsOfMuni } from "@/lib/audits";
 import { localData, localIndex, normFirm, personHref } from "@/lib/local";
 import {
-  PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, muniContracts, placeSuppliersAll, politicalLinks, singleOfferBig, supplierStats,
+  PROC_READY, type PlaceFilter, biggestAnnexes, contractRef, contractUrl, firmUrl, fmtEur, muniContractsLite, placeSuppliersAll, politicalLinks, singleOfferBig, supplierStats,
 } from "@/lib/procurement";
 import { casesFor, sanctionsFor } from "@/lib/sanctions";
 import { data } from "@/lib/data";
@@ -31,8 +31,8 @@ export async function RiskPanel(props: { codes: string[]; f: PlaceFilter; scope:
 async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFilter; scope: string }) {
   await connection();
   // Ако някоя проверка не отговори навреме, отбелязваме страницата като непълна: тогава не се пази в кеша.
-  const part = { v: false };
-  const within = <T,>(p: Promise<T>, fallback: T, ms = 8000) => Promise.race([p, new Promise<T>((r) => setTimeout(() => { part.v = true; r(fallback); }, ms))]);
+  const part = { v: false, why: [] as string[] };
+  const within = <T,>(p: Promise<T>, fallback: T, ms = 8000, tag = "?") => Promise.race([p, new Promise<T>((r) => setTimeout(() => { part.v = true; part.why.push(tag); r(fallback); }, ms))]);
   const sigs: Sig[] = [];
   const IX = await localIndex();
   const one = codes.length === 1;
@@ -47,13 +47,13 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
 
   if (PROC_READY) {
     const [sup, single, annexes] = await within(Promise.all([
-      one ? placeSuppliersAll(codes[0]).catch(() => { part.v = true; return []; }) : Promise.resolve([] as Awaited<ReturnType<typeof placeSuppliersAll>>),
-      singleOfferBig(since(), f).catch(() => { part.v = true; return []; }),
-      biggestAnnexes(since(), f).catch(() => { part.v = true; return []; }),
-    ] as const), [[], [], []] as unknown as [Awaited<ReturnType<typeof placeSuppliersAll>>, Awaited<ReturnType<typeof singleOfferBig>>, Awaited<ReturnType<typeof biggestAnnexes>>], 12000);
+      one ? placeSuppliersAll(codes[0]).catch(() => { part.v = true; part.why.push("err"); return []; }) : Promise.resolve([] as Awaited<ReturnType<typeof placeSuppliersAll>>),
+      singleOfferBig(since(), f).catch(() => { part.v = true; part.why.push("err"); return []; }),
+      biggestAnnexes(since(), f).catch(() => { part.v = true; part.why.push("err"); return []; }),
+    ] as const), [[], [], []] as unknown as [Awaited<ReturnType<typeof placeSuppliersAll>>, Awaited<ReturnType<typeof singleOfferBig>>, Awaited<ReturnType<typeof biggestAnnexes>>], 12000, "proc");
     // 2–3. Свързани лица по Търговския регистър (с историята): фирми на длъжностните лица и на техните
     // настоящи и бивши съдружници, които печелят поръчки тук; плюс декларациите и връзките с депутати.
-    const sups = one ? sup : (await Promise.all(codes.map((c) => placeSuppliersAll(c).catch(() => { part.v = true; return []; })))).flat();
+    const sups = one ? sup : (await Promise.all(codes.map((c) => placeSuppliersAll(c).catch(() => { part.v = true; part.why.push("err"); return []; })))).flat();
     if (sups.length) {
       const [TRP, TRH] = await Promise.all([trPeople(), trHitsMany(sups.map((x) => x.eik))]);
       const TR = { people: TRP, byEik: Object.fromEntries(TRH) as Record<string, TrHit[]> };
@@ -108,10 +108,10 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
       if (lead && T >= 1e6 && (lead.total_eur ?? 0) / T >= 0.2) sigs.push({ level: (lead.total_eur ?? 0) / T >= 0.35 ? "high" : "mid", title: `Една фирма взима ${Math.round((100 * (lead.total_eur ?? 0)) / T)}% от парите по поръчките тук`, body: <><Link href={firmUrl(lead.eik)}>{lead.name}</Link>: {lead.contracts} договора за {fmtEur(lead.total_eur)} от общо {fmtEur(T)}. Силната концентрация при един изпълнител е рисков фактор по методиката на ЕК.</> });
       // всичко с краен срок: ако базата е бавна, карето излиза без тези сигнали, а не спира страницата
       const [stats, tr, mc, shared] = await Promise.all([
-        within(Promise.all(top.slice(0, 12).map((x) => supplierStats(x.eik).catch(() => null))), [] as (Awaited<ReturnType<typeof supplierStats>> | null)[]),
-        within(trMany(top.map((x) => x.eik)), new Map()),
-        within(muniContracts(codes[0], since()).catch(() => { part.v = true; return []; }), []),
-        within(sharedPeople(top.map((x) => x.eik)).catch(() => { part.v = true; return []; }), []),
+        within(Promise.all(top.slice(0, 12).map((x) => supplierStats(x.eik).catch(() => null))), [] as (Awaited<ReturnType<typeof supplierStats>> | null)[], 8000, "stats"),
+        within(trMany(top.map((x) => x.eik)), new Map(), 8000, "tr"),
+        within(muniContractsLite(codes[0], since()).catch(() => { part.v = true; part.why.push("mc!"); return []; }), [], 8000, "mc"),
+        within(sharedPeople(top.map((x) => x.eik)).catch(() => { part.v = true; part.why.push("sh!"); return []; }), [], 8000, "shared"),
       ]);
       const dep = top.slice(0, 12).map((x, i) => ({ x, st: stats[i] })).filter(({ x, st }) => st && (st.total_eur ?? 0) >= 100000 && (x.total_eur ?? 0) / (st.total_eur ?? 1) >= 0.8);
       if (dep.length) sigs.push({ level: "mid", title: `${dep.length} фирм${dep.length > 1 ? "и" : "а"} живе${dep.length > 1 ? "ят" : "е"} почти само от поръчките на тази община`, body: <ul className="mt-1 space-y-0.5">{dep.slice(0, 6).map(({ x, st }) => <li key={x.eik}><Link href={firmUrl(x.eik)}>{x.name}</Link> – {Math.round((100 * (x.total_eur ?? 0)) / (st!.total_eur ?? 1))}% от всичките ѝ поръчки ({fmtEur(x.total_eur)} от {fmtEur(st!.total_eur)})</li>)}</ul> });
@@ -165,7 +165,7 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
   }
 
   // 6. Одити на Сметната палата и АДФИ, в които се споменава общината
-  const audits = (await Promise.all(codes.map((c) => auditsOfMuni(c).catch(() => { part.v = true; return []; })))).flat();
+  const audits = (await Promise.all(codes.map((c) => auditsOfMuni(c).catch(() => { part.v = true; part.why.push("err"); return []; })))).flat();
   if (audits.length) sigs.push({ level: "mid", title: `${audits.length} одитни доклада за ${one ? "общината" : "общини в областта"}`, body: <ul className="mt-1 space-y-0.5">{audits.slice(0, 4).map((a) => <li key={a.id}><a href={a.url} target="_blank" rel="noreferrer">{a.title.slice(0, 120)}</a> ({a.year})</li>)}</ul> });
 
   // 7. Решения на съвета, приети с гласове „против“
@@ -176,7 +176,7 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
   return (
     <section className="ring-2 ring-red rounded-sm bg-white p-4 md:p-5 mb-12">
       <p className="text-sm font-semibold text-red">Сигнали за риск · {scope}</p>
-      {part.v && <p className="text-sm text-muted mb-1" data-osz-partial="1">Част от проверките не отговориха навреме — презаредете след малко за пълния списък.</p>}
+      {part.v && <p className="text-sm text-muted mb-1" data-osz-partial={part.why.join(",") || "1"}>Част от проверките не отговориха навреме — презаредете след малко за пълния списък.</p>}
       <h2 className="display text-[1.6rem] leading-tight mb-1">{sigs.length ? `${sigs.length} сигнала${high ? `, ${high} сериозни` : ""}` : "Няма автоматично открити сигнали"}</h2>
       <p className="text-sm text-muted mb-3 max-w-3xl">Свързани лица и фирми по Търговския регистър (и бивши съдружници), конфликт на интереси, поръчки с една оферта, оскъпяване с анекси, одити, санкции и присъди. Сигналът е повод за въпрос, не доказателство за нарушение. <Link href="/metodologiya">Как ги откриваме</Link></p>
       {sigs.length > 0 && (

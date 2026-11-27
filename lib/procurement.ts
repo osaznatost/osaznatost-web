@@ -143,6 +143,9 @@ export const placeSuppliersAll = async (code: string): Promise<PlaceSupplier[]> 
 /** Всички договори и анекси на възложителите в една община от дадена дата (за „Проекти“). */
 export const muniContracts = (code: string, since: string) =>
   q<Contract>(`proc_contracts_geo?municipality_code=eq.${code}&contract_date=gte.${since}&order=contract_date.desc&limit=2000`);
+/** Само полетата за проверката „нова фирма“ (договори от 30 000 €): много по-малко данни за големите общини. */
+export const muniContractsLite = (code: string, since: string) =>
+  q<Pick<Contract, "contract_date" | "contract_value_eur" | "supplier_eiks" | "supplier_names">>(`proc_contracts_geo?select=contract_date,contract_value_eur,supplier_eiks,supplier_names&municipality_code=eq.${code}&contract_date=gte.${since}&contract_value_eur=gte.30000&order=contract_date.desc&limit=2000`);
 export const muniAnnexes = (code: string, since: string) =>
   q<Annex>(`proc_annexes_geo?municipality_code=eq.${code}&published_at=gte.${since}&order=published_at.desc&limit=2000`);
 /** Произволна заявка за четене (за търсенето). */
