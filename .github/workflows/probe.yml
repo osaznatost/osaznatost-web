@@ -5,13 +5,9 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Страници на живо
-        env:
-          PW: ${{ secrets.SITE_PASSWORD }}
-        run: |
-          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
-          B=https://osaznatost.pavlin140.workers.dev
-          for p in /mesta/sls/sls31 /mesta/sfo/sfo07; do
-            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
-            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -o "data-osz-partial=.[^ ]\{0,30\}" p.html | head -1) dots=$(grep -o "Фирма на длъжностно лице или депутат, или в декларация" p.html | wc -l)/$(grep -o "Връзка през бивш или настоящ съдружник" p.html | wc -l) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
-          done
+      - run: |
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          curl -sL -A "$UA" -m 60 https://obs.kazanlak.bg/ -o p.html -w "GET %{http_code} %{size_download} %{url_effective}\n"
+          grep -c "One moment" p.html | sed 's/^/CH /'
+          grep -oE 'href="[^"]+"' p.html | sed 's/href=//' | sort -u | grep -iE 'normativ|reshen|protokol|akt|zased' | head -40 | sed 's/^/L /'
+          grep -oiE '>[^<]{0,40}(Решения|Протоколи|Нормативни)[^<]{0,40}<' p.html | head -20 | sed 's/^/T /'
