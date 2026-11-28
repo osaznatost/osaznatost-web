@@ -48,13 +48,16 @@ for (const year of YEARS) {
         rows.set([r[0], r[3], r[4]].join("\u0001"), [r[0], r[3], r[4], num(r[11]), num(r[13]), num(r[15]), num(r[17])]);
         kept++;
       }
+      if (pages % 20 === 0) console.log(`  … ${ob}: страница ${pages + 1}, ${rows.size} общо`);
       pages++;
       const next = await page.$("button.a-IRR-button--pagination[title='Next'], button.a-IRR-button--pagination[aria-label='Next'], button.a-IRR-button--pagination[title='Следващ']");
-      if (!next) break;
+      if (!next || (await next.isDisabled().catch(() => true))) break;
       const before = got[0]?.join("|");
       await next.click();
       // страницирането е с AJAX или с презареждане: чакаме таблицата да се смени
-      for (let k = 0; k < 30; k++) { await page.waitForTimeout(500); const first = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).find((r) => r.length >= 18)?.join("|")).catch(() => null); if (first && first !== before) break; }
+      let changed = false;
+      for (let k = 0; k < 30; k++) { await page.waitForTimeout(500); const first = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).find((r) => r.length >= 18)?.join("|")).catch(() => null); if (first && first !== before) { changed = true; break; } }
+      if (!changed || pages > 2000) break; // последната страница или нещо се е объркало
     }
     done.add(ob);
     console.log(`${year} ${ob}: ${pages} стр., ${kept} юридически лица`);
