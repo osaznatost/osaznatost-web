@@ -39,10 +39,18 @@ for (const year of YEARS) {
     if (process.env.DEBUG) {
       await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
       console.log("DBG env", await retry(() => page.evaluate(() => JSON.stringify({ gReport: typeof window.gReport, irr: !!(window.apex?.jQuery?.fn?.interactiveReport), regions: [...document.querySelectorAll(".a-IRR-container,[id$=_ir]")].map((x) => x.id), label: document.querySelector(".a-IRR-pagination-label")?.textContent }))));
-      page.on("response", async (r) => { if (/wwv_flow\.ajax/.test(r.url())) { const t = await r.text().catch(() => ""); console.log("DBG resp", r.status(), t.length, JSON.stringify(t.slice(0, 400)), "rows:", (t.match(/<tr/g) || []).length); } });
+      await page.route("**/wwv_flow.ajax", async (route) => {
+        const pd = route.request().postData() || "";
+        const resp = await route.fetch();
+        const t = await resp.text();
+        console.log("DBG post", pd.slice(0, 700));
+        console.log("DBG resp", resp.status(), t.length, JSON.stringify(t.slice(0, 300)), "rows:", (t.match(/<tr/g) || []).length);
+        await route.fulfill({ response: resp, body: t });
+      });
       const nb = await page.$("button.a-IRR-button--pagination[title='Next']");
+      await page.evaluate(() => { const b = document.querySelector("button.a-IRR-button--pagination[title='Next']"); b.setAttribute("data-pagination", "pgR_min_row=1max_rows=5000rows_fetched=5000"); });
       await nb?.click();
-      await page.waitForTimeout(8000);
+      await page.waitForTimeout(15000);
       console.log("DBG after", await page.$eval(".a-IRR-pagination-label", (x) => x.textContent).catch(() => "?"));
       break;
     }
