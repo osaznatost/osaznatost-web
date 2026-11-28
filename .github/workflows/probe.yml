@@ -6,8 +6,7 @@ jobs:
     steps:
       - run: |
           J="-b j -c j -sL -A osaznatost-bot/1.0"
-          curl $J https://nkr.government.bg/Concessions > c.html
-          for s in $(grep -o 'src="/[^"]*"' c.html | cut -d'"' -f2 | grep -v "kendo\|svg"); do curl $J "https://nkr.government.bg$s" >> all.js; done
-          cat c.html >> all.js
-          grep -o ".\{300\}Clickable.\{500\}" all.js | grep -v "label class" | head -5
-          grep -o "url: *['\"][^'\"]*['\"]" all.js | sort -u | head -30
+          curl $J https://nkr.government.bg/ > h.html
+          grep -o ".\{200\}api/public/card.\{100\}" h.html
+          grep -o "https\?://[a-z0-9.]*[^\"' ]*api/public[^\"' ]*" h.html | head
+          curl $J https://nkr.government.bg/Concessions > c.html; grep -o "/[A-Z][a-zA-Z]*/[A-Z][a-zA-Z]*Details[^\"' ]*\|/[A-Z][a-zA-Z]*/[A-Z][a-zA-Z]*Info[^\"' ]*\|Concessions/[A-Za-z]*" c.html | sort -u
