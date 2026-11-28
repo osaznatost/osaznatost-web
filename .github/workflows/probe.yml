@@ -7,7 +7,10 @@ jobs:
       - run: |
           J="-b j -c j -sL -A osaznatost-bot/1.0"
           curl $J https://nkr.government.bg/Concessions >/dev/null
-          curl $J -X POST -H "X-Requested-With: XMLHttpRequest" --data "FromDate=01.01.1990&ToDate=28.11.2026" https://nkr.government.bg/Concessions/Search >/dev/null
-          ID=e1090010-b6e6-40b7-b21e-3a633d5f1271
-          for p in "Concessions/Details/$ID" "Concessions/Details?id=$ID" "Concessions/Info/$ID" "Concessions/Info?id=$ID" "Concessions/Lot/$ID" "Concessions/LotInfo?id=$ID" "Concessions/GetLot?id=$ID" "Concessions/Concession?id=$ID" "Concessions/Show/$ID" "Concessions/View/$ID" "Concessions/Preview?id=$ID" "Lots/Details/$ID"; do printf "%s " "$p"; curl $J -H "X-Requested-With: XMLHttpRequest" -o o.html -w "%{http_code} %{size_download}\n" "https://nkr.government.bg/$p"; done
-          curl $J https://nkr.government.bg/ConcessionaireProcedures > cp.html; grep -o 'name="[A-Za-z]*"' cp.html | sort -u | head -30; grep -o "<label>[^<]*" cp.html | head -30
+          curl $J -X POST -H "X-Requested-With: XMLHttpRequest" --data "FromDate=01.01.1990&ToDate=31.12.2019&ConcessionTypeId=940f9874-743b-45a6-86f4-9453a2a90598" https://nkr.government.bg/Concessions/Search > r.html
+          grep -o "Общо: [0-9]*" r.html
+          ID=$(grep -o 'IdColumn hiddenColumn">[^<]*' r.html | head -3 | tail -1 | cut -d'>' -f2); echo ID $ID
+          curl $J "https://nkr.government.bg/ConcessionaireProcedures/ConcessionaireProcedureInfo/$ID" > i.html; wc -c i.html
+          python3 -c "
+          import re,html; s=open('i.html').read(); s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
+          t=re.sub(r'[ \t]+',' ',html.unescape(re.sub('<[^>]+>','\n',s))); t=re.sub(r'\n\s*\n+','\n',t); i=t.find('Концес'); print(t[:6000])"
