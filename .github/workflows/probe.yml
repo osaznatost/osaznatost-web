@@ -6,4 +6,5 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://register.ksb.bg/ https://www.ksb.bg/ https://ksb.bg/bg/registar https://www.mrrb.bg/bg/koncesii/ https://nkr.government.bg/ https://registry.government.bg/ https://www.eppo.europa.eu/en/media/news ; do echo "== $u"; curl -sL -A "$UA" -m 30 -o p.html -w "%{http_code} %{url_effective} %{size_download}\n" "$u" || true; grep -o '<title>[^<]*' p.html | head -1; done
+          curl -sL -A "$UA" https://nkr.government.bg/ > h.html; grep -o 'href="[^"]*"' h.html | sort -u | head -60; grep -io '<script[^>]*src="[^"]*"' h.html | head; grep -o 'api[^"'"'"' ]*' h.html | sort -u | head
+          sed 's/<[^>]*>/ /g' h.html | tr -s ' \n' | head -c 1500
