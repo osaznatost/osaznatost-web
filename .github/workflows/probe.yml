@@ -7,5 +7,5 @@ jobs:
       - env: { PW: "${{ secrets.SITE_PASSWORD }}" }
         run: |
           C="osz_auth=$(printf %s "$PW" | sha256sum | cut -d' ' -f1)"
-          curl -s -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/mesta/sofiyska/botevgrad?x=$RANDOM" | grep -o '[0-9]* сигнала\?<' | sort | uniq -c
-          curl -s -o /dev/null -w "%{http_code}\n" -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/mesta/sofiyska/botevgrad"
+          curl -s -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/mesta/sfo/sfo07?x=$RANDOM" | grep -o '[0-9]* сигнала\?<' | sort | uniq -c
+          curl -s -o /dev/null -w "%{http_code}\n" -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/mesta/sfo/sfo07"
