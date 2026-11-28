@@ -19,6 +19,8 @@ import { declLinksForEik } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { contractUrl } from "@/lib/procurement";
 import { trFor } from "@/lib/tr";
+import { concessionsOfFirm } from "@/lib/concessions";
+import { ConcessionList } from "@/components/Concessions";
 import { sanction, programBg } from "@/lib/sanctionLists";
 import { napDebt, napIndex } from "@/lib/napDebtors";
 
@@ -76,6 +78,16 @@ async function SanctionBox({ eik }: { eik: string }) {
   );
 }
 
+async function ConcessionBox({ eik }: { eik: string }) {
+  const c = await concessionsOfFirm(eik).catch(() => []);
+  if (!c.length) return null;
+  return (
+    <Anchor id="koncesii" title="Концесии" lead="Обекти, които фирмата държи на концесия (Национален концесионен регистър).">
+      <ConcessionList items={c} showFirm={false} showConceder />
+    </Anchor>
+  );
+}
+
 async function NapDebtBox({ eik }: { eik: string }) {
   const [d, I] = await Promise.all([napDebt(eik).catch(() => null), napIndex().catch(() => null)]);
   if (!d) return null;
@@ -108,7 +120,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           {t.name || eik}
         </Title>
         <Suspense fallback={null}><FirmSignals eik={eik} pl={0} political={0} offs={offs} scored={[]} single={0} total={0} /></Suspense>
-        <SanctionBox eik={eik} /><NapDebtBox eik={eik} />
+        <SanctionBox eik={eik} /><NapDebtBox eik={eik} /><ConcessionBox eik={eik} />
         <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
         <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
         <div id="svarzani-lica" className="space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
@@ -173,7 +185,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p></div>
         ))}
       </section>
-      <SanctionBox eik={eik} /><NapDebtBox eik={eik} />
+      <SanctionBox eik={eik} /><NapDebtBox eik={eik} /><ConcessionBox eik={eik} />
       <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
       <div id="svarzani-lica" className="mb-10 space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>

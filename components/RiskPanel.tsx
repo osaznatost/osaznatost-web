@@ -1,5 +1,6 @@
 import { unstable_rethrow } from "next/navigation";
 import { napDebtsMany } from "@/lib/napDebtors";
+import { concessionsOfMuni } from "@/lib/concessions";
 import { programBg, sanctionsMany } from "@/lib/sanctionLists";
 import { sharedAddress } from "@/lib/tr";
 import { firmsOf, propertyDeals, type TrLinks } from "@/lib/propertyDeals";
@@ -178,7 +179,10 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
       }
     }
     // Решения за общинско имущество (продажба, наем, право на строеж, концесия и др.), в които се споменава фирма на длъжностно лице или на негов съдружник
-    const prop = await propertyDeals(L.code, firmsOf(links as unknown as TrLinks)).catch(() => []);
+    const lf = firmsOf(links as unknown as TrLinks);
+    const cz = (await within(concessionsOfMuni(L.code), [], 3000, "conc")).flatMap((c) => c.firms.filter((x) => x.eik).map((x) => ({ c, f: lf.find((f) => f.eik.slice(0, 9) === x.eik!.slice(0, 9)) }))).filter((x) => x.f);
+    if (cz.length) sigs.push({ href: "#koncesii", level: "high", title: `${cz.length} концеси${cz.length > 1 ? "и" : "я"} на фирма, свързана с длъжностно лице`, body: <ul className="mt-1 space-y-1">{cz.slice(0, 6).map(({ c, f }) => <li key={c.id + f!.slug}><Link href={firmUrl(f!.eik)} className="font-semibold">{f!.name}</Link> — {f!.via ? <>фирма на <b>{f!.via}</b>, съдружник на </> : <>фирма на </>}<Link href={`/lica/${f!.slug}#svarzani`}>{f!.who}</Link>: {c.name.slice(0, 110)}…</li>)}</ul> });
+    const prop = await propertyDeals(L.code, lf).catch(() => []);
     if (prop.length) sigs.push({ href: prop.length === 1 ? firmUrl(prop[0].firm.eik) : undefined, level: "high", title: `${prop.length} решени${prop.length > 1 ? "я" : "е"} за общинско имущество в полза на фирма, свързана с длъжностно лице`, body: <><ul className="mt-1 space-y-1">{prop.slice(0, 6).map((d) => <li key={d.number}><Link href={firmUrl(d.firm.eik)} className="font-semibold">{d.firm.name}</Link> — {d.firm.via ? <>фирма на <b>{d.firm.via}</b>, бивш или настоящ съдружник на </> : <>фирма на </>}<Link href={`/lica/${d.firm.slug}#svarzani`}>{d.firm.who}</Link>. Решение № {d.number} от {d.date.split("-").reverse().join(".")}: {d.title.slice(0, 120)}{d.url ? <> · <a href={d.url} target="_blank" rel="noreferrer">текстът на решението</a></> : null}</li>)}</ul><p className="text-sm text-muted mt-1">Продажба, наем, право на строеж или концесия. Връзката е по Търговския регистър; фирмата е намерена по името ѝ в текста на решението.</p></> });
   }
 

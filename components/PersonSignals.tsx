@@ -3,6 +3,7 @@ import Link from "next/link";
 import { data } from "@/lib/data";
 import { localData } from "@/lib/local";
 import { placeSuppliersAll, firmUrl } from "@/lib/procurement";
+import { concessionsOfMuni } from "@/lib/concessions";
 import { napDebtsMany } from "@/lib/napDebtors";
 import { firmRe, firmsOf, propertyDeals, type TrLinks } from "@/lib/propertyDeals";
 
@@ -32,6 +33,9 @@ export async function PersonSignals({ code, slug, name, history }: { code: strin
   if (debts.size) items.push({ level: "mid", href: "#svarzani", text: <>{debts.size} свързан{debts.size > 1 ? "и фирми са длъжници" : "а фирма е длъжник"} към държавата (НАП): {[...debts.entries()].slice(0, 3).map(([e, d], i) => <span key={e}>{i ? ", " : ""}<Link href={firmUrl(e)}>{d.name}</Link> ({eur(d.eur)})</span>)}</> });
   // Общинско имущество към свързана фирма
   if (deals.length) items.push({ level: "high", href: "#imushtestvo", text: <>{deals.length} решени{deals.length > 1 ? "я" : "е"} на общинския съвет за общинско имущество в полза на свързана фирма: {deals.slice(0, 2).map((d, i) => <span key={d.number}>{i ? ", " : ""}<Link href={firmUrl(d.firm.eik)}>{d.firm.name}</Link></span>)}</> });
+  // Свързана фирма държи концесия от общината
+  const conc = (await concessionsOfMuni(code).catch(() => [])).flatMap((c) => c.firms.filter((x) => x.eik).map((x) => ({ c, f: firms.find((f) => f.eik.slice(0, 9) === x.eik!.slice(0, 9)) }))).filter((x) => x.f);
+  if (conc.length) items.push({ level: "high", href: "#svarzani", text: <>{conc.length} концеси{conc.length > 1 ? "и" : "я"} от общината на свързана фирма: {conc.slice(0, 2).map(({ c, f }, i) => <span key={c.id}>{i ? "; " : ""}<Link href={firmUrl(f!.eik)}>{f!.name}</Link>{f!.via ? ` (през ${f!.via})` : ""} — {c.name.slice(0, 70)}…</span>)}</> });
   // Гласувал(а) „за“ решение, в което се споменава свързана фирма
   const me = key(name);
   const res = firms.map((f) => ({ f, re: firmRe(f.name) })).filter((x) => x.re);

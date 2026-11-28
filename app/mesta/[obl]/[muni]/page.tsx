@@ -16,6 +16,8 @@ import { Anchor, SectionNav } from "@/components/SectionNav";
 import { AuditsList } from "@/components/AuditsList";
 import { auditsOfMuni } from "@/lib/audits";
 import { adfiOfMuni } from "@/lib/adfi";
+import { concessionsOfMuni } from "@/lib/concessions";
+import { ConcessionList } from "@/components/Concessions";
 import { AdfiList } from "@/components/AdfiList";
 import { MuniPower } from "@/components/MuniPower";
 import { CouncilCoverage } from "@/components/CouncilCoverage";
@@ -47,7 +49,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.expenditure != null).map((h) => ({ series: "Разходи", x: h.year, value: Math.round(h.expenditure! / 1e5) / 10 })),
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
-  const [P, PO, audits, adfi] = await Promise.all([placeData(m.code), placeObl(), auditsOfMuni(m.code), adfiOfMuni(m.code).catch(() => [])]);
+  const [P, PO, audits, adfi, conc] = await Promise.all([placeData(m.code), placeObl(), auditsOfMuni(m.code), adfiOfMuni(m.code).catch(() => []), concessionsOfMuni(m.code).catch(() => [])]);
   const C = P?.census, OC = PO.oblasts[m.code.slice(0, 3)], BG = PO.country;
   const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
   const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
@@ -171,6 +173,14 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
           <SectionTitle>Проверки на Сметната палата</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Одитните доклади, в които е проверявана общината. В тях са констатациите и препоръките; при съмнение за престъпление Сметната палата сезира прокуратурата.</p>
           <AuditsList items={audits} />
+        </section>
+      )}
+
+      {conc.length > 0 && (
+        <section id="koncesii" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
+          <SectionTitle>Концесии</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Общински имоти и услуги, дадени на фирми за дълъг срок (язовири, паркинги, плажове, кариери и др.): кой ги държи, за колко години и срещу каква стойност. Източник: Националният концесионен регистър.</p>
+          <ConcessionList items={conc} />
         </section>
       )}
 
