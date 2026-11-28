@@ -6,5 +6,7 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" https://nkr.government.bg/ > h.html; grep -o 'href="[^"]*"' h.html | sort -u | head -60; grep -io '<script[^>]*src="[^"]*"' h.html | head; grep -o 'api[^"'"'"' ]*' h.html | sort -u | head
-          sed 's/<[^>]*>/ /g' h.html | tr -s ' \n' | head -c 1500
+          curl -sL -A "$UA" https://nkr.government.bg/Concessions > c.html; wc -c c.html
+          grep -o "url[ :]*['\"][^'\"]*['\"]\|transport[^}]*\|/Concessions/[A-Za-z_]*" c.html | sort -u | head -30
+          grep -o '<script src="[^"]*Controllers[^"]*"' c.html
+          for s in $(grep -o 'src="/Scripts/Controllers/[^"]*"' c.html | cut -d'"' -f2); do echo "--- $s"; curl -sL -A "$UA" "https://nkr.government.bg$s" | grep -o "url[ :]*['\"][^'\"]*['\"]\|/[A-Z][A-Za-z]*/[A-Z][A-Za-z]*" | sort -u | head -20; done
