@@ -40,7 +40,7 @@ for (const year of YEARS) {
       await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
       const sid = await retry(() => page.evaluate(() => document.getElementById("pInstance")?.value));
       for (const req of ["CSV", "IR_CSV"]) {
-        const r = await page.request.get(`https://seu.dfz.bg/seu/f?p=727:8110:${sid}:${req}::::`);
+        const r = await page.request.get(`https://seu.dfz.bg/seu/f?p=727:8110:${sid}:${req}::::`, { timeout: 240000 }).catch((e) => ({ status: () => "ERR " + e.message.slice(0, 80), headers: () => ({}), text: async () => "" }));
         const t = await r.text();
         console.log("CSV", req, r.status(), r.headers()["content-type"], t.length, JSON.stringify(t.slice(0, 300)));
       }
