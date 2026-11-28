@@ -168,6 +168,23 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
         if (hit) sigs.push({ level: "high", title: `${tc(p.name)} е гласувал(а) „за“ решение, в което се споменава свързана с него/нея фирма`, body: <>Решение № {r.number} от {r.date.split("-").reverse().join(".")}: {r.title.slice(0, 160)} · <b>{hit.n}</b> ({hit.how}). {r.url && <a href={r.url} target="_blank" rel="noreferrer">Източник</a>} · <Link href={personHref(slug)}>Профил</Link></> });
       }
     }
+    // Решения за общинско имущество (продажба, наем, право на строеж, концесия и др.), в които се споменава фирма на длъжностно лице или на негов съдружник
+    const normLat = (x: string) => x.replace(/[ABCEHKMOPTXY]/g, (c) => "АВСЕНКМОРТХУ"["ABCEHKMOPTXY".indexOf(c)]);
+    const PROP = /продажб|продава|отдава.{0,20}наем|под наем|аренд|право на строеж|право на ползване|право на надстрояване|концеси|замяна|безвъзмездно|учредява/i;
+    const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, "[\\s\\-–]+");
+    // Името на фирмата трябва да е с правната форма (… ООД, ЕТ …) или в кавички (тогава поне две думи или 8 знака), иначе е обикновена дума („Съгласие“)
+    const owners = Object.values(links).flatMap((p) => [...p.firms.map((f) => ({ n: core(f.name), who: tc(p.name), how: "фирма на" })), ...p.co.flatMap((c) => c.firms.map((f) => ({ n: core(f.name), who: tc(p.name), how: `фирма на съдружника (${tc(c.n)}) на` })))])
+      .filter((f) => f.n.length >= 4)
+      .map((f) => ({ ...f, re: new RegExp(`(?:ЕТ\\s*[„"“]?\\s*${esc(f.n)}|${esc(f.n)}\\s*[“"”]?\\s*(?:ЕООД|ООД|ЕАД|АД)(?![А-Я])${f.n.includes(" ") || f.n.length >= 8 ? `|[„"“]\\s*${esc(f.n)}\\s*[“"”]` : ""})`) }));
+    const prop: { r: (typeof L.resolutions)[number]; f: (typeof owners)[number] }[] = [];
+    for (const r of L.resolutions) {
+      const t = `${r.title} ${r.text ?? ""}`;
+      if (!PROP.test(t)) continue;
+      const up = normLat(t.toUpperCase());
+      const f = owners.find((o) => o.re.test(up));
+      if (f) prop.push({ r, f });
+    }
+    if (prop.length) sigs.push({ level: "high", title: `${prop.length} решени${prop.length > 1 ? "я" : "е"} за общинско имущество в полза на фирма, свързана с длъжностно лице`, body: <><ul className="mt-1 space-y-0.5">{prop.slice(0, 6).map(({ r, f }) => <li key={r.number}>Решение № {r.number} от {r.date.split("-").reverse().join(".")}: {r.title.slice(0, 140)} · <b>{f.n}</b> ({f.how} {f.who}){r.url ? <> · <a href={r.url} target="_blank" rel="noreferrer">решението</a></> : null}</li>)}</ul><p className="text-sm text-muted mt-1">Продажба, наем, право на строеж или концесия. Фирмата е свързана по Търговския регистър (собственост или общ съдружник); съвпадението е по име на фирмата в текста на решението.</p></> });
   }
 
   // 6. Одити на Сметната палата и АДФИ, в които се споменава общината
