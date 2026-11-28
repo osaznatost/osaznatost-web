@@ -36,26 +36,36 @@ for (const year of YEARS) {
     await retry(() => page.evaluate(([y, o, m]) => { apex.item("P8110_FORYEAR").setValue(y); apex.item("P8110_OBLAST").setValue(o); apex.item("P8110_AMOUNT_FUND").setValue("TOTAL"); apex.item("P8110_AMOUNT_FTYPE").setValue("GT"); apex.item("P8110_AMOUNT_FILTER").setValue(m); }, [year, ob, MIN]));
     await page.waitForTimeout(1500);
     await Promise.all([page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), page.click("button:has-text('Покажи')")]);
-    if (process.env.DEBUG) {
-      await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
-      console.log("DBG env", await retry(() => page.evaluate(() => JSON.stringify({ gReport: typeof window.gReport, irr: !!(window.apex?.jQuery?.fn?.interactiveReport), regions: [...document.querySelectorAll(".a-IRR-container,[id$=_ir]")].map((x) => x.id), label: document.querySelector(".a-IRR-pagination-label")?.textContent }))));
-      await page.route("**/wwv_flow.ajax", async (route) => {
-        const pd = route.request().postData() || "";
-        const resp = await route.fetch();
-        const t = await resp.text();
-        console.log("DBG post", pd.slice(0, 700));
-        console.log("DBG resp", resp.status(), t.length, JSON.stringify(t.slice(0, 300)), "rows:", (t.match(/<tr/g) || []).length);
-        await route.fulfill({ response: resp, body: t });
-      });
-      const nb = await page.$("button.a-IRR-button--pagination[title='Next']");
-      await page.evaluate(() => { const b = document.querySelector("button.a-IRR-button--pagination[title='Next']"); b.setAttribute("data-pagination", "pgR_min_row=1max_rows=5000rows_fetched=5000"); });
-      console.log("DBG methods", await page.evaluate(() => Object.keys(apex.jQuery.apex.interactiveReport.prototype).filter((k) => /pag|row|search|refresh|_action|controls/i.test(k)).join(",")));
-      console.log("DBG nb", !!nb);
-      console.log("DBG pag", await page.evaluate(() => { try { const $r = apex.jQuery("#R23696630537099701_ir"); const w = $r.data("apex-interactiveReport") || $r.data("interactiveReport") || $r.data("apexInteractiveReport") || Object.values($r.data()).find((v) => v && typeof v._paginate === "function"); if (!w) return "no inst " + Object.keys($r.data()).join(","); const src = String(w._paginate).slice(0, 400); w._paginate("pgR_min_row=1max_rows=5000rows_fetched=5000"); return "called " + src; } catch (e) { return "ERR " + e.message; } }));
-      await page.waitForTimeout(15000);
-      console.log("DBG after", await page.$eval(".a-IRR-pagination-label", (x) => x.textContent).catch(() => "?"));
-      break;
+    // Интерактивният отчет дава по 50 реда. Хващаме заявката на бутона „Напред“ и я повтаряме с до 100 000 реда от първия.
+    await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
+    let post = null;
+    const onReq = (r) => { if (/wwv_flow\.ajax/.test(r.url()) && /p_widget_action=PAGE/.test(r.postData() || "")) post = r.postData(); };
+    page.on("request", onReq);
+    const nextBtn = await page.$("button.a-IRR-button--pagination[title='Next']");
+    if (nextBtn) { await nextBtn.click().catch(() => {}); for (let k = 0; k < 40 && !post; k++) await page.waitForTimeout(250); }
+    page.off("request", onReq);
+    let html = null;
+    if (post) {
+      const body = post.replace(/p_widget_action_mod=[^&]*/, "p_widget_action_mod=" + encodeURIComponent("pgR_min_row=1max_rows=100000rows_fetched=100000")).replace(/p_widget_num_return=\d+/, "p_widget_num_return=100000");
+      const r = await page.request.post("https://seu.dfz.bg/seu/wwv_flow.ajax", { data: body, headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }, timeout: 300000 });
+      html = await r.text();
+      if (process.env.DEBUG) console.log("DBG big", r.status(), html.length, (html.match(/<tr/g) || []).length, JSON.stringify(html.slice(0, 200)));
     }
+    if (html && /<tr/.test(html)) {
+      const got = await page.evaluate((h) => { const d = new DOMParser().parseFromString(`<table>${h}</table>`, "text/html"); return [...d.querySelectorAll("tr")].map((tr) => [...tr.cells].map((c) => c.textContent.trim())).filter((r) => r.length >= 18); }, html);
+      let kept = 0;
+      for (const r of got) {
+        if (r[6] !== "ОБЩО") continue;
+        if (r[1] && r[1] !== "-") continue;
+        rows.set([r[0], r[3], r[4]].join("\u0001"), [r[0], r[3], r[4], num(r[11]), num(r[13]), num(r[15]), num(r[17])]);
+        kept++;
+      }
+      done.add(ob);
+      console.log(`${year} ${ob}: ${got.length} реда наведнъж, ${kept} юридически лица`);
+      writeFileSync(f, JSON.stringify({ year, minLv: MIN, fetched: new Date().toISOString().slice(0, 10), oblasti: [...done], complete: done.size === oblasti.length, rows: [...rows.values()] }));
+      continue;
+    }
+    console.log(`${year} ${ob}: заявката за всички редове не мина, по страници`);
     let pages = 0, kept = 0;
     for (;;) {
       await page.waitForTimeout(800);
