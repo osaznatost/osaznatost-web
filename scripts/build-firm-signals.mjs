@@ -16,6 +16,9 @@ mkdirSync(OUT, { recursive: true });
 
 const eiks = new Set();
 // първо №1 на всяка община, после №2 и т.н. — така всяка община получава значки още от първото пускане
+// FIRST=SFO07,… — тези общини изцяло най-напред
+const FIRST = (process.env.FIRST ?? "").split(",").filter(Boolean);
+for (const c of FIRST) if (existsSync(`data/proc/place-suppliers/${c}.json`)) for (const s of JSON.parse(readFileSync(`data/proc/place-suppliers/${c}.json`, "utf8")).slice(0, 30)) if (/^\d{9,13}$/.test(s.eik)) eiks.add(s.eik);
 const lists = readdirSync("data/proc/place-suppliers").map((f) => JSON.parse(readFileSync(`data/proc/place-suppliers/${f}`, "utf8")).slice(0, 20));
 for (let i = 0; i < 20; i++) for (const L of lists) if (L[i] && /^\d{9,13}$/.test(L[i].eik)) eiks.add(L[i].eik);
 // след изпълнителите — всички фирми, свързани с длъжностни лица (пряко или през общ съдружник)

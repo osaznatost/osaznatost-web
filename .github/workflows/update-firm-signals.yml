@@ -1,7 +1,7 @@
 name: Сигнали по фирми (за значките в списъците)
 on:
   # schedule (Cloudflare):
-    # cf-cron: "23 1,13 * * *"
+    # cf-cron: "23 * * * *"   # всеки час, докато се попълнят; после само обновява по-старите от 7 дни
   workflow_dispatch:
     inputs:
       minutes: { description: "Минути", default: "50" }
@@ -23,6 +23,7 @@ jobs:
         env:
           SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
           MINUTES: ${{ inputs.minutes || '50' }}
+          FIRST: SFO07
         run: node scripts/build-firm-signals.mjs
       - name: Запис
         run: |

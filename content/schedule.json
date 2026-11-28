@@ -44,7 +44,7 @@
   "37 3 * * 1"
  ],
  "update-firm-signals.yml": [
-  "23 1,13 * * *"
+  "23 * * * *"
  ],
  "update-macro.yml": [
   "37 9 * * *"
