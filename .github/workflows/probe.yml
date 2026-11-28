@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sI https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv | head -5
-          curl -s https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv -o t.csv; ls -la t.csv; head -1 t.csv
+          curl -sIL https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv | head -5
+          curl -sL https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv -o t.csv; ls -la t.csv; head -1 t.csv
           python3 -c "
           import csv,sys; csv.field_size_limit(10**9)
           r=csv.DictReader(open('t.csv')); n=0
