@@ -4,9 +4,14 @@ jobs:
   p:
     runs-on: ubuntu-latest
     steps:
-      - env: { PW: "${{ secrets.SITE_PASSWORD }}" }
-        run: |
-          C="osz_auth=$(printf %s "$PW" | sha256sum | cut -d' ' -f1)"
-          B=https://osaznatost.pavlin140.workers.dev
-          curl -s -H "Cookie: $C" "$B/porachki/firma/130206808" | sed 's/<[^>]*>/ /g' | grep -o "Сигнали за риск[^·]\{0,400\}\|Петър Димитров Павлов[^.]\{0,80\}\|Свързана с длъжностни лица[^.]\{0,200\}" | head -5
-          echo ---; curl -s -H "Cookie: $C" "$B/api/firm-signals?eik=130206808,131090107" ; echo
+      - run: |
+          curl -sI https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv | head -5
+          curl -s https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv -o t.csv; ls -la t.csv; head -1 t.csv
+          python3 -c "
+          import csv,sys; csv.field_size_limit(10**9)
+          r=csv.DictReader(open('t.csv')); n=0
+          for x in r:
+            if 'bg' in x['countries'].split(';'):
+              n+=1
+              if n<15: print(x['schema'],x['name'][:60],x['identifiers'][:80],x['sanctions'][:100])
+          print('BG',n)"
