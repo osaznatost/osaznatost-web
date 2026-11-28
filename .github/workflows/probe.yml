@@ -6,8 +6,11 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" https://www.adfi.minfin.bg/bg | python3 -c "
+          for p in 18 34; do echo "== $p"; curl -sL -A "$UA" https://www.adfi.minfin.bg/bg/$p > $p.html; wc -c $p.html; python3 -c "
           import sys,re,html
-          for h,t in re.findall(r'<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)</a>',sys.stdin.read(),re.S):
-            t=re.sub(r'\s+',' ',html.unescape(re.sub('<[^>]+>','',t))).strip()
-            if re.search('инспекц|Доклад|Информация',t): print(h,t)"
+          s=open('$p.html').read(); i=s.find('<h1'); b=s[i:]
+          links=re.findall(r'<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)</a>',b,re.S)
+          print(len(links))
+          for h,t in links[:40]: print(h, re.sub(r'\s+',' ',html.unescape(re.sub('<[^>]+>','',t))).strip()[:150])
+          t=re.sub(r'\s+',' ',re.sub('<[^>]+>',' ',re.sub(r'<script.*?</script>','',b,flags=re.S)))
+          print(t[:1500])"; done
