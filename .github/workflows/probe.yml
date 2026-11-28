@@ -4,15 +4,6 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with: { ref: probe }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: npm i --no-save playwright@1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - name: ДФЗ
-        env: { ONLY: "София (област)", MINUTES: "8", DEBUG: "1", CSVTEST: "1" }
-        run: |
-          node scripts/fetch-dfz.mjs 2025 20000
-          node -e 'const d=require("./data/dfz/subsidies-2025.json"); console.log("RES", d.rows.length, JSON.stringify(d.rows.sort((a,b)=>b[6]-a[6]).slice(0,6)))'
+      - run: |
+          for i in 1 2; do curl -s -A "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" -m 60 -o p.html -w "GET %{http_code} %{size_download}\n" "https://seu.dfz.bg/seu/f?p=727:8110:::NO:::"; head -c 300 p.html | tr '\n' ' '; echo; done
