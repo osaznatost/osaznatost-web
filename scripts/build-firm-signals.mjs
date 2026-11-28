@@ -15,7 +15,9 @@ const OUT = "data/proc/firm-signals";
 mkdirSync(OUT, { recursive: true });
 
 const eiks = new Set();
-for (const f of readdirSync("data/proc/place-suppliers")) for (const s of JSON.parse(readFileSync(`data/proc/place-suppliers/${f}`, "utf8")).slice(0, 20)) if (/^\d{9,13}$/.test(s.eik)) eiks.add(s.eik);
+// първо №1 на всяка община, после №2 и т.н. — така всяка община получава значки още от първото пускане
+const lists = readdirSync("data/proc/place-suppliers").map((f) => JSON.parse(readFileSync(`data/proc/place-suppliers/${f}`, "utf8")).slice(0, 20));
+for (let i = 0; i < 20; i++) for (const L of lists) if (L[i] && /^\d{9,13}$/.test(L[i].eik)) eiks.add(L[i].eik);
 // след изпълнителите — всички фирми, свързани с длъжностни лица (пряко или през общ съдружник)
 if (existsSync("data/tr-links/by-firm")) for (const f of readdirSync("data/tr-links/by-firm")) for (const e of Object.keys(JSON.parse(readFileSync(`data/tr-links/by-firm/${f}`, "utf8")))) eiks.add(e);
 

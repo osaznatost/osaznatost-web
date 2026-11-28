@@ -7,6 +7,7 @@ on:
       minutes: { description: "Минути", default: "50" }
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: update-firm-signals
   cancel-in-progress: false
@@ -30,3 +31,6 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -qm "Сигнали по фирми"
           for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done
+      - name: Публикуване (за да се видят значките)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: gh workflow run deploy-cloudflare.yml --ref main
