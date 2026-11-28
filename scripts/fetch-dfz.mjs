@@ -36,17 +36,16 @@ for (const year of YEARS) {
     await retry(() => page.evaluate(([y, o, m]) => { apex.item("P8110_FORYEAR").setValue(y); apex.item("P8110_OBLAST").setValue(o); apex.item("P8110_AMOUNT_FUND").setValue("TOTAL"); apex.item("P8110_AMOUNT_FTYPE").setValue("GT"); apex.item("P8110_AMOUNT_FILTER").setValue(m); }, [year, ob, MIN]));
     await page.waitForTimeout(1500);
     await Promise.all([page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), page.click("button:has-text('Покажи')")]);
-    // Вместо по 50 реда: искаме наведнъж до 5000 (бутонът за страница праща параметрите си към сървъра)
-    await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(1500);
-    const big = await retry(() => page.evaluate(() => {
-      const b = document.querySelector("button.a-IRR-button--pagination[title='Next']");
-      if (!b) return false;
-      b.setAttribute("data-pagination", "pgR_min_row=1max_rows=5000rows_fetched=5000");
-      b.click();
-      return true;
-    }));
-    if (big) { for (let k = 0; k < 120; k++) { await page.waitForTimeout(1000); const n = await page.$$eval("table tr", (t) => t.length).catch(() => 0); if (n > 60) break; } await page.waitForTimeout(3000); }
-    if (process.env.DEBUG) console.log("DBG big", big, await page.$$eval("table tr", (t) => t.length).catch(() => -1), await page.$eval(".a-IRR-pagination-label", (x) => x.textContent).catch(() => ""));
+    if (process.env.DEBUG) {
+      await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
+      console.log("DBG env", await retry(() => page.evaluate(() => JSON.stringify({ gReport: typeof window.gReport, irr: !!(window.apex?.jQuery?.fn?.interactiveReport), regions: [...document.querySelectorAll(".a-IRR-container,[id$=_ir]")].map((x) => x.id), label: document.querySelector(".a-IRR-pagination-label")?.textContent }))));
+      page.on("request", (r) => { if (/wwv_flow|ajax/.test(r.url())) console.log("DBG req", r.method(), r.url().slice(0, 120), (r.postData() || "").slice(0, 300)); });
+      const nb = await page.$("button.a-IRR-button--pagination[title='Next']");
+      await nb?.click();
+      await page.waitForTimeout(8000);
+      console.log("DBG after", await page.$eval(".a-IRR-pagination-label", (x) => x.textContent).catch(() => "?"));
+      break;
+    }
     let pages = 0, kept = 0;
     for (;;) {
       await page.waitForTimeout(800);
