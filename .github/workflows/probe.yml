@@ -6,7 +6,10 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" -X POST -H "X-Requested-With: XMLHttpRequest" --data "FromDate=01.01.1990&ToDate=28.11.2026&ConcessionTypeId=940f9874-743b-45a6-86f4-9453a2a90598" https://nkr.government.bg/Concessions/Search > r.html; wc -c r.html
+          J="-b j -c j -sL -A osaznatost-bot/1.0"
+          curl $J https://nkr.government.bg/Concessions >/dev/null
+          curl $J -X POST -H "X-Requested-With: XMLHttpRequest" --data "FromDate=01.01.1990&ToDate=28.11.2026" https://nkr.government.bg/Concessions/Search > r.html
+          grep -o "Общо: [0-9]*" r.html
           python3 -c "
-          import re; s=open('r.html').read(); print(s[:5000]); print('ROWS',s.count('<tr'))
-          print(set(re.findall(r'href=\"(/[A-Za-z]+/[A-Za-z]+)',s)))"
+          import re; s=open('r.html').read(); i=s.find('<tbody'); print(s[i:i+3000])"
+          curl $J "https://nkr.government.bg/Concessions/Export?file=csv" -o e.csv; wc -c e.csv; file e.csv; head -c 1500 e.csv
