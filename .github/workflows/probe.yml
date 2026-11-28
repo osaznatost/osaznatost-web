@@ -5,7 +5,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          sudo apt-get install -y -qq poppler-utils >/dev/null 2>&1
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" "https://www.adfi.minfin.bg/upload/3643/%D0%94%D0%98%D0%944-%D0%A1%D0%9E-3.pdf" -o b.pdf; pdfinfo b.pdf | grep Pages; pdftotext -layout b.pdf b.txt; wc -c b.txt
-          head -c 5000 b.txt; echo; echo ======; grep -n -i "нарушени\|ЗОП\|вред\|АУАН\|акт за\|прокурат\|ЕИК\|ООД\|ЕООД\| АД" b.txt | head -80; echo =====; tail -c 4000 b.txt
+          for u in https://register.ksb.bg/ https://www.ksb.bg/ https://ksb.bg/bg/registar https://www.mrrb.bg/bg/koncesii/ https://nkr.government.bg/ https://registry.government.bg/ https://www.eppo.europa.eu/en/media/news ; do echo "== $u"; curl -sL -A "$UA" -m 30 -o p.html -w "%{http_code} %{url_effective} %{size_download}\n" "$u" || true; grep -o '<title>[^<]*' p.html | head -1; done
