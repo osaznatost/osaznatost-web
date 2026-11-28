@@ -41,7 +41,8 @@ for (const year of YEARS) {
     let post = null;
     const onReq = (r) => { if (/wwv_flow\.ajax/.test(r.url()) && /p_widget_action=PAGE/.test(r.postData() || "")) post = r.postData(); };
     page.on("request", onReq);
-    const nextBtn = await page.$("button.a-IRR-button--pagination[title='Next']");
+    await page.waitForSelector("button.a-IRR-button--pagination", { timeout: 30000 }).catch(() => {});
+    const nextBtn = await retry(() => page.$("button.a-IRR-button--pagination[title='Next']"));
     if (nextBtn) { await nextBtn.click().catch(() => {}); for (let k = 0; k < 40 && !post; k++) await page.waitForTimeout(250); }
     page.off("request", onReq);
     let html = null;
