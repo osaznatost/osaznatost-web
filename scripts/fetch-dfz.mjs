@@ -37,7 +37,8 @@ for (const year of YEARS) {
     await page.waitForTimeout(1500);
     await Promise.all([page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), page.click("button:has-text('Покажи')")]);
     if (process.env.CSVTEST) {
-      const sid = await page.evaluate(() => document.getElementById("pInstance")?.value);
+      await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
+      const sid = await retry(() => page.evaluate(() => document.getElementById("pInstance")?.value));
       for (const req of ["CSV", "IR_CSV"]) {
         const r = await page.request.get(`https://seu.dfz.bg/seu/f?p=727:8110:${sid}:${req}::::`);
         const t = await r.text();
