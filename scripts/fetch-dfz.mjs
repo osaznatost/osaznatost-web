@@ -39,7 +39,7 @@ for (const year of YEARS) {
     if (process.env.DEBUG) {
       await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(2000);
       console.log("DBG env", await retry(() => page.evaluate(() => JSON.stringify({ gReport: typeof window.gReport, irr: !!(window.apex?.jQuery?.fn?.interactiveReport), regions: [...document.querySelectorAll(".a-IRR-container,[id$=_ir]")].map((x) => x.id), label: document.querySelector(".a-IRR-pagination-label")?.textContent }))));
-      page.on("request", (r) => { if (/wwv_flow|ajax/.test(r.url())) console.log("DBG req", r.method(), r.url().slice(0, 120), (r.postData() || "").slice(0, 300)); });
+      page.on("response", async (r) => { if (/wwv_flow\.ajax/.test(r.url())) { const t = await r.text().catch(() => ""); console.log("DBG resp", r.status(), t.length, JSON.stringify(t.slice(0, 400)), "rows:", (t.match(/<tr/g) || []).length); } });
       const nb = await page.$("button.a-IRR-button--pagination[title='Next']");
       await nb?.click();
       await page.waitForTimeout(8000);
