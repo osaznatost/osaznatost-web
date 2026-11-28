@@ -53,11 +53,11 @@ for (const year of YEARS) {
       const next = await page.$("button.a-IRR-button--pagination[title='Next'], button.a-IRR-button--pagination[aria-label='Next'], button.a-IRR-button--pagination[title='Следващ']");
       if (process.env.DEBUG && pages === 1) console.log("DBG", got.length, JSON.stringify(await page.$$eval("button.a-IRR-button--pagination, .a-IRR-pagination-label", (bs) => bs.map((b) => b.outerHTML.slice(0, 160)))), [...new Set(got.map((r) => r[4]))].join(","));
       if (!next || (await next.isDisabled().catch(() => true))) break;
-      const before = got[0]?.join("|");
+      const before = got.map((r) => r.join("|")).join("\n"); // заглавният ред е еднакъв на всяка страница: сравняваме цялата таблица
       await next.click();
       // страницирането е с AJAX или с презареждане: чакаме таблицата да се смени
       let changed = false;
-      for (let k = 0; k < 30; k++) { await page.waitForTimeout(500); const first = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).find((r) => r.length >= 18)?.join("|")).catch(() => null); if (first && first !== before) { changed = true; break; } }
+      for (let k = 0; k < 30; k++) { await page.waitForTimeout(500); const first = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).filter((r) => r.length >= 18).map((r) => r.join("|")).join("\n")).catch(() => null); if (first && first !== before) { changed = true; break; } }
       if (!changed || pages > 2000) break; // последната страница или нещо се е объркало
     }
     done.add(ob);
