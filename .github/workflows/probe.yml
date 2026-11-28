@@ -5,13 +5,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sIL https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv | head -5
-          curl -sL https://data.opensanctions.org/datasets/latest/sanctions/targets.simple.csv -o t.csv; ls -la t.csv; head -1 t.csv
-          python3 -c "
-          import csv,sys; csv.field_size_limit(10**9)
-          r=csv.DictReader(open('t.csv')); n=0
-          for x in r:
-            if 'bg' in x['countries'].split(';'):
-              n+=1
-              if n<15: print(x['schema'],x['name'][:60],x['identifiers'][:80],x['sanctions'][:100])
-          print('BG',n)"
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          for u in https://www.adfi.bg/ https://www.adfi.bg/bg/ https://adfi.minfin.bg/ https://reg.cpc.bg/ https://www.cpc.bg/ ; do echo "== $u"; curl -sL -A "$UA" -m 30 -o p.html -w "%{http_code} %{url_effective} %{size_download}\n" "$u"; grep -o 'href="[^"]*"' p.html | sort -u | grep -i "proverk\|resheni\|doklad\|report\|inspect\|decision\|zop\|Publi\|search\|nakazat" | head -15; done
