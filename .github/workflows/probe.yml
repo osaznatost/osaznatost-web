@@ -7,10 +7,10 @@ jobs:
       - run: |
           J="-b j -c j -sL -A osaznatost-bot/1.0"
           curl $J https://nkr.government.bg/Concessions >/dev/null
-          curl $J -X POST -H "X-Requested-With: XMLHttpRequest" --data "FromDate=01.01.1990&ToDate=31.12.2019&ConcessionTypeId=940f9874-743b-45a6-86f4-9453a2a90598" https://nkr.government.bg/Concessions/Search > r.html
-          grep -o "Общо: [0-9]*" r.html
-          ID=$(grep -o 'IdColumn hiddenColumn">[^<]*' r.html | head -3 | tail -1 | cut -d'>' -f2); echo ID $ID
-          curl $J "https://nkr.government.bg/ConcessionaireProcedures/ConcessionaireProcedureInfo/$ID" > i.html; wc -c i.html
-          python3 -c "
-          import re,html; s=open('i.html').read(); s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
-          t=re.sub(r'[ \t]+',' ',html.unescape(re.sub('<[^>]+>','\n',s))); t=re.sub(r'\n\s*\n+','\n',t); i=t.find('Концес'); print(t[:6000])"
+          ID=d23eafab-fa35-46cb-a7e4-218a06a8df03
+          curl $J "https://nkr.government.bg/ConcessionaireProcedures/ConcessionaireProcedureInfo/$ID" > i.html
+          grep -o 'href="[^"]*"\|onclick="[^"]*"\|data-[a-z-]*url="[^"]*"' i.html | grep -v "css\|Content\|^href=\"/\"\|#" | head -20
+          U=$(grep -o 'href="[^"]*[Nn]otice[^"]*"\|href="[^"]*Announcement[^"]*"\|href="[^"]*Preview[^"]*"' i.html | head -1 | cut -d'"' -f2); echo U $U
+          [ -n "$U" ] && curl $J "https://nkr.government.bg$U" | python3 -c "
+          import re,html,sys; s=sys.stdin.read(); s=re.sub(r'<script.*?</script>|<style.*?</style>','',s,flags=re.S)
+          t=re.sub(r'[ \t]+',' ',html.unescape(re.sub('<[^>]+>','\n',s))); t=re.sub(r'\n\s*\n+','\n',t); print(t[:5000])"
