@@ -4,10 +4,15 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          curl -sL -A "$UA" -m 60 -c c.txt "https://seu.dfz.bg/seu/f?p=727:8110:::NO:::" -o p.html -w "GET %{http_code} %{size_download}\n"
-          grep -c "One moment\|captcha" p.html | sed 's/^/CH /'
-          grep -oE '<label[^>]*>[^<]{2,40}</label>' p.html | head -20 | sed 's/^/LB /'
-          grep -oE 'id="P8110_[A-Z_0-9]+"' p.html | sort -u | head -30 | sed 's/^/ID /'
+      - uses: actions/checkout@v4
+        with: { ref: probe }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm i --no-save playwright@1 && npx playwright install --with-deps chromium >/dev/null 2>&1
+      - name: ДФЗ
+        env: { ONLY: "София (област)", MINUTES: "20" }
+        run: |
+          node scripts/fetch-dfz.mjs 2025 20000
+          node -e 'const d=require("./data/dfz/subsidies-2025.json"); console.log("RES", d.rows.length, JSON.stringify(d.rows.sort((a,b)=>b[6]-a[6]).slice(0,6)))'
