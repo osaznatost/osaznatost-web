@@ -21,6 +21,17 @@ import { contractUrl } from "@/lib/procurement";
 import { trFor } from "@/lib/tr";
 import { napDebt, napIndex } from "@/lib/napDebtors";
 
+async function firmNameFromLinks(eik: string) {
+  const { powerLinks } = await import("@/lib/tr");
+  const { data } = await import("@/lib/data");
+  const codes = [...new Set((await powerLinks(eik).catch(() => [])).map((h) => h.code).filter((c) => c && c !== "MP" && c !== "GOV"))];
+  for (const c of codes) {
+    const L = await data<Record<string, { firms: { eik: string; name: string }[]; co: { firms: { eik: string; name: string }[] }[] }>>(`tr-links/${c}.json`);
+    for (const p of Object.values(L ?? {})) for (const f of [...p.firms, ...p.co.flatMap((x) => x.firms)]) if (f.eik.slice(0, 9) === eik.slice(0, 9)) return f.name;
+  }
+  return null;
+}
+
 /** Червено каре, ако фирмата е в публичния списък на НАП за неплатени данъци и осигуровки. */
 async function NapDebtBox({ eik }: { eik: string }) {
   const [d, I] = await Promise.all([napDebt(eik).catch(() => null), napIndex().catch(() => null)]);
@@ -42,8 +53,11 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   if (!/^\d{9,13}$/.test(eik)) notFound();
   const [s, contracts, annexes, offs] = await Promise.all([supplierStats(eik), supplierContracts(eik), supplierAnnexes(eik), officialLinks(eik)]);
   if (!s && !contracts.length) {
-    const t = await trFor(eik);
-    if (!t) notFound();
+    const t0 = await trFor(eik);
+    // Фирмата не е в нашия извлечък от регистъра, но е свързана с длъжностно лице: името е от неговия файл с връзки
+    const linkName = t0 ? null : await firmNameFromLinks(eik);
+    if (!t0 && !linkName) notFound();
+    const t = t0 ?? { name: linkName! };
     return (
       <>
         <Title small back={{ href: "/porachki", label: "Поръчки" }} kicker={`Фирма · ЕИК ${eik}`}
