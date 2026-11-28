@@ -20,6 +20,9 @@
  "update-abroad.yml": [
   "41 5 * * *"
  ],
+ "update-adfi.yml": [
+  "52 4 * * 2,5"
+ ],
  "update-audits.yml": [
   "29 5 * * 3"
  ],
