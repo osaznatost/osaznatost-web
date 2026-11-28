@@ -7,6 +7,10 @@ import { napDebt } from "@/lib/napDebtors";
 import { officialLinks } from "@/components/PersonLinks";
 import { firmDeals } from "@/components/PropertyDeals";
 
+/** Флагове, които сами по себе си са повод за въпрос, дори в един договор (не са обичайни за големите строители).
+ *  Длъжникът и връзката с политик не са тук: те вече са отделни сигнали. */
+export const SHARP = new Set(["threshold", "exact", "disq", "shared", "new"]);
+
 export type FirmSig = { level: "high" | "mid"; kind: "sanctions" | "officials" | "political" | "debt" | "property" | "risk" | "flags" | "single"; n: number };
 
 /** Оценява договорите на фирмата като в страницата на договора (контекстът — за първите 10 по предварителна оценка). */
@@ -33,7 +37,7 @@ export async function firmSignals(eik: string, pre?: Awaited<ReturnType<typeof s
   const [sanc, st, offs, debt, deals] = await Promise.all([sanction(eik).catch(() => null), supplierStats(eik).catch(() => null), officialLinks(eik).catch(() => []), napDebt(eik).catch(() => null), firmDeals(eik).catch(() => [])]);
   const pl = politicalLinks(eik).length && S.political > 0 ? politicalLinks(eik).length : 0;
   const high = S.scored.filter((x) => x.score >= 45).length, mid = S.scored.filter((x) => x.score >= 20 && x.score < 45).length;
-  const flags = new Set(S.scored.flatMap((x) => x.f.filter((f) => f.weight > 0).map((f) => f.id)));
+  const flags = new Set(S.scored.flatMap((x) => x.f.filter((f) => f.weight > 0 && SHARP.has(f.id)).map((f) => f.id)));
   const total = st?.contracts ?? S.contracts.length, single = st?.single_offer ?? 0;
   const out: FirmSig[] = [];
   if (sanc) out.push({ level: "high", kind: "sanctions", n: sanc.programs.length });
@@ -59,5 +63,5 @@ export async function firmSigMany(eiks: string[]) {
   }));
   return out;
 }
-const KIND: Record<string, string> = { sanctions: "в санкционен списък", officials: "свързана с длъжностни лица", political: "връзка с политик", debt: "длъжник към НАП", property: "общинско имущество", risk: "рискови договори", flags: "флагове в договорите", single: "без конкуренция" };
+const KIND: Record<string, string> = { sanctions: "в санкционен списък", officials: "свързана с длъжностни лица", political: "връзка с политик", debt: "длъжник към НАП", property: "общинско имущество", risk: "рискови договори", flags: "тревожни флагове в договорите", single: "без конкуренция" };
 export const sigTitle = (kinds: string[]) => kinds.map((k) => KIND[k.split(":")[0]] ?? k).join(", ");

@@ -21,6 +21,7 @@ import { contractUrl } from "@/lib/procurement";
 import { trFor } from "@/lib/tr";
 import { concessionsOfFirm } from "@/lib/concessions";
 import { ConcessionList } from "@/components/Concessions";
+import { SHARP } from "@/lib/firmSignals";
 import { sanction, programBg } from "@/lib/sanctionLists";
 import { napDebt, napIndex } from "@/lib/napDebtors";
 
@@ -36,18 +37,24 @@ async function FirmSignals({ eik, pl, political, offs, scored, single, total }: 
   if (pl) items.push({ level: political === 2 ? "high" : "mid", href: "#vrazki", text: <>{political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} {pl} {pl === 1 ? "политик" : "политици"} (депутати или фирми от декларации)</> });
   if (debt) items.push({ level: debt.eur >= 50000 ? "high" : "mid", href: "#nap", text: <>Длъжник към държавата: {Math.round(debt.eur).toLocaleString("bg-BG")} € неплатени данъци и осигуровки (списъкът на НАП)</> });
   if (deals.length) items.push({ level: "high", href: "#imushtestvo", text: <>{deals.length} решени{deals.length > 1 ? "я" : "е"} на общински съвет за общинско имущество в полза на фирмата, докато е свързана с длъжностно лице там</> });
-  if (high || mid) items.push({ level: high ? "high" : "mid", href: "#risk", text: <>{high ? `${high} договора с висок риск` : ""}{high && mid ? " и " : ""}{mid ? `${mid} със среден риск` : ""} (индекс 0–100)</> });
-  if (byFlag.size) items.push({ level: "mid", href: "#risk", text: <>Флагове в договорите: {[...byFlag.values()].sort((a, b) => b.n - a.n).map((v) => `${v.label.toLowerCase()} (${v.n})`).join(", ")}</> });
+  // Тежките флагове са отделен сигнал дори в един иначе нискорисков договор; обичайните само допълват реда за рисковите договори.
+  const sharp = [...byFlag.entries()].filter(([id]) => SHARP.has(id)).map(([, v]) => v);
+  const common = [...byFlag.entries()].filter(([id]) => !SHARP.has(id)).map(([, v]) => v).sort((a, b) => b.n - a.n);
+  const flagText = (vs: { label: string; n: number }[]) => vs.map((v) => `${v.label.toLowerCase()} (${v.n})`).join(", ");
+  if (high || mid) items.push({ level: high ? "high" : "mid", href: "#risk", text: <>{high ? `${high} договора с висок риск` : ""}{high && mid ? " и " : ""}{mid ? `${mid} със среден риск` : ""} (индекс 0–100){common.length ? <span className="text-muted">; най-чести флагове: {flagText(common.slice(0, 4))}</span> : null}</> });
+  if (sharp.length) items.push({ level: "mid", href: "#risk", text: <>Тревожни флагове в договорите: {flagText(sharp)}</> });
+  const info = !high && !mid && common.length ? <>За сведение, без да е сигнал: в договорите има обичайни флагове ({flagText(common.slice(0, 4))}), но нито един договор не стига среден риск.</> : null;
   if (total >= 5 && single / total >= 0.5) items.push({ level: "mid", href: "#risk", text: <>{Math.round((single / total) * 100)}% от договорите са спечелени без конкуренция (една оферта)</> });
-  if (!items.length) return null;
+  if (!items.length && !info) return null;
   const nh = items.filter((i) => i.level === "high").length;
   return (
     <section id="signali" className="ring-2 ring-red rounded-sm p-4 sm:p-5 mb-6 bg-white max-w-4xl text-[15px] scroll-mt-32 lg:scroll-mt-20">
       <p className="text-sm font-semibold text-red">Сигнали за риск · тази фирма</p>
-      <p className="display text-[1.6rem] leading-tight mb-2">{items.length} сигнал{items.length > 1 ? "а" : ""}{nh ? `, ${nh} сериозн${nh > 1 ? "и" : "о"}` : ""}</p>
+      <p className="display text-[1.6rem] leading-tight mb-2">{items.length ? `${items.length} сигнал${items.length > 1 ? "а" : ""}` : "Няма сигнали"}{nh ? `, ${nh} сериозн${nh > 1 ? "и" : "о"}` : ""}</p>
       <ul className="space-y-1.5">{[...items.filter((i) => i.level === "high"), ...items.filter((i) => i.level !== "high")].map((i, k) => (
         <li key={k} className={`border-l-4 pl-3 ${i.level === "high" ? "border-red" : "border-[#e08a2e]"}`}>{i.text} · <a href={i.href}>подробно</a></li>
       ))}</ul>
+      {info ? <p className="text-sm text-muted mt-2 border-l-4 border-rule pl-3">{info} · <a href="#risk">подробно</a></p> : null}
       <p className="text-xs text-muted mt-2">Сигнал е повод за въпрос, не доказателство за нарушение. <Link href="/porachki/metodologiya">Как ги откриваме</Link></p>
     </section>
   );
