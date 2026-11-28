@@ -51,7 +51,7 @@ for (const year of YEARS) {
       await page.evaluate(() => { const b = document.querySelector("button.a-IRR-button--pagination[title='Next']"); b.setAttribute("data-pagination", "pgR_min_row=1max_rows=5000rows_fetched=5000"); });
       console.log("DBG methods", await page.evaluate(() => Object.keys(apex.jQuery.apex.interactiveReport.prototype).filter((k) => /pag|row|search|refresh|_action|controls/i.test(k)).join(",")));
       console.log("DBG nb", !!nb);
-      console.log("DBG pag", await page.evaluate(() => { try { const $r = apex.jQuery("#R23696630537099701_ir"); const w = $r.interactiveReport("instance"); const src = String(w._paginate).slice(0, 400); w._paginate("pgR_min_row=1max_rows=5000rows_fetched=5000"); return "called " + src; } catch (e) { return "ERR " + e.message; } }));
+      console.log("DBG pag", await page.evaluate(() => { try { const $r = apex.jQuery("#R23696630537099701_ir"); const w = $r.data("apex-interactiveReport") || $r.data("interactiveReport") || $r.data("apexInteractiveReport") || Object.values($r.data()).find((v) => v && typeof v._paginate === "function"); if (!w) return "no inst " + Object.keys($r.data()).join(","); const src = String(w._paginate).slice(0, 400); w._paginate("pgR_min_row=1max_rows=5000rows_fetched=5000"); return "called " + src; } catch (e) { return "ERR " + e.message; } }));
       await page.waitForTimeout(15000);
       console.log("DBG after", await page.$eval(".a-IRR-pagination-label", (x) => x.textContent).catch(() => "?"));
       break;
