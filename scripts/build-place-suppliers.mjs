@@ -55,12 +55,12 @@ async function one(code, eiks) {
 }
 
 const ONLY = process.env.ONLY?.trim() ? new Set(process.env.ONLY.split(/[ ,]+/)) : null;
-const queue = process.env.TOTALS_ONLY ? [] : [...buyers.entries()].filter(([c]) => !ONLY || ONLY.has(c));
+const queue = process.env.TOTALS_ONLY || process.env.RISK_ONLY ? [] : [...buyers.entries()].filter(([c]) => !ONLY || ONLY.has(c));
 await Promise.all(Array.from({ length: 3 }, async () => { while (queue.length) { const [c, e] = queue.shift(); try { await one(c, e); } catch (err) { console.log("грешка", c, err.message); } } }));
 console.log(`Готово: ${done} общини`);
 
 // Общо по фирма за цялата страна (за „зависима от един възложител“ в червеното каре), на дялове по първите 2 цифри на ЕИК.
-if (!process.env.ONLY) {
+if (!process.env.ONLY && !process.env.RISK_ONLY) {
   const tot = new Map();
   let last = "", n = 0;
   for (;;) {
@@ -81,4 +81,27 @@ if (!process.env.ONLY) {
   for (const [e, [c, t]] of tot) ((shards[String(e).slice(0, 2).padEnd(2, "_")] ??= {})[e] = [c, Math.round(t)]);
   for (const [k, v] of Object.entries(shards)) writeFileSync(`${D}/${k}.json`, JSON.stringify(v));
   console.log(`Общо по фирма: ${tot.size} фирми от ${n} договора`);
+}
+
+// За червеното каре на общините: договорите с една оферта и договорите за проверката „нова фирма“ за последните 3 години.
+// Заявките към изгледа proc_contracts_geo са бавни за големите общини (Пловдив, София) и от сайта изтичат; тук се правят веднъж на ден.
+{
+  const since = (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 3); return d.toISOString().slice(0, 10); })();
+  const RD = "data/proc/place-risk";
+  mkdirSync(RD, { recursive: true });
+  const codes = [...buyers.keys()].filter((c) => !ONLY || ONLY.has(c));
+  let ok = 0;
+  const q2 = [...codes];
+  await Promise.all(Array.from({ length: 2 }, async () => {
+    while (q2.length) {
+      const code = q2.shift();
+      try {
+        const single = await get(`proc_contracts_geo?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20&municipality_code=eq.${code}`);
+        const lite = await get(`proc_contracts_geo?select=contract_date,contract_value_eur,supplier_eiks,supplier_names&municipality_code=eq.${code}&contract_date=gte.${since}&contract_value_eur=gte.30000&order=contract_date.desc&limit=2000`);
+        writeFileSync(`${RD}/${code}.json`, JSON.stringify({ since, single, lite }));
+        ok++;
+      } catch (e) { console.log("place-risk грешка", code, e.message); }
+    }
+  }));
+  console.log(`Рискове по общини: ${ok} от ${codes.length}`);
 }

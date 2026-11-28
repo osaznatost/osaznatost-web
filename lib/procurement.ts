@@ -83,8 +83,15 @@ const at = (f: PlaceFilter) => (hasGeo(f) ? "proc_annexes_geo" : "proc_annexes")
 export const latestContracts = (f: PlaceFilter = {}) => q<Contract>(`${ct(f)}?contract_date=not.is.null&order=contract_date.desc&limit=30${geoQ(f)}`);
 export const biggestContracts = (since: string, f: PlaceFilter = {}) =>
   q<Contract>(`${ct(f)}?contract_date=gte.${since}&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
-export const singleOfferBig = (since: string, f: PlaceFilter = {}) =>
-  q<Contract>(`${ct(f)}?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
+type PlaceRisk = { since: string; single: Contract[]; lite: Pick<Contract, "contract_date" | "contract_value_eur" | "supplier_eiks" | "supplier_names">[] };
+/** Готовият файл за една община (scripts/build-place-suppliers.mjs), ако покрива искания период. */
+async function placeRisk(f: PlaceFilter, since: string) {
+  if (!f.obshtina || f.mesto || f.nivo) return null;
+  const r = await data<PlaceRisk>(`proc/place-risk/${f.obshtina}.json`);
+  return r && r.since <= since ? r : null;
+}
+export const singleOfferBig = async (since: string, f: PlaceFilter = {}) =>
+  (await placeRisk(f, since))?.single.filter((c) => (c.contract_date ?? "") >= since) ?? q<Contract>(`${ct(f)}?contract_date=gte.${since}&offers_count=eq.1&contract_value_eur=gt.0&order=contract_value_eur.desc.nullslast&limit=20${geoQ(f)}`);
 /** Договори от дадена дата, в които са посочени подизпълнители. */
 export const subcontracted = (since: string, f: PlaceFilter = {}) =>
   q<Contract>(`${ct(f)}?contract_date=gte.${since}&has_subcontractors=is.true&order=contract_date.desc&limit=40${geoQ(f)}`);
@@ -153,8 +160,8 @@ export const placeSuppliersAll = async (code: string): Promise<PlaceSupplier[]> 
 export const muniContracts = (code: string, since: string) =>
   q<Contract>(`proc_contracts_geo?municipality_code=eq.${code}&contract_date=gte.${since}&order=contract_date.desc&limit=2000`);
 /** Само полетата за проверката „нова фирма“ (договори от 30 000 €): много по-малко данни за големите общини. */
-export const muniContractsLite = (code: string, since: string) =>
-  q<Pick<Contract, "contract_date" | "contract_value_eur" | "supplier_eiks" | "supplier_names">>(`proc_contracts_geo?select=contract_date,contract_value_eur,supplier_eiks,supplier_names&municipality_code=eq.${code}&contract_date=gte.${since}&contract_value_eur=gte.30000&order=contract_date.desc&limit=2000`);
+export const muniContractsLite = async (code: string, since: string) =>
+  (await placeRisk({ obshtina: code }, since))?.lite.filter((c) => (c.contract_date ?? "") >= since) ?? q<Pick<Contract, "contract_date" | "contract_value_eur" | "supplier_eiks" | "supplier_names">>(`proc_contracts_geo?select=contract_date,contract_value_eur,supplier_eiks,supplier_names&municipality_code=eq.${code}&contract_date=gte.${since}&contract_value_eur=gte.30000&order=contract_date.desc&limit=2000`);
 export const muniAnnexes = (code: string, since: string) =>
   q<Annex>(`proc_annexes_geo?municipality_code=eq.${code}&published_at=gte.${since}&order=published_at.desc&limit=2000`);
 /** Произволна заявка за четене (за търсенето). */
