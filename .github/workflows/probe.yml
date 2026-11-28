@@ -4,15 +4,14 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-        with: { ref: probe }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: npm i --no-save playwright@1 && npx playwright install --with-deps chromium >/dev/null 2>&1
-      - name: ДФЗ
-        env: { ONLY: "София (област)", MINUTES: "8", DEBUG: "1", CSVTEST: "1" }
+      - name: Страници на живо
+        env:
+          PW: ${{ secrets.SITE_PASSWORD }}
         run: |
-          node scripts/fetch-dfz.mjs 2025 20000
-          node -e 'const d=require("./data/dfz/subsidies-2025.json"); console.log("RES", d.rows.length, JSON.stringify(d.rows.sort((a,b)=>b[6]-a[6]).slice(0,6)))'
+          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
+          B=https://osaznatost.pavlin140.workers.dev
+          for p in /mesta/sfo/sfo07 /mesta/bgs/bgs04 /mesta/pdv/pdv22 /parlament/partiya/progresivna-balgariya; do
+            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
+            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -o "data-osz-partial=.[^ ]\{0,30\}" p.html | head -1) dots=$(grep -o "Фирма на длъжностно лице или депутат, или в декларация" p.html | wc -l)/$(grep -o "Връзка през бивш или настоящ съдружник" p.html | wc -l) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
+          done
