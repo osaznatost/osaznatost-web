@@ -1,23 +1,17 @@
 name: Проба
 on:
   workflow_dispatch:
-permissions:
-  contents: write
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-        with: { ref: main }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - name: Сбор
+      - name: Страници на живо
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-        run: RISK_ONLY=1 node scripts/build-place-suppliers.mjs && ls data/proc/place-risk | wc -l && ls -la data/proc/place-risk/PDV22.json
-      - name: Запис
+          PW: ${{ secrets.SITE_PASSWORD }}
         run: |
-          git config user.name "osaznatost-bot"; git config user.email "osaznatost-bot@users.noreply.github.com"
-          git add data/proc/place-risk && git commit -qm "Рискове по общини (първо пълнене)" && for i in 1 2 3; do git push origin HEAD:main && break; git pull --rebase -q origin main; done
+          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
+          B=https://osaznatost.pavlin140.workers.dev
+          for p in /lica/ivan-aleksandrov-gavalyugov-537220 /porachki/firma/131090107 /mesta/sfo/sfo07 /mesta/pdv/pdv22; do
+            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
+            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s dar=$(grep -c "Общинско имущество към свързана фирма" p.html) prop=$(grep -o "решени[ея] за общинско имущество" p.html | head -1) adr=$(grep -o "[0-9]* адреса\?, на ко" p.html | head -1) nap=$(grep -o "[0-9]* изпълнител[^<]\{0,25\}длъжни" p.html | head -1) err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -o "data-osz-partial=.[^ ]\{0,30\}" p.html | head -1) dots=$(grep -o "Фирма на длъжностно лице или депутат, или в декларация" p.html | wc -l)/$(grep -o "Връзка през бивш или настоящ съдружник" p.html | wc -l) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
+          done
