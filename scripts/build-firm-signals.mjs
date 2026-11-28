@@ -32,19 +32,19 @@ console.log(`фирми: ${eiks.size}, за обновяване: ${todo.length}
 
 let done = 0, fail = 0;
 const batches = [];
-for (let i = 0; i < todo.length; i += 5) batches.push(todo.slice(i, i + 5));
+for (const e of todo) batches.push([e]);
 async function worker() {
   while (batches.length && (Date.now() - T0) / 60e3 < MINUTES) {
     const b = batches.shift();
     try {
-      const r = await fetch(`${BASE}/api/firm-signals?eik=${b.join(",")}`, { headers: { Cookie: COOKIE, "User-Agent": "osaznatost-bot/1.0" }, signal: AbortSignal.timeout(90000) });
+      const r = await fetch(`${BASE}/api/firm-signals?eik=${b.join(",")}`, { headers: { Cookie: COOKIE, "User-Agent": "osaznatost-bot/1.0" }, signal: AbortSignal.timeout(150000) });
       if (!r.ok) { fail += b.length; continue; }
       const j = await r.json();
       for (const e of b) if (j[e]) { load(e.slice(0, 2))[e] = [j[e].n, j[e].high, j[e].kinds, today]; done++; } else fail++;
     } catch { fail += b.length; }
-    if (done % 200 < 5) for (const [k, v] of Object.entries(shards)) writeFileSync(`${OUT}/${k}.json`, JSON.stringify(v));
+    if (done % 100 === 0) for (const [k, v] of Object.entries(shards)) writeFileSync(`${OUT}/${k}.json`, JSON.stringify(v));
   }
 }
-await Promise.all([worker(), worker()]);
+await Promise.all([worker(), worker(), worker()]);
 for (const [k, v] of Object.entries(shards)) writeFileSync(`${OUT}/${k}.json`, JSON.stringify(v));
-console.log(`Готово: ${done} обновени, ${fail} неуспешни, остават ${batches.length * 5}`);
+console.log(`Готово: ${done} обновени, ${fail} неуспешни, остават ${batches.length}`);
