@@ -96,7 +96,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         <NapDebtBox eik={eik} />
         <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
         <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
-        <div className="space-y-8"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
+        <div id="svarzani-lica" className="space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
       </>
     );
   }

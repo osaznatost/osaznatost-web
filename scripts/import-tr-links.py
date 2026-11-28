@@ -239,6 +239,21 @@ for code, v in by.items():
                     shared = [x["name"] for x in p["firms"] if x["eik"] in c["via"]]
                     rev.setdefault(t["eik"], []).append({"c": code, "s": slug, "n": p["name"], "r": p["role"], "via": c["n"], "vr": t.get("roles", []), "in": shared[:3]})
 json.dump(rev, open(f"{OUT}/by-firm.json", "w"), ensure_ascii=False, separators=(",", ":"))
+# Пълен обратен индекс (всички свързани фирми, не само изпълнители), на дялове по първите три цифри на ЕИК —
+# за да може страницата на всяка фирма да покаже връзката, която се вижда в профила на лицето.
+allrev = {}
+for code, v in by.items():
+    for slug, p in v.items():
+        for f in p["firms"]:
+            allrev.setdefault(f["eik"], []).append({"c": code, "s": slug, "n": p["name"], "r": p["role"], "mine": f["mine"]})
+        for c in p["co"]:
+            for t in c["firms"]:
+                shared = [x["name"] for x in p["firms"] if x["eik"] in c["via"]]
+                allrev.setdefault(t["eik"], []).append({"c": code, "s": slug, "n": p["name"], "r": p["role"], "via": c["n"], "vr": t.get("roles", []), "in": shared[:3]})
+os.makedirs(f"{OUT}/by-firm", exist_ok=True)
+shards = {}
+for e, r in allrev.items(): shards.setdefault(e[:3], {})[e] = r
+for k, v in shards.items(): json.dump(v, open(f"{OUT}/by-firm/{k}.json", "w"), ensure_ascii=False, separators=(",", ":"))
 # История на хората във всяка прочетена фирма, на дялове по първите две цифри на ЕИК.
 os.makedirs("data/tr-hist", exist_ok=True)
 sh = {}

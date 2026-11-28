@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { peopleLinks } from "@/lib/people";
 import { firmUrl } from "@/lib/procurement";
+import { officialLinks } from "@/components/PersonLinks";
 import { foundedYear, firmsOfPerson, relatedFirms, type TrPerson, trFor } from "@/lib/tr";
 
 async function Who({ p }: { p: TrPerson }) {
@@ -14,7 +15,17 @@ async function Who({ p }: { p: TrPerson }) {
 
 export async function TrBox({ eik }: { eik: string }) {
   const [t, rel] = await Promise.all([trFor(eik), relatedFirms(eik)]);
-  if (!t) return <p className="text-[15px] text-muted">Още не сме прочели фирмата в Търговския регистър. Обхождаме всички изпълнители поред, по 1 заявка на 5 секунди, както допуска Агенцията по вписванията.</p>;
+  if (!t) {
+    const offs = await officialLinks(eik).catch(() => []);
+    const known = [...new Map(offs.filter((r) => r.via).map((r) => [r.via!, (r.vr ?? []).join(", ")])).entries()];
+    if (known.length) return (
+      <div className="text-[15px] space-y-1.5 max-w-4xl">
+        <ul className="space-y-1">{known.map(([n, r]) => <li key={n}><b>{n.toLowerCase().replace(/(^|\s|-)\S/g, (m) => m.toUpperCase())}</b>{r ? <span className="text-muted"> — {r}</span> : null}</li>)}</ul>
+        <p className="text-sm text-muted">Пълното вписване на фирмата още не е прочетено (обхождаме първо изпълнителите на поръчки). Хората по-горе са намерени, докато четохме фирмите на длъжностните лица: те са вписани и в тази фирма, и в обща фирма с длъжностно лице. Вижте „Свързани лица“.</p>
+      </div>
+    );
+    return <p className="text-[15px] text-muted">Още не сме прочели фирмата в Търговския регистър. Обхождаме всички изпълнители поред, по 1 заявка на 5 секунди, както допуска Агенцията по вписванията.</p>;
+  }
   const year = foundedYear(t);
   const rows: [string, TrPerson[]][] = [["Управители", t.managers], ["Съвет", t.board], ["Съдружници", t.partners], ["Едноличен собственик", t.owner], ["Действителни собственици", t.ubo], ["Прокуристи", t.procurator]];
   return (

@@ -273,9 +273,15 @@ export async function MuniLinks({ code }: { code: string }) {
   );
 }
 
+/** Обратният индекс: всички фирми от профилите на лицата (пряко или през общ съдружник), не само изпълнителите. */
+async function firmRev(eik: string): Promise<Rev[]> {
+  const e = eik.slice(0, 9);
+  return (await data<Record<string, Rev[]>>(`tr-links/by-firm/${e.slice(0, 3)}.json`))?.[e] ?? (await data<Record<string, Rev[]>>("tr-links/by-firm.json"))?.[e] ?? [];
+}
+
 /** Длъжностните лица, свързани с фирмата по Търговския регистър (пряко или през човек от друга обща фирма). */
 export async function officialLinks(eik: string): Promise<Rev[]> {
-  const rev = (await data<Record<string, Rev[]>>("tr-links/by-firm.json"))?.[eik.slice(0, 9)] ?? [];
+  const rev = await firmRev(eik);
   const seen = new Set<string>();
   return rev.filter((r) => { const k = `${r.s}|${r.via ?? ""}`; if (seen.has(k)) return false; seen.add(k); return true; });
 }
@@ -284,7 +290,7 @@ export const viaText = (r: Rev) => (r.via ? `през ${titleCase(r.via)}${r.in?
 
 /** За страницата на фирмата: длъжностни лица, свързани с нея пряко или през човек, който е бил с тях в друга фирма. */
 export async function FirmOfficials({ eik }: { eik: string }) {
-  const rev = (await data<Record<string, Rev[]>>("tr-links/by-firm.json"))?.[eik.slice(0, 9)] ?? [];
+  const rev = await firmRev(eik);
   if (!rev.length) return null;
   const href = (r: Rev) => (r.c === "MP" ? `/parlament/deputat/${r.s.slice(3)}` : `/lica/${r.s}#svarzani`);
   const seen = new Set<string>();

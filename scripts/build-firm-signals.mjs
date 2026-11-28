@@ -16,7 +16,8 @@ mkdirSync(OUT, { recursive: true });
 
 const eiks = new Set();
 for (const f of readdirSync("data/proc/place-suppliers")) for (const s of JSON.parse(readFileSync(`data/proc/place-suppliers/${f}`, "utf8")).slice(0, 20)) if (/^\d{9,13}$/.test(s.eik)) eiks.add(s.eik);
-if (existsSync("data/tr-links/eik")) for (const f of readdirSync("data/tr-links/eik").filter((f) => /^\d\d\.json$/.test(f))) for (const e of Object.keys(JSON.parse(readFileSync(`data/tr-links/eik/${f}`, "utf8")))) eiks.add(e);
+// след изпълнителите — всички фирми, свързани с длъжностни лица (пряко или през общ съдружник)
+if (existsSync("data/tr-links/by-firm")) for (const f of readdirSync("data/tr-links/by-firm")) for (const e of Object.keys(JSON.parse(readFileSync(`data/tr-links/by-firm/${f}`, "utf8")))) eiks.add(e);
 
 const shards = {};
 const load = (k) => (shards[k] ??= existsSync(`${OUT}/${k}.json`) ? JSON.parse(readFileSync(`${OUT}/${k}.json`, "utf8")) : {});
