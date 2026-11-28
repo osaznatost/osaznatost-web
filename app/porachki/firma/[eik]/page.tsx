@@ -18,6 +18,20 @@ import { declLinksForEik } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { contractUrl } from "@/lib/procurement";
 import { trFor } from "@/lib/tr";
+import { napDebt, napIndex } from "@/lib/napDebtors";
+
+/** Червено каре, ако фирмата е в публичния списък на НАП за неплатени данъци и осигуровки. */
+async function NapDebtBox({ eik }: { eik: string }) {
+  const [d, I] = await Promise.all([napDebt(eik).catch(() => null), napIndex().catch(() => null)]);
+  if (!d) return null;
+  return (
+    <section className="mb-10 border-2 border-red rounded-sm p-4 sm:p-5">
+      <p className="text-sm font-semibold text-red">Длъжник към държавата</p>
+      <p className="text-[15px] mt-1">Фирмата е в публичния списък на НАП за неплатени данъци и осигуровки: <b className="num">{Math.round(d.eur).toLocaleString("bg-BG")} €</b>{d.since ? <> от {d.since.split("-").reverse().join(".")}</> : null} (ТД {d.td}). По Закона за обществените поръчки такива задължения са основание за отстраняване от поръчка (чл. 54, ал. 1, т. 3), освен ако са под 1% от оборота.</p>
+      <p className="text-xs text-muted mt-2">Източник: НАП, списък по чл. 182, ал. 3, т. 2 от ДОПК{I?.asOf ? `, към ${I.asOf.split("-").reverse().join(".")}` : ""}. Сумата е необезпеченият остатък с лихвите.</p>
+    </section>
+  );
+}
 
 export const metadata = { title: "Фирма" };
 
@@ -105,6 +119,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p></div>
         ))}
       </section>
+      <NapDebtBox eik={eik} />
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
       <div id="svarzani-lica" className="mb-10 space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
 

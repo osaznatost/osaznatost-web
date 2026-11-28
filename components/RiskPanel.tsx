@@ -1,4 +1,5 @@
 import { unstable_rethrow } from "next/navigation";
+import { napDebtsMany } from "@/lib/napDebtors";
 import Link from "next/link";
 import { connection } from "next/server";
 import { auditsOfMuni } from "@/lib/audits";
@@ -125,6 +126,9 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
         if (gap >= 0 && gap < 365 * 864e5) { const y = young.get(e) ?? { name: c.supplier_names[c.supplier_eiks.indexOf(e)] ?? e, founded: fd, first: c.contract_date, v: 0 }; y.v += c.contract_value_eur ?? 0; if (c.contract_date < y.first) y.first = c.contract_date; young.set(e, y); }
       }
       if (young.size) sigs.push({ level: [...young.values()].some((y) => y.v >= 200000) ? "high" : "mid", title: `${young.size} нов${young.size > 1 ? "и фирми" : "а фирма"}: договор до година след създаването`, body: <ul className="mt-1 space-y-0.5">{[...young.entries()].sort((a, b) => b[1].v - a[1].v).slice(0, 6).map(([e, y]) => <li key={e}><Link href={firmUrl(e)}>{y.name}</Link> – създадена {y.founded.endsWith("-01-01") ? y.founded.slice(0, 4) : y.founded.split("-").reverse().join(".")}, първи договор тук {y.first.split("-").reverse().join(".")}, общо {fmtEur(y.v)}</li>)}</ul> });
+      // Фирми с неплатени данъци и осигуровки (публичният списък на НАП), които печелят поръчки тук
+      const debts = await within(napDebtsMany(top.map((x) => x.eik)), new Map(), 6000, "nap");
+      if (debts.size) sigs.push({ level: [...debts.values()].some((d) => d.eur >= 50000) ? "high" : "mid", title: `${debts.size} изпълнител${debts.size > 1 ? "и са длъжници" : " е длъжник"} към държавата (списъкът на НАП)`, body: <><ul className="mt-1 space-y-0.5">{[...debts.entries()].sort((a, b) => b[1].eur - a[1].eur).slice(0, 6).map(([e, d]) => <li key={e}><Link href={firmUrl(e)}>{top.find((t) => t.eik === e)?.name ?? d.name}</Link>: <span className="num">{Math.round(d.eur).toLocaleString("bg-BG")} €</span> неплатени данъци и осигуровки{d.since ? ` (в списъка от ${d.since.slice(0, 4)} г.)` : ""}</li>)}</ul><p className="text-sm text-muted mt-1">По ЗОП публичните задължения са основание за отстраняване от поръчка, освен ако са под 1% от оборота.</p></> });
       if (shared.length) sigs.push({ level: "mid", title: `${shared.length} души са управители или собственици в повече от една фирма, които печелят поръчки тук`, body: <><ul className="mt-1 space-y-0.5">{shared.slice(0, 6).map((x) => <li key={x.name}><b>{tc(x.name)}</b>: {x.firms.map((e) => top.find((t) => t.eik.slice(0, 9) === e)?.name ?? e).join(", ")}</li>)}</ul><p className="text-sm mt-1 text-muted">Ако тези фирми участват в едни и същи търгове, конкуренцията може да е привидна.</p></> });
     }
 

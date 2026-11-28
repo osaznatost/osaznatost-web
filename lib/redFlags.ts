@@ -2,6 +2,7 @@ import type { Annex, Contract } from "@/lib/procurement";
 import { THRESHOLDS } from "@/lib/buyerAnalysis";
 import { buyerContracts, politicalLinks, supplierContracts } from "@/lib/procurement";
 import { foundedDate, sharedPeople, trHitsMany, trMany, type TrHit } from "@/lib/tr";
+import { napDebtsMany } from "@/lib/napDebtors";
 import { legalException } from "@/lib/legalException.mjs";
 
 import { politicalStrength } from "@/lib/politicalFlag.mjs";
@@ -71,6 +72,12 @@ export async function contractFlags(c: Contract, annexes: Annex[] = [], politica
   if (c.has_subcontractors && Number(String(c.subcontracting_percent ?? "").replace(",", ".")) >= 50) f.push({ id: "sub", label: "Голям дял на подизпълнители", why: `Подизпълнителите поемат ${c.subcontracting_percent}% от работата.`, weight: 8 });
   const young = c.contract_date ? (await (async () => { const tr = await trMany(c.supplier_eiks); return c.supplier_eiks.map((e) => ({ e, d: foundedDate(tr.get(e.slice(0, 9)) ?? null) })); })()).find(({ d }) => d && Date.parse(c.contract_date!) >= Date.parse(d) && Date.parse(c.contract_date!) - Date.parse(d) < 365 * 864e5) : undefined;
   if (young) f.push({ id: "new", label: "Нова фирма", why: `Изпълнителят е създаден по-малко от година преди договора (${young.d!.endsWith("-01-01") ? `${young.d!.slice(0, 4)} г.` : young.d!.split("-").reverse().join(".")}, по Търговския регистър).`, weight: 15 });
+  // Длъжник към НАП: включен в публичния списък преди датата на договора (по ЗОП това е основание за отстраняване, чл. 54, ал. 1, т. 3).
+  if (c.contract_date) {
+    const debts = await napDebtsMany(c.supplier_eiks ?? []).catch(() => new Map());
+    const d = [...debts.values()].find((x) => x.since && x.since <= c.contract_date!);
+    if (d) f.push({ id: "debtor", label: "Длъжник към държавата", why: `Изпълнителят е в публичния списък на НАП за неплатени данъци и осигуровки от ${d.since!.split("-").reverse().join(".")} (сега ${Math.round(d.eur).toLocaleString("bg-BG")} €), т.е. преди договора. По закон такива задължения са основание за отстраняване от поръчка, освен ако са под 1% от оборота.`, weight: 10 });
+  }
   if (ctx) {
     if (ctx.depTotal >= 100000 && ctx.depShare >= 0.8) f.push({ id: "dependent", label: "Зависима от един възложител", why: `${Math.round(ctx.depShare * 100)}% от всички поръчки на фирмата са от този възложител.`, weight: 10 });
     if (ctx.buyerTotal >= 1e6 && ctx.buyerShare >= 0.2) f.push({ id: "concentration", label: "Голям дял при възложителя", why: `Фирмата е получила ${Math.round(ctx.buyerShare * 100)}% от парите по поръчките на този възложител.`, weight: ctx.buyerShare >= 0.35 ? 12 : 8 });
