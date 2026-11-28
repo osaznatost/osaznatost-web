@@ -5,11 +5,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
           J="-b j -c j -sL -A osaznatost-bot/1.0"
-          curl $J https://nkr.government.bg/Concessions >/dev/null
-          curl $J -X POST -H "X-Requested-With: XMLHttpRequest" --data "FromDate=01.01.1990&ToDate=28.11.2026" https://nkr.government.bg/Concessions/Search > r.html
-          grep -o "Общо: [0-9]*" r.html
-          python3 -c "
-          import re; s=open('r.html').read(); i=s.find('<tbody'); print(s[i:i+3000])"
-          curl $J "https://nkr.government.bg/Concessions/Export?file=csv" -o e.csv; wc -c e.csv; file e.csv; head -c 1500 e.csv
+          curl $J https://nkr.government.bg/Concessions > c.html
+          for s in $(grep -o 'src="/[^"]*"' c.html | cut -d'"' -f2 | grep -v kendo); do curl $J "https://nkr.government.bg$s" > s.js; grep -o ".\{200\}RegNumberClickable.\{400\}" s.js | head -3 && echo "^^ $s"; done
+          python3 - <<'P'
+          import re; s=open('c.html').read()
+          for m in re.finditer(r'<script[^>]*>(.*?)</script>',s,re.S):
+            t=m.group(1)
+            if 'Clickable' in t or 'Details' in t or 'Callbacks' in t: print('INLINE',t[:3000])
+          P
