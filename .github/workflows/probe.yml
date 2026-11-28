@@ -7,10 +7,7 @@ jobs:
       - run: |
           J="-b j -c j -sL -A osaznatost-bot/1.0"
           curl $J https://nkr.government.bg/Concessions > c.html
-          for s in $(grep -o 'src="/[^"]*"' c.html | cut -d'"' -f2 | grep -v kendo); do curl $J "https://nkr.government.bg$s" > s.js; grep -o ".\{200\}RegNumberClickable.\{400\}" s.js | head -3 && echo "^^ $s"; done
-          python3 - <<'P'
-          import re; s=open('c.html').read()
-          for m in re.finditer(r'<script[^>]*>(.*?)</script>',s,re.S):
-            t=m.group(1)
-            if 'Clickable' in t or 'Details' in t or 'Callbacks' in t: print('INLINE',t[:3000])
-          P
+          for s in $(grep -o 'src="/[^"]*"' c.html | cut -d'"' -f2 | grep -v "kendo\|svg"); do curl $J "https://nkr.government.bg$s" >> all.js; done
+          cat c.html >> all.js
+          grep -o ".\{300\}Clickable.\{500\}" all.js | grep -v "label class" | head -5
+          grep -o "url: *['\"][^'\"]*['\"]" all.js | sort -u | head -30
