@@ -92,6 +92,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           lead="Няма обществени поръчки, спечелени от тази фирма. Данните по-долу са от официалния Търговски регистър.">
           {t.name || eik}
         </Title>
+        <Suspense fallback={null}><FirmSignals eik={eik} pl={0} political={0} offs={offs} scored={[]} single={0} total={0} /></Suspense>
         <NapDebtBox eik={eik} />
         <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
         <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
