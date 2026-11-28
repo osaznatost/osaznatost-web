@@ -49,7 +49,7 @@ for (const year of YEARS) {
       });
       const nb = await page.$("button.a-IRR-button--pagination[title='Next']");
       await page.evaluate(() => { const b = document.querySelector("button.a-IRR-button--pagination[title='Next']"); b.setAttribute("data-pagination", "pgR_min_row=1max_rows=5000rows_fetched=5000"); });
-      await nb?.click();
+      console.log("DBG nb", !!nb); await page.evaluate(() => document.querySelector("button.a-IRR-button--pagination[title='Next']")?.click());
       await page.waitForTimeout(15000);
       console.log("DBG after", await page.$eval(".a-IRR-pagination-label", (x) => x.textContent).catch(() => "?"));
       break;
