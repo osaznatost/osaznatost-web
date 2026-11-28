@@ -29,6 +29,9 @@
  "update-bills.yml": [
   "17 2 * * *"
  ],
+ "update-concessions.yml": [
+  "7 5 * * *"
+ ],
  "update-data.yml": [
   "17 4 * * *",
   "52 7 * * *",

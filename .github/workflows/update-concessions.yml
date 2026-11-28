@@ -1,0 +1,23 @@
+name: Концесии (Национален концесионен регистър)
+on:
+  # schedule (Cloudflare):
+    # cf-cron: "7 5 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/import-concessions.mjs
+      - name: Запис
+        run: |
+          git config user.name "osaznatost-bot"; git config user.email "osaznatost-bot@users.noreply.github.com"
+          git add data/concessions.json scripts/nkr-cache.json
+          git diff --cached --quiet && exit 0
+          git commit -qm "Концесии"
+          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done
