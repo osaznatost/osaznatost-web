@@ -1,5 +1,6 @@
 import { unstable_rethrow } from "next/navigation";
 import { napDebtsMany } from "@/lib/napDebtors";
+import { sharedAddress } from "@/lib/tr";
 import Link from "next/link";
 import { connection } from "next/server";
 import { auditsOfMuni } from "@/lib/audits";
@@ -126,6 +127,9 @@ async function RiskPanelInner({ codes, f, scope }: { codes: string[]; f: PlaceFi
         if (gap >= 0 && gap < 365 * 864e5) { const y = young.get(e) ?? { name: c.supplier_names[c.supplier_eiks.indexOf(e)] ?? e, founded: fd, first: c.contract_date, v: 0 }; y.v += c.contract_value_eur ?? 0; if (c.contract_date < y.first) y.first = c.contract_date; young.set(e, y); }
       }
       if (young.size) sigs.push({ level: [...young.values()].some((y) => y.v >= 200000) ? "high" : "mid", title: `${young.size} нов${young.size > 1 ? "и фирми" : "а фирма"}: договор до година след създаването`, body: <ul className="mt-1 space-y-0.5">{[...young.entries()].sort((a, b) => b[1].v - a[1].v).slice(0, 6).map(([e, y]) => <li key={e}><Link href={firmUrl(e)}>{y.name}</Link> – създадена {y.founded.endsWith("-01-01") ? y.founded.slice(0, 4) : y.founded.split("-").reverse().join(".")}, първи договор тук {y.first.split("-").reverse().join(".")}, общо {fmtEur(y.v)}</li>)}</ul> });
+      // Фирми-изпълнители тук с един и същ адрес на управление (по Търговския регистър)
+      const sameAddr = await within(sharedAddress(top.map((x) => x.eik)), [] as Awaited<ReturnType<typeof sharedAddress>>, 6000, "addr");
+      if (sameAddr.length) sigs.push({ level: "mid", title: `${sameAddr.length} адрес${sameAddr.length > 1 ? "а" : ""}, на ко${sameAddr.length > 1 ? "ито" : "йто"} са регистрирани по няколко фирми, печелещи поръчки тук`, body: <><ul className="mt-1 space-y-0.5">{sameAddr.slice(0, 5).map((a) => <li key={a.address}>{a.firms.map((e, i) => <span key={e}>{i ? ", " : ""}<Link href={firmUrl(e)}>{top.find((t) => t.eik.slice(0, 9) === e)?.name ?? e}</Link></span>)} · <span className="text-muted">{a.address.slice(0, 90)}</span></li>)}</ul><p className="text-sm text-muted mt-1">Общ адрес не е нарушение (счетоводни кантори, бизнес сгради), но при фирми, които се състезават за едни и същи поръчки, е повод да се провери дали конкуренцията е истинска.</p></> });
       // Фирми с неплатени данъци и осигуровки (публичният списък на НАП), които печелят поръчки тук
       const debts = await within(napDebtsMany(top.map((x) => x.eik)), new Map(), 6000, "nap");
       if (debts.size) sigs.push({ level: [...debts.values()].some((d) => d.eur >= 50000) ? "high" : "mid", title: `${debts.size} изпълнител${debts.size > 1 ? "и са длъжници" : " е длъжник"} към държавата (списъкът на НАП)`, body: <><ul className="mt-1 space-y-0.5">{[...debts.entries()].sort((a, b) => b[1].eur - a[1].eur).slice(0, 6).map(([e, d]) => <li key={e}><Link href={firmUrl(e)}>{top.find((t) => t.eik === e)?.name ?? d.name}</Link>: <span className="num">{Math.round(d.eur).toLocaleString("bg-BG")} €</span> неплатени данъци и осигуровки{d.since ? ` (в списъка от ${d.since.slice(0, 4)} г.)` : ""}</li>)}</ul><p className="text-sm text-muted mt-1">По ЗОП публичните задължения са основание за отстраняване от поръчка, освен ако са под 1% от оборота.</p></> });
