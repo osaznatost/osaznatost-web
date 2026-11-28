@@ -45,6 +45,6 @@ async function worker() {
     if (done % 100 === 0) for (const [k, v] of Object.entries(shards)) writeFileSync(`${OUT}/${k}.json`, JSON.stringify(v));
   }
 }
-await Promise.all([worker(), worker(), worker()]);
+await Promise.all([worker(), worker()]);
 for (const [k, v] of Object.entries(shards)) writeFileSync(`${OUT}/${k}.json`, JSON.stringify(v));
 console.log(`Готово: ${done} обновени, ${fail} неуспешни, остават ${batches.length}`);
