@@ -1,3 +1,4 @@
+import { PersonDeals } from "@/components/PropertyDeals";
 import { connection } from "next/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -125,6 +126,8 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
           ["Задължения", eur(d?.debtEur), "кредити и заеми"],
         ].map(([l, v, n]) => <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[2rem] mt-1">{v}</p><p className="text-xs text-muted">{n}</p></div>)}
       </section>
+      <Suspense fallback={null}><PersonDeals code={code} slug={o.slug} /></Suspense>
+
 
       {H.length > 1 && (
         <section className="mb-10">

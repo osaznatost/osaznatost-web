@@ -1,3 +1,4 @@
+import { FirmDeals } from "@/components/PropertyDeals";
 import { notFound } from "next/navigation";
 import { peopleLinks } from "@/lib/people";
 import { Suspense } from "react";
@@ -120,6 +121,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         ))}
       </section>
       <NapDebtBox eik={eik} />
+      <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
       <div id="svarzani-lica" className="mb-10 space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
 
