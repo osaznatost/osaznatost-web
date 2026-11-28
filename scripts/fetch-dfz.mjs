@@ -49,7 +49,7 @@ for (const year of YEARS) {
         kept++;
       }
       pages++;
-      const next = await page.$("a.t-Report-paginationLink--next, a:has-text('Следващ'), a[title*='Следващ']");
+      const next = await page.$("button.a-IRR-button--pagination[title='Next'], button.a-IRR-button--pagination[aria-label='Next'], button.a-IRR-button--pagination[title='Следващ']");
       if (!next) break;
       const before = got[0]?.join("|");
       await next.click();
