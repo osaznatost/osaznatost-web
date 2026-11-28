@@ -5,13 +5,20 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Страници на живо
-        env:
+      - env:
           PW: ${{ secrets.SITE_PASSWORD }}
         run: |
           H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
           B=https://osaznatost.pavlin140.workers.dev
           for p in /lica/ivan-aleksandrov-gavalyugov-537220 /lica/tihomir-sbkov-naidenov-e0d219 /porachki/firma/131090107 /porachki/firma/115004094; do
-            s=$(date +%s.%N); code=$(curl -s -m 60 -o p.html -w '%{http_code}' -H "Cookie: osz_auth=$H" "$B$p"); e=$(date +%s.%N)
-            echo "PAGE $p $code $(wc -c < p.html) $(python3 -c "print(round($e-$s,1))")s dar=$(grep -o "[0-9]* сигнал[а]\?\(, [0-9]* сериозн[ио]\)\?" p.html | head -1) prop=$(grep -o "решени[ея] за общинско имущество" p.html | head -1) adr=$(grep -o "[0-9]* адреса\?, на ко" p.html | head -1) nap=$(grep -o "[0-9]* изпълнител[^<]\{0,25\}длъжни" p.html | head -1) err=$(grep -c 'Страницата не се зареди\|Application error\|Проверката не успя' p.html) sig=$(grep -o "[0-9]\+ сигнала[^<\\\"]\{0,14\}" p.html | head -1) part=$(grep -o "data-osz-partial=.[^ ]\{0,30\}" p.html | head -1) dots=$(grep -o "Фирма на длъжностно лице или депутат, или в декларация" p.html | wc -l)/$(grep -o "Връзка през бивш или настоящ съдружник" p.html | wc -l) cache=$(curl -s -m 60 -o /dev/null -D - -H "Cookie: osz_auth=$H" "$B$p" | grep -i x-osz-cache | tr -d "\r")"
+            curl -s -m 60 -o p.html -H "Cookie: osz_auth=$H" "$B$p"
+            echo "PG $p box=$(grep -c 'Сигнали за риск · ' p.html) red=$(grep -o 'border-l-4 pl-3 border-red' p.html | wc -l) or=$(grep -o 'border-l-4 pl-3 border-\[#e08a2e\]' p.html | wc -l)"
+            python3 - <<'PY'
+          import re,html
+          s=open('p.html',encoding='utf-8').read()
+          i=s.find('Сигнали за риск · ')
+          if i>0:
+            t=re.sub(r'<[^>]+>','',s[i:i+5000]); t=html.unescape(t)
+            print('TX', re.sub(r'\s+',' ',t)[:700])
+          PY
           done
