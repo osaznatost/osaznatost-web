@@ -6,7 +6,7 @@ import { firmUrl } from "@/lib/procurement";
 
 function Box({ deals, lead }: { deals: Deal[]; lead: React.ReactNode }) {
   return (
-    <section className="mb-10 border-2 border-red rounded-sm p-4 sm:p-5">
+    <section id="imushtestvo" className="mb-10 border-2 border-red rounded-sm p-4 sm:p-5 scroll-mt-32 lg:scroll-mt-20">
       <p className="text-sm font-semibold text-red">Общинско имущество към свързана фирма</p>
       <p className="text-[15px] mt-1">{lead}</p>
       <ul className="mt-2 space-y-2 text-[15px]">{deals.map((d) => (
@@ -29,11 +29,14 @@ export async function PersonDeals({ code, slug }: { code: string; slug: string }
 }
 
 /** В профила на фирмата: решенията в общините на свързаните с нея длъжностни лица. */
-export async function FirmDeals({ eik }: { eik: string }) {
+export async function firmDeals(eik: string) {
   const e = eik.slice(0, 9);
   const codes = [...new Set((await powerLinks(eik).catch(() => [])).map((h) => h.code).filter((c) => c && c !== "MP" && c !== "GOV"))];
   const all = (await Promise.all(codes.map((c) => propertyDeals(c).catch(() => [])))).flat().filter((d) => d.firm.eik.slice(0, 9) === e);
-  const deals = [...new Map(all.map((d) => [`${d.code}-${d.number}`, d])).values()];
+  return [...new Map(all.map((d) => [`${d.code}-${d.number}`, d])).values()];
+}
+export async function FirmDeals({ eik }: { eik: string }) {
+  const deals = await firmDeals(eik).catch(() => []);
   if (!deals.length) return null;
   return <Box deals={deals} lead={<>Фирмата се споменава в {deals.length} решени{deals.length > 1 ? "я" : "е"} на общински съвет за общинско имущество, а е свързана с длъжностно лице в същата община.</>} />;
 }

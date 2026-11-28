@@ -1,3 +1,4 @@
+import { PersonSignals } from "@/components/PersonSignals";
 import { PersonDeals } from "@/components/PropertyDeals";
 import { connection } from "next/server";
 import Link from "next/link";
@@ -118,6 +119,8 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
         </section>
       )}
 
+      <Suspense fallback={null}><PersonSignals code={code} slug={o.slug} name={o.name} history={H} /></Suspense>
+
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
         {[
           ["Доход за " + (d?.fiscalYear ?? "–"), eur(d?.income), d?.incomeSpouse ? `съпруг/а: ${eur(d.incomeSpouse)}` : "облагаем доход по декларация"],
@@ -130,7 +133,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
 
 
       {H.length > 1 && (
-        <section className="mb-10">
+        <section className="mb-10 scroll-mt-32 lg:scroll-mt-20" id="imushtestvo-godini">
           <SectionTitle>Доходи и имущество през годините</SectionTitle>
           <div className="ring-1 ring-rule rounded-sm p-4 bg-white mb-4"><MultiLine data={[...H.map((h) => ({ series: "Доход", x: h.fiscalYear ?? h.year - 1, value: Math.round(h.income) })), ...H.map((h) => ({ series: "Пари в банки", x: h.fiscalYear ?? h.year - 1, value: Math.round(h.bankEur) })), ...H.map((h) => ({ series: "Задължения", x: h.fiscalYear ?? h.year - 1, value: Math.round(h.debtEur) }))]} unit=" €" height={260} /></div>
         </section>
@@ -170,7 +173,7 @@ async function Body({ params }: { params: Promise<{ slug: string }> }) {
       )}
 
       {myVotes.length > 0 && (
-        <section className="mb-10">
+        <section className="mb-10" id="glasuvane">
           <SectionTitle>Как гласува в общинския съвет ({myVotes.length} поименни гласувания)</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-3 max-w-3xl">От протоколите с поименно гласуване. „За“ {myVotes.filter((x) => x.v === "for").length}, „против“ {myVotes.filter((x) => x.v === "against").length}, „въздържал(а) се“ {myVotes.filter((x) => x.v === "abstain").length}. Срещу мнозинството: {notWithMajority.length}. Различното гласуване е повод за въпрос, не доказателство за нещо.</p>
           {notFor.length > 0 && <ul className="space-y-1.5 text-[15px]">{notFor.slice(0, 30).map(({ r, v }) => (

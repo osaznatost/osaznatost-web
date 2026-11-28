@@ -1,4 +1,4 @@
-import { FirmDeals } from "@/components/PropertyDeals";
+import { FirmDeals, firmDeals } from "@/components/PropertyDeals";
 import { notFound } from "next/navigation";
 import { peopleLinks } from "@/lib/people";
 import { Suspense } from "react";
@@ -21,6 +21,34 @@ import { contractUrl } from "@/lib/procurement";
 import { trFor } from "@/lib/tr";
 import { napDebt, napIndex } from "@/lib/napDebtors";
 
+/** Всички сигнали за фирмата на едно място, най-горе; всеки ред води към раздела с подробностите. */
+async function FirmSignals({ eik, pl, political, offs, scored, single, total }: { eik: string; pl: number; political: number; offs: Awaited<ReturnType<typeof officialLinks>>; scored: { c: { contract_date: string | null }; f: { id: string; label: string; weight: number }[]; score: number }[]; single: number; total: number }) {
+  const [debt, deals] = await Promise.all([napDebt(eik).catch(() => null), firmDeals(eik).catch(() => [])]);
+  const high = scored.filter((x) => x.score >= 45).length, mid = scored.filter((x) => x.score >= 20 && x.score < 45).length;
+  const byFlag = new Map<string, { label: string; n: number }>();
+  for (const x of scored) for (const f of x.f) if (f.weight > 0) { const v = byFlag.get(f.id) ?? { label: f.label, n: 0 }; v.n++; byFlag.set(f.id, v); }
+  const items: { level: "high" | "mid"; href: string; text: React.ReactNode }[] = [];
+  if (offs.length) items.push({ level: "high", href: "#svarzani-lica", text: <>Свързана с {offs.length} длъжностн{offs.length > 1 ? "и лица" : "о лице"} по Търговския регистър: {offs.slice(0, 3).map((r, i) => <span key={i}>{i ? ", " : ""}<Link href={officialHref(r)}>{r.n}</Link> ({r.r.toLowerCase()})</span>)}{offs.length > 3 ? "…" : ""}</> });
+  if (pl) items.push({ level: political === 2 ? "high" : "mid", href: "#vrazki", text: <>{political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} {pl} {pl === 1 ? "политик" : "политици"} (депутати или фирми от декларации)</> });
+  if (debt) items.push({ level: debt.eur >= 50000 ? "high" : "mid", href: "#nap", text: <>Длъжник към държавата: {Math.round(debt.eur).toLocaleString("bg-BG")} € неплатени данъци и осигуровки (списъкът на НАП)</> });
+  if (deals.length) items.push({ level: "high", href: "#imushtestvo", text: <>{deals.length} решени{deals.length > 1 ? "я" : "е"} на общински съвет за общинско имущество в полза на фирмата, докато е свързана с длъжностно лице там</> });
+  if (high || mid) items.push({ level: high ? "high" : "mid", href: "#risk", text: <>{high ? `${high} договора с висок риск` : ""}{high && mid ? " и " : ""}{mid ? `${mid} със среден риск` : ""} (индекс 0–100)</> });
+  if (byFlag.size) items.push({ level: "mid", href: "#risk", text: <>Флагове в договорите: {[...byFlag.values()].sort((a, b) => b.n - a.n).map((v) => `${v.label.toLowerCase()} (${v.n})`).join(", ")}</> });
+  if (total >= 5 && single / total >= 0.5) items.push({ level: "mid", href: "#risk", text: <>{Math.round((single / total) * 100)}% от договорите са спечелени без конкуренция (една оферта)</> });
+  if (!items.length) return null;
+  const nh = items.filter((i) => i.level === "high").length;
+  return (
+    <section className="ring-2 ring-red rounded-sm p-4 sm:p-5 mb-6 bg-white max-w-4xl text-[15px]">
+      <p className="text-sm font-semibold text-red">Сигнали за риск · тази фирма</p>
+      <p className="display text-[1.6rem] leading-tight mb-2">{items.length} сигнал{items.length > 1 ? "а" : ""}{nh ? `, ${nh} сериозн${nh > 1 ? "и" : "о"}` : ""}</p>
+      <ul className="space-y-1.5">{[...items.filter((i) => i.level === "high"), ...items.filter((i) => i.level !== "high")].map((i, k) => (
+        <li key={k} className={`border-l-4 pl-3 ${i.level === "high" ? "border-red" : "border-[#e08a2e]"}`}>{i.text} · <a href={i.href}>подробно</a></li>
+      ))}</ul>
+      <p className="text-xs text-muted mt-2">Сигнал е повод за въпрос, не доказателство за нарушение. <Link href="/porachki/metodologiya">Как ги откриваме</Link></p>
+    </section>
+  );
+}
+
 async function firmNameFromLinks(eik: string) {
   const { powerLinks } = await import("@/lib/tr");
   const { data } = await import("@/lib/data");
@@ -37,7 +65,7 @@ async function NapDebtBox({ eik }: { eik: string }) {
   const [d, I] = await Promise.all([napDebt(eik).catch(() => null), napIndex().catch(() => null)]);
   if (!d) return null;
   return (
-    <section className="mb-10 border-2 border-red rounded-sm p-4 sm:p-5">
+    <section id="nap" className="mb-10 border-2 border-red rounded-sm p-4 sm:p-5 scroll-mt-32 lg:scroll-mt-20">
       <p className="text-sm font-semibold text-red">Длъжник към държавата</p>
       <p className="text-[15px] mt-1">Фирмата е в публичния списък на НАП за неплатени данъци и осигуровки: <b className="num">{Math.round(d.eur).toLocaleString("bg-BG")} €</b>{d.since ? <> от {d.since.split("-").reverse().join(".")}</> : null} (ТД {d.td}). По Закона за обществените поръчки такива задължения са основание за отстраняване от поръчка (чл. 54, ал. 1, т. 3), освен ако са под 1% от оборота.</p>
       <p className="text-xs text-muted mt-2">Източник: НАП, списък по чл. 182, ал. 3, т. 2 от ДОПК{I?.asOf ? `, към ${I.asOf.split("-").reverse().join(".")}` : ""}. Сумата е необезпеченият остатък с лихвите.</p>
@@ -116,14 +144,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
         lead={s ? `Печелила е ${s.contracts} договора от ${fmtDate(s.first_date)} до ${fmtDate(s.last_date)}.` : undefined}>
         {name}
       </Title>
-      {((pl.length > 0 && political > 0) || high.length > 0 || offs.length > 0) && (
-        <div className="ring-2 ring-red rounded-sm p-4 mb-6 bg-white max-w-4xl text-[15px] space-y-2">
-          <a href={pl.length && political ? "#vrazki" : offs.length ? "#svarzani-lica" : "#risk"} className="block no-underline text-ink">
-            <b>{[pl.length > 0 && political > 0 && `${political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} ${pl.length} ${pl.length === 1 ? "политик или длъжностно лице" : "политици или длъжностни лица"}`, offs.length > 0 && `${offs.length} ${offs.length === 1 ? "връзка" : "връзки"} с длъжностни лица по Търговския регистър`, high.length > 0 && `${high.length} договора с висок риск`].filter(Boolean).join(" · ")}.</b> Подробно по-долу.
-          </a>
-          {offs.length > 0 && <ul className="text-sm space-y-0.5">{offs.slice(0, 3).map((r, i) => <li key={i}><Link href={officialHref(r)}>{r.n}</Link>, {r.r.toLowerCase()}: {viaText(r)}</li>)}</ul>}
-        </div>
-      )}
+      <FirmSignals eik={eik} pl={pl.length > 0 && political > 0 ? pl.length : 0} political={political} offs={offs} scored={scored} single={s?.single_offer ?? 0} total={s?.contracts ?? contracts.length} />
       <SectionNav items={[["obobshtenie", "Обобщение"], ["registar", "Собственици и управители"], ["vrazki", "Връзки"], ["risk", `Риск (${high.length})`], ["plateno", "Платено"], ...(eu.length || serial ? [["evro", "Евросредства"] as [string, string]] : []), ["dogovori", `Договори (${contracts.length})`], ["aneksi", `Анекси (${annexes.length})`]]} />
       <div id="obobshtenie" className="scroll-mt-32 lg:scroll-mt-20" />
       <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
