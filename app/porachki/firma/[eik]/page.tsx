@@ -19,15 +19,17 @@ import { declLinksForEik } from "@/lib/declLinks";
 import { DeclLinks } from "@/components/DeclLinks";
 import { contractUrl } from "@/lib/procurement";
 import { trFor } from "@/lib/tr";
+import { sanction, programBg } from "@/lib/sanctionLists";
 import { napDebt, napIndex } from "@/lib/napDebtors";
 
 /** Всички сигнали за фирмата на едно място, най-горе; всеки ред води към раздела с подробностите. */
 async function FirmSignals({ eik, pl, political, offs, scored, single, total }: { eik: string; pl: number; political: number; offs: Awaited<ReturnType<typeof officialLinks>>; scored: { c: { contract_date: string | null }; f: { id: string; label: string; weight: number }[]; score: number }[]; single: number; total: number }) {
-  const [debt, deals] = await Promise.all([napDebt(eik).catch(() => null), firmDeals(eik).catch(() => [])]);
+  const [debt, deals, sanc] = await Promise.all([napDebt(eik).catch(() => null), firmDeals(eik).catch(() => []), sanction(eik).catch(() => null)]);
   const high = scored.filter((x) => x.score >= 45).length, mid = scored.filter((x) => x.score >= 20 && x.score < 45).length;
   const byFlag = new Map<string, { label: string; n: number }>();
   for (const x of scored) for (const f of x.f) if (f.weight > 0) { const v = byFlag.get(f.id) ?? { label: f.label, n: 0 }; v.n++; byFlag.set(f.id, v); }
   const items: { level: "high" | "mid"; href: string; text: React.ReactNode }[] = [];
+  if (sanc) items.push({ level: "high", href: "#sankcii", text: <>В санкционен списък: {[...new Set(sanc.programs.map(programBg))].join("; ")}</> });
   if (offs.length) items.push({ level: "high", href: "#svarzani-lica", text: <>Свързана с {offs.length} длъжностн{offs.length > 1 ? "и лица" : "о лице"} по Търговския регистър: {offs.slice(0, 3).map((r, i) => <span key={i}>{i ? ", " : ""}<Link href={officialHref(r)}>{r.n}</Link> ({r.r.toLowerCase()})</span>)}{offs.length > 3 ? "…" : ""}</> });
   if (pl) items.push({ level: political === 2 ? "high" : "mid", href: "#vrazki", text: <>{political === 2 ? "Свързана с" : "Възможна връзка (по имена) с"} {pl} {pl === 1 ? "политик" : "политици"} (депутати или фирми от декларации)</> });
   if (debt) items.push({ level: debt.eur >= 50000 ? "high" : "mid", href: "#nap", text: <>Длъжник към държавата: {Math.round(debt.eur).toLocaleString("bg-BG")} € неплатени данъци и осигуровки (списъкът на НАП)</> });
@@ -61,6 +63,19 @@ async function firmNameFromLinks(eik: string) {
 }
 
 /** Червено каре, ако фирмата е в публичния списък на НАП за неплатени данъци и осигуровки. */
+async function SanctionBox({ eik }: { eik: string }) {
+  const s = await sanction(eik).catch(() => null);
+  if (!s) return null;
+  const progs = [...new Set(s.programs.map(programBg))];
+  return (
+    <section id="sankcii" className="mb-10 border-2 border-red rounded-sm p-4 sm:p-5 scroll-mt-32 lg:scroll-mt-20">
+      <p className="text-sm font-semibold text-red">В санкционен списък</p>
+      <p className="text-[15px] mt-1">Фирмата е в санкционен списък: <b>{progs.join("; ")}</b>{s.since ? <> (в списъците поне от {s.since.split("-").reverse().join(".")})</> : null}. Санкциите обикновено означават замразени активи и забрана за сделки с тях в съответната държава.</p>
+      <p className="text-xs text-muted mt-2">Източник: <a href={`https://www.opensanctions.org/entities/${s.id}/`} target="_blank" rel="noreferrer">OpenSanctions</a> (CC BY-NC 4.0), съвпадение по ЕИК, към {s.updated.split("-").reverse().join(".")}.</p>
+    </section>
+  );
+}
+
 async function NapDebtBox({ eik }: { eik: string }) {
   const [d, I] = await Promise.all([napDebt(eik).catch(() => null), napIndex().catch(() => null)]);
   if (!d) return null;
@@ -83,7 +98,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   if (!s && !contracts.length) {
     const t0 = await trFor(eik);
     // Фирмата не е в нашия извлечък от регистъра, но е свързана с длъжностно лице: името е от неговия файл с връзки
-    const linkName = t0 ? null : await firmNameFromLinks(eik);
+    const linkName = t0 ? null : (await firmNameFromLinks(eik)) ?? (await sanction(eik).catch(() => null))?.name ?? null;
     if (!t0 && !linkName) notFound();
     const t = t0 ?? { name: linkName! };
     return (
@@ -93,7 +108,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           {t.name || eik}
         </Title>
         <Suspense fallback={null}><FirmSignals eik={eik} pl={0} political={0} offs={offs} scored={[]} single={0} total={0} /></Suspense>
-        <NapDebtBox eik={eik} />
+        <SanctionBox eik={eik} /><NapDebtBox eik={eik} />
         <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
         <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
         <div id="svarzani-lica" className="space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>
@@ -158,7 +173,7 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
           <div key={l} className="bg-surface rounded-sm p-4"><p className="text-sm text-muted">{l}</p><p className="display num text-[1.75rem] sm:text-[2.4rem] leading-none mt-1 break-words">{v}</p></div>
         ))}
       </section>
-      <NapDebtBox eik={eik} />
+      <SanctionBox eik={eik} /><NapDebtBox eik={eik} />
       <Suspense fallback={null}><FirmDeals eik={eik} /></Suspense>
       <Anchor id="registar" title="Собственици и управители"><TrBox eik={eik} /></Anchor>
       <div id="svarzani-lica" className="mb-10 space-y-8 scroll-mt-32"><FirmOfficials eik={eik} /><FirmHistory eik={eik} /></div>

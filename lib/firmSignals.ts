@@ -2,11 +2,12 @@
 import { supplierAnnexes, supplierContracts, supplierStats } from "@/lib/procurement";
 import { contractContext, contractFlags, linkStrength, riskScore } from "@/lib/redFlags";
 import { politicalLinks } from "@/lib/procurement";
+import { sanction } from "@/lib/sanctionLists";
 import { napDebt } from "@/lib/napDebtors";
 import { officialLinks } from "@/components/PersonLinks";
 import { firmDeals } from "@/components/PropertyDeals";
 
-export type FirmSig = { level: "high" | "mid"; kind: "officials" | "political" | "debt" | "property" | "risk" | "flags" | "single"; n: number };
+export type FirmSig = { level: "high" | "mid"; kind: "sanctions" | "officials" | "political" | "debt" | "property" | "risk" | "flags" | "single"; n: number };
 
 /** Оценява договорите на фирмата като в страницата на договора (контекстът — за първите 10 по предварителна оценка). */
 export async function scoreFirm(eik: string) {
@@ -29,12 +30,13 @@ export async function scoreFirm(eik: string) {
 /** Сигналите (без текста): кои видове, с какво ниво и колко. */
 export async function firmSignals(eik: string, pre?: Awaited<ReturnType<typeof scoreFirm>>) {
   const S = pre ?? await scoreFirm(eik);
-  const [st, offs, debt, deals] = await Promise.all([supplierStats(eik).catch(() => null), officialLinks(eik).catch(() => []), napDebt(eik).catch(() => null), firmDeals(eik).catch(() => [])]);
+  const [sanc, st, offs, debt, deals] = await Promise.all([sanction(eik).catch(() => null), supplierStats(eik).catch(() => null), officialLinks(eik).catch(() => []), napDebt(eik).catch(() => null), firmDeals(eik).catch(() => [])]);
   const pl = politicalLinks(eik).length && S.political > 0 ? politicalLinks(eik).length : 0;
   const high = S.scored.filter((x) => x.score >= 45).length, mid = S.scored.filter((x) => x.score >= 20 && x.score < 45).length;
   const flags = new Set(S.scored.flatMap((x) => x.f.filter((f) => f.weight > 0).map((f) => f.id)));
   const total = st?.contracts ?? S.contracts.length, single = st?.single_offer ?? 0;
   const out: FirmSig[] = [];
+  if (sanc) out.push({ level: "high", kind: "sanctions", n: sanc.programs.length });
   if (offs.length) out.push({ level: "high", kind: "officials", n: offs.length });
   if (pl) out.push({ level: S.political === 2 ? "high" : "mid", kind: "political", n: pl });
   if (debt) out.push({ level: debt.eur >= 50000 ? "high" : "mid", kind: "debt", n: Math.round(debt.eur) });
@@ -57,5 +59,5 @@ export async function firmSigMany(eiks: string[]) {
   }));
   return out;
 }
-const KIND: Record<string, string> = { officials: "свързана с длъжностни лица", political: "връзка с политик", debt: "длъжник към НАП", property: "общинско имущество", risk: "рискови договори", flags: "флагове в договорите", single: "без конкуренция" };
+const KIND: Record<string, string> = { sanctions: "в санкционен списък", officials: "свързана с длъжностни лица", political: "връзка с политик", debt: "длъжник към НАП", property: "общинско имущество", risk: "рискови договори", flags: "флагове в договорите", single: "без конкуренция" };
 export const sigTitle = (kinds: string[]) => kinds.map((k) => KIND[k.split(":")[0]] ?? k).join(", ");
