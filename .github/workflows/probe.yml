@@ -1,24 +1,12 @@
-name: Проба
-on:
-  workflow_dispatch:
+name: probe
+on: workflow_dispatch
 jobs:
-  probe:
+  p:
     runs-on: ubuntu-latest
     steps:
-      - env:
-          PW: ${{ secrets.SITE_PASSWORD }}
+      - env: { PW: "${{ secrets.SITE_PASSWORD }}" }
         run: |
-          H=$(printf '%s' "$PW" | sha256sum | cut -d' ' -f1)
+          C="osz_auth=$(printf %s "$PW" | sha256sum | cut -d' ' -f1)"
           B=https://osaznatost.pavlin140.workers.dev
-          for p in /lica/ivan-aleksandrov-gavalyugov-537220 /lica/tihomir-sbkov-naidenov-e0d219 /porachki/firma/131090107 /porachki/firma/115004094; do
-            curl -s -m 60 -o p.html -H "Cookie: osz_auth=$H" "$B$p"
-            echo "PG $p box=$(grep -c 'Сигнали за риск · ' p.html) red=$(grep -o 'border-l-4 pl-3 border-red' p.html | wc -l) or=$(grep -o 'border-l-4 pl-3 border-\[#e08a2e\]' p.html | wc -l)"
-            python3 - <<'PY'
-          import re,html
-          s=open('p.html',encoding='utf-8').read()
-          i=s.find('Сигнали за риск · ')
-          if i>0:
-            t=re.sub(r'<[^>]+>','',s[i:i+5000]); t=html.unescape(t)
-            print('TX', re.sub(r'\s+',' ',t)[:700])
-          PY
-          done
+          curl -s -H "Cookie: $C" "$B/porachki/firma/130206808" | sed 's/<[^>]*>/ /g' | grep -o "Сигнали за риск[^·]\{0,400\}\|Петър Димитров Павлов[^.]\{0,80\}\|Свързана с длъжностни лица[^.]\{0,200\}" | head -5
+          echo ---; curl -s -H "Cookie: $C" "$B/api/firm-signals?eik=130206808,131090107" ; echo
