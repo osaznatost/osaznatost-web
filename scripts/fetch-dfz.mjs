@@ -17,6 +17,7 @@ const URL0 = "https://seu.dfz.bg/seu/f?p=727:8110:::NO:::";
 mkdirSync("data/dfz", { recursive: true });
 
 const num = (s) => { const v = Number(String(s ?? "").replace(/\s/g, "").replace(",", ".")); return Number.isFinite(v) ? v : 0; };
+async function retry(fn, n = 5) { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (i >= n) throw e; await new Promise((r) => setTimeout(r, 1500)); } } }
 const browser = await chromium.launch();
 const page = await browser.newPage({ userAgent: "osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)" });
 
@@ -31,7 +32,8 @@ for (const year of YEARS) {
     if (done.has(ob) || (ONLY && !ONLY.has(ob))) continue;
     if ((Date.now() - T0) / 60e3 > MINUTES) break;
     await page.goto(URL0, { waitUntil: "networkidle" });
-    await page.evaluate(([y, o, m]) => { apex.item("P8110_FORYEAR").setValue(y); apex.item("P8110_OBLAST").setValue(o); apex.item("P8110_AMOUNT_FUND").setValue("TOTAL"); apex.item("P8110_AMOUNT_FTYPE").setValue("GT"); apex.item("P8110_AMOUNT_FILTER").setValue(m); }, [year, ob, MIN]);
+    await page.waitForTimeout(1000);
+    await retry(() => page.evaluate(([y, o, m]) => { apex.item("P8110_FORYEAR").setValue(y); apex.item("P8110_OBLAST").setValue(o); apex.item("P8110_AMOUNT_FUND").setValue("TOTAL"); apex.item("P8110_AMOUNT_FTYPE").setValue("GT"); apex.item("P8110_AMOUNT_FILTER").setValue(m); }, [year, ob, MIN]));
     await page.waitForTimeout(1500);
     await Promise.all([page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), page.click("button:has-text('Покажи')")]);
     if (process.env.CSVTEST) {
