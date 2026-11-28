@@ -6,11 +6,10 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for p in 18 34; do echo "== $p"; curl -sL -A "$UA" https://www.adfi.minfin.bg/bg/$p > $p.html; wc -c $p.html; python3 -c "
-          import sys,re,html
-          s=open('$p.html').read(); i=s.find('<h1'); b=s[i:]
-          links=re.findall(r'<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)</a>',b,re.S)
-          print(len(links))
-          for h,t in links[:40]: print(h, re.sub(r'\s+',' ',html.unescape(re.sub('<[^>]+>','',t))).strip()[:150])
-          t=re.sub(r'\s+',' ',re.sub('<[^>]+>',' ',re.sub(r'<script.*?</script>','',b,flags=re.S)))
-          print(t[:1500])"; done
+          curl -sL -A "$UA" https://www.adfi.minfin.bg/bg/34 > 34.html
+          python3 -c "
+          import re,html
+          s=open('34.html').read(); i=s.find('информацията се актуализира'); b=s[i:]
+          print(b[:6000])
+          print('TR',b.count('<tr'),'TABLES',b.count('<table'))
+          k=b.find('Ботевград'); print('BOT',k); print(b[max(0,k-1500):k+800] if k>0 else '')"
