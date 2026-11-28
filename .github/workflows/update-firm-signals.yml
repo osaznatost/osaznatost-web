@@ -1,0 +1,32 @@
+name: Сигнали по фирми (за значките в списъците)
+on:
+  # schedule (Cloudflare):
+    # cf-cron: "23 1,13 * * *"
+  workflow_dispatch:
+    inputs:
+      minutes: { description: "Минути", default: "50" }
+permissions:
+  contents: write
+concurrency:
+  group: update-firm-signals
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Сигнали
+        env:
+          SITE_PASSWORD: ${{ secrets.SITE_PASSWORD }}
+          MINUTES: ${{ inputs.minutes || '50' }}
+        run: node scripts/build-firm-signals.mjs
+      - name: Запис
+        run: |
+          git config user.name "osaznatost-bot"; git config user.email "osaznatost-bot@users.noreply.github.com"
+          git add data/proc/firm-signals
+          git diff --cached --quiet && exit 0
+          git commit -qm "Сигнали по фирми"
+          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done

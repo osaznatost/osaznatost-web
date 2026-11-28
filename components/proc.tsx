@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { firmSigMany } from "@/lib/firmSignals";
+import { SigBadge } from "@/components/SigBadge";
 import { powerHref, powerLinks } from "@/lib/tr";
 import { peopleLinks } from "@/lib/people";
 import { type Annex, type Contract, buyerUrl, contractRef, contractUrl, firmUrl, fmtDate, fmtEur, politicalLinks } from "@/lib/procurement";
 import { isPublicFirm, politicalStrength } from "@/lib/politicalFlag.mjs";
 
 /** Точка до името на фирмата: червена при силна връзка с политик, оранжева при възможна (по имена). */
-export function PolDot({ eik }: { eik: string }) {
+export async function PolDot({ eik }: { eik: string }) {
+  const sg = (await firmSigMany([eik]).catch(() => null))?.get(eik);
+  if (sg?.n) return <SigBadge eik={eik} s={sg} />;
   const s = politicalStrength(politicalLinks(eik));
   if (s === 2) return <span title="Връзка с политик (депутат или декларирана)" className="text-red font-bold"> ●</span>;
   if (s === 1) return <span title="Възможна връзка с длъжностно лице, само по имена" className="text-[#e08a2e] font-bold"> ●</span>;

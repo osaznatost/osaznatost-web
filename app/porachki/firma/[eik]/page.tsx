@@ -38,7 +38,7 @@ async function FirmSignals({ eik, pl, political, offs, scored, single, total }: 
   if (!items.length) return null;
   const nh = items.filter((i) => i.level === "high").length;
   return (
-    <section className="ring-2 ring-red rounded-sm p-4 sm:p-5 mb-6 bg-white max-w-4xl text-[15px]">
+    <section id="signali" className="ring-2 ring-red rounded-sm p-4 sm:p-5 mb-6 bg-white max-w-4xl text-[15px] scroll-mt-32 lg:scroll-mt-20">
       <p className="text-sm font-semibold text-red">Сигнали за риск · тази фирма</p>
       <p className="display text-[1.6rem] leading-tight mb-2">{items.length} сигнал{items.length > 1 ? "а" : ""}{nh ? `, ${nh} сериозн${nh > 1 ? "и" : "о"}` : ""}</p>
       <ul className="space-y-1.5">{[...items.filter((i) => i.level === "high"), ...items.filter((i) => i.level !== "high")].map((i, k) => (
