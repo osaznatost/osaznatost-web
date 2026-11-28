@@ -15,6 +15,33 @@ import PROMISES from "@/content/promises.json";
 import { partyByGroup } from "@/lib/partyMeta";
 import { ELECTIONS, EXIT, PARTY_META, SUBSIDY, partyBySlug } from "@/lib/partyMeta";
 import { fmt } from "@/lib/stats";
+import { erikForParty } from "@/lib/erik";
+
+/** Дарения за кампаниите от ЕРИК (Сметната палата): сборове по избори и най-големите дарения с името на дарителя. */
+async function Donations({ names }: { names: string[] }) {
+  const r = await erikForParty(names).catch(() => null);
+  if (!r) return null;
+  const e = (v: number) => `${Math.round(v).toLocaleString("bg-BG")} €`;
+  const d = (s: string) => s.split("-").reverse().join(".");
+  return (
+    <section id="dareniya" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
+      <SectionTitle>Дарения за кампаниите</SectionTitle>
+      {r.rows.length === 0 ? <p className="text-[15px]">В регистъра на Сметната палата няма дарения за листа с това име в последните избори.</p> : (
+        <div className="space-y-6">
+          {r.rows.map(({ election, part }) => (
+            <div key={`${election.id}-${part.name}`}>
+              <p className="text-[15px]"><b>{election.name}</b> · {part.name}: <b className="num">{e(part.eur)}</b> от {part.n.toLocaleString("bg-BG")} дарения{part.inKind ? <> (в т.ч. {e(part.inKind)} непарични)</> : null}.</p>
+              {part.big.length > 0 && <details className="mt-1 text-[15px]"><summary className="cursor-pointer text-green font-semibold">Дарения от {e(r.E.bigFrom)} нагоре ({part.big.length})</summary>
+                <ul className="mt-2 space-y-0.5">{part.big.slice(0, 40).map((b, i) => <li key={i}><span className="num font-semibold">{e(b[1])}</span> · {b[0]} · {d(b[2])}{b[3] && !/парич/i.test(b[3]) ? ` · ${b[3].toLowerCase()}` : ""}{b[4] ? " · с декларация за произхода" : ""}</li>)}</ul>
+              </details>}
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-muted mt-3">Източник: {r.E.source}, данни към {d(r.E.fetched)}. Регистърът пази данните само до следващите избори от същия вид. Имената на дарителите са публикувани по Изборния кодекс; показваме ги само за даренията от {e(r.E.bigFrom)} нагоре, по-малките са в сбора.</p>
+    </section>
+  );
+}
 
 export function generateStaticParams() { return PARTY_META.map((p) => ({ slug: p.slug })); }
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -100,7 +127,7 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
         ))}
       </div>
 
-      <SectionNav items={[["izbirateli", "Избиратели"], ["profil", "Кой гласува за тях"], ["zakoni", "Закони"], ["temi", "По теми"], ["saiuznici", "С кого гласува"], ["signali", "Дела и санкции"], ["subsidiya", "Субсидия"], ["deputati", "Депутати"]]} />
+      <SectionNav items={[["izbirateli", "Избиратели"], ["profil", "Кой гласува за тях"], ["zakoni", "Закони"], ["temi", "По теми"], ["saiuznici", "С кого гласува"], ["signali", "Дела и санкции"], ["subsidiya", "Субсидия"], ["dareniya", "Дарения"], ["deputati", "Депутати"]]} />
 
       {shared && (
         <p className="bg-[#fbecc4] rounded-sm px-4 py-3 mb-10 max-w-3xl text-[15px]">
@@ -198,6 +225,8 @@ export default async function PartyPage({ params }: { params: Promise<{ slug: st
           </ul>)}
         <p className="text-xs text-muted mt-3">Пълен списък: <Link href="/proverki/sankcii">Санкции, обвинения и присъди</Link>.</p>
       </section>
+      <Donations names={[p.name, p.list, p.group]} />
+
       <section id="subsidiya" className="mb-14 scroll-mt-32 lg:scroll-mt-20">
         <SectionTitle>Държавна субсидия</SectionTitle>
         <div className="grid gap-4 md:grid-cols-3 mb-4">
