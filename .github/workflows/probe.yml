@@ -6,10 +6,8 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for p in zop 104 176 205 240 241 182 184 164 167 news/all; do echo "== $p"; curl -sL -A "$UA" https://www.adfi.minfin.bg/bg/$p | python3 -c "
+          curl -sL -A "$UA" https://www.adfi.minfin.bg/bg | python3 -c "
           import sys,re,html
-          s=sys.stdin.read(); m=re.search(r'<h1[^>]*>(.*?)</h1>',s,re.S); print('H1',html.unescape(re.sub('<[^>]+>','',m.group(1))).strip() if m else '-')
-          b=s[s.find('</h1>'):] if m else s
-          t=re.sub(r'\s+',' ',html.unescape(re.sub(r'<script.*?</script>|<style.*?</style>','',b,flags=re.S)))
-          t=re.sub('<[^>]+>',' ',t); print(re.sub(r'\s+',' ',t)[:500])
-          print([l for l in re.findall(r'href=\"([^\"]+)\"',b) if re.search(r'\.pdf|\.doc|\.xls|upload|files',l,re.I)][:6])"; done
+          for h,t in re.findall(r'<a[^>]+href=\"([^\"]+)\"[^>]*>(.*?)</a>',sys.stdin.read(),re.S):
+            t=re.sub(r'\s+',' ',html.unescape(re.sub('<[^>]+>','',t))).strip()
+            if re.search('инспекц|Доклад|Информация',t): print(h,t)"
