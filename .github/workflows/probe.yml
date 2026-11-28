@@ -7,5 +7,4 @@ jobs:
       - env: { PW: "${{ secrets.SITE_PASSWORD }}" }
         run: |
           C="osz_auth=$(printf %s "$PW" | sha256sum | cut -d' ' -f1)"
-          curl -s -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/mesta/sfo/sfo07?x=$RANDOM" | grep -o 'rounded-full px-1.5[^>]*>[^/]\{0,60\}' | head -20
-          curl -s -o /dev/null -w "%{http_code}\n" -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/mesta/sfo/sfo07"
+          for e in 831652485 106590683 202678749 121015330 131455374 831838874 202221469 204010264 204510636 180966379 181460096 204521636 181030130 130358132 203736454 831643461 831663282 831914037 202082418 175396059 200758584 205318980 175270007 206132758 202495819 040534040 125576297 111583886 130879167 203769479; do echo "R $(curl -s -m 150 -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/api/firm-signals?eik=$e")"; done
