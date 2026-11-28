@@ -5,13 +5,13 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with: { ref: probe }
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: sudo apt-get install -y -q poppler-utils antiword >/dev/null 2>&1
-      - name: Казанлък
-        env: { ONLY: SZR12, MINUTES: "25" }
-        run: |
-          node scripts/enrich-council-votes.mjs 2>&1 | tail -40
-          node -e 'const d=require("./data/council/SZR12.json").decisions; console.log("RES tally", d.filter(x=>x.tally).length, "named", d.filter(x=>x.votes?.length).length, "of", d.length); const x=d.find(x=>x.number=="964"||x.number==964); console.log("RES 964", JSON.stringify(x?.tally), x?.votes?.length, JSON.stringify(x?.votes?.slice(0,3)))'
+      - run: |
+          UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
+          curl -s -A "$UA" -m 60 -X POST https://data.egov.bg/api/searchDataset -H 'Content-Type: application/json' -d '{"criteria":{"keywords":"СЕБРА"},"records_per_page":30}' -o s.json -w "API %{http_code} %{size_download}\n"
+          python3 -c "
+          import json;d=json.load(open('s.json'))
+          print('K', list(d.keys())[:8])
+          for x in (d.get('datasets') or d.get('data') or [])[:30]: print('D', x.get('uri'), '|', (x.get('name') or '')[:110] if isinstance(x.get('name'),str) else x.get('name'), '|', x.get('org_id'), x.get('updated_at'))
+          " 2>&1 | head -40
+          curl -sL -A "$UA" -m 60 "https://data.egov.bg/data/search?q=%D0%A1%D0%95%D0%91%D0%A0%D0%90" -o h.html -w "WEB %{http_code} %{size_download}\n"
+          grep -oE 'href="https://data.egov.bg/data/view/[^"]+"[^>]*>[^<]{0,120}' h.html | head -20 | sed 's/^/W /'
