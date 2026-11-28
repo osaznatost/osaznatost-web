@@ -45,26 +45,36 @@ for (const year of YEARS) {
     const nextBtn = await retry(() => page.$("button.a-IRR-button--pagination[title='Next']"));
     if (nextBtn) { await nextBtn.click().catch(() => {}); for (let k = 0; k < 40 && !post; k++) await page.waitForTimeout(250); }
     page.off("request", onReq);
-    let html = null;
     if (post) {
-      const body = post.replace(/p_widget_action_mod=[^&]*/, "p_widget_action_mod=" + encodeURIComponent("pgR_min_row=1max_rows=100000rows_fetched=100000")).replace(/p_widget_num_return=\d+/, "p_widget_num_return=100000");
-      const r = await page.request.post("https://seu.dfz.bg/seu/wwv_flow.ajax", { data: body, headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }, timeout: 300000 });
-      html = await r.text();
-      if (process.env.DEBUG) console.log("DBG big", r.status(), html.length, (html.match(/<tr/g) || []).length, JSON.stringify(html.slice(0, 200)));
-    }
-    if (html && /<tr/.test(html)) {
-      const got = await page.evaluate((h) => { const d = new DOMParser().parseFromString(`<table>${h}</table>`, "text/html"); return [...d.querySelectorAll("tr")].map((tr) => [...tr.cells].map((c) => c.textContent.trim())).filter((r) => r.length >= 18); }, html);
-      let kept = 0;
-      for (const r of got) {
-        if (r[6] !== "ОБЩО") continue;
-        if (r[1] && r[1] !== "-") continue;
-        rows.set([r[0], r[3], r[4]].join("\u0001"), [r[0], r[3], r[4], num(r[11]), num(r[13]), num(r[15]), num(r[17])]);
-        kept++;
+      // По 500 реда на заявка (по-големите сървърът прекъсва)
+      let start = 1, total = 0, kept = 0, ok = true;
+      for (;;) {
+        const body = post.replace(/p_widget_action_mod=[^&]*/, "p_widget_action_mod=" + encodeURIComponent(`pgR_min_row=${start}max_rows=500rows_fetched=500`)).replace(/p_widget_num_return=\d+/, "p_widget_num_return=500");
+        let html = null;
+        for (let k = 0; k < 4 && html === null; k++) {
+          try { const r = await page.request.post("https://seu.dfz.bg/seu/wwv_flow.ajax", { data: body, headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }, timeout: 180000 }); html = r.ok() ? await r.text() : null; }
+          catch { await page.waitForTimeout(5000 * (k + 1)); }
+        }
+        if (html === null) { ok = false; break; }
+        const got = await page.evaluate((h) => { const d = new DOMParser().parseFromString(`<table>${h}</table>`, "text/html"); return [...d.querySelectorAll("tr")].map((tr) => [...tr.cells].map((c) => c.textContent.trim())).filter((r) => r.length >= 18 && r[0] !== "Име или код на бенефициент"); }, html);
+        for (const r of got) {
+          if (r[6] !== "ОБЩО") continue;
+          if (r[1] && r[1] !== "-") continue;
+          rows.set([r[0], r[3], r[4]].join("\u0001"), [r[0], r[3], r[4], num(r[11]), num(r[13]), num(r[15]), num(r[17])]);
+          kept++;
+        }
+        total += got.length;
+        if (process.env.DEBUG && start === 1) console.log("DBG chunk", html.length, got.length, JSON.stringify(got[0]).slice(0, 200));
+        if (got.length < 500) break;
+        start += 500;
+        await page.waitForTimeout(1000);
       }
-      done.add(ob);
-      console.log(`${year} ${ob}: ${got.length} реда наведнъж, ${kept} юридически лица`);
-      writeFileSync(f, JSON.stringify({ year, minLv: MIN, fetched: new Date().toISOString().slice(0, 10), oblasti: [...done], complete: done.size === oblasti.length, rows: [...rows.values()] }));
-      continue;
+      if (ok) {
+        done.add(ob);
+        console.log(`${year} ${ob}: ${total} реда, ${kept} юридически лица`);
+        writeFileSync(f, JSON.stringify({ year, minLv: MIN, fetched: new Date().toISOString().slice(0, 10), oblasti: [...done], complete: done.size === oblasti.length, rows: [...rows.values()] }));
+        continue;
+      }
     }
     console.log(`${year} ${ob}: заявката за всички редове не мина, по страници`);
     let pages = 0, kept = 0;
