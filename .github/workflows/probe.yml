@@ -4,9 +4,7 @@ jobs:
   p:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22 }
-      - run: |
-          MINUTES=3 PACE=1500 node scripts/import-concessions.mjs
-          node -e 'const j=require("./data/concessions.json");const w=j.items.filter(x=>x.firms.length);console.log(JSON.stringify(w.slice(0,6),null,1));console.log(j.items.filter(x=>x.muni).length)'
+      - env: { PW: "${{ secrets.SITE_PASSWORD }}" }
+        run: |
+          C="osz_auth=$(printf %s "$PW" | sha256sum | cut -d' ' -f1)"
+          for e in 831652485 106590683; do curl -s -m 200 -w " %{http_code} %{time_total}s\n" -H "Cookie: $C" "https://osaznatost.pavlin140.workers.dev/api/firm-signals?eik=$e"; done
