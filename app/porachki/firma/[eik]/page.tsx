@@ -119,14 +119,14 @@ async function Content({ params }: { params: Promise<{ eik: string }> }) {
   ];
   for (const [i, r] of offs.slice(0, 8).entries()) net.push({ id: `o${i}`, label: r.n, sub: `${r.r.toLowerCase()} · ${r.via ? `през ${r.via.toLowerCase().replace(/(^|\s)(\p{L})/gu, (_, a, b) => a + b.toUpperCase())}` : "пряко"}`, href: officialHref(r), group: "politician" });
   // Същата сметка като на страницата на договора: връзки по Търговския регистър и контекст (зависимост, дял, общи хора).
-  // Контекстът е по-тежък, затова се смята за първите 20 договора по предварителна оценка.
+  // Контекстът е по-тежък, затова се смята за първите 10 договора по предварителна оценка.
   const political = await linkStrength([eik]);
   const pre = await Promise.all(contracts.map(async (c) => {
     const ax = annexes.filter((a) => a.buyer_eik === c.buyer_eik && a.contract_number === c.contract_number);
     const f = await contractFlags(c, ax, political);
     return { c, ax, f, score: riskScore(f) };
   }));
-  const top = new Set([...pre].sort((a, b) => b.score - a.score).slice(0, 20));
+  const top = new Set([...pre].sort((a, b) => b.score - a.score).slice(0, 10));
   const scored = await Promise.all(pre.map(async (x) => {
     if (!top.has(x)) return { c: x.c, f: x.f, score: x.score };
     const f = await contractFlags(x.c, x.ax, political, await contractContext(x.c));
