@@ -34,6 +34,19 @@ for (const year of YEARS) {
     await page.evaluate(([y, o, m]) => { apex.item("P8110_FORYEAR").setValue(y); apex.item("P8110_OBLAST").setValue(o); apex.item("P8110_AMOUNT_FUND").setValue("TOTAL"); apex.item("P8110_AMOUNT_FTYPE").setValue("GT"); apex.item("P8110_AMOUNT_FILTER").setValue(m); }, [year, ob, MIN]);
     await page.waitForTimeout(1500);
     await Promise.all([page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), page.click("button:has-text('Покажи')")]);
+    if (process.env.CSVTEST) {
+      const sid = await page.evaluate(() => document.getElementById("pInstance")?.value);
+      for (const req of ["CSV", "IR_CSV"]) {
+        const r = await page.request.get(`https://seu.dfz.bg/seu/f?p=727:8110:${sid}:${req}::::`);
+        const t = await r.text();
+        console.log("CSV", req, r.status(), r.headers()["content-type"], t.length, JSON.stringify(t.slice(0, 300)));
+      }
+      const dl = await page.$$eval("button, a", (bs) => bs.map((b) => (b.textContent || "").trim() + "|" + (b.getAttribute("data-action") || b.id || "")).filter((x) => /csv|download|изтегл|действ|actions/i.test(x)));
+      console.log("BTN", JSON.stringify(dl));
+      // брой редове на страница
+      console.log("ROWS", JSON.stringify(await page.$$eval("select", (ss) => ss.map((s) => s.id + ":" + [...s.options].map((o) => o.value).join(",")).filter((x) => /row|ред/i.test(x)))));
+      break;
+    }
     let pages = 0, kept = 0;
     for (;;) {
       await page.waitForTimeout(800);
