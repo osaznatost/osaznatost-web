@@ -33,11 +33,15 @@ for (const year of YEARS) {
     await page.goto(URL0, { waitUntil: "networkidle" });
     await page.evaluate(([y, o, m]) => { apex.item("P8110_FORYEAR").setValue(y); apex.item("P8110_OBLAST").setValue(o); apex.item("P8110_AMOUNT_FUND").setValue("TOTAL"); apex.item("P8110_AMOUNT_FTYPE").setValue("GT"); apex.item("P8110_AMOUNT_FILTER").setValue(m); }, [year, ob, MIN]);
     await page.waitForTimeout(1500);
-    await Promise.all([page.waitForLoadState("networkidle"), page.click("button:has-text('Покажи')")]);
+    await Promise.all([page.waitForNavigation({ waitUntil: "networkidle" }).catch(() => {}), page.click("button:has-text('Покажи')")]);
     let pages = 0, kept = 0;
     for (;;) {
       await page.waitForTimeout(800);
-      const got = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).filter((r) => r.length >= 18));
+      let got = [];
+      for (let k = 0; k < 5; k++) {
+        try { got = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).filter((r) => r.length >= 18)); break; }
+        catch { await page.waitForLoadState("networkidle").catch(() => {}); await page.waitForTimeout(1500); }
+      }
       for (const r of got) {
         if (r[6] !== "ОБЩО") continue; // само обобщението по бенефициент
         if (r[1] && r[1] !== "-") continue; // физическо лице (има фамилия) — не пазим
@@ -47,7 +51,10 @@ for (const year of YEARS) {
       pages++;
       const next = await page.$("a.t-Report-paginationLink--next, a:has-text('Следващ'), a[title*='Следващ']");
       if (!next) break;
-      await Promise.all([page.waitForLoadState("networkidle"), next.click()]);
+      const before = got[0]?.join("|");
+      await next.click();
+      // страницирането е с AJAX или с презареждане: чакаме таблицата да се смени
+      for (let k = 0; k < 30; k++) { await page.waitForTimeout(500); const first = await page.$$eval("table tr", (trs) => trs.map((tr) => [...tr.cells].map((c) => c.textContent.trim())).find((r) => r.length >= 18)?.join("|")).catch(() => null); if (first && first !== before) break; }
     }
     done.add(ob);
     console.log(`${year} ${ob}: ${pages} стр., ${kept} юридически лица`);
