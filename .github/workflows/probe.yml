@@ -6,4 +6,5 @@ jobs:
     steps:
       - run: |
           UA="osaznatost-bot/1.0 (+https://osaznatost.pavlin140.workers.dev)"
-          for u in https://www.adfi.minfin.bg/ https://adfi.minfin.bg/bg/ https://www.minfin.bg/bg/1043 https://reg.cpc.bg/ https://www.cpc.bg/ ; do echo "== $u"; curl -sL -A "$UA" -m 30 -o p.html -w "%{http_code} %{url_effective} %{size_download}\n" "$u" || true; grep -o 'href="[^"]*"' p.html | sort -u | grep -i "proverk\|resheni\|doklad\|report\|inspect\|decision\|zop\|Publi\|search\|nakazat" | head -15; done
+          curl -sL -A "$UA" https://www.adfi.minfin.bg/ | grep -o 'href="[^"]*"' | sort -u | head -80
+          echo "== zop"; curl -sL -A "$UA" https://www.adfi.minfin.bg/bg/zop | sed 's/<[^>]*>/ /g' | tr -s ' \n' | head -c 3000
