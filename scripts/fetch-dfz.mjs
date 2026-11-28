@@ -51,6 +51,7 @@ for (const year of YEARS) {
       if (pages % 20 === 0) console.log(`  … ${ob}: страница ${pages + 1}, ${rows.size} общо`);
       pages++;
       const next = await page.$("button.a-IRR-button--pagination[title='Next'], button.a-IRR-button--pagination[aria-label='Next'], button.a-IRR-button--pagination[title='Следващ']");
+      if (process.env.DEBUG && pages === 1) console.log("DBG", got.length, JSON.stringify(await page.$$eval("button.a-IRR-button--pagination, .a-IRR-pagination-label", (bs) => bs.map((b) => b.outerHTML.slice(0, 160)))), [...new Set(got.map((r) => r[4]))].join(","));
       if (!next || (await next.isDisabled().catch(() => true))) break;
       const before = got[0]?.join("|");
       await next.click();
