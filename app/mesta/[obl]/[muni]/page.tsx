@@ -15,6 +15,8 @@ import { Suspense } from "react";
 import { Anchor, SectionNav } from "@/components/SectionNav";
 import { AuditsList } from "@/components/AuditsList";
 import { auditsOfMuni } from "@/lib/audits";
+import { adfiOfMuni } from "@/lib/adfi";
+import { AdfiList } from "@/components/AdfiList";
 import { MuniPower } from "@/components/MuniPower";
 import { CouncilCoverage } from "@/components/CouncilCoverage";
 import { MuniLinks } from "@/components/PersonLinks";
@@ -45,7 +47,7 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
     ...hist.filter((h) => h.expenditure != null).map((h) => ({ series: "Разходи", x: h.year, value: Math.round(h.expenditure! / 1e5) / 10 })),
     ...hist.filter((h) => h.debt != null).map((h) => ({ series: "Дълг", x: h.year, value: Math.round(h.debt! / 1e5) / 10 })),
   ];
-  const [P, PO, audits] = await Promise.all([placeData(m.code), placeObl(), auditsOfMuni(m.code)]);
+  const [P, PO, audits, adfi] = await Promise.all([placeData(m.code), placeObl(), auditsOfMuni(m.code), adfiOfMuni(m.code).catch(() => [])]);
   const C = P?.census, OC = PO.oblasts[m.code.slice(0, 3)], BG = PO.country;
   const names = Object.fromEntries(m.settlements.map(([ek, name, t]) => [ek, { name, town: t === 0 }]));
   const pc = (part: number | undefined, total: number) => (part == null ? "–" : `${fmt(share(part, total), 1)}%`);
@@ -169,6 +171,14 @@ export default async function MuniPage({ params }: { params: Promise<{ obl: stri
           <SectionTitle>Проверки на Сметната палата</SectionTitle>
           <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Одитните доклади, в които е проверявана общината. В тях са констатациите и препоръките; при съмнение за престъпление Сметната палата сезира прокуратурата.</p>
           <AuditsList items={audits} />
+        </section>
+      )}
+
+      {adfi.length > 0 && (
+        <section id="adfi" className="mb-12 scroll-mt-32 lg:scroll-mt-20">
+          <SectionTitle>Финансови инспекции (АДФИ)</SectionTitle>
+          <p className="text-[15px] text-muted -mt-3 mb-4 max-w-3xl">Агенцията за държавна финансова инспекция проверява дали парите са харчени законно, включително обществените поръчки. Тук са докладите за общината и за нейните училища, болници и общински фирми, публикувани след февруари 2024 г. При нарушения АДФИ съставя актове, а при вреди сезира прокуратурата.</p>
+          <AdfiList items={[...adfi.filter((a) => a.self), ...adfi.filter((a) => !a.self)]} />
         </section>
       )}
 

@@ -11,6 +11,8 @@ const strip = (s) => s.replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(
 const places = JSON.parse(readFileSync("data/places.json", "utf8")).oblasts;
 const MUNI = [];
 for (const o of places) for (const m of o.municipalities) MUNI.push({ code: m.code, name: m.name.replace(/^Община\s+/, ""), oblast: o.name, center: (m.settlements.find((s) => s[2] === 0) ?? [])[1] ?? m.name });
+const SETT = new Map();
+for (const o of places) for (const m of o.municipalities) SETT.set(m.code, new Set(m.settlements.map((x) => x[1].toLowerCase())));
 const norm = (s) => s.toLowerCase().replace(/[„“"]/g, "").replace(/\s+/g, " ").trim();
 const one = (arr) => (arr.length === 1 ? arr[0].code : null);
 
@@ -19,6 +21,13 @@ function place(obj) {
   const m = obj.match(/^(?:Община|Общинска администрация)\s+([А-Я][а-яё-]+(?:[ -][А-Я][а-яё-]+)?)/);
   if (/^Столична община/i.test(obj)) return { code: "SOF46", self: true };
   if (m) { const n = norm(m[1]); const obl = obj.match(/област\s+([А-Я][а-я]+)/)?.[1]; let h = MUNI.filter((x) => norm(x.name) === n); if (h.length > 1 && obl) h = h.filter((x) => x.oblast.startsWith(obl)); const c = one(h); if (c) return { code: c, self: true }; }
+  // „…, община Y“ някъде в името
+  const om = obj.match(/[Оо]бщина\s+([А-Я][а-яё-]+(?:[ -][А-Я][а-яё-]+)?)/)?.[1];
+  if (om) { const c = one(MUNI.filter((x) => norm(x.name) === norm(om))); if (c) return { code: c, self: false }; }
+  if (/(?:гр\.\s*|,\s*|^)София\b|София[- ]град/.test(obj)) return { code: "SOF46", self: false };
+  // „с. Х“ — селото, ако името му е еднозначно в страната
+  const sm = obj.match(/(?:с\.|село)\s*([А-Я][а-яё-]+(?:[ -][А-Я][а-яё-]+)?)/)?.[1];
+  if (sm) { const h = MUNI.filter((x) => SETT.get(x.code)?.has(norm(sm))); const c = one(h); if (c) return { code: c, self: false }; }
   // друг обект (училище, болница, ВиК, общинска фирма): по „гр. Х“ — градът е център на община
   const g = obj.match(/(?:гр\.|град)\s*([А-Я][а-яё-]+(?:[ -][А-Я][а-яё-]+)?)/)?.[1] ?? obj.match(/[-–]\s*([А-Я][а-яё-]+)\s*(?:ЕООД|ООД|АД)?\s*$/)?.[1];
   if (g) { const c = one(MUNI.filter((x) => norm(x.center) === norm(g))); if (c) return { code: c, self: false }; }
